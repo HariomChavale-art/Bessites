@@ -1,52 +1,184 @@
 {
   "placeholderImages": [
     {
-      "id": "hero-1",
-      "description": "Abstract neon digital art",
-      "imageUrl": "https://picsum.photos/seed/netflow-h1/1200/400",
-      "imageHint": "neon tech"
+      "id": "lootdrop",
+      "description": "Loot Drop interface",
+      "imageUrl": "https://picsum.photos/seed/loot/600/400",
+      "imageHint": "gaming vault"
     },
     {
-      "id": "hero-2",
-      "description": "Cyberpunk cityscape",
-      "imageUrl": "https://picsum.photos/seed/netflow-h2/1200/400",
-      "imageHint": "cyberpunk city"
+      "id": "emojikitchen",
+      "description": "Emoji mashup tool",
+      "imageUrl": "https://picsum.photos/seed/emoji/600/400",
+      "imageHint": "emoji art"
     },
     {
-      "id": "app-1",
+      "id": "dofsimulator",
+      "description": "Depth of field camera simulator",
+      "imageUrl": "https://picsum.photos/seed/camera/600/400",
+      "imageHint": "photography lens"
+    },
+    {
+      "id": "carcarekiosk",
+      "description": "DIY car repair guide",
+      "imageUrl": "https://picsum.photos/seed/car/600/400",
+      "imageHint": "auto repair"
+    },
+    {
+      "id": "modsnation",
+      "description": "Gaming mod community",
+      "imageUrl": "https://picsum.photos/seed/mods/600/400",
+      "imageHint": "game modding"
+    },
+    {
+      "id": "kartbros",
+      "description": "Kart racing game portal",
+      "imageUrl": "https://picsum.photos/seed/kart/600/400",
+      "imageHint": "racing game"
+    },
+    {
+      "id": "tenasa",
       "description": "Productivity dashboard",
-      "imageUrl": "https://picsum.photos/seed/app1/600/800",
-      "imageHint": "dashboard software"
+      "imageUrl": "https://picsum.photos/seed/tenasa/600/400",
+      "imageHint": "office productivity"
     },
     {
-      "id": "app-2",
-      "description": "Creative design tool",
-      "imageUrl": "https://picsum.photos/seed/app2/600/400",
-      "imageHint": "creative design"
+      "id": "delphi",
+      "description": "AI prediction market",
+      "imageUrl": "https://picsum.photos/seed/delphi/600/400",
+      "imageHint": "ai data"
     },
     {
-      "id": "app-3",
-      "description": "Social networking concept",
-      "imageUrl": "https://picsum.photos/seed/app3/600/900",
-      "imageHint": "social app"
+      "id": "privnote",
+      "description": "Self-destructing notes",
+      "imageUrl": "https://picsum.photos/seed/note/600/400",
+      "imageHint": "secret message"
     },
     {
-      "id": "app-4",
-      "description": "E-commerce platform",
-      "imageUrl": "https://picsum.photos/seed/app4/600/600",
-      "imageHint": "online store"
+      "id": "picular",
+      "description": "Color search engine",
+      "imageUrl": "https://picsum.photos/seed/color/600/400",
+      "imageHint": "color palette"
     },
     {
-      "id": "app-5",
-      "description": "Travel booking interface",
-      "imageUrl": "https://picsum.photos/seed/app5/600/750",
-      "imageHint": "travel website"
+      "id": "redcoats",
+      "description": "Strategy game interface",
+      "imageUrl": "https://picsum.photos/seed/battle/600/400",
+      "imageHint": "strategy game"
     },
     {
-      "id": "app-6",
-      "description": "Finance tracker app",
-      "imageUrl": "https://picsum.photos/seed/app6/600/500",
-      "imageHint": "finance app"
+      "id": "3dsvg",
+      "description": "SVG to 3D converter",
+      "imageUrl": "https://picsum.photos/seed/3d/600/400",
+      "imageHint": "3d design"
+    },
+    {
+      "id": "storyset",
+      "description": "Customizable illustrations",
+      "imageUrl": "https://picsum.photos/seed/story/600/400",
+      "imageHint": "vector illustration"
+    },
+    {
+      "id": "eyecandy",
+      "description": "Visual design inspiration",
+      "imageUrl": "https://picsum.photos/seed/candy/600/400",
+      "imageHint": "graphic design"
+    },
+    {
+      "id": "entertrained",
+      "description": "Educational training portal",
+      "imageUrl": "https://picsum.photos/seed/train/600/400",
+      "imageHint": "elearning portal"
+    },
+    {
+      "id": "toontone",
+      "description": "Cartoon voice effects",
+      "imageUrl": "https://picsum.photos/seed/toon/600/400",
+      "imageHint": "cartoon sound"
+    },
+    {
+      "id": "paperme",
+      "description": "Digital paper crafting",
+      "imageUrl": "https://picsum.photos/seed/paper/600/400",
+      "imageHint": "paper craft"
+    },
+    {
+      "id": "workout",
+      "description": "Interactive fitness coach",
+      "imageUrl": "https://picsum.photos/seed/gym/600/400",
+      "imageHint": "fitness app"
+    },
+    {
+      "id": "hotkey",
+      "description": "Keyboard shortcut database",
+      "imageUrl": "https://picsum.photos/seed/keys/600/400",
+      "imageHint": "keyboard code"
+    },
+    {
+      "id": "apps123",
+      "description": "Online tool suite",
+      "imageUrl": "https://picsum.photos/seed/apps/600/400",
+      "imageHint": "web tools"
+    },
+    {
+      "id": "neal",
+      "description": "Quirky web experiments",
+      "imageUrl": "https://picsum.photos/seed/fun/600/400",
+      "imageHint": "internet art"
+    },
+    {
+      "id": "tinkercad",
+      "description": "3D design for beginners",
+      "imageUrl": "https://picsum.photos/seed/cad/600/400",
+      "imageHint": "3d modeling"
+    },
+    {
+      "id": "buildcores",
+      "description": "PC building simulator",
+      "imageUrl": "https://picsum.photos/seed/pc/600/400",
+      "imageHint": "computer build"
+    },
+    {
+      "id": "funes",
+      "description": "Historical memory game",
+      "imageUrl": "https://picsum.photos/seed/history/600/400",
+      "imageHint": "memory game"
+    },
+    {
+      "id": "deadshot",
+      "description": "Aim trainer for FPS",
+      "imageUrl": "https://picsum.photos/seed/aim/600/400",
+      "imageHint": "gaming trainer"
+    },
+    {
+      "id": "movewalls",
+      "description": "Dynamic wall art generator",
+      "imageUrl": "https://picsum.photos/seed/wall/600/400",
+      "imageHint": "abstract wallpaper"
+    },
+    {
+      "id": "zperiod",
+      "description": "Minimalist focused timer",
+      "imageUrl": "https://picsum.photos/seed/time/600/400",
+      "imageHint": "focus timer"
+    },
+    {
+      "id": "shader",
+      "description": "Abstract gradient designer",
+      "imageUrl": "https://picsum.photos/seed/gradient/600/400",
+      "imageHint": "color gradient"
+    },
+    {
+      "id": "jetpunk",
+      "description": "Educational trivia quizzes",
+      "imageUrl": "https://picsum.photos/seed/quiz/600/400",
+      "imageHint": "trivia quiz"
+    },
+    {
+      "id": "autodraw",
+      "description": "AI-powered drawing tool",
+      "imageUrl": "https://picsum.photos/seed/draw/600/400",
+      "imageHint": "ai drawing"
     }
   ]
 }

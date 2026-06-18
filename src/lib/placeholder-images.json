@@ -1,3 +1,52 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-1",
+      "description": "Abstract neon digital art",
+      "imageUrl": "https://picsum.photos/seed/netflow-h1/1200/400",
+      "imageHint": "neon tech"
+    },
+    {
+      "id": "hero-2",
+      "description": "Cyberpunk cityscape",
+      "imageUrl": "https://picsum.photos/seed/netflow-h2/1200/400",
+      "imageHint": "cyberpunk city"
+    },
+    {
+      "id": "app-1",
+      "description": "Productivity dashboard",
+      "imageUrl": "https://picsum.photos/seed/app1/600/800",
+      "imageHint": "dashboard software"
+    },
+    {
+      "id": "app-2",
+      "description": "Creative design tool",
+      "imageUrl": "https://picsum.photos/seed/app2/600/400",
+      "imageHint": "creative design"
+    },
+    {
+      "id": "app-3",
+      "description": "Social networking concept",
+      "imageUrl": "https://picsum.photos/seed/app3/600/900",
+      "imageHint": "social app"
+    },
+    {
+      "id": "app-4",
+      "description": "E-commerce platform",
+      "imageUrl": "https://picsum.photos/seed/app4/600/600",
+      "imageHint": "online store"
+    },
+    {
+      "id": "app-5",
+      "description": "Travel booking interface",
+      "imageUrl": "https://picsum.photos/seed/app5/600/750",
+      "imageHint": "travel website"
+    },
+    {
+      "id": "app-6",
+      "description": "Finance tracker app",
+      "imageUrl": "https://picsum.photos/seed/app6/600/500",
+      "imageHint": "finance app"
+    }
+  ]
 }

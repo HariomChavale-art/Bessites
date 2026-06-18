@@ -3,8 +3,9 @@
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
 import Image from "next/image";
-import { Star, ArrowUpRight } from "lucide-react";
+import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 interface WebsiteCardProps {
   website: Website;
@@ -13,49 +14,61 @@ interface WebsiteCardProps {
 export function WebsiteCard({ website }: WebsiteCardProps) {
   return (
     <Link href={`/website/${website.id}`} className="block break-inside-avoid mb-6 group">
-      <div className="relative rounded-2xl overflow-hidden bg-card border border-white/5 transition-all duration-500 group-hover:border-primary/40 group-hover:shadow-[0_0_20px_rgba(123,51,255,0.15)] group-hover:-translate-y-1">
-        {/* Main Visual */}
-        <div className="relative aspect-auto">
+      <div className="relative rounded-3xl overflow-hidden bg-[#121212] border border-white/5 transition-all duration-300 group-hover:border-primary/30 group-hover:shadow-2xl">
+        
+        {/* Image Container */}
+        <div className="relative overflow-hidden">
           <Image 
             src={website.imageUrl} 
             alt={website.name}
             width={600}
             height={800}
-            className="w-full h-auto object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+            className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
             data-ai-hint="app interface"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           
-          <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-            <div className="bg-primary p-2 rounded-full text-white shadow-lg glow-primary">
-              <ArrowUpRight className="w-4 h-4" />
+          {/* Floating Rating Badge (Top Left) */}
+          <div className="absolute top-3 left-3 z-10">
+            <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10">
+              <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+              <span className="text-xs font-bold text-white">{website.rating.toFixed(1)}</span>
             </div>
           </div>
+
+          {/* Bottom Blur Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[#121212] to-transparent backdrop-blur-[2px]" />
         </div>
 
-        {/* Content */}
-        <div className="p-4">
-          <div className="flex items-start justify-between mb-2">
-            <div>
-              <h3 className="font-headline font-bold text-lg text-white group-hover:text-primary transition-colors">
-                {website.name}
-              </h3>
-              <p className="text-xs text-muted-foreground line-clamp-1">
-                By {website.developer}
-              </p>
-            </div>
-            <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-md">
-              <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-              <span className="text-xs font-medium text-white">{website.rating}</span>
-            </div>
+        {/* Content Section */}
+        <div className="p-5 space-y-3">
+          {/* Title and Pricing Row */}
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="font-headline font-bold text-lg text-white group-hover:text-primary transition-colors truncate">
+              {website.name}
+            </h3>
+            <Badge 
+              variant="outline" 
+              className={`
+                text-[10px] font-bold px-2 py-0.5 rounded-md border-none
+                ${website.pricing === 'Free' ? 'bg-white/10 text-muted-foreground' : 'bg-primary/20 text-primary'}
+              `}
+            >
+              {website.pricing?.toUpperCase() || 'FREE'}
+            </Badge>
           </div>
 
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {website.categories.slice(0, 2).map(cat => (
-              <Badge key={cat} variant="secondary" className="text-[10px] bg-white/5 hover:bg-primary/20 hover:text-primary transition-colors cursor-pointer border-none">
-                {cat}
-              </Badge>
-            ))}
+          {/* Short Description */}
+          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+            {website.description}
+          </p>
+
+          <Separator className="bg-white/5" />
+
+          {/* Categories / Metadata */}
+          <div className="flex flex-wrap gap-x-2 gap-y-1">
+            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+              {website.categories.join(' / ')}
+            </span>
           </div>
         </div>
       </div>

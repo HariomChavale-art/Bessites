@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Website } from "@/lib/mock-data";
@@ -15,7 +14,7 @@ interface WebsiteCardProps {
 export function WebsiteCard({ website }: WebsiteCardProps) {
   return (
     <Link href={`/website/${website.id}`} className="block break-inside-avoid mb-6 group">
-      <div className="relative rounded-3xl overflow-hidden bg-[#121212] border border-white/5 transition-all duration-300 group-hover:border-primary/30 group-hover:shadow-2xl">
+      <div className="relative rounded-3xl overflow-hidden bg-card/60 border border-white/5 transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-2xl group-hover:bg-card/80">
         
         {/* Image Container */}
         <div className="relative overflow-hidden">
@@ -24,34 +23,36 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
             alt={website.name}
             width={600}
             height={800}
-            className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
             data-ai-hint={website.imageHint}
           />
           
           {/* Floating Rating Badge (Top Left) */}
-          <div className="absolute top-3 left-3 z-10">
-            <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10">
-              <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-              <span className="text-xs font-bold text-white">{website.rating.toFixed(1)}</span>
+          <div className="absolute top-4 left-4 z-10">
+            <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-xl px-2.5 py-1 rounded-full border border-white/10 shadow-lg">
+              <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+              <span className="text-xs font-bold text-white tracking-tight">{website.rating.toFixed(1)}</span>
             </div>
           </div>
 
-          {/* Bottom Blur Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#121212] via-[#121212]/80 to-transparent backdrop-blur-[4px]" />
+          {/* Faded Blur Overlay with Blue-tinted Gradient */}
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-card via-card/60 to-transparent backdrop-blur-[2px]" />
         </div>
 
-        {/* Content Section */}
-        <div className="p-5 space-y-3 relative z-10 -mt-8">
+        {/* Content Section - Sunk into the image with -mt-12 */}
+        <div className="p-6 pt-0 space-y-3 relative z-10 -mt-12">
           {/* Title and Pricing Row */}
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="font-headline font-bold text-lg text-white group-hover:text-primary transition-colors truncate">
-              {website.name}
-            </h3>
+          <div className="flex items-end justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-headline font-bold text-xl text-white group-hover:text-primary transition-colors truncate drop-shadow-md">
+                {website.name}
+              </h3>
+            </div>
             <Badge 
               variant="outline" 
               className={`
-                text-[10px] font-bold px-2 py-0.5 rounded-md border-none
-                ${website.pricing === 'Free' ? 'bg-white/10 text-muted-foreground' : 'bg-primary/20 text-primary'}
+                text-[10px] font-extrabold px-2.5 py-1 rounded-lg border-none shrink-0 shadow-sm
+                ${website.pricing === 'Free' ? 'bg-white/10 text-white/70' : 'bg-primary/30 text-white'}
               `}
             >
               {website.pricing?.toUpperCase() || 'FREE'}
@@ -59,16 +60,20 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
           </div>
 
           {/* Short Description */}
-          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+          <p className="text-sm text-muted-foreground/80 line-clamp-2 leading-relaxed font-medium">
             {website.description}
           </p>
 
-          <Separator className="bg-white/5" />
+          <Separator className="bg-white/10" />
 
           {/* Categories / Metadata */}
-          <div className="flex flex-wrap gap-x-2 gap-y-1">
-            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-              {website.categories.join(' / ')}
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold text-primary/80 uppercase tracking-widest">
+              {website.categories[0]}
+            </span>
+            <span className="w-1 h-1 rounded-full bg-white/20" />
+            <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-wider">
+              {website.categories.slice(1).join(' / ')}
             </span>
           </div>
         </div>

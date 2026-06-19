@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Website } from "@/lib/mock-data";
@@ -24,7 +25,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
             width={600}
             height={800}
             className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
-            data-ai-hint="app interface"
+            data-ai-hint={website.imageHint}
           />
           
           {/* Floating Rating Badge (Top Left) */}
@@ -36,11 +37,11 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
           </div>
 
           {/* Bottom Blur Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[#121212] to-transparent backdrop-blur-[2px]" />
+          <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#121212] via-[#121212]/80 to-transparent backdrop-blur-[4px]" />
         </div>
 
         {/* Content Section */}
-        <div className="p-5 space-y-3">
+        <div className="p-5 space-y-3 relative z-10 -mt-8">
           {/* Title and Pricing Row */}
           <div className="flex items-center justify-between gap-2">
             <h3 className="font-headline font-bold text-lg text-white group-hover:text-primary transition-colors truncate">

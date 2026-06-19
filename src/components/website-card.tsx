@@ -35,12 +35,12 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
             </div>
           </div>
 
-          {/* Faded Blur Overlay with Blue-tinted Gradient */}
-          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-card via-card/60 to-transparent backdrop-blur-[2px]" />
+          {/* Faded Blur Overlay - Shortened height from h-32 to h-20 */}
+          <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-card via-card/40 to-transparent backdrop-blur-[1px]" />
         </div>
 
-        {/* Content Section - Sunk into the image with -mt-12 */}
-        <div className="p-6 pt-0 space-y-3 relative z-10 -mt-12">
+        {/* Content Section - Sunk into the image with -mt-8 (tightened from -mt-12) */}
+        <div className="p-6 pt-0 space-y-3 relative z-10 -mt-8">
           {/* Title and Pricing Row */}
           <div className="flex items-end justify-between gap-3">
             <div className="flex-1 min-w-0">

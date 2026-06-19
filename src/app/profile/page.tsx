@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Navigation } from "@/components/navigation";
@@ -39,7 +40,7 @@ export default function ProfilePage() {
             <Link href="/submit">
               <Button className="rounded-full px-8 bg-primary hover:bg-primary/90 text-white glow-primary">
                 <UploadCloud className="w-4 h-4 mr-2" />
-                Upload App
+                Upload Website
               </Button>
             </Link>
           </div>
@@ -81,7 +82,7 @@ export default function ProfilePage() {
                 ))}
               </div>
             ) : (
-              <EmptyState title="No saved apps yet" description="Explore the feed and bookmark your favorites." />
+              <EmptyState title="No saved websites yet" description="Explore the feed and bookmark your favorites." />
             )}
           </TabsContent>
 
@@ -99,7 +100,7 @@ export default function ProfilePage() {
                 <Plus className="w-10 h-10 text-primary" />
               </div>
               <h3 className="text-xl font-bold text-white mb-2">Share your creation</h3>
-              <p className="text-muted-foreground max-w-xs mb-8">Got a cool web app? Submit it to our community for review and discovery.</p>
+              <p className="text-muted-foreground max-w-xs mb-8">Got a cool web tool? Submit it to our community for review and discovery.</p>
               <Link href="/submit">
                 <Button className="rounded-full px-10 bg-white text-background hover:bg-white/90">
                   Submit Now

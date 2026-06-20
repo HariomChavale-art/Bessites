@@ -12,7 +12,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Zap, Chrome, Loader2 } from "lucide-react";
+import { Zap, Chrome, Loader2, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -29,8 +30,19 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (mode === 'login') {
-        await signInWithEmailAndPassword(auth, email, password);
-        router.push("/profile");
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        const user = result.user;
+        
+        // Check onboarding
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        const userData = docSnap.data();
+
+        if (userData?.onboardingComplete) {
+          router.push("/profile");
+        } else {
+          router.push("/onboarding");
+        }
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
@@ -64,7 +76,6 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Check if profile exists
       const docRef = doc(db, "users", user.uid);
       const docSnap = await getDoc(docRef);
 
@@ -90,7 +101,7 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: "Google Login Failed",
-        description: error.message,
+        description: error.message || "Please check if Google sign-in is enabled in Firebase Console.",
       });
     } finally {
       setLoading(false);
@@ -98,25 +109,34 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background to-background">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
+      <div className="absolute top-8 left-8">
+        <Link href="/">
+          <Button variant="ghost" className="text-muted-foreground hover:text-white">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Button>
+        </Link>
+      </div>
+
       <div className="w-full max-w-md">
-        <div className="flex flex-col items-center mb-8">
-          <div className="bg-primary p-3 rounded-2xl mb-4 glow-primary">
-            <Zap className="w-8 h-8 text-white" fill="white" />
+        <div className="flex flex-col items-center mb-10">
+          <div className="bg-primary p-4 rounded-2xl mb-6 glow-primary shadow-[0_0_30px_rgba(123,51,255,0.4)]">
+            <Zap className="w-10 h-10 text-white" fill="white" />
           </div>
-          <h1 className="text-3xl font-headline font-bold text-white">Join NetFlow</h1>
-          <p className="text-muted-foreground text-sm">Discover the future of the web.</p>
+          <h1 className="text-4xl font-headline font-extrabold text-white tracking-tight">NetFlow</h1>
+          <p className="text-muted-foreground mt-2 text-center">Curate the future of the web.</p>
         </div>
 
-        <Card className="bg-card/50 backdrop-blur-xl border-white/5 shadow-2xl">
-          <CardHeader>
+        <Card className="bg-card/30 backdrop-blur-2xl border-white/5 shadow-2xl rounded-[2.5rem] overflow-hidden">
+          <CardHeader className="pb-2">
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-white/5 p-1 rounded-xl">
-                <TabsTrigger value="login" className="rounded-lg data-[state=active]:bg-primary">Login</TabsTrigger>
-                <TabsTrigger value="signup" className="rounded-lg data-[state=active]:bg-primary">Sign Up</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-white/5 p-1 rounded-2xl">
+                <TabsTrigger value="login" className="rounded-xl data-[state=active]:bg-primary font-bold">Login</TabsTrigger>
+                <TabsTrigger value="signup" className="rounded-xl data-[state=active]:bg-primary font-bold">Join</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="login" className="mt-6 space-y-4">
+              <TabsContent value="login" className="mt-8 space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input 
@@ -125,7 +145,7 @@ export default function LoginPage() {
                     placeholder="name@example.com" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-white/5 border-white/10 rounded-xl" 
+                    className="bg-white/5 border-white/10 rounded-2xl h-12 focus:ring-primary" 
                   />
                 </div>
                 <div className="space-y-2">
@@ -135,19 +155,19 @@ export default function LoginPage() {
                     type="password" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-white/5 border-white/10 rounded-xl" 
+                    className="bg-white/5 border-white/10 rounded-2xl h-12 focus:ring-primary" 
                   />
                 </div>
                 <Button 
                   onClick={() => handleEmailAuth('login')} 
                   disabled={loading}
-                  className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl h-12 glow-primary"
+                  className="w-full bg-primary hover:bg-primary/90 text-white rounded-2xl h-14 text-lg font-bold glow-primary"
                 >
-                  {loading ? <Loader2 className="animate-spin w-5 h-5" /> : "Sign In"}
+                  {loading ? <Loader2 className="animate-spin w-6 h-6" /> : "Sign In"}
                 </Button>
               </TabsContent>
 
-              <TabsContent value="signup" className="mt-6 space-y-4">
+              <TabsContent value="signup" className="mt-8 space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
                   <Input 
@@ -156,7 +176,7 @@ export default function LoginPage() {
                     placeholder="name@example.com" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-white/5 border-white/10 rounded-xl" 
+                    className="bg-white/5 border-white/10 rounded-2xl h-12 focus:ring-primary" 
                   />
                 </div>
                 <div className="space-y-2">
@@ -166,41 +186,41 @@ export default function LoginPage() {
                     type="password" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-white/5 border-white/10 rounded-xl" 
+                    className="bg-white/5 border-white/10 rounded-2xl h-12 focus:ring-primary" 
                   />
                 </div>
                 <Button 
                   onClick={() => handleEmailAuth('signup')} 
                   disabled={loading}
-                  className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl h-12 glow-primary"
+                  className="w-full bg-primary hover:bg-primary/90 text-white rounded-2xl h-14 text-lg font-bold glow-primary"
                 >
-                  {loading ? <Loader2 className="animate-spin w-5 h-5" /> : "Create Account"}
+                  {loading ? <Loader2 className="animate-spin w-6 h-6" /> : "Start Curating"}
                 </Button>
               </TabsContent>
             </Tabs>
           </CardHeader>
-          <CardContent>
-            <div className="relative my-4">
+          <CardContent className="pt-6">
+            <div className="relative mb-8">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-white/10" />
+                <span className="w-full border-t border-white/5" />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+              <div className="relative flex justify-center text-xs uppercase tracking-widest">
+                <span className="bg-[#18151F] px-4 text-muted-foreground font-bold">Or</span>
               </div>
             </div>
             <Button 
               variant="outline" 
               onClick={handleGoogleLogin} 
               disabled={loading}
-              className="w-full border-white/10 bg-white/5 hover:bg-white/10 rounded-xl h-12 gap-2"
+              className="w-full border-white/10 bg-white/5 hover:bg-white/10 rounded-2xl h-14 gap-3 text-base font-bold transition-all hover:scale-[1.02]"
             >
-              <Chrome className="w-5 h-5" />
-              Google
+              <Chrome className="w-6 h-6" />
+              Continue with Google
             </Button>
           </CardContent>
           <CardFooter>
-            <p className="text-[10px] text-center w-full text-muted-foreground">
-              By clicking continue, you agree to our Terms of Service and Privacy Policy.
+            <p className="text-[11px] text-center w-full text-muted-foreground px-6 leading-relaxed">
+              By joining NetFlow, you agree to our <span className="text-primary cursor-pointer hover:underline">Terms of Service</span> and <span className="text-primary cursor-pointer hover:underline">Privacy Policy</span>.
             </p>
           </CardFooter>
         </Card>

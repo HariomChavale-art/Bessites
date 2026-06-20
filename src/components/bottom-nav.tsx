@@ -11,6 +11,10 @@ export function BottomNav() {
   const pathname = usePathname();
   const { user } = useUser();
 
+  // Focused experience: hide navigation on auth and onboarding pages
+  const hideOnPaths = ["/login", "/onboarding"];
+  if (hideOnPaths.includes(pathname)) return null;
+
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/explore", icon: Search, label: "Search" },
@@ -22,8 +26,8 @@ export function BottomNav() {
   ];
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-      <nav className="bg-card/80 backdrop-blur-xl border border-white/10 rounded-full px-6 py-3 flex items-center gap-8 shadow-2xl ring-1 ring-black/20">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-fit px-4">
+      <nav className="bg-card/80 backdrop-blur-xl border border-white/10 rounded-full px-8 py-3 flex items-center gap-10 shadow-2xl ring-1 ring-black/20">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -38,7 +42,7 @@ export function BottomNav() {
               )}
             >
               <Icon className={cn("w-6 h-6", isActive && "fill-primary/20")} />
-              <span className="text-[10px] font-medium uppercase tracking-wider">{item.label}</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider">{item.label}</span>
             </Link>
           );
         })}

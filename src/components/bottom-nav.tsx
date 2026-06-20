@@ -1,24 +1,19 @@
-
 "use client"
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, User, LogIn } from "lucide-react";
+import { Home, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useUser } from "@/firebase";
 
 export function BottomNav() {
   const pathname = usePathname();
-  const { user } = useUser();
 
+  // The navigation remains consistent. Unauthenticated users visiting /profile
+  // will see a prompt to log in handled within that page.
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/explore", icon: Search, label: "Search" },
-    { 
-      href: user ? "/profile" : "/login", 
-      icon: user ? User : LogIn, 
-      label: user ? "Profile" : "Login" 
-    },
+    { href: "/profile", icon: User, label: "Profile" },
   ];
 
   return (

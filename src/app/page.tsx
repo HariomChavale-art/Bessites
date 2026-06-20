@@ -1,14 +1,33 @@
+
 "use client"
 
+import { useState, useMemo } from "react";
 import { Navigation } from "@/components/navigation";
 import { MarqueeBanner } from "@/components/marquee-banner";
 import { MasonryFeed } from "@/components/masonry-feed";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles } from "lucide-react";
+import { Sparkles, TrendingUp, Clock } from "lucide-react";
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState("foryou");
+  
   const sponsoredWebsites = MOCK_WEBSITES.filter(w => w.isSponsored);
+
+  const filteredWebsites = useMemo(() => {
+    const list = [...MOCK_WEBSITES];
+    switch (activeTab) {
+      case "trending":
+        // Sort by review count and rating for "Trending"
+        return list.sort((a, b) => (b.reviewCount * b.rating) - (a.reviewCount * a.rating));
+      case "new":
+        // Simulation of newly added: Use those updated in 2024 or just reverse the list
+        return list.filter(w => w.updatedAt.includes("2024")).reverse();
+      case "foryou":
+      default:
+        return MOCK_WEBSITES;
+    }
+  }, [activeTab]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -39,14 +58,24 @@ export default function Home() {
             </div>
             
             <div className="flex items-center gap-4 bg-card p-1.5 rounded-2xl border border-white/5">
-              <Tabs defaultValue="foryou" className="w-full">
+              <Tabs 
+                defaultValue="foryou" 
+                className="w-full"
+                onValueChange={(value) => setActiveTab(value)}
+              >
                 <TabsList className="bg-transparent h-auto">
                   <TabsTrigger value="foryou" className="rounded-xl px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2">
                     <Sparkles className="w-3.5 h-3.5" />
                     For You
                   </TabsTrigger>
-                  <TabsTrigger value="trending" className="rounded-xl px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white">Trending</TabsTrigger>
-                  <TabsTrigger value="new" className="rounded-xl px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white">Newly Added</TabsTrigger>
+                  <TabsTrigger value="trending" className="rounded-xl px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white flex items-center gap-2">
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    Trending
+                  </TabsTrigger>
+                  <TabsTrigger value="new" className="rounded-xl px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white flex items-center gap-2">
+                    <Clock className="w-3.5 h-3.5" />
+                    Newly Added
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
@@ -55,7 +84,8 @@ export default function Home() {
 
         {/* Masonry Grid Feed */}
         <section className="container mx-auto px-2">
-          <MasonryFeed initialWebsites={MOCK_WEBSITES} />
+          {/* Key forces component reset when tab changes */}
+          <MasonryFeed key={activeTab} initialWebsites={filteredWebsites} />
         </section>
       </main>
 

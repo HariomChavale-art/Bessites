@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link";
@@ -8,8 +9,6 @@ import { cn } from "@/lib/utils";
 export function BottomNav() {
   const pathname = usePathname();
 
-  // The navigation remains consistent. Unauthenticated users visiting /profile
-  // will see a prompt to log in handled within that page.
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/explore", icon: Search, label: "Search" },

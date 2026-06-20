@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Heart, Bookmark, Settings, Grid, UploadCloud, LogOut, LogIn, Sparkles, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signOut } from "firebase/auth";
+import { signOut, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { doc } from "firebase/firestore";
 import { useMemo } from "react";
 
@@ -32,7 +32,16 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     if (auth) {
       await signOut(auth);
-      router.push("/");
+    }
+  };
+
+  const handleLogin = async () => {
+    if (!auth) return;
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Login failed", error);
     }
   };
 
@@ -44,40 +53,12 @@ export default function ProfilePage() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Navigation />
-        <div className="flex-1 flex flex-col items-center justify-center p-4">
-          <div className="bg-primary/10 p-6 rounded-full mb-6">
-            <LogIn className="w-12 h-12 text-primary" />
-          </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Sign in to your profile</h2>
-          <p className="text-muted-foreground mb-8 text-center max-w-sm">
-            Keep track of your favorite websites, contribute to the directory, and connect with other curators.
-          </p>
-          <Link href="/login">
-            <Button className="rounded-full px-12 bg-primary hover:bg-primary/90 text-white glow-primary h-12 text-lg font-bold">
-              Login / Sign Up
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // Use real data if available, otherwise fallback to mock data
+  const displayName = profileData?.displayName || user?.displayName || "Guest Curator";
+  const email = user?.email || "Connect your account to save progress";
+  const photoURL = user?.photoURL || `https://picsum.photos/seed/curator/200`;
+  const interests = profileData?.interests || ["Design", "AI", "Tech", "Discovery"];
 
-  if (profileLoading) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Navigation />
-        <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="animate-spin h-8 w-8 text-primary" />
-        </div>
-      </div>
-    );
-  }
-
-  // Use real data if available, otherwise fallback to mock slices for visual completeness
   const savedWebsites = MOCK_WEBSITES.slice(0, 4);
   const likedWebsites = MOCK_WEBSITES.slice(4, 8);
 
@@ -89,9 +70,9 @@ export default function ProfilePage() {
         <div className="flex flex-col items-center text-center mb-12">
           <div className="relative mb-4 group">
             <Avatar className="w-32 h-32 border-4 border-background ring-4 ring-primary/20 shadow-2xl">
-              <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/200`} />
+              <AvatarImage src={photoURL} />
               <AvatarFallback className="bg-muted text-2xl font-bold">
-                {user.displayName?.charAt(0) || user.email?.charAt(0) || "U"}
+                {displayName.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <Button size="icon" variant="ghost" className="absolute bottom-0 right-0 rounded-full bg-primary hover:bg-primary/90 text-white shadow-lg border-2 border-background w-10 h-10">
@@ -100,30 +81,35 @@ export default function ProfilePage() {
           </div>
           
           <h1 className="text-3xl font-headline font-bold text-white mb-1">
-            {profileData?.displayName || user.displayName || user.email?.split('@')[0] || "Curator"}
+            {displayName}
           </h1>
-          <p className="text-muted-foreground text-sm mb-4">{user.email}</p>
+          <p className="text-muted-foreground text-sm mb-4">{email}</p>
           
-          {profileData?.interests && profileData.interests.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-2 mb-8 max-w-md">
-              {profileData.interests.map((interest: string) => (
-                <Badge key={interest} variant="secondary" className="bg-white/5 text-white border-white/10 px-4 py-1.5 rounded-full font-medium">
-                  <Sparkles className="w-3 h-3 mr-2 text-primary" />
-                  {interest}
-                </Badge>
-              ))}
-            </div>
-          )}
+          <div className="flex flex-wrap justify-center gap-2 mb-8 max-w-md">
+            {interests.map((interest: string) => (
+              <Badge key={interest} variant="secondary" className="bg-white/5 text-white border-white/10 px-4 py-1.5 rounded-full font-medium">
+                <Sparkles className="w-3 h-3 mr-2 text-primary" />
+                {interest}
+              </Badge>
+            ))}
+          </div>
           
           <div className="flex gap-4">
-            <Button variant="outline" className="rounded-full px-8 border-white/10 hover:bg-white/5 h-11 font-bold" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
+            {user ? (
+              <Button variant="outline" className="rounded-full px-8 border-white/10 hover:bg-white/5 h-11 font-bold" onClick={handleLogout}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+            ) : (
+              <Button onClick={handleLogin} className="rounded-full px-8 bg-primary hover:bg-primary/90 text-white glow-primary h-11 font-bold">
+                <LogIn className="w-4 h-4 mr-2" />
+                Connect Google
+              </Button>
+            )}
             <Link href="/submit">
-              <Button className="rounded-full px-8 bg-primary hover:bg-primary/90 text-white glow-primary h-11 font-bold">
-                <UploadCloud className="w-4 h-4 mr-2" />
-                Upload Website
+              <Button className="rounded-full px-8 bg-white text-background hover:bg-white/90 h-11 font-bold shadow-xl">
+                <Plus className="w-4 h-4 mr-2" />
+                Submit Website
               </Button>
             </Link>
           </div>

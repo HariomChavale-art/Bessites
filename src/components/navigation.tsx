@@ -9,10 +9,6 @@ import { usePathname } from "next/navigation";
 export function Navigation() {
   const pathname = usePathname();
   
-  // Hide navigation on auth and onboarding pages
-  const hideOnPaths = ["/login", "/onboarding"];
-  if (hideOnPaths.includes(pathname)) return null;
-
   return (
     <nav className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b border-white/5">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">

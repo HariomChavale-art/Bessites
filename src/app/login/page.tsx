@@ -126,19 +126,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background overflow-hidden relative">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background overflow-hidden relative pt-24">
       {/* Background Glows */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/20 rounded-full blur-[120px] pointer-events-none" />
-
-      <div className="absolute top-8 left-8">
-        <Link href="/">
-          <Button variant="ghost" className="text-muted-foreground hover:text-white transition-all">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Button>
-        </Link>
-      </div>
 
       <div className="w-full max-w-md relative z-10">
         <div className="flex flex-col items-center mb-10">

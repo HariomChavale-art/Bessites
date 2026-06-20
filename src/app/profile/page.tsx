@@ -1,16 +1,57 @@
 
 "use client"
 
+import { useUser, useAuth } from "@/firebase";
 import { Navigation } from "@/components/navigation";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { WebsiteCard } from "@/components/website-card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Heart, Bookmark, Settings, Grid, UploadCloud } from "lucide-react";
+import { Plus, Heart, Bookmark, Settings, Grid, UploadCloud, LogOut, LogIn } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signOut } from "firebase/auth";
 
 export default function ProfilePage() {
+  const { user, loading } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+      router.push("/");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <div className="bg-primary/10 p-6 rounded-full mb-6">
+          <LogIn className="w-12 h-12 text-primary" />
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-2">Sign in to your profile</h2>
+        <p className="text-muted-foreground mb-8 text-center max-w-sm">
+          Keep track of your favorite websites, contribute to the directory, and connect with other curators.
+        </p>
+        <Link href="/login">
+          <Button className="rounded-full px-12 bg-primary hover:bg-primary/90 text-white glow-primary h-12 text-lg">
+            Login / Sign Up
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
   const savedWebsites = MOCK_WEBSITES.slice(0, 4);
   const likedWebsites = MOCK_WEBSITES.slice(4, 8);
 
@@ -19,23 +60,25 @@ export default function ProfilePage() {
       <Navigation />
       
       <main className="flex-1 container mx-auto px-4 py-8">
-        {/* User Header */}
         <div className="flex flex-col items-center text-center mb-12">
           <div className="relative mb-4 group">
             <Avatar className="w-32 h-32 border-4 border-background ring-4 ring-primary/20 shadow-2xl">
-              <AvatarImage src="https://picsum.photos/seed/user123/200" />
-              <AvatarFallback>JD</AvatarFallback>
+              <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/200`} />
+              <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0) || "U"}</AvatarFallback>
             </Avatar>
             <Button size="icon" className="absolute bottom-0 right-0 rounded-full bg-primary hover:bg-primary/90 text-white shadow-lg border-2 border-background">
               <Settings className="w-4 h-4" />
             </Button>
           </div>
-          <h1 className="text-3xl font-headline font-bold text-white mb-1">Jane Discoverer</h1>
-          <p className="text-muted-foreground text-sm mb-6">@janedoe • Curating the web's best flows</p>
+          <h1 className="text-3xl font-headline font-bold text-white mb-1">
+            {user.displayName || user.email?.split('@')[0] || "Curator"}
+          </h1>
+          <p className="text-muted-foreground text-sm mb-6">{user.email}</p>
           
           <div className="flex gap-4">
-            <Button variant="outline" className="rounded-full px-8 border-white/10 hover:bg-white/5">
-              Edit Profile
+            <Button variant="outline" className="rounded-full px-8 border-white/10 hover:bg-white/5" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
             </Button>
             <Link href="/submit">
               <Button className="rounded-full px-8 bg-primary hover:bg-primary/90 text-white glow-primary">
@@ -46,7 +89,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Content Tabs */}
         <Tabs defaultValue="saved" className="w-full">
           <div className="flex justify-center mb-8">
             <TabsList className="bg-white/5 border border-white/5 rounded-full p-1 h-auto">
@@ -75,15 +117,11 @@ export default function ProfilePage() {
           </div>
 
           <TabsContent value="saved">
-            {savedWebsites.length > 0 ? (
-              <div className="columns-2 md:columns-3 lg:columns-4 gap-6">
-                {savedWebsites.map((app) => (
-                  <WebsiteCard key={app.id} website={app} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState title="No saved websites yet" description="Explore the feed and bookmark your favorites." />
-            )}
+            <div className="columns-2 md:columns-3 lg:columns-4 gap-6">
+              {savedWebsites.map((app) => (
+                <WebsiteCard key={app.id} website={app} />
+              ))}
+            </div>
           </TabsContent>
 
           <TabsContent value="liked">
@@ -110,15 +148,6 @@ export default function ProfilePage() {
           </TabsContent>
         </Tabs>
       </main>
-    </div>
-  );
-}
-
-function EmptyState({ title, description }: { title: string, description: string }) {
-  return (
-    <div className="text-center py-20">
-      <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
-      <p className="text-muted-foreground">{description}</p>
     </div>
   );
 }

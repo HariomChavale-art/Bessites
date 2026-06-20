@@ -1,0 +1,71 @@
+
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores extended user information for accounts.",
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "The user's preferred name."
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "URL to the user's profile picture."
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "bio": {
+          "type": "string",
+          "description": "A short bio for the user profile."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "email",
+        "createdAt"
+      ]
+    },
+    "SavedWebsite": {
+      "title": "Saved Website",
+      "description": "Represents a website saved by a user.",
+      "type": "object",
+      "properties": {
+        "websiteId": {
+          "type": "string",
+          "description": "The ID of the website from the mock data."
+        },
+        "savedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "websiteId",
+        "savedAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "google.com",
+      "password"
+    ]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Individual user profile documents."
+    },
+    "/users/{userId}/savedWebsites/{saveId}": {
+      "schema": "SavedWebsite",
+      "description": "Collection of websites saved by the user."
+    }
+  }
+}

@@ -1,17 +1,24 @@
+
 "use client"
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, User, Plus } from "lucide-react";
+import { Home, Search, User, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUser } from "@/firebase";
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { user } = useUser();
 
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/explore", icon: Search, label: "Search" },
-    { href: "/profile", icon: User, label: "Profile" },
+    { 
+      href: user ? "/profile" : "/login", 
+      icon: user ? User : LogIn, 
+      label: user ? "Profile" : "Login" 
+    },
   ];
 
   return (

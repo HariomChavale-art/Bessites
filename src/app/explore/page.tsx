@@ -5,7 +5,7 @@ import { Navigation } from "@/components/navigation";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, CheckCircle2, MoreVertical, Download } from "lucide-react";
+import { Star, CheckCircle2, MoreVertical, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -15,11 +15,22 @@ import {
 } from "@/components/ui/carousel";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+const CATEGORIES = [
+  { name: "AI & Future", icon: Sparkles, color: "text-purple-400" },
+  { name: "Gaming", icon: Gamepad2, color: "text-red-400" },
+  { name: "Tools", icon: Wrench, color: "text-blue-400" },
+  { name: "Education", icon: GraduationCap, color: "text-green-400" },
+  { name: "Design", icon: Palette, color: "text-pink-400" },
+  { name: "Developer", icon: Cpu, color: "text-orange-400" },
+  { name: "Health", icon: HeartPulse, color: "text-rose-400" },
+  { name: "Food", icon: Utensils, color: "text-amber-400" },
+];
+
 export default function ExplorePage() {
   const featured = MOCK_WEBSITES.filter(w => w.isSponsored).slice(0, 3);
   const suggested = MOCK_WEBSITES.slice(0, 6);
   const trending = MOCK_WEBSITES.slice(6, 12);
-  const playTabs = ["For you", "Top charts", "Children", "Premium", "Categories"];
+  const playTabs = ["For you", "Top charts", "Children", "Premium", "Categories", "New releases", "Editor's Choice"];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -44,7 +55,7 @@ export default function ExplorePage() {
         </div>
       </div>
 
-      <main className="flex-1 container mx-auto px-4 py-6 space-y-10">
+      <main className="flex-1 container mx-auto px-4 py-6 space-y-10 pb-32">
         
         {/* Featured Hero Carousel */}
         <section>
@@ -107,6 +118,28 @@ export default function ExplorePage() {
           </Carousel>
         </section>
 
+        {/* Categories Grid Section */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <LayoutGrid className="w-5 h-5 text-primary" />
+              Browse by Category
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {CATEGORIES.map((cat) => (
+              <Button 
+                key={cat.name} 
+                variant="outline" 
+                className="h-14 bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 rounded-2xl flex items-center justify-start gap-3 px-4 transition-all"
+              >
+                <cat.icon className={`w-5 h-5 ${cat.color}`} />
+                <span className="text-sm font-semibold text-white">{cat.name}</span>
+              </Button>
+            ))}
+          </div>
+        </section>
+
         {/* Suggested For You - Vertical List */}
         <section>
           <div className="flex items-center justify-between mb-4">
@@ -144,7 +177,7 @@ export default function ExplorePage() {
         </section>
 
         {/* Horizontal Category Section */}
-        <section className="pb-12">
+        <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-white">Editors' Choice</h2>
             <Button variant="link" className="text-primary text-sm p-0">See more</Button>

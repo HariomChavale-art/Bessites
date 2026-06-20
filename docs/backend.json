@@ -22,6 +22,17 @@
           "type": "string",
           "description": "A short bio for the user profile."
         },
+        "interests": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of selected interest categories for feed personalization."
+        },
+        "onboardingComplete": {
+          "type": "boolean",
+          "description": "Whether the user has finished the initial interest selection."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time"

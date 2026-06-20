@@ -2,8 +2,9 @@
 "use client"
 
 import { useState } from "react";
-import { useAuth } from "@/firebase";
+import { useAuth, useFirestore } from "@/firebase";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import { Zap, Chrome, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const auth = useAuth();
+  const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -23,15 +25,26 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   const handleEmailAuth = async (mode: 'login' | 'signup') => {
-    if (!auth) return;
+    if (!auth || !db) return;
     setLoading(true);
     try {
       if (mode === 'login') {
         await signInWithEmailAndPassword(auth, email, password);
+        router.push("/profile");
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        // Initialize profile
+        await setDoc(doc(db, "users", user.uid), {
+          email: user.email,
+          createdAt: serverTimestamp(),
+          onboardingComplete: false,
+          interests: []
+        }, { merge: true });
+
+        router.push("/onboarding");
       }
-      router.push("/profile");
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -44,12 +57,35 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
-    if (!auth) return;
+    if (!auth || !db) return;
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      router.push("/profile");
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Check if profile exists
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists()) {
+        await setDoc(docRef, {
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          createdAt: serverTimestamp(),
+          onboardingComplete: false,
+          interests: []
+        });
+        router.push("/onboarding");
+      } else {
+        const userData = docSnap.data();
+        if (userData?.onboardingComplete) {
+          router.push("/profile");
+        } else {
+          router.push("/onboarding");
+        }
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",

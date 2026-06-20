@@ -1,22 +1,33 @@
 
 "use client"
 
-import { useUser, useAuth } from "@/firebase";
+import { useUser, useAuth, useDoc } from "@/firebase";
 import { Navigation } from "@/components/navigation";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { WebsiteCard } from "@/components/website-card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Heart, Bookmark, Settings, Grid, UploadCloud, LogOut, LogIn } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Heart, Bookmark, Settings, Grid, UploadCloud, LogOut, LogIn, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
+import { useMemoFirebase } from "@/firebase/use-memo-firebase";
+import { doc } from "firebase/firestore";
+import { useMemo } from "react";
 
 export default function ProfilePage() {
-  const { user, loading } = useUser();
+  const { user, loading: userLoading } = useUser();
   const auth = useAuth();
   const router = useRouter();
+
+  const userDocRef = useMemo(() => {
+    if (!user) return null;
+    return doc(useFirebase().firestore, "users", user.uid);
+  }, [user]);
+
+  const { data: profileData, loading: profileLoading } = useDoc(userDocRef);
 
   const handleLogout = async () => {
     if (auth) {
@@ -25,7 +36,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading) {
+  if (userLoading || (user && profileLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -73,7 +84,18 @@ export default function ProfilePage() {
           <h1 className="text-3xl font-headline font-bold text-white mb-1">
             {user.displayName || user.email?.split('@')[0] || "Curator"}
           </h1>
-          <p className="text-muted-foreground text-sm mb-6">{user.email}</p>
+          <p className="text-muted-foreground text-sm mb-4">{user.email}</p>
+          
+          {profileData?.interests && profileData.interests.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2 mb-6 max-w-md">
+              {profileData.interests.map((interest: string) => (
+                <Badge key={interest} variant="secondary" className="bg-white/5 text-white border-white/10 px-3 py-1 rounded-full">
+                  <Sparkles className="w-3 h-3 mr-1 text-primary" />
+                  {interest}
+                </Badge>
+              ))}
+            </div>
+          )}
           
           <div className="flex gap-4">
             <Button variant="outline" className="rounded-full px-8 border-white/10 hover:bg-white/5" onClick={handleLogout}>
@@ -151,3 +173,6 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+// Internal helper for useDoc until global provider is updated
+import { useFirebase } from "@/firebase";

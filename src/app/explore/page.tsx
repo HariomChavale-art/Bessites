@@ -1,11 +1,10 @@
-
 "use client"
 
 import { Navigation } from "@/components/navigation";
-import { MOCK_WEBSITES } from "@/lib/mock-data";
+import { MOCK_WEBSITES, Website } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, CheckCircle2, MoreVertical, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils } from "lucide-react";
+import { Star, CheckCircle2, MoreVertical, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, Baby, Rocket } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -28,8 +27,11 @@ const CATEGORIES = [
 
 export default function ExplorePage() {
   const featured = MOCK_WEBSITES.filter(w => w.isSponsored).slice(0, 3);
+  const gamersChoice = MOCK_WEBSITES.filter(w => w.categories.includes("Gaming")).slice(0, 8);
+  const kidsFavourite = MOCK_WEBSITES.filter(w => w.categories.includes("Fun") || w.categories.includes("Education")).slice(0, 8);
+  const aiProductivity = MOCK_WEBSITES.filter(w => w.categories.includes("AI") || w.categories.includes("Productivity")).slice(0, 8);
   const suggested = MOCK_WEBSITES.slice(0, 6);
-  const trending = MOCK_WEBSITES.slice(6, 12);
+  
   const playTabs = ["For you", "Top charts", "Children", "Premium", "Categories", "New releases", "Editor's Choice"];
 
   return (
@@ -55,7 +57,7 @@ export default function ExplorePage() {
         </div>
       </div>
 
-      <main className="flex-1 container mx-auto px-4 py-6 space-y-10 pb-32">
+      <main className="flex-1 container mx-auto px-4 py-6 space-y-12 pb-32">
         
         {/* Featured Hero Carousel */}
         <section>
@@ -64,10 +66,9 @@ export default function ExplorePage() {
               {featured.map((app) => (
                 <CarouselItem key={app.id}>
                   <div className="relative group cursor-pointer overflow-hidden rounded-[2rem] border border-white/5 bg-card shadow-2xl">
-                    {/* Background Artwork */}
                     <div className="relative aspect-[16/9] w-full">
                       <Image 
-                        src={app.screenshots[0]} 
+                        src={app.imageUrl} 
                         alt={app.name} 
                         fill 
                         className="object-cover opacity-80"
@@ -75,14 +76,12 @@ export default function ExplorePage() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
                       
-                      {/* Floating Update Badge */}
                       <div className="absolute top-4 left-4">
                         <Badge className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-3 py-1 border-none font-semibold">
                           Update available
                         </Badge>
                       </div>
                       
-                      {/* Hero Content Overlay */}
                       <div className="absolute bottom-4 left-4 right-4">
                         <h3 className="text-white text-lg md:text-xl font-bold line-clamp-2 leading-tight">
                           {app.description}
@@ -90,7 +89,6 @@ export default function ExplorePage() {
                       </div>
                     </div>
 
-                    {/* App Info Bar */}
                     <div className="p-4 flex items-center gap-4">
                       <div className="relative w-14 h-14 rounded-xl overflow-hidden shadow-lg border border-white/10 shrink-0">
                         <Image src={app.imageUrl} alt={app.name} fill className="object-cover" />
@@ -140,6 +138,14 @@ export default function ExplorePage() {
           </div>
         </section>
 
+        {/* Gamer's Choice - Horizontal List */}
+        <CuratedSection 
+          title="Gamer's Choice" 
+          subtitle="Top rated browser games & tools" 
+          items={gamersChoice} 
+          icon={<Gamepad2 className="w-5 h-5 text-red-500" />}
+        />
+
         {/* Suggested For You - Vertical List */}
         <section>
           <div className="flex items-center justify-between mb-4">
@@ -151,7 +157,7 @@ export default function ExplorePage() {
             </Button>
           </div>
           
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
             {suggested.map((app) => (
               <Link key={app.id} href={`/website/${app.id}`} className="flex items-center gap-4 group">
                 <div className="relative w-16 h-16 rounded-2xl overflow-hidden border border-white/5 shadow-md shrink-0 group-hover:scale-95 transition-transform">
@@ -176,28 +182,57 @@ export default function ExplorePage() {
           </div>
         </section>
 
-        {/* Horizontal Category Section */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-white">Editors' Choice</h2>
-            <Button variant="link" className="text-primary text-sm p-0">See more</Button>
-          </div>
-          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4">
-            {trending.map((app) => (
-              <Link key={app.id} href={`/website/${app.id}`} className="min-w-[120px] max-w-[120px] flex flex-col gap-2 group">
-                <div className="relative aspect-square rounded-[1.5rem] overflow-hidden border border-white/5 shadow-lg group-hover:scale-95 transition-transform">
-                  <Image src={app.imageUrl} alt={app.name} fill className="object-cover" />
-                </div>
-                <div className="px-1">
-                  <h3 className="text-[11px] font-bold text-white truncate leading-tight">{app.name}</h3>
-                  <p className="text-[10px] text-muted-foreground truncate">{app.size}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
+        {/* Kids' Favourite - Horizontal List */}
+        <CuratedSection 
+          title="Kids' Favourite" 
+          subtitle="Fun and educational experiences" 
+          items={kidsFavourite} 
+          icon={<Baby className="w-5 h-5 text-pink-500" />}
+        />
+
+        {/* AI & Productivity - Horizontal List */}
+        <CuratedSection 
+          title="AI & Productivity" 
+          subtitle="Work smarter with modern web apps" 
+          items={aiProductivity} 
+          icon={<Rocket className="w-5 h-5 text-blue-500" />}
+        />
 
       </main>
     </div>
+  );
+}
+
+function CuratedSection({ title, subtitle, items, icon }: { title: string, subtitle: string, items: Website[], icon: React.ReactNode }) {
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            {icon}
+            {title}
+          </h2>
+          <p className="text-xs text-muted-foreground">{subtitle}</p>
+        </div>
+        <Button variant="link" className="text-primary text-sm p-0">See all</Button>
+      </div>
+      <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4">
+        {items.map((app) => (
+          <Link key={app.id} href={`/website/${app.id}`} className="min-w-[140px] max-w-[140px] flex flex-col gap-2 group">
+            <div className="relative aspect-square rounded-[2rem] overflow-hidden border border-white/5 shadow-lg group-hover:scale-95 transition-transform">
+              <Image src={app.imageUrl} alt={app.name} fill className="object-cover" />
+            </div>
+            <div className="px-1">
+              <h3 className="text-[12px] font-bold text-white truncate leading-tight group-hover:text-primary transition-colors">{app.name}</h3>
+              <p className="text-[10px] text-muted-foreground truncate">{app.categories[0]}</p>
+              <div className="flex items-center gap-1 mt-0.5">
+                <span className="text-[10px] font-bold text-white">{app.rating}</span>
+                <Star className="w-2.5 h-2.5 text-white fill-white" />
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }

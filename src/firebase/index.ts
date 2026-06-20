@@ -1,4 +1,3 @@
-
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
@@ -9,9 +8,10 @@ export function initializeFirebase(): {
   firestore: Firestore | null;
   auth: Auth | null;
 } {
-  // Check if we have at least an API key to avoid crashing on start
-  if (typeof window !== 'undefined' && !firebaseConfig.apiKey) {
-    console.warn("Firebase configuration is missing. Please check your environment variables.");
+  // Defensive check for environment variables
+  const hasConfig = firebaseConfig.apiKey && firebaseConfig.apiKey !== "";
+
+  if (typeof window !== 'undefined' && !hasConfig) {
     return { firebaseApp: null, firestore: null, auth: null };
   }
 
@@ -22,7 +22,7 @@ export function initializeFirebase(): {
 
     return { firebaseApp, firestore, auth };
   } catch (error) {
-    console.error("Error initializing Firebase:", error);
+    console.warn("Firebase initialization skipped or failed:", error);
     return { firebaseApp: null, firestore: null, auth: null };
   }
 }

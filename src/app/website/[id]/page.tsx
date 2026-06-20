@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useParams, useRouter } from "next/navigation";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { WebsiteCard } from "@/components/website-card";
+import { WebsitePreview } from "@/components/website-preview";
 import { useDoc, useUser, useFirestore } from "@/firebase";
 import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc } from "firebase/firestore";
 import { 
@@ -19,13 +21,10 @@ import {
   ChevronRight,
   Bookmark,
   Lock,
-  Zap,
-  Smartphone,
   MoreVertical,
   Loader2,
   MousePointer2
 } from "lucide-react";
-import Image from "next/image";
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -105,7 +104,6 @@ export default function WebsiteDetail() {
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-2xl px-4 py-6 pb-24">
-        {/* Top Header Navigation */}
         <div className="flex items-center justify-between mb-8">
           <Button 
             variant="ghost" 
@@ -120,15 +118,16 @@ export default function WebsiteDetail() {
           </Button>
         </div>
 
-        {/* Hero Section - App Icon & Title */}
         <div className="flex gap-6 mb-8">
           <div className="relative w-28 h-28 shrink-0 rounded-[1.8rem] overflow-hidden shadow-2xl border border-white/10">
-            <Image 
-              src={website.imageUrl} 
-              alt={website.name} 
-              fill 
-              className="object-cover"
-              data-ai-hint="app logo"
+            <WebsitePreview 
+              websiteId={website.id}
+              websiteUrl={website.url}
+              fallbackUrl={website.imageUrl}
+              alt={website.name}
+              width={200}
+              height={200}
+              className="w-full h-full"
             />
           </div>
           
@@ -145,7 +144,6 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* High-level Stats Row */}
         <div className="flex items-start justify-between px-2 mb-8">
           <div className="flex flex-col items-center">
             <div className="flex items-center gap-1 text-white font-bold text-base">
@@ -178,7 +176,6 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Primary Action Buttons */}
         <div className="flex gap-3 mb-4">
           <Button asChild onClick={handleVisitClick} className="flex-[2] bg-[#8ab4f8] hover:bg-[#8ab4f8]/90 text-background font-bold rounded-xl h-12 gap-2">
             <a href={website.url} target="_blank" rel="noopener noreferrer">
@@ -198,7 +195,6 @@ export default function WebsiteDetail() {
           Secure connection <span className="mx-1 opacity-30">•</span> {website.url}
         </div>
 
-        {/* About Section */}
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4 group cursor-pointer">
             <h2 className="text-xl font-bold text-white tracking-tight">About this website</h2>
@@ -218,7 +214,6 @@ export default function WebsiteDetail() {
           </div>
         </section>
 
-        {/* Ratings & reviews Section */}
         <section className="mb-12">
           <div className="flex items-center justify-between mb-6 group cursor-pointer">
             <h2 className="text-xl font-bold text-white tracking-tight">Community Ratings</h2>
@@ -284,7 +279,6 @@ export default function WebsiteDetail() {
 
         <Separator className="bg-white/5 mb-12" />
 
-        {/* Similar Websites - Pinterest Grid */}
         <section>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-white tracking-tight">Similar websites</h2>

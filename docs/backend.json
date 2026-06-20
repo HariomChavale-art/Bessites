@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -63,7 +64,7 @@
     },
     "WebsiteStats": {
       "title": "Website Stats",
-      "description": "Global statistics for a website tracked on NetFlow.",
+      "description": "Global statistics and metadata for a website tracked on NetFlow.",
       "type": "object",
       "properties": {
         "visitCount": {
@@ -77,6 +78,14 @@
         "ratingCount": {
           "type": "number",
           "description": "Total number of users who rated."
+        },
+        "previewUrl": {
+          "type": "string",
+          "description": "Cached URL for the website preview image (OG image or screenshot)."
+        },
+        "lastPreviewUpdate": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },
@@ -119,7 +128,7 @@
     },
     "/websiteStats/{websiteId}": {
       "schema": "WebsiteStats",
-      "description": "Global stats for a website."
+      "description": "Global stats and cached preview metadata for a website."
     },
     "/websiteStats/{websiteId}/userRatings/{userId}": {
       "schema": "UserRating",

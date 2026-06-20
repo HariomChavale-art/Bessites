@@ -5,15 +5,26 @@ import { getAuth, Auth } from 'firebase/auth';
 import { firebaseConfig } from './config';
 
 export function initializeFirebase(): {
-  firebaseApp: FirebaseApp;
-  firestore: Firestore;
-  auth: Auth;
+  firebaseApp: FirebaseApp | null;
+  firestore: Firestore | null;
+  auth: Auth | null;
 } {
-  const firebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-  const firestore = getFirestore(firebaseApp);
-  const auth = getAuth(firebaseApp);
+  // Check if we have at least an API key to avoid crashing on start
+  if (typeof window !== 'undefined' && !firebaseConfig.apiKey) {
+    console.warn("Firebase configuration is missing. Please check your environment variables.");
+    return { firebaseApp: null, firestore: null, auth: null };
+  }
 
-  return { firebaseApp, firestore, auth };
+  try {
+    const firebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+    const firestore = getFirestore(firebaseApp);
+    const auth = getAuth(firebaseApp);
+
+    return { firebaseApp, firestore, auth };
+  } catch (error) {
+    console.error("Error initializing Firebase:", error);
+    return { firebaseApp: null, firestore: null, auth: null };
+  }
 }
 
 export * from './provider';

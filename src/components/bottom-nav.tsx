@@ -11,7 +11,7 @@ export function BottomNav() {
   const pathname = usePathname();
   const { user } = useUser();
 
-  // Focused experience: hide navigation on auth and onboarding pages
+  // Hide navigation on auth and onboarding pages for a focused experience
   const hideOnPaths = ["/login", "/onboarding"];
   if (hideOnPaths.includes(pathname)) return null;
 

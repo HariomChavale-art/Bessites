@@ -179,6 +179,186 @@
       "description": "AI-powered drawing tool",
       "imageUrl": "https://picsum.photos/seed/draw/600/400",
       "imageHint": "ai drawing"
+    },
+    {
+      "id": "uniqcode",
+      "description": "Unicode character database",
+      "imageUrl": "https://picsum.photos/seed/unicode/600/400",
+      "imageHint": "text characters"
+    },
+    {
+      "id": "goblin",
+      "description": "AI aids for tasks",
+      "imageUrl": "https://picsum.photos/seed/goblin/600/400",
+      "imageHint": "ai productivity"
+    },
+    {
+      "id": "origami",
+      "description": "Origami folding guides",
+      "imageUrl": "https://picsum.photos/seed/fold/600/400",
+      "imageHint": "paper folding"
+    },
+    {
+      "id": "zoomquilt",
+      "description": "Infinite zoom artwork",
+      "imageUrl": "https://picsum.photos/seed/zoom/600/400",
+      "imageHint": "infinite art"
+    },
+    {
+      "id": "langguide",
+      "description": "Visual language guide",
+      "imageUrl": "https://picsum.photos/seed/lang/600/400",
+      "imageHint": "language learning"
+    },
+    {
+      "id": "textrepeat",
+      "description": "Simple text repeater",
+      "imageUrl": "https://picsum.photos/seed/repeat/600/400",
+      "imageHint": "text utility"
+    },
+    {
+      "id": "motor",
+      "description": "Car specs comparison",
+      "imageUrl": "https://picsum.photos/seed/motor/600/400",
+      "imageHint": "car comparison"
+    },
+    {
+      "id": "travelmap",
+      "description": "Personal travel journals",
+      "imageUrl": "https://picsum.photos/seed/map/600/400",
+      "imageHint": "travel map"
+    },
+    {
+      "id": "jigsaw",
+      "description": "Multiplayer jigsaw puzzles",
+      "imageUrl": "https://picsum.photos/seed/puzzle/600/400",
+      "imageHint": "jigsaw game"
+    },
+    {
+      "id": "terrainx",
+      "description": "3D terrain analysis",
+      "imageUrl": "https://picsum.photos/seed/topo/600/400",
+      "imageHint": "topographic map"
+    },
+    {
+      "id": "perchance",
+      "description": "Random generator creator",
+      "imageUrl": "https://picsum.photos/seed/dice/600/400",
+      "imageHint": "random generator"
+    },
+    {
+      "id": "koupon",
+      "description": "Coupon aggregator",
+      "imageUrl": "https://picsum.photos/seed/sale/600/400",
+      "imageHint": "discount coupons"
+    },
+    {
+      "id": "avanka",
+      "description": "UI design resources",
+      "imageUrl": "https://picsum.photos/seed/ui/600/400",
+      "imageHint": "design layout"
+    },
+    {
+      "id": "veck",
+      "description": "Video creative tools",
+      "imageUrl": "https://picsum.photos/seed/video/600/400",
+      "imageHint": "video editor"
+    },
+    {
+      "id": "autocatalog",
+      "description": "Car brochure archive",
+      "imageUrl": "https://picsum.photos/seed/brochure/600/400",
+      "imageHint": "vintage cars"
+    },
+    {
+      "id": "tasteatlas",
+      "description": "World food encyclopedia",
+      "imageUrl": "https://picsum.photos/seed/food/600/400",
+      "imageHint": "world food"
+    },
+    {
+      "id": "emojicombos",
+      "description": "Emoji search engine",
+      "imageUrl": "https://picsum.photos/seed/smile/600/400",
+      "imageHint": "emoji search"
+    },
+    {
+      "id": "universe",
+      "description": "Mobile web builder",
+      "imageUrl": "https://picsum.photos/seed/uni/600/400",
+      "imageHint": "web creator"
+    },
+    {
+      "id": "drifted",
+      "description": "Car drifting games",
+      "imageUrl": "https://picsum.photos/seed/drift/600/400",
+      "imageHint": "drifting car"
+    },
+    {
+      "id": "creativemodo",
+      "description": "Graphic inspiration",
+      "imageUrl": "https://picsum.photos/seed/inspire/600/400",
+      "imageHint": "creative design"
+    },
+    {
+      "id": "toools",
+      "description": "Design tool directory",
+      "imageUrl": "https://picsum.photos/seed/gear/600/400",
+      "imageHint": "design tools"
+    },
+    {
+      "id": "instants",
+      "description": "Instant sound buttons",
+      "imageUrl": "https://picsum.photos/seed/sound/600/400",
+      "imageHint": "sound board"
+    },
+    {
+      "id": "idiot",
+      "description": "Brain teaser games",
+      "imageUrl": "https://picsum.photos/seed/brain/600/400",
+      "imageHint": "logic puzzle"
+    },
+    {
+      "id": "coolors",
+      "description": "Color generator",
+      "imageUrl": "https://picsum.photos/seed/palette/600/400",
+      "imageHint": "color palette"
+    },
+    {
+      "id": "vetted",
+      "description": "AI shopping guide",
+      "imageUrl": "https://picsum.photos/seed/shop/600/400",
+      "imageHint": "ai shopping"
+    },
+    {
+      "id": "tosdr",
+      "description": "Privacy summaries",
+      "imageUrl": "https://picsum.photos/seed/law/600/400",
+      "imageHint": "privacy policy"
+    },
+    {
+      "id": "recipe",
+      "description": "Clean recipe view",
+      "imageUrl": "https://picsum.photos/seed/cook/600/400",
+      "imageHint": "cooking recipe"
+    },
+    {
+      "id": "frame",
+      "description": "Driving simulators",
+      "imageUrl": "https://picsum.photos/seed/sim/600/400",
+      "imageHint": "car simulator"
+    },
+    {
+      "id": "parler",
+      "description": "Bead art patterns",
+      "imageUrl": "https://picsum.photos/seed/bead/600/400",
+      "imageHint": "bead art"
+    },
+    {
+      "id": "glint",
+      "description": "AI data insights",
+      "imageUrl": "https://picsum.photos/seed/data/600/400",
+      "imageHint": "data graph"
     }
   ]
 }

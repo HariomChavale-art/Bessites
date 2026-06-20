@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -61,6 +60,46 @@
         "websiteId",
         "savedAt"
       ]
+    },
+    "WebsiteStats": {
+      "title": "Website Stats",
+      "description": "Global statistics for a website tracked on NetFlow.",
+      "type": "object",
+      "properties": {
+        "visitCount": {
+          "type": "number",
+          "description": "Total clicks on the 'Visit Website' button."
+        },
+        "ratingSum": {
+          "type": "number",
+          "description": "Sum of all ratings given."
+        },
+        "ratingCount": {
+          "type": "number",
+          "description": "Total number of users who rated."
+        }
+      }
+    },
+    "UserRating": {
+      "title": "User Rating",
+      "description": "An individual user's rating for a website.",
+      "type": "object",
+      "properties": {
+        "rating": {
+          "type": "number"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "rating",
+        "userId"
+      ]
     }
   },
   "auth": {
@@ -77,6 +116,14 @@
     "/users/{userId}/savedWebsites/{saveId}": {
       "schema": "SavedWebsite",
       "description": "Collection of websites saved by the user."
+    },
+    "/websiteStats/{websiteId}": {
+      "schema": "WebsiteStats",
+      "description": "Global stats for a website."
+    },
+    "/websiteStats/{websiteId}/userRatings/{userId}": {
+      "schema": "UserRating",
+      "description": "Individual ratings to prevent double-voting."
     }
   }
 }

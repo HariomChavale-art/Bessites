@@ -1,3 +1,4 @@
+
 export interface Website {
   id: string;
   name: string;
@@ -19,7 +20,6 @@ export interface Website {
 }
 
 export const MOCK_WEBSITES: Website[] = [
-  // Original 30
   {
     id: "loot-drop",
     name: "Loot Drop",
@@ -563,7 +563,6 @@ export const MOCK_WEBSITES: Website[] = [
     updatedAt: "Oct 2023",
     isSponsored: true
   },
-  // Batch 2 (Previous)
   {
     id: "uniqcode",
     name: "Uniqcode",
@@ -1104,7 +1103,6 @@ export const MOCK_WEBSITES: Website[] = [
     version: "4.0",
     updatedAt: "Mar 2024"
   },
-  // Batch 3 (New 30)
   {
     id: "smart",
     name: "Smart",

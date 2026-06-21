@@ -39,7 +39,9 @@ const getWebsitePreviewFlow = ai.defineFlow(
     try {
       const response = await fetch(input.url, { 
         next: { revalidate: 3600 },
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
+        headers: { 
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' 
+        }
       });
       
       if (!response.ok) throw new Error('Fetch failed');
@@ -48,33 +50,35 @@ const getWebsitePreviewFlow = ai.defineFlow(
       
       // 1. Look for og:image (Big preview)
       let imageUrl = '';
-      const ogMatch = /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["'][^>]*>/i.exec(html) ||
-                      /<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["'][^>]*>/i.exec(html);
+      const ogMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["'][^>]*>/i) ||
+                      html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["'][^>]*>/i);
       
       if (ogMatch && ogMatch[1]) {
         imageUrl = ogMatch[1];
-        if (imageUrl.startsWith('/')) {
-          imageUrl = `${urlObj.origin}${imageUrl}`;
-        }
+        if (imageUrl.startsWith('/')) imageUrl = `${urlObj.origin}${imageUrl}`;
       } else {
-        // Fallback to screenshot
         imageUrl = `https://s0.wp.com/mshots/v1/${encodeURIComponent(input.url)}?w=1200`;
       }
 
       // 2. Look for Logo (Apple touch icon is usually best quality)
-      let logoUrl = defaultLogoUrl;
-      const appleIconMatch = /<link[^>]*rel=["']apple-touch-icon["'][^>]*href=["']([^"']+)["'][^>]*>/i.exec(html);
-      const shortcutIconMatch = /<link[^>]*rel=["'](?:shortcut )?icon["'][^>]*href=["']([^"']+)["'][^>]*>/i.exec(html);
-      
-      const foundIcon = (appleIconMatch && appleIconMatch[1]) || (shortcutIconMatch && shortcutIconMatch[1]);
+      let logoUrl = '';
+      const appleIconMatch = html.match(/<link[^>]*rel=["']apple-touch-icon["'][^>]*href=["']([^"']+)["'][^>]*>/i);
+      const iconMatch = html.match(/<link[^>]*rel=["'](?:shortcut )?icon["'][^>]*href=["']([^"']+)["'][^>]*>/i);
+      const manifestMatch = html.match(/<link[^>]*rel=["']manifest["'][^>]*href=["']([^"']+)["'][^>]*>/i);
+
+      const foundIcon = (appleIconMatch && appleIconMatch[1]) || (iconMatch && iconMatch[1]);
       
       if (foundIcon) {
         logoUrl = foundIcon;
-        if (logoUrl.startsWith('/')) {
+        if (logoUrl.startsWith('//')) {
+          logoUrl = `https:${logoUrl}`;
+        } else if (logoUrl.startsWith('/')) {
           logoUrl = `${urlObj.origin}${logoUrl}`;
         } else if (!logoUrl.startsWith('http')) {
           logoUrl = `${urlObj.origin}/${logoUrl}`;
         }
+      } else {
+        logoUrl = defaultLogoUrl;
       }
 
       return { 

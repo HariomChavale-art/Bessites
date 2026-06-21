@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo } from "react";
@@ -21,7 +20,7 @@ export default function Home() {
         // Sort by review count and rating for "Trending"
         return list.sort((a, b) => (b.reviewCount * b.rating) - (a.reviewCount * a.rating));
       case "new":
-        // Simulation of newly added: Use those updated in 2024 or just reverse the list
+        // Simulation of newly added entries
         return list.filter(w => w.updatedAt.includes("2024")).reverse();
       case "foryou":
       default:

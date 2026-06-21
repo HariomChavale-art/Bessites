@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useParams, useRouter } from "next/navigation";
@@ -15,15 +14,11 @@ import {
   Star, 
   ArrowLeft, 
   Globe, 
-  Info, 
   ShieldCheck, 
-  Share2,
-  ChevronRight,
   Bookmark,
   Lock,
   MoreVertical,
   Loader2,
-  MousePointer2,
   ExternalLink
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -38,6 +33,7 @@ export default function WebsiteDetail() {
   const website = MOCK_WEBSITES.find(w => w.id === id);
   const [ratingLoading, setRatingLoading] = useState(false);
 
+  // Stats Reference from Firestore
   const statsRef = useMemo(() => {
     if (!db || !id) return null;
     return doc(db, "websiteStats", id as string);
@@ -47,6 +43,7 @@ export default function WebsiteDetail() {
 
   if (!website) return <div className="p-8 text-center text-white">Website not found</div>;
 
+  // Actual Average Rating Calculation
   const currentRating = stats?.ratingCount > 0 
     ? (stats.ratingSum / stats.ratingCount).toFixed(1) 
     : "0.0";
@@ -54,16 +51,14 @@ export default function WebsiteDetail() {
   const visitCount = stats?.visitCount || 0;
   const totalReviews = stats?.ratingCount || 0;
 
-  const handleVisitClick = async () => {
+  // Track visit when clicking the external link
+  const handleVisitClick = () => {
     if (!db || !id) return;
     const ref = doc(db, "websiteStats", id as string);
-    try {
-      setDoc(ref, { visitCount: increment(1) }, { merge: true });
-    } catch (e) {
-      console.error("Failed to track visit", e);
-    }
+    setDoc(ref, { visitCount: increment(1) }, { merge: true });
   };
 
+  // Submit Rating Logic
   const submitRating = async (value: number) => {
     if (!db || !id || !user) return;
     setRatingLoading(true);
@@ -76,11 +71,13 @@ export default function WebsiteDetail() {
       
       if (existingDoc.exists()) {
         const oldRating = existingDoc.data().rating;
+        // Correctly update total sum by the difference
         updateDoc(userRatingRef, { rating: value, timestamp: serverTimestamp() });
         updateDoc(globalStatsRef, {
           ratingSum: increment(value - oldRating)
         });
       } else {
+        // New rating for this user
         setDoc(userRatingRef, {
           userId: user.uid,
           rating: value,
@@ -147,6 +144,7 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
+        {/* Real Stats Bar */}
         <div className="flex items-start justify-between px-2 mb-10 bg-white/[0.02] border border-white/5 rounded-3xl p-6">
           <div className="flex flex-col items-center flex-1">
             <div className="flex items-center gap-1 text-white font-bold text-lg">
@@ -228,6 +226,7 @@ export default function WebsiteDetail() {
           </div>
         </section>
 
+        {/* Real Community Ratings Section */}
         <section className="mb-12">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold text-white tracking-tight">Community</h2>

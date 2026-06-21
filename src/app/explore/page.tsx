@@ -128,63 +128,63 @@ function CuratedListSection({ title, items }: { title: string, items: Website[] 
       
       <div className="space-y-4">
         {items.map((app) => (
-          <Link key={app.id} href={`/website/${app.id}`} className="flex items-center gap-6 p-4 rounded-[2rem] hover:bg-white/5 transition-colors group">
-            {/* Main App Logo */}
-            <div className="relative w-20 h-20 rounded-3xl overflow-hidden bg-white/5 border border-white/10 p-4 shrink-0 shadow-lg group-hover:scale-105 transition-transform duration-500">
+          <Link key={app.id} href={`/website/${app.id}`} className="flex items-center gap-8 p-4 rounded-[2.5rem] hover:bg-white/5 transition-colors group">
+            {/* Main App Logo - Increased Size */}
+            <div className="relative w-28 h-28 rounded-[2rem] overflow-hidden bg-white/5 border border-white/10 p-5 shrink-0 shadow-xl group-hover:scale-105 transition-transform duration-500">
               <WebsitePreview 
                 websiteId={app.id}
                 websiteUrl={app.url}
                 fallbackUrl={app.imageUrl}
                 alt={app.name}
-                width={128}
-                height={128}
+                width={256}
+                height={256}
                 mode="logo"
                 className="w-full h-full"
               />
             </div>
 
             {/* App Info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-lg font-bold text-white truncate group-hover:text-primary transition-colors">
+            <div className="flex-1 min-w-0 py-2">
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="text-xl font-bold text-white truncate group-hover:text-primary transition-colors">
                   {app.name}
                 </h3>
                 {app.isSponsored && (
-                  <Badge variant="outline" className="text-[9px] py-0 px-1 border-primary/30 text-primary uppercase font-bold">
+                  <Badge variant="outline" className="text-[10px] py-0 px-1.5 border-primary/30 text-primary uppercase font-bold">
                     Ad
                   </Badge>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+              <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed mb-3">
                 {app.description}
               </p>
-              <div className="flex items-center gap-3 mt-2">
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-bold text-white">{app.rating}</span>
-                  <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-bold text-white">{app.rating}</span>
+                  <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
                 </div>
-                <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                <Badge variant="secondary" className="bg-white/5 text-[10px] text-muted-foreground uppercase font-bold tracking-widest px-2.5 py-0.5 border-white/5">
                   {app.categories[0]}
-                </span>
+                </Badge>
               </div>
             </div>
 
-            {/* Secondary Logo / Action */}
-            <div className="hidden sm:flex flex-col items-center gap-2 shrink-0">
-               <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-white/5 border border-white/5 p-3 opacity-80">
+            {/* Secondary Action - Hidden on small mobile */}
+            <div className="hidden sm:flex flex-col items-center justify-center gap-3 shrink-0">
+               <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-white/5 border border-white/5 p-4 opacity-80">
                 <WebsitePreview 
                   websiteId={app.id}
                   websiteUrl={app.url}
                   fallbackUrl={app.imageUrl}
                   alt={app.name}
-                  width={64}
+                  width={128}
                   height={128}
                   mode="logo"
                   className="w-full h-full grayscale group-hover:grayscale-0 transition-all"
                 />
               </div>
-              <Button size="sm" variant="ghost" className="text-[10px] font-bold uppercase tracking-widest text-[#8ab4f8] h-6 px-0 hover:bg-transparent">
-                Visit <ChevronRight className="w-3 h-3 ml-0.5" />
+              <Button size="sm" variant="ghost" className="text-xs font-bold uppercase tracking-widest text-[#8ab4f8] h-8 px-0 hover:bg-transparent group-hover:translate-x-1 transition-transform">
+                Visit <ChevronRight className="w-4 h-4 ml-0.5" />
               </Button>
             </div>
 

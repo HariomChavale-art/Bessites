@@ -21,7 +21,8 @@ import {
   Loader2,
   ExternalLink,
   Heart,
-  MessageSquare
+  MessageSquare,
+  Tag
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -66,7 +67,7 @@ export default function WebsiteDetail() {
     : website.rating.toFixed(1);
   
   const visitCount = stats?.visitCount || 0;
-  const totalReviews = (stats?.ratingCount || 0) + website.reviewCount;
+  const totalReviews = (stats?.ratingCount || 0); // We only count real database reviews now
 
   const handleVisitClick = () => {
     if (!db || !id) return;
@@ -131,12 +132,12 @@ export default function WebsiteDetail() {
       
       <main className="flex-1 container mx-auto max-w-2xl px-4 py-6 pb-24">
         <div className="flex items-center justify-between mb-8">
-          <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white">
+          <button onClick={() => router.back()} className="p-2 text-white hover:bg-white/5 rounded-full transition-colors">
             <ArrowLeft className="w-6 h-6" />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-white">
+          </button>
+          <button className="p-2 text-white hover:bg-white/5 rounded-full transition-colors">
             <MoreVertical className="w-5 h-5" />
-          </Button>
+          </button>
         </div>
 
         <div className="flex flex-col items-center text-center gap-6 mb-12">
@@ -167,19 +168,20 @@ export default function WebsiteDetail() {
             <div className="flex items-center gap-1 text-white font-bold text-lg">
               {currentRating} <Star className="w-4 h-4 fill-white" />
             </div>
-            <span className="text-muted-foreground text-[10px] mt-1 uppercase tracking-wider font-bold">{totalReviews.toLocaleString()} Community</span>
+            <span className="text-muted-foreground text-[10px] mt-1 uppercase tracking-wider font-bold">Community Rating</span>
+          </div>
+          <div className="w-[1px] h-10 bg-white/10 self-center" />
+          <div className="flex flex-col items-center flex-1">
+            <div className="text-white font-bold text-lg flex items-center gap-2">
+               <Tag className="w-4 h-4 text-primary" />
+               {website.pricing}
+            </div>
+            <span className="text-muted-foreground text-[10px] mt-1 uppercase tracking-wider font-bold">Pricing Model</span>
           </div>
           <div className="w-[1px] h-10 bg-white/10 self-center" />
           <div className="flex flex-col items-center flex-1">
             <div className="text-white font-bold text-lg">{visitCount.toLocaleString()}</div>
             <span className="text-muted-foreground text-[10px] mt-1 uppercase tracking-wider font-bold">Visits</span>
-          </div>
-          <div className="w-[1px] h-10 bg-white/10 self-center" />
-          <div className="flex flex-col items-center flex-1">
-            <div className="flex items-center gap-1.5 text-green-500 font-bold text-lg">
-              <ShieldCheck className="w-4 h-4" /> 100%
-            </div>
-            <span className="text-muted-foreground text-[10px] mt-1 uppercase tracking-wider font-bold">Uptime</span>
           </div>
         </div>
 
@@ -224,7 +226,7 @@ export default function WebsiteDetail() {
             <div className="flex flex-col md:flex-row items-center gap-10">
               <div className="text-center">
                 <div className="text-6xl font-bold text-white mb-2">{currentRating}</div>
-                <div className="text-xs text-muted-foreground font-bold uppercase tracking-widest">{totalReviews.toLocaleString()} Reviews</div>
+                <div className="text-xs text-muted-foreground font-bold uppercase tracking-widest">{totalReviews.toLocaleString()} Real Reviews</div>
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button size="sm" className="mt-6 bg-primary/20 text-primary hover:bg-primary/30 font-bold rounded-full px-6">

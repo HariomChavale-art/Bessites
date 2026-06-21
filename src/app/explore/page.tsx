@@ -5,7 +5,7 @@ import { Navigation } from "@/components/navigation";
 import { MOCK_WEBSITES, Website } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Star, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, MoreVertical, ExternalLink, Heart } from "lucide-react";
+import { Search, Star, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, MoreVertical, ExternalLink, Heart, Tag } from "lucide-react";
 import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -196,8 +196,11 @@ function ExploreItemRow({ app }: { app: Website }) {
             </div>
             <div className="h-4 sm:h-6 w-[1px] bg-white/10" />
             <div className="flex flex-col">
-              <span className="text-white font-bold text-sm sm:text-lg">{app.reviewCount.toLocaleString()}</span>
-              <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Users</span>
+              <span className="text-white font-bold text-sm sm:text-lg flex items-center gap-2 italic">
+                <Tag className="w-4 h-4 text-primary" />
+                {app.pricing}
+              </span>
+              <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Pricing</span>
             </div>
           </div>
         </div>

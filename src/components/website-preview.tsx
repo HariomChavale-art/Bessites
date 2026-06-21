@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react";
@@ -103,7 +102,9 @@ export function WebsitePreview({
             mode === 'logo' ? "object-contain p-4" : "object-cover",
             isUpdating ? "scale-105 blur-sm opacity-50" : "scale-100 blur-0 opacity-100"
           )}
-          unoptimized={currentImage.includes('s0.wp.com') || currentImage.includes('google.com')}
+          // Since we are fetching dynamic domains for logos/previews, 
+          // we use unoptimized to bypass the next.config.js domain whitelist.
+          unoptimized={true}
         />
       )}
       

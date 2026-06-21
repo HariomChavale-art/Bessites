@@ -7,7 +7,7 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { getWebsitePreview } from "@/ai/flows/get-website-preview";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { Loader2, Globe } from "lucide-react";
 
 interface WebsitePreviewProps {
   websiteId: string;
@@ -18,6 +18,7 @@ interface WebsitePreviewProps {
   width?: number;
   height?: number;
   priority?: boolean;
+  mode?: 'preview' | 'logo';
 }
 
 export function WebsitePreview({ 
@@ -28,7 +29,8 @@ export function WebsitePreview({
   className,
   width = 600,
   height = 400,
-  priority = false
+  priority = false,
+  mode = 'preview'
 }: WebsitePreviewProps) {
   const db = useFirestore();
   const statsRef = websiteId && db ? doc(db, "websiteStats", websiteId) : null;
@@ -40,23 +42,26 @@ export function WebsitePreview({
   useEffect(() => {
     if (statsLoading || !db || !websiteId) return;
 
-    if (stats?.previewUrl) {
-      setCurrentImage(stats.previewUrl);
+    const cachedUrl = mode === 'logo' ? stats?.logoUrl : stats?.previewUrl;
+
+    if (cachedUrl) {
+      setCurrentImage(cachedUrl);
     } else {
-      // If no preview cached, fetch it once
       const fetchAndCache = async () => {
         setIsUpdating(true);
         try {
           const result = await getWebsitePreview({ url: websiteUrl });
-          if (result?.imageUrl) {
+          if (result) {
             await setDoc(doc(db, "websiteStats", websiteId), {
               previewUrl: result.imageUrl,
+              logoUrl: result.logoUrl,
               lastPreviewUpdate: serverTimestamp()
             }, { merge: true });
-            setCurrentImage(result.imageUrl);
+            
+            setCurrentImage(mode === 'logo' ? result.logoUrl : result.imageUrl);
           }
         } catch (e) {
-          console.error("Failed to update website preview", e);
+          console.error("Failed to update website assets", e);
         } finally {
           setIsUpdating(false);
         }
@@ -64,24 +69,31 @@ export function WebsitePreview({
       
       fetchAndCache();
     }
-  }, [stats, statsLoading, db, websiteId, websiteUrl]);
+  }, [stats, statsLoading, db, websiteId, websiteUrl, mode]);
+
+  const isScreenshot = currentImage.includes('s0.wp.com') || currentImage.includes('favicons');
 
   return (
-    <div className={cn("relative overflow-hidden bg-muted", className)}>
-      <Image 
-        src={currentImage} 
-        alt={alt}
-        width={width}
-        height={height}
-        priority={priority}
-        className={cn(
-          "w-full h-auto object-cover transition-all duration-700",
-          isUpdating ? "scale-105 blur-sm opacity-50" : "scale-100 blur-0 opacity-100"
-        )}
-        unoptimized={currentImage.includes('s0.wp.com')} // Don't optimize remote screenshot URLs
-      />
+    <div className={cn("relative overflow-hidden bg-muted flex items-center justify-center", className)}>
+      {currentImage ? (
+        <Image 
+          src={currentImage} 
+          alt={alt}
+          width={width}
+          height={height}
+          priority={priority}
+          className={cn(
+            "transition-all duration-700",
+            mode === 'logo' ? "object-contain p-2" : "object-cover",
+            isUpdating ? "scale-105 blur-sm opacity-50" : "scale-100 blur-0 opacity-100"
+          )}
+          unoptimized={isScreenshot}
+        />
+      ) : (
+        <Globe className="w-8 h-8 text-muted-foreground opacity-20" />
+      )}
       
-      {isUpdating && !stats?.previewUrl && (
+      {isUpdating && !currentImage && (
         <div className="absolute inset-0 flex items-center justify-center">
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
         </div>

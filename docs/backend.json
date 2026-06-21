@@ -83,6 +83,10 @@
           "type": "string",
           "description": "Cached URL for the website preview image (OG image or screenshot)."
         },
+        "logoUrl": {
+          "type": "string",
+          "description": "Cached URL for the website logo or high-res icon."
+        },
         "lastPreviewUpdate": {
           "type": "string",
           "format": "date-time"

@@ -7,10 +7,9 @@ import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { WebsiteCard } from "@/components/website-card";
 import { WebsitePreview } from "@/components/website-preview";
-import { useDoc, useUser, useFirestore } from "@/firebase";
-import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc } from "firebase/firestore";
+import { useDoc, useUser, useFirestore, useCollection } from "@/firebase";
+import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc, collection, query, orderBy, limit } from "firebase/firestore";
 import { 
   Star, 
   ArrowLeft, 
@@ -21,10 +20,14 @@ import {
   MoreVertical,
   Loader2,
   ExternalLink,
-  Heart
+  Heart,
+  MessageSquare
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatDistanceToNow } from "date-fns";
 
 export default function WebsiteDetail() {
   const { id } = useParams();
@@ -35,6 +38,8 @@ export default function WebsiteDetail() {
   const website = MOCK_WEBSITES.find(w => w.id === id);
   const [ratingLoading, setRatingLoading] = useState(false);
   const [liked, setLiked] = useState(false);
+  const [comment, setComment] = useState("");
+  const [ratingValue, setRatingValue] = useState(0);
 
   const statsRef = useMemo(() => {
     if (!db || !id) return null;
@@ -43,14 +48,25 @@ export default function WebsiteDetail() {
 
   const { data: stats } = useDoc(statsRef);
 
+  const ratingsQuery = useMemo(() => {
+    if (!db || !id) return null;
+    return query(
+      collection(db, "websiteStats", id as string, "userRatings"),
+      orderBy("timestamp", "desc"),
+      limit(5)
+    );
+  }, [db, id]);
+
+  const { data: recentRatings } = useCollection(ratingsQuery);
+
   if (!website) return <div className="p-8 text-center text-white">Website not found</div>;
 
   const currentRating = stats?.ratingCount > 0 
     ? (stats.ratingSum / stats.ratingCount).toFixed(1) 
-    : "0.0";
+    : website.rating.toFixed(1);
   
   const visitCount = stats?.visitCount || 0;
-  const totalReviews = stats?.ratingCount || 0;
+  const totalReviews = (stats?.ratingCount || 0) + website.reviewCount;
 
   const handleVisitClick = () => {
     if (!db || !id) return;
@@ -74,8 +90,8 @@ export default function WebsiteDetail() {
     setLiked(!liked);
   };
 
-  const submitRating = async (value: number) => {
-    if (!db || !id || !user) return;
+  const submitRating = async () => {
+    if (!db || !id || !user || ratingValue === 0) return;
     setRatingLoading(true);
     
     const userRatingRef = doc(db, "websiteStats", id as string, "userRatings", user.uid);
@@ -83,22 +99,31 @@ export default function WebsiteDetail() {
 
     try {
       const existingDoc = await getDoc(userRatingRef);
+      const ratingData = {
+        userId: user.uid,
+        userDisplayName: user.displayName || "Anonymous",
+        userPhotoURL: user.photoURL || "",
+        rating: ratingValue,
+        comment: comment,
+        timestamp: serverTimestamp()
+      };
+
       if (existingDoc.exists()) {
         const oldRating = existingDoc.data().rating;
-        updateDoc(userRatingRef, { rating: value, timestamp: serverTimestamp() });
-        updateDoc(globalStatsRef, { ratingSum: increment(value - oldRating) });
+        updateDoc(userRatingRef, ratingData);
+        updateDoc(globalStatsRef, { ratingSum: increment(ratingValue - oldRating) });
       } else {
-        setDoc(userRatingRef, { userId: user.uid, rating: value, timestamp: serverTimestamp() });
-        setDoc(globalStatsRef, { ratingSum: increment(value), ratingCount: increment(1) }, { merge: true });
+        setDoc(userRatingRef, ratingData);
+        setDoc(globalStatsRef, { ratingSum: increment(ratingValue), ratingCount: increment(1) }, { merge: true });
       }
+      setComment("");
+      setRatingValue(0);
     } catch (e) {
       console.error(e);
     } finally {
       setRatingLoading(false);
     }
   };
-
-  const similarWebsites = MOCK_WEBSITES.filter(w => w.id !== id && w.categories.some(cat => website.categories.includes(cat))).slice(0, 6);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -142,7 +167,7 @@ export default function WebsiteDetail() {
             <div className="flex items-center gap-1 text-white font-bold text-lg">
               {currentRating} <Star className="w-4 h-4 fill-white" />
             </div>
-            <span className="text-muted-foreground text-[10px] mt-1 uppercase tracking-wider font-bold">{totalReviews} Ratings</span>
+            <span className="text-muted-foreground text-[10px] mt-1 uppercase tracking-wider font-bold">{totalReviews.toLocaleString()} Community</span>
           </div>
           <div className="w-[1px] h-10 bg-white/10 self-center" />
           <div className="flex flex-col items-center flex-1">
@@ -172,9 +197,6 @@ export default function WebsiteDetail() {
             <Heart className={`w-5 h-5 ${liked ? "fill-current" : ""}`} /> 
             {liked ? "Liked" : "Like"}
           </Button>
-          <Button variant="outline" className="w-14 border-white/10 bg-white/5 rounded-2xl h-14 text-white">
-            <Bookmark className="w-5 h-5" />
-          </Button>
         </div>
         
         <div className="flex items-center justify-center gap-2 mb-12 text-[11px] font-medium text-muted-foreground">
@@ -197,39 +219,94 @@ export default function WebsiteDetail() {
         </section>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-4 tracking-tight">Community</h2>
-          <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center gap-10">
-            <div className="text-center">
-              <div className="text-6xl font-bold text-white mb-2">{currentRating}</div>
-              <div className="text-xs text-muted-foreground font-bold uppercase tracking-widest">{totalReviews} Ratings</div>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="mt-6 bg-primary/20 text-primary hover:bg-primary/30 font-bold rounded-full px-6">
-                    {ratingLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Rate Now"}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-card border-white/10 text-white rounded-[2.5rem] sm:max-w-md p-8">
-                  <DialogHeader><DialogTitle className="text-2xl font-bold text-center">Rate {website.name}</DialogTitle></DialogHeader>
-                  <div className="flex justify-center gap-4 py-8">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <button key={s} onClick={() => submitRating(s)} className="hover:scale-125 transition-transform">
-                        <Star className="w-10 h-10 text-primary hover:fill-primary" />
-                      </button>
-                    ))}
+          <h2 className="text-2xl font-bold text-white mb-4 tracking-tight">Community Feed</h2>
+          <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 space-y-8">
+            <div className="flex flex-col md:flex-row items-center gap-10">
+              <div className="text-center">
+                <div className="text-6xl font-bold text-white mb-2">{currentRating}</div>
+                <div className="text-xs text-muted-foreground font-bold uppercase tracking-widest">{totalReviews.toLocaleString()} Reviews</div>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="mt-6 bg-primary/20 text-primary hover:bg-primary/30 font-bold rounded-full px-6">
+                      Rate Now
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-card border-white/10 text-white rounded-[2.5rem] sm:max-w-md p-8">
+                    <DialogHeader><DialogTitle className="text-2xl font-bold text-center">Share your experience</DialogTitle></DialogHeader>
+                    <div className="space-y-6">
+                      <div className="flex justify-center gap-4 py-4">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <button key={s} onClick={() => setRatingValue(s)} className="hover:scale-125 transition-transform">
+                            <Star className={`w-10 h-10 ${s <= ratingValue ? 'text-primary fill-primary' : 'text-white/10'}`} />
+                          </button>
+                        ))}
+                      </div>
+                      <div className="space-y-2">
+                        <Textarea 
+                          placeholder="What do you think of this site? (Optional)" 
+                          value={comment}
+                          onChange={(e) => setComment(e.target.value)}
+                          className="bg-white/5 border-white/10 rounded-2xl min-h-[100px] text-white"
+                        />
+                      </div>
+                      <Button 
+                        onClick={submitRating} 
+                        disabled={ratingLoading || ratingValue === 0}
+                        className="w-full bg-primary hover:bg-primary/90 text-white h-12 rounded-2xl font-bold"
+                      >
+                        {ratingLoading ? <Loader2 className="animate-spin" /> : "Post Review"}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <div className="flex-1 w-full space-y-2">
+                {[5, 4, 3, 2, 1].map((r) => (
+                  <div key={r} className="flex items-center gap-3">
+                    <span className="text-[10px] text-muted-foreground w-2 font-bold">{r}</span>
+                    <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-primary" style={{ width: `${r === 5 ? 80 : r === 4 ? 15 : 5}%` }} />
+                    </div>
                   </div>
-                </DialogContent>
-              </Dialog>
+                ))}
+              </div>
             </div>
-            <div className="flex-1 w-full space-y-2">
-              {[5, 4, 3, 2, 1].map((r) => (
-                <div key={r} className="flex items-center gap-3">
-                  <span className="text-[10px] text-muted-foreground w-2 font-bold">{r}</span>
-                  <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-primary" style={{ width: `${r === 5 ? 80 : r === 4 ? 15 : 5}%` }} />
-                  </div>
+
+            {recentRatings && recentRatings.length > 0 && (
+              <div className="space-y-6 pt-6 border-t border-white/5">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-primary" /> Recent Activity
+                </h3>
+                <div className="space-y-4">
+                  {recentRatings.map((rating: any) => (
+                    <div key={rating.id} className="bg-white/[0.03] p-4 rounded-2xl border border-white/5 flex gap-4">
+                      <Avatar className="w-10 h-10 border border-white/10">
+                        <AvatarImage src={rating.userPhotoURL} />
+                        <AvatarFallback className="bg-muted text-xs">{rating.userDisplayName?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-bold text-white">{rating.userDisplayName}</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {rating.timestamp ? formatDistanceToNow(rating.timestamp.toDate(), { addSuffix: true }) : 'Just now'}
+                          </span>
+                        </div>
+                        <div className="flex gap-0.5">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star key={s} className={`w-3 h-3 ${s <= rating.rating ? 'text-primary fill-primary' : 'text-white/5'}`} />
+                          ))}
+                        </div>
+                        {rating.comment && (
+                          <p className="text-sm text-muted-foreground mt-2 leading-relaxed italic">
+                            "{rating.comment}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
         </section>
       </main>

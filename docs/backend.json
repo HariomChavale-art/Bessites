@@ -101,7 +101,17 @@
         "rating": {
           "type": "number"
         },
+        "comment": {
+          "type": "string",
+          "description": "Optional short comment left by the user."
+        },
         "userId": {
+          "type": "string"
+        },
+        "userDisplayName": {
+          "type": "string"
+        },
+        "userPhotoURL": {
           "type": "string"
         },
         "timestamp": {

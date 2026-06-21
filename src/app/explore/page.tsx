@@ -5,11 +5,12 @@ import { Navigation } from "@/components/navigation";
 import { MOCK_WEBSITES, Website } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, ChevronRight, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, MoreVertical, ExternalLink } from "lucide-react";
+import { Search, Star, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, MoreVertical, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 
 const CATEGORIES = [
   { name: "AI & Future", icon: Sparkles, color: "text-purple-400" },
@@ -53,6 +54,17 @@ export default function ExplorePage() {
 
       <main className="flex-1 container mx-auto max-w-6xl px-4 py-12 space-y-24 pb-48">
         
+        {/* Search Section */}
+        <section className="max-w-4xl mx-auto w-full">
+          <div className="relative group">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Input 
+              placeholder="Search for tools, games, and web apps..." 
+              className="pl-16 bg-white/5 border-white/10 rounded-[2.5rem] h-20 text-xl font-bold focus:ring-primary focus:border-primary transition-all shadow-2xl"
+            />
+          </div>
+        </section>
+
         {/* Categories Grid Section */}
         <section>
           <div className="flex items-center justify-between mb-10">
@@ -119,7 +131,7 @@ function CuratedListSection({ title, items }: { title: string, items: Website[] 
               
               {/* Vertical Logo + Name Block */}
               <div className="flex flex-col items-center gap-5 w-full md:w-56 shrink-0 text-center">
-                <div className="relative w-44 h-44 rounded-[3rem] overflow-hidden bg-card/80 border border-white/10 p-6 shadow-2xl group-hover:scale-105 transition-transform duration-700 ring-1 ring-white/5">
+                <div className="relative w-40 h-40 rounded-[3rem] overflow-hidden bg-card/80 border border-white/10 p-6 shadow-2xl group-hover:scale-105 transition-transform duration-700 ring-1 ring-white/5">
                   <WebsitePreview 
                     websiteId={app.id}
                     websiteUrl={app.url}

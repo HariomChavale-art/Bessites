@@ -24,7 +24,7 @@ export function MasonryFeed({ initialWebsites }: MasonryFeedProps) {
 
   return (
     <div className="w-full">
-      <div className="columns-2 md:columns-3 lg:columns-4 gap-6 p-4">
+      <div className="columns-2 md:columns-3 lg:columns-4 gap-3 sm:gap-6 p-2 sm:p-4">
         {websites.map((website) => (
           <WebsiteCard key={website.id} website={website} />
         ))}

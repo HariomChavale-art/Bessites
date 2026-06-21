@@ -5,7 +5,7 @@ import { Navigation } from "@/components/navigation";
 import { MOCK_WEBSITES, Website } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Star, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, MoreVertical, ExternalLink, Heart, Tag } from "lucide-react";
+import { Search, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, ExternalLink, Heart, Tag } from "lucide-react";
 import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useUser, useFirestore } from "@/firebase";
 import { doc, setDoc, deleteDoc, increment } from "firebase/firestore";
+import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
   { name: "AI & Tech", icon: Sparkles, color: "text-purple-400" },
@@ -93,7 +94,7 @@ export default function ExplorePage() {
         <Separator className="bg-white/5" />
         <CuratedListSection title="Trending Now" items={trending} />
         <Separator className="bg-white/5" />
-        <CuratedListSection title="Top Rated" items={recommended} />
+        <CuratedListSection title="Top Recommended" items={recommended} />
 
       </main>
     </div>
@@ -139,6 +140,15 @@ function ExploreItemRow({ app }: { app: Website }) {
     setLiked(!liked);
   };
 
+  const getPricingStyle = (pricing: string) => {
+    switch (pricing) {
+      case "Paid": return "bg-black text-white border-white/20";
+      case "Free": return "bg-white text-black border-none";
+      case "Freemium":
+      default: return "bg-secondary text-secondary-foreground border-white/10";
+    }
+  };
+
   return (
     <Link href={`/website/${app.id}`} className="group relative">
       <div className="flex flex-col md:flex-row items-start gap-6 sm:gap-12 p-5 sm:p-8 rounded-3xl sm:rounded-[3.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-500 overflow-hidden">
@@ -171,11 +181,6 @@ function ExploreItemRow({ app }: { app: Website }) {
             <h4 className="text-xl sm:text-3xl font-extrabold text-white leading-tight tracking-tighter group-hover:text-primary transition-colors line-clamp-2">
               {app.description}
             </h4>
-            {app.isSponsored && (
-              <Badge variant="outline" className="text-[9px] py-0.5 px-2 border-primary/30 text-primary uppercase font-black shrink-0">
-                Ad
-              </Badge>
-            )}
           </div>
 
           <p className="text-sm sm:text-xl text-muted-foreground line-clamp-2 sm:line-clamp-3 leading-relaxed mb-6 sm:mb-8 font-medium">
@@ -183,24 +188,19 @@ function ExploreItemRow({ app }: { app: Website }) {
           </p>
 
           <div className="flex items-center gap-6 sm:gap-10">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <span className="text-lg sm:text-2xl font-black text-white">{app.rating}</span>
-              <div className="flex gap-0.5 sm:gap-1">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star 
-                    key={i} 
-                    className={`w-4 h-4 sm:w-5 sm:h-5 ${i <= Math.floor(app.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-white/10'}`} 
-                  />
-                ))}
-              </div>
+            <div className={cn(
+              "flex items-center gap-2 px-5 py-2.5 rounded-2xl border text-base font-black uppercase tracking-wider",
+              getPricingStyle(app.pricing)
+            )}>
+              <Tag className="w-5 h-5" />
+              {app.pricing}
             </div>
             <div className="h-4 sm:h-6 w-[1px] bg-white/10" />
             <div className="flex flex-col">
               <span className="text-white font-bold text-sm sm:text-lg flex items-center gap-2 italic">
-                <Tag className="w-4 h-4 text-primary" />
-                {app.pricing}
+                {app.updatedAt}
               </span>
-              <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Pricing</span>
+              <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Last Updated</span>
             </div>
           </div>
         </div>
@@ -227,9 +227,6 @@ function ExploreItemRow({ app }: { app: Website }) {
             className={liked ? "text-primary" : "text-muted-foreground"}
           >
              <Heart className={liked ? "fill-current w-6 h-6" : "w-6 h-6"} />
-           </Button>
-           <Button variant="ghost" size="icon" className="text-muted-foreground">
-             <MoreVertical className="w-6 h-6" />
            </Button>
         </div>
       </div>

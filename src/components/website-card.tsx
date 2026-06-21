@@ -3,13 +3,13 @@
 
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
-import { Star, Heart, Tag } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Heart, Tag } from "lucide-react";
 import { WebsitePreview } from "./website-preview";
 import { useState } from "react";
 import { useUser, useFirestore } from "@/firebase";
 import { doc, setDoc, deleteDoc, increment } from "firebase/firestore";
 import { Button } from "./ui/button";
+import { cn } from "@/lib/utils";
 
 interface WebsiteCardProps {
   website: Website;
@@ -37,6 +37,18 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
     setLiked(!liked);
   };
 
+  const getPricingStyle = (pricing: string) => {
+    switch (pricing) {
+      case "Paid":
+        return "bg-black text-white border-white/20";
+      case "Free":
+        return "bg-white text-black border-none";
+      case "Freemium":
+      default:
+        return "bg-secondary text-secondary-foreground border-white/10";
+    }
+  };
+
   return (
     <Link href={`/website/${website.id}`} className="block break-inside-avoid mb-4 sm:mb-6 group">
       <div className="relative rounded-2xl sm:rounded-[2.5rem] overflow-hidden bg-card/40 border border-white/5 transition-all duration-500 group-hover:border-primary/40 group-hover:shadow-[0_0_40px_rgba(123,51,255,0.15)] group-hover:bg-card/60">
@@ -53,18 +65,17 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
             className="w-2/3 h-2/3 drop-shadow-[0_10px_20px_rgba(0,0,0,0.3)] transition-transform duration-700 group-hover:scale-110"
           />
           
-          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex flex-col gap-2">
-            <div className="flex items-center gap-1 bg-black/40 backdrop-blur-xl px-2 py-0.5 sm:px-3 sm:py-1 rounded-full border border-white/10 shadow-lg">
-              <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-500 fill-yellow-500" />
-              <span className="text-[9px] sm:text-[10px] font-bold text-white tracking-tight">{website.rating.toFixed(1)}</span>
-            </div>
-            <div className="flex items-center gap-1 bg-primary/20 backdrop-blur-xl px-2 py-0.5 sm:px-3 sm:py-1 rounded-full border border-primary/20 shadow-lg">
-              <Tag className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-primary" />
-              <span className="text-[9px] sm:text-[10px] font-bold text-white tracking-tight">{website.pricing}</span>
+          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10">
+            <div className={cn(
+              "flex items-center gap-1 backdrop-blur-xl px-2.5 py-1 sm:px-4 sm:py-1.5 rounded-full border shadow-lg transition-colors",
+              getPricingStyle(website.pricing)
+            )}>
+              <Tag className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
+              <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider">{website.pricing}</span>
             </div>
           </div>
 
-          <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 flex gap-1.5">
+          <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
              <Button 
                 variant="ghost" 
                 size="icon" 

@@ -1,7 +1,7 @@
+
 "use client"
 
 import { Website } from "@/lib/mock-data";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -36,11 +36,6 @@ export function MarqueeBanner({ items }: MarqueeBannerProps) {
                 <span className="font-headline font-bold text-white group-hover:text-primary transition-colors">
                   {item.name}
                 </span>
-                {item.isSponsored && (
-                  <Badge variant="outline" className="text-[10px] py-0 px-1.5 border-primary/50 text-primary">
-                    Sponsored
-                  </Badge>
-                )}
               </div>
               <span className="text-xs text-muted-foreground">
                 {item.description}

@@ -5,8 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { WebsitePreview } from "@/components/website-preview";
 import { useDoc, useUser, useFirestore, useCollection } from "@/firebase";
 import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc, collection, query, orderBy, limit } from "firebase/firestore";
@@ -14,8 +12,6 @@ import {
   Star, 
   ArrowLeft, 
   Globe, 
-  ShieldCheck, 
-  Bookmark,
   Lock,
   MoreVertical,
   Loader2,
@@ -29,6 +25,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export default function WebsiteDetail() {
   const { id } = useParams();
@@ -67,7 +64,7 @@ export default function WebsiteDetail() {
     : website.rating.toFixed(1);
   
   const visitCount = stats?.visitCount || 0;
-  const totalReviews = (stats?.ratingCount || 0); // We only count real database reviews now
+  const totalReviews = (stats?.ratingCount || 0);
 
   const handleVisitClick = () => {
     if (!db || !id) return;
@@ -126,6 +123,15 @@ export default function WebsiteDetail() {
     }
   };
 
+  const getPricingStyle = (pricing: string) => {
+    switch (pricing) {
+      case "Paid": return "bg-black text-white border-white/20";
+      case "Free": return "bg-white text-black border-none";
+      case "Freemium":
+      default: return "bg-secondary text-secondary-foreground border-white/10";
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navigation />
@@ -163,25 +169,21 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        <div className="flex items-start justify-between px-2 mb-10 bg-white/[0.02] border border-white/5 rounded-3xl p-6">
+        <div className="flex items-start justify-center px-2 mb-10 bg-white/[0.02] border border-white/5 rounded-3xl p-6">
           <div className="flex flex-col items-center flex-1">
-            <div className="flex items-center gap-1 text-white font-bold text-lg">
-              {currentRating} <Star className="w-4 h-4 fill-white" />
-            </div>
-            <span className="text-muted-foreground text-[10px] mt-1 uppercase tracking-wider font-bold">Community Rating</span>
-          </div>
-          <div className="w-[1px] h-10 bg-white/10 self-center" />
-          <div className="flex flex-col items-center flex-1">
-            <div className="text-white font-bold text-lg flex items-center gap-2">
-               <Tag className="w-4 h-4 text-primary" />
+            <div className={cn(
+              "px-6 py-2 rounded-2xl border text-xl font-black uppercase tracking-widest transition-all",
+              getPricingStyle(website.pricing)
+            )}>
+               <Tag className="w-5 h-5 mr-2 inline" />
                {website.pricing}
             </div>
-            <span className="text-muted-foreground text-[10px] mt-1 uppercase tracking-wider font-bold">Pricing Model</span>
+            <span className="text-muted-foreground text-[10px] mt-2 uppercase tracking-wider font-bold">Pricing Model</span>
           </div>
-          <div className="w-[1px] h-10 bg-white/10 self-center" />
+          <div className="w-[1px] h-14 bg-white/10 self-center" />
           <div className="flex flex-col items-center flex-1">
-            <div className="text-white font-bold text-lg">{visitCount.toLocaleString()}</div>
-            <span className="text-muted-foreground text-[10px] mt-1 uppercase tracking-wider font-bold">Visits</span>
+            <div className="text-white font-bold text-xl">{visitCount.toLocaleString()}</div>
+            <span className="text-muted-foreground text-[10px] mt-2 uppercase tracking-wider font-bold">Total Visits</span>
           </div>
         </div>
 
@@ -226,7 +228,7 @@ export default function WebsiteDetail() {
             <div className="flex flex-col md:flex-row items-center gap-10">
               <div className="text-center">
                 <div className="text-6xl font-bold text-white mb-2">{currentRating}</div>
-                <div className="text-xs text-muted-foreground font-bold uppercase tracking-widest">{totalReviews.toLocaleString()} Real Reviews</div>
+                <div className="text-xs text-muted-foreground font-bold uppercase tracking-widest">{totalReviews.toLocaleString()} User Reviews</div>
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button size="sm" className="mt-6 bg-primary/20 text-primary hover:bg-primary/30 font-bold rounded-full px-6">

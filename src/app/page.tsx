@@ -12,7 +12,8 @@ import { Sparkles, TrendingUp, Clock } from "lucide-react";
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
   
-  const sponsoredWebsites = MOCK_WEBSITES.filter(w => w.isSponsored);
+  // No longer filtering by isSponsored, showing top picks instead
+  const featuredWebsites = MOCK_WEBSITES.slice(0, 10);
 
   const filteredWebsites = useMemo(() => {
     const list = [...MOCK_WEBSITES];
@@ -36,10 +37,10 @@ export default function Home() {
           <div className="container mx-auto px-4 mb-4">
             <h2 className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-primary glow-primary" />
-              Featured Partners
+              Staff Picks
             </h2>
           </div>
-          <MarqueeBanner items={sponsoredWebsites} />
+          <MarqueeBanner items={featuredWebsites} />
         </section>
 
         <section className="container mx-auto px-4 mt-8 sm:mt-12 mb-8">

@@ -1,22 +1,46 @@
+
 "use client"
 
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { Star, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { WebsitePreview } from "./website-preview";
+import { useState } from "react";
+import { useUser, useFirestore } from "@/firebase";
+import { doc, setDoc, deleteDoc, increment } from "firebase/firestore";
+import { Button } from "./ui/button";
 
 interface WebsiteCardProps {
   website: Website;
 }
 
 export function WebsiteCard({ website }: WebsiteCardProps) {
+  const { user } = useUser();
+  const db = useFirestore();
+  const [liked, setLiked] = useState(false);
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!user || !db) return;
+    
+    const likeRef = doc(db, "users", user.uid, "likedWebsites", website.id);
+    const statsRef = doc(db, "websiteStats", website.id);
+
+    if (liked) {
+      deleteDoc(likeRef);
+      setDoc(statsRef, { ratingSum: increment(-1), ratingCount: increment(-1) }, { merge: true });
+    } else {
+      setDoc(likeRef, { id: website.id, timestamp: new Date().toISOString() });
+      setDoc(statsRef, { ratingSum: increment(5), ratingCount: increment(1) }, { merge: true });
+    }
+    setLiked(!liked);
+  };
+
   return (
     <Link href={`/website/${website.id}`} className="block break-inside-avoid mb-4 sm:mb-6 group">
       <div className="relative rounded-2xl sm:rounded-[2.5rem] overflow-hidden bg-card/40 border border-white/5 transition-all duration-500 group-hover:border-primary/40 group-hover:shadow-[0_0_40px_rgba(123,51,255,0.15)] group-hover:bg-card/60">
         
-        {/* Main Logo Container */}
         <div className="relative aspect-square overflow-hidden flex items-center justify-center bg-gradient-to-br from-white/[0.03] to-transparent">
           <WebsitePreview 
             websiteId={website.id}
@@ -29,29 +53,25 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
             className="w-2/3 h-2/3 drop-shadow-[0_10px_20px_rgba(0,0,0,0.3)] transition-transform duration-700 group-hover:scale-110"
           />
           
-          {/* Floating Rating Badge (Top Left) */}
-          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10">
+          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex gap-2">
             <div className="flex items-center gap-1 bg-black/40 backdrop-blur-xl px-2 py-0.5 sm:px-3 sm:py-1 rounded-full border border-white/10 shadow-lg">
               <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-500 fill-yellow-500" />
               <span className="text-[9px] sm:text-[10px] font-bold text-white tracking-tight">{website.rating.toFixed(1)}</span>
             </div>
           </div>
 
-          {/* Pricing Badge (Top Right) */}
-          <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
-             <Badge 
-              variant="outline" 
-              className={`
-                text-[8px] sm:text-[9px] font-extrabold px-1.5 sm:px-2.5 py-0.5 rounded-full border-none shadow-lg backdrop-blur-md
-                ${website.pricing === 'Free' ? 'bg-green-500/20 text-green-400' : 'bg-primary/30 text-white'}
-              `}
-            >
-              {website.pricing?.toUpperCase() || 'FREE'}
-            </Badge>
+          <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 flex gap-1.5">
+             <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleLike}
+                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 transition-all hover:bg-black/60 ${liked ? "text-primary" : "text-white"}`}
+             >
+                <Heart className={liked ? "fill-current w-4 h-4 sm:w-5 sm:h-5" : "w-4 h-4 sm:w-5 sm:h-5"} />
+             </Button>
           </div>
         </div>
 
-        {/* Content Section */}
         <div className="p-3 sm:p-6 pt-1 sm:pt-2 space-y-1.5 sm:space-y-3">
           <div className="text-center">
             <h3 className="font-headline font-bold text-sm sm:text-lg text-white group-hover:text-primary transition-colors truncate">
@@ -62,13 +82,13 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
             </p>
           </div>
 
-          <p className="text-[11px] sm:text-[13px] text-muted-foreground/80 line-clamp-2 leading-relaxed text-center font-medium px-1 sm:px-2">
+          <p className="text-[10px] sm:text-[13px] text-muted-foreground/80 line-clamp-2 leading-relaxed text-center font-medium px-1 sm:px-2">
             {website.description}
           </p>
 
           <div className="flex flex-wrap justify-center gap-1 sm:gap-1.5 mt-2 sm:mt-4">
             {website.categories.slice(0, 2).map((cat) => (
-              <span key={cat} className="text-[8px] sm:text-[9px] font-bold text-primary/60 uppercase tracking-widest bg-primary/5 px-1.5 sm:px-2 py-0.5 rounded-md border border-primary/10">
+              <span key={cat} className="text-[7px] sm:text-[9px] font-bold text-primary/60 uppercase tracking-widest bg-primary/5 px-1.5 sm:px-2 py-0.5 rounded-md border border-primary/10">
                 {cat}
               </span>
             ))}

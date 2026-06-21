@@ -12,8 +12,10 @@ import { Sparkles, TrendingUp, Clock } from "lucide-react";
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
   
-  // No longer filtering by isSponsored, showing top picks instead
-  const featuredWebsites = MOCK_WEBSITES.slice(0, 10);
+  // Pick a selection of diverse top websites for the staff picks marquee
+  const featuredWebsites = useMemo(() => {
+    return MOCK_WEBSITES.filter(w => w.rating >= 4.8).slice(0, 10);
+  }, []);
 
   const filteredWebsites = useMemo(() => {
     const list = [...MOCK_WEBSITES];
@@ -21,7 +23,8 @@ export default function Home() {
       case "trending":
         return list.sort((a, b) => (b.reviewCount * b.rating) - (a.reviewCount * a.rating));
       case "new":
-        return list.filter(w => w.updatedAt.includes("2024")).reverse();
+        // Sort by "updatedAt" mock value or just reverse for new list
+        return list.slice().reverse();
       case "foryou":
       default:
         return MOCK_WEBSITES;

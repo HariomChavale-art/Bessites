@@ -19,7 +19,11 @@ import {
   Share2,
   Bookmark,
   CheckCircle2,
-  ArrowRight
+  ArrowRight,
+  Zap,
+  ShieldCheck,
+  Info,
+  Smartphone
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -221,14 +225,10 @@ export default function WebsiteDetail() {
           </Button>
         </div>
 
-        <div className="flex items-center gap-2 text-green-500/80 text-sm font-bold mb-12 px-2">
-           <Lock className="w-4 h-4" /> Secure connection • {website.url}
-        </div>
-
         {/* About Section */}
-        <div className="space-y-6 mb-16">
-          <h2 className="text-2xl font-black text-white tracking-tight">About this website</h2>
-          <p className="text-xl text-muted-foreground font-medium leading-relaxed">
+        <div className="space-y-6 mb-12">
+          <h2 className="text-2xl font-black text-white tracking-tight">About {website.name}</h2>
+          <p className="text-lg text-muted-foreground font-medium leading-relaxed">
             {website.longDescription}
           </p>
           <div className="flex flex-wrap gap-3">
@@ -237,6 +237,57 @@ export default function WebsiteDetail() {
                 {cat}
               </Badge>
             ))}
+          </div>
+        </div>
+
+        {/* Performance Metrics Bar */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5 mb-12">
+          <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
+            <div className="bg-green-500/10 p-2.5 rounded-xl">
+              <Zap className="w-6 h-6 text-green-500" fill="currentColor" />
+            </div>
+            <div>
+              <div className="text-xl font-black text-white">0.9s</div>
+              <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
+                Load Speed <Info className="w-3 h-3" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
+            <div className="bg-green-500/10 p-2.5 rounded-xl">
+              <ShieldCheck className="w-6 h-6 text-green-500" />
+            </div>
+            <div>
+              <div className="text-xl font-black text-white">SSL</div>
+              <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
+                Secured <Info className="w-3 h-3" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
+            <div className="bg-blue-500/10 p-2.5 rounded-xl">
+              <Globe className="w-6 h-6 text-blue-500" />
+            </div>
+            <div>
+              <div className="text-xl font-black text-white">190+</div>
+              <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
+                Countries <Info className="w-3 h-3" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="bg-yellow-500/10 p-2.5 rounded-xl">
+              <Smartphone className="w-6 h-6 text-yellow-500" />
+            </div>
+            <div>
+              <div className="text-xl font-black text-white">98/100</div>
+              <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
+                Mobile Friendly <Info className="w-3 h-3" />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -280,20 +331,6 @@ export default function WebsiteDetail() {
             </Dialog>
           </div>
 
-          <div className="flex gap-12 items-start mb-8">
-            <div className="space-y-1">
-              <div className="text-7xl font-black text-white">{currentRating}</div>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map(s => (
-                  <Star key={s} className={cn("w-4 h-4", s <= Math.round(Number(currentRating)) ? "fill-primary text-primary" : "text-white/10")} />
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest pt-2">
-                {totalReviews} reviews
-              </p>
-            </div>
-          </div>
-
           <div className="space-y-4">
             {recentRatings && recentRatings.length > 0 ? (
               recentRatings.map((rating: any) => (
@@ -333,7 +370,7 @@ export default function WebsiteDetail() {
           </div>
         </section>
 
-        {/* Similar Websites Section - NOW AT THE VERY BOTTOM */}
+        {/* Similar Websites Section - AT THE VERY BOTTOM */}
         {similarWebsites.length > 0 && (
           <section className="space-y-6 pt-12 border-t border-white/5">
             <div className="flex items-center justify-between">

@@ -119,13 +119,18 @@ export default function LoginPage() {
           router.push("/onboarding");
         }
       }
+      
+      toast({
+        title: "Welcome!",
+        description: `Successfully signed in with ${providerType === 'google' ? 'Google' : 'Apple'}.`,
+      });
     } catch (error: any) {
       console.error("Social Auth Error:", error);
       toast({
         variant: "destructive",
         title: "Login Failed",
         description: error.code === 'auth/operation-not-allowed'
-          ? "This login provider is not enabled in the Firebase Console."
+          ? "This provider is not enabled in the Firebase Console. Please enable it in Build > Authentication."
           : error.message || "An error occurred during sign-in.",
       });
     } finally {
@@ -157,7 +162,7 @@ export default function LoginPage() {
               
               <TabsContent value="login" className="mt-10 space-y-6 px-4">
                 <div className="space-y-3">
-                  <Label htmlFor="email" className="text-white ml-1">Email</Label>
+                  <Label htmlFor="email" className="text-white ml-1 font-bold">Email</Label>
                   <Input 
                     id="email" 
                     type="email" 
@@ -168,7 +173,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <div className="space-y-3">
-                  <Label htmlFor="password" title="Password" className="text-white ml-1">Password</Label>
+                  <Label htmlFor="password" title="Password" className="text-white ml-1 font-bold">Password</Label>
                   <Input 
                     id="password" 
                     type="password" 
@@ -188,7 +193,7 @@ export default function LoginPage() {
 
               <TabsContent value="signup" className="mt-10 space-y-6 px-4">
                 <div className="space-y-3">
-                  <Label htmlFor="signup-email" className="text-white ml-1">Email</Label>
+                  <Label htmlFor="signup-email" className="text-white ml-1 font-bold">Email</Label>
                   <Input 
                     id="signup-email" 
                     type="email" 
@@ -199,7 +204,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <div className="space-y-3">
-                  <Label htmlFor="signup-password" title="Password" className="text-white ml-1">Password</Label>
+                  <Label htmlFor="signup-password" title="Password" className="text-white ml-1 font-bold">Password</Label>
                   <Input 
                     id="signup-password" 
                     type="password" 

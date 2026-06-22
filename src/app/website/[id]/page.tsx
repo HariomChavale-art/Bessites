@@ -65,7 +65,7 @@ export default function WebsiteDetail() {
     return MOCK_WEBSITES.filter(w => 
       w.id !== website.id && 
       w.categories.some(cat => website.categories.includes(cat))
-    ).slice(0, 4);
+    ).slice(0, 6);
   }, [website]);
 
   if (!website) return <div className="p-8 text-center text-white">Website not found</div>;
@@ -139,6 +139,7 @@ export default function WebsiteDetail() {
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-4xl px-4 py-8 pb-32">
+        {/* Header Section */}
         <div className="flex gap-6 items-start mb-10">
           <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[2rem] overflow-hidden bg-card border border-white/10 shrink-0">
             <WebsitePreview 
@@ -152,25 +153,23 @@ export default function WebsiteDetail() {
               className="w-full h-full"
             />
           </div>
-          <div className="flex-1 space-y-1">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">{website.name}</h1>
-            <p className="text-primary font-medium text-lg">{website.url.replace('https://', '')}</p>
-            <div className="flex gap-2 items-center mt-2">
-              <Badge variant="secondary" className="bg-white/10 text-white border-none uppercase text-[10px] font-black tracking-widest px-3 py-1">
-                {website.categories[0]}
-              </Badge>
-              {website.categories[1] && (
-                <Badge variant="secondary" className="bg-white/10 text-white border-none uppercase text-[10px] font-black tracking-widest px-3 py-1">
-                  {website.categories[1]}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight truncate">{website.name}</h1>
+            <p className="text-primary font-medium text-lg truncate">{website.url.replace('https://', '')}</p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {website.categories.map((cat) => (
+                <Badge key={cat} variant="secondary" className="bg-white/10 text-white border-none uppercase text-[10px] font-black tracking-widest px-3 py-1">
+                  {cat}
                 </Badge>
-              )}
+              ))}
             </div>
           </div>
-          <button className="p-2 text-muted-foreground hover:text-white">
+          <button className="p-2 text-muted-foreground hover:text-white shrink-0">
             <MoreVertical className="w-6 h-6" />
           </button>
         </div>
 
+        {/* Stats Grid */}
         <div className="grid grid-cols-4 gap-4 mb-10 pb-8 border-b border-white/5">
           <div className="text-center space-y-1 border-r border-white/5">
             <div className="flex items-center justify-center gap-1">
@@ -196,6 +195,7 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
+        {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
           <Button 
             onClick={handleVisitClick} 
@@ -225,6 +225,7 @@ export default function WebsiteDetail() {
            <Lock className="w-4 h-4" /> Secure connection • {website.url}
         </div>
 
+        {/* About Section */}
         <div className="space-y-6 mb-16">
           <h2 className="text-2xl font-black text-white tracking-tight">About this website</h2>
           <p className="text-xl text-muted-foreground font-medium leading-relaxed">
@@ -239,42 +240,8 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {similarWebsites.length > 0 && (
-          <section className="mb-16 space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-black text-white tracking-tight">Similar to {website.name}</h2>
-              <Link href="/explore" className="text-primary text-sm font-bold flex items-center gap-1 hover:underline">
-                See all <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {similarWebsites.map((sub) => (
-                <Link key={sub.id} href={`/website/${sub.id}`}>
-                  <div className="flex items-center gap-4 p-0 overflow-hidden rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all group">
-                    <div className="w-16 h-16 overflow-hidden bg-card border-r border-white/10 shrink-0">
-                      <WebsitePreview 
-                        websiteId={sub.id}
-                        websiteUrl={sub.url}
-                        fallbackUrl={sub.imageUrl}
-                        alt={sub.name}
-                        width={64}
-                        height={64}
-                        mode="logo"
-                        className="w-full h-full"
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1 px-4">
-                      <h3 className="font-bold text-white truncate group-hover:text-primary transition-colors">{sub.name}</h3>
-                      <p className="text-xs text-muted-foreground truncate">{sub.description}</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section className="space-y-8">
+        {/* Community Reviews Section */}
+        <section className="space-y-8 mb-24">
           <div className="flex items-center justify-between">
             <h2 className="text-3xl font-black text-white tracking-tight">Community reviews</h2>
             <Dialog>
@@ -313,7 +280,7 @@ export default function WebsiteDetail() {
             </Dialog>
           </div>
 
-          <div className="flex gap-12 items-start">
+          <div className="flex gap-12 items-start mb-8">
             <div className="space-y-1">
               <div className="text-7xl font-black text-white">{currentRating}</div>
               <div className="flex gap-1">
@@ -327,7 +294,7 @@ export default function WebsiteDetail() {
             </div>
           </div>
 
-          <div className="space-y-4 pt-8">
+          <div className="space-y-4">
             {recentRatings && recentRatings.length > 0 ? (
               recentRatings.map((rating: any) => (
                 <div key={rating.id} className="bg-white/[0.02] border border-white/5 p-8 rounded-[2rem] space-y-4">
@@ -365,6 +332,42 @@ export default function WebsiteDetail() {
             )}
           </div>
         </section>
+
+        {/* Similar Websites Section - NOW AT THE VERY BOTTOM */}
+        {similarWebsites.length > 0 && (
+          <section className="space-y-6 pt-12 border-t border-white/5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-black text-white tracking-tight">Similar to {website.name}</h2>
+              <Link href="/explore" className="text-primary text-sm font-bold flex items-center gap-1 hover:underline">
+                Explore more <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {similarWebsites.map((sub) => (
+                <Link key={sub.id} href={`/website/${sub.id}`}>
+                  <div className="flex items-center gap-4 p-0 overflow-hidden rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all group">
+                    <div className="w-20 h-20 overflow-hidden bg-card border-r border-white/10 shrink-0">
+                      <WebsitePreview 
+                        websiteId={sub.id}
+                        websiteUrl={sub.url}
+                        fallbackUrl={sub.imageUrl}
+                        alt={sub.name}
+                        width={80}
+                        height={80}
+                        mode="logo"
+                        className="w-full h-full"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1 px-4">
+                      <h3 className="font-bold text-white truncate group-hover:text-primary transition-colors">{sub.name}</h3>
+                      <p className="text-xs text-muted-foreground truncate">{sub.description}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

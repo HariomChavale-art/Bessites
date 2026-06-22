@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react";
@@ -7,7 +6,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, Camera, Map, ShoppingBag, Music } from "lucide-react";
+import { Check, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, Camera, Map, ShoppingBag, Music, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -59,7 +58,7 @@ export default function OnboardingPage() {
       
       toast({
         title: "Profile setup!",
-        description: "Welcome to NetFlow. We're personalizing your feed.",
+        description: "Welcome to Webdock. We're personalizing your feed.",
       });
       
       router.push("/");
@@ -90,7 +89,7 @@ export default function OnboardingPage() {
       <div className="max-w-4xl w-full space-y-12 text-center relative z-10">
         <div className="space-y-4">
           <h1 className="text-5xl md:text-6xl font-headline font-extrabold text-white tracking-tighter">
-            Welcome to <span className="text-primary italic">NetFlow</span>
+            Welcome to <span className="text-primary italic">Webdock</span>
           </h1>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
             What are you looking for today? Pick at least <span className="text-white font-bold underline decoration-primary underline-offset-4">3 categories</span> to personalize your discovery feed.

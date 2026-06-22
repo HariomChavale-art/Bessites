@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo } from "react";
@@ -90,7 +89,7 @@ export default function Home() {
       <footer className="bg-card/50 border-t border-white/5 py-12">
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-muted-foreground">
-            © 2024 NetFlow. Crafted for the future of the web.
+            © 2024 Webdock. Crafted for the future of the web.
           </p>
         </div>
       </footer>

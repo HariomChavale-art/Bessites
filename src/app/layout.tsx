@@ -5,7 +5,7 @@ import { BottomNav } from "@/components/bottom-nav";
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'NetFlow | Discover Web Apps',
+  title: 'Webdock | Discover Web Apps',
   description: 'A Pinterest-inspired directory for modern web applications.',
 };
 

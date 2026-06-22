@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react";
@@ -148,7 +147,7 @@ export default function LoginPage() {
           <div className="bg-primary p-4 rounded-[1.5rem] mb-6 glow-primary shadow-[0_0_30px_rgba(123,51,255,0.4)] transition-transform hover:scale-110">
             <Zap className="w-10 h-10 text-white" fill="white" />
           </div>
-          <h1 className="text-5xl font-headline font-extrabold text-white tracking-tighter">NetFlow</h1>
+          <h1 className="text-5xl font-headline font-extrabold text-white tracking-tighter">Webdock</h1>
           <p className="text-muted-foreground mt-3 text-center text-lg">The web's front page, curated by you.</p>
         </div>
 
@@ -255,7 +254,7 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter className="pb-8">
             <p className="text-[11px] text-center w-full text-muted-foreground px-8 leading-relaxed opacity-60">
-              By joining NetFlow, you agree to our Terms and Privacy Policy.
+              By joining Webdock, you agree to our Terms and Privacy Policy.
             </p>
           </CardFooter>
         </Card>

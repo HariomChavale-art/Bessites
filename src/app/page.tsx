@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo } from "react";
@@ -7,10 +8,22 @@ import { MasonryFeed } from "@/components/masonry-feed";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sparkles, TrendingUp, Clock } from "lucide-react";
+import { useUser, useDoc, useFirestore } from "@/firebase";
+import { doc } from "firebase/firestore";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
-  
+  const { user } = useUser();
+  const db = useFirestore();
+
+  const userDocRef = useMemo(() => {
+    if (!user || !db) return null;
+    return doc(db, "users", user.uid);
+  }, [user, db]);
+
+  const { data: profile } = useDoc(userDocRef);
+  const userInterests = profile?.interests || [];
+
   // Pick a selection of diverse top websites for the staff picks marquee
   const featuredWebsites = useMemo(() => {
     return MOCK_WEBSITES.filter(w => w.rating >= 4.8).slice(0, 10);
@@ -22,13 +35,20 @@ export default function Home() {
       case "trending":
         return list.sort((a, b) => (b.reviewCount * b.rating) - (a.reviewCount * a.rating));
       case "new":
-        // Sort by "updatedAt" mock value or just reverse for new list
         return list.slice().reverse();
       case "foryou":
       default:
+        // If user has interests, prioritize them in "For You"
+        if (userInterests.length > 0) {
+          return list.sort((a, b) => {
+            const aMatch = a.categories.some(c => userInterests.includes(c)) ? 1 : 0;
+            const bMatch = b.categories.some(c => userInterests.includes(c)) ? 1 : 0;
+            return bMatch - aMatch;
+          });
+        }
         return MOCK_WEBSITES;
     }
-  }, [activeTab]);
+  }, [activeTab, userInterests]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -82,7 +102,7 @@ export default function Home() {
         </section>
 
         <section className="container mx-auto px-2">
-          <MasonryFeed key={activeTab} initialWebsites={filteredWebsites} />
+          <MasonryFeed key={activeTab + userInterests.join(',')} initialWebsites={filteredWebsites} />
         </section>
       </main>
 

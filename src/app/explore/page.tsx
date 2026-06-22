@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Navigation } from "@/components/navigation";
@@ -35,7 +36,7 @@ export default function ExplorePage() {
   const newlyAdded = useMemo(() => MOCK_WEBSITES.filter(w => w.updatedAt.includes("2024")).reverse().slice(0, 6), []);
   const recommended = useMemo(() => MOCK_WEBSITES.filter(w => w.rating >= 4.8).slice(0, 6), []);
   
-  const playTabs = ["For you", "Top charts", "Children", "Premium", "Categories"];
+  const playTabs = ["Premium", "Categories"];
 
   // Search and Category filtering logic
   const filteredResults = useMemo(() => {
@@ -59,7 +60,7 @@ export default function ExplorePage() {
       
       <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-md border-b border-white/5">
         <div className="container mx-auto px-4 overflow-x-auto no-scrollbar">
-          <Tabs defaultValue="For you" className="w-full">
+          <Tabs defaultValue="Categories" className="w-full">
             <TabsList className="bg-transparent h-12 w-full justify-start gap-4 sm:gap-8 overflow-x-auto no-scrollbar rounded-none border-none p-0">
               {playTabs.map((tab) => (
                 <TabsTrigger 

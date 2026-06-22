@@ -8,8 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Search, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, ExternalLink, Heart, Tag, X } from "lucide-react";
 import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
 import { useUser, useFirestore } from "@/firebase";
@@ -36,8 +34,6 @@ export default function ExplorePage() {
   const newlyAdded = useMemo(() => MOCK_WEBSITES.filter(w => w.updatedAt.includes("2024")).reverse().slice(0, 6), []);
   const recommended = useMemo(() => MOCK_WEBSITES.filter(w => w.rating >= 4.8).slice(0, 6), []);
   
-  const playTabs = ["Premium", "Categories"];
-
   // Search and Category filtering logic
   const filteredResults = useMemo(() => {
     if (!searchQuery && !selectedCategory) return null;
@@ -58,27 +54,9 @@ export default function ExplorePage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
       
-      <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-md border-b border-white/5">
-        <div className="container mx-auto px-4 overflow-x-auto no-scrollbar">
-          <Tabs defaultValue="Categories" className="w-full">
-            <TabsList className="bg-transparent h-12 w-full justify-start gap-4 sm:gap-8 overflow-x-auto no-scrollbar rounded-none border-none p-0">
-              {playTabs.map((tab) => (
-                <TabsTrigger 
-                  key={tab} 
-                  value={tab}
-                  className="bg-transparent data-[state=active]:bg-transparent data-[state=active]:text-primary rounded-none border-b-2 border-transparent data-[state=active]:border-primary px-0 pb-2 text-[13px] sm:text-sm font-semibold text-muted-foreground transition-all shrink-0"
-                >
-                  {tab}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </div>
-      </div>
-
       <main className="flex-1 container mx-auto max-w-6xl px-4 py-8 sm:py-12 space-y-16 sm:space-y-24 pb-48">
         
-        <section className="max-w-4xl mx-auto w-full">
+        <section className="max-w-4xl mx-auto w-full pt-4 sm:pt-8">
           <div className="relative group">
             <Search className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input 
@@ -157,34 +135,46 @@ export default function ExplorePage() {
           </section>
         ) : (
           <>
-            <Separator className="bg-white/5" />
-            <CuratedListSection title="Newly Added" items={newlyAdded} />
-            <Separator className="bg-white/5" />
-            <CuratedListSection title="Trending Now" items={trending} />
-            <Separator className="bg-white/5" />
-            <CuratedListSection title="Top Recommended" items={recommended} />
+            <section className="space-y-8 sm:space-y-12">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tighter">Newly Added</h2>
+                <Button variant="ghost" size="sm" className="text-primary font-bold hover:bg-white/5 text-sm sm:text-lg">View All</Button>
+              </div>
+              <div className="grid grid-cols-1 gap-6 sm:gap-12">
+                {newlyAdded.map((app) => (
+                  <ExploreItemRow key={app.id} app={app} />
+                ))}
+              </div>
+            </section>
+            
+            <section className="space-y-8 sm:space-y-12">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tighter">Trending Now</h2>
+                <Button variant="ghost" size="sm" className="text-primary font-bold hover:bg-white/5 text-sm sm:text-lg">View All</Button>
+              </div>
+              <div className="grid grid-cols-1 gap-6 sm:gap-12">
+                {trending.map((app) => (
+                  <ExploreItemRow key={app.id} app={app} />
+                ))}
+              </div>
+            </section>
+
+            <section className="space-y-8 sm:space-y-12">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tighter">Top Recommended</h2>
+                <Button variant="ghost" size="sm" className="text-primary font-bold hover:bg-white/5 text-sm sm:text-lg">View All</Button>
+              </div>
+              <div className="grid grid-cols-1 gap-6 sm:gap-12">
+                {recommended.map((app) => (
+                  <ExploreItemRow key={app.id} app={app} />
+                ))}
+              </div>
+            </section>
           </>
         )}
 
       </main>
     </div>
-  );
-}
-
-function CuratedListSection({ title, items }: { title: string, items: Website[] }) {
-  return (
-    <section className="space-y-8 sm:space-y-12">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tighter">{title}</h2>
-        <Button variant="ghost" size="sm" className="text-primary font-bold hover:bg-white/5 text-sm sm:text-lg">View All</Button>
-      </div>
-      
-      <div className="grid grid-cols-1 gap-6 sm:gap-12">
-        {items.map((app) => (
-          <ExploreItemRow key={app.id} app={app} />
-        ))}
-      </div>
-    </section>
   );
 }
 

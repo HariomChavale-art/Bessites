@@ -15,11 +15,6 @@ export function BottomNav() {
     { href: "/profile", icon: User, label: "Profile" },
   ];
 
-  // Hide nav on auth and onboarding pages
-  const hideNav = pathname === "/login" || pathname === "/onboarding";
-
-  if (hideNav) return null;
-
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-fit px-4">
       <nav className="bg-card/80 backdrop-blur-xl border border-white/10 rounded-full px-8 py-3 flex items-center gap-10 shadow-2xl ring-1 ring-black/20">

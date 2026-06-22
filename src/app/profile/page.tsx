@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useUser, useAuth, useDoc, useFirestore } from "@/firebase";
+import { useUser, useAuth, useDoc, useFirestore, useCollection } from "@/firebase";
 import { Navigation } from "@/components/navigation";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { WebsiteCard } from "@/components/website-card";
@@ -11,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Heart, Bookmark, Settings, Grid, LogOut, Chrome, Apple, Sparkles, Loader2, Mail } from "lucide-react";
 import Link from "next/link";
 import { signOut, signInWithPopup, GoogleAuthProvider, OAuthProvider } from "firebase/auth";
-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, getDoc, serverTimestamp, collection } from "firebase/firestore";
 import { useMemo, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -27,7 +28,22 @@ export default function ProfilePage() {
     return doc(db, "users", user.uid);
   }, [user, db]);
 
-  const { data: profileData, loading: profileLoading } = useDoc(userDocRef);
+  const { data: profileData } = useDoc(userDocRef);
+
+  // Fetch real liked websites from Firestore
+  const likedCollectionRef = useMemo(() => {
+    if (!user || !db) return null;
+    return collection(db, "users", user.uid, "likedWebsites");
+  }, [user, db]);
+
+  const { data: likedDocs, loading: likedLoading } = useCollection(likedCollectionRef);
+
+  // Map Firestore IDs back to our MOCK_WEBSITES data for display
+  const likedWebsites = useMemo(() => {
+    if (!likedDocs) return [];
+    const likedIds = likedDocs.map(doc => doc.id);
+    return MOCK_WEBSITES.filter(w => likedIds.includes(w.id));
+  }, [likedDocs]);
 
   const handleLogout = async () => {
     if (auth) {
@@ -40,28 +56,14 @@ export default function ProfilePage() {
   };
 
   const handleSocialLogin = async (providerType: 'google' | 'apple') => {
-    if (!auth || !db) {
-      toast({
-        variant: "destructive",
-        title: "Configuration Error",
-        description: "Firebase is not properly configured. Please check your API keys.",
-      });
-      return;
-    }
-
+    if (!auth || !db) return;
     setAuthLoading(true);
     try {
-      const provider = providerType === 'google' 
-        ? new GoogleAuthProvider() 
-        : new OAuthProvider('apple.com');
-      
+      const provider = providerType === 'google' ? new GoogleAuthProvider() : new OAuthProvider('apple.com');
       const result = await signInWithPopup(auth, provider);
       const signedInUser = result.user;
-
-      // Initialize Firestore profile if it doesn't exist
       const docRef = doc(db, "users", signedInUser.uid);
       const docSnap = await getDoc(docRef);
-
       if (!docSnap.exists()) {
         await setDoc(docRef, {
           displayName: signedInUser.displayName,
@@ -72,18 +74,8 @@ export default function ProfilePage() {
           interests: []
         });
       }
-
-      toast({
-        title: "Welcome!",
-        description: `Successfully connected with ${providerType.charAt(0).toUpperCase() + providerType.slice(1)}.`,
-      });
     } catch (error: any) {
-      console.error(`${providerType} login failed`, error);
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: error.message || "An unexpected error occurred during sign-in.",
-      });
+      toast({ variant: "destructive", title: "Login Failed", description: error.message });
     } finally {
       setAuthLoading(false);
     }
@@ -92,10 +84,7 @@ export default function ProfilePage() {
   if (userLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="animate-spin h-10 w-10 text-primary" />
-          <p className="text-muted-foreground animate-pulse font-medium">Curating your workspace...</p>
-        </div>
+        <Loader2 className="animate-spin h-10 w-10 text-primary" />
       </div>
     );
   }
@@ -104,10 +93,7 @@ export default function ProfilePage() {
   const displayName = profileData?.displayName || user?.displayName || "Guest Curator";
   const email = user?.email || "Account not connected";
   const photoURL = profileData?.photoURL || user?.photoURL || `https://picsum.photos/seed/curator/200`;
-  const interests = profileData?.interests?.length > 0 ? profileData.interests : ["Design", "AI", "Tech", "Discovery"];
-
-  const savedWebsites = MOCK_WEBSITES.slice(0, 4);
-  const likedWebsites = MOCK_WEBSITES.slice(4, 8);
+  const interests = profileData?.interests?.length > 0 ? profileData.interests : ["Design", "AI", "Tech"];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -124,133 +110,86 @@ export default function ProfilePage() {
                 Your <span className="text-primary italic">Collection</span> Awaits
               </h1>
               <p className="text-muted-foreground text-xl max-w-lg mx-auto font-medium">
-                Connect your account to save your favorite websites, track your visits, and personalize your flow.
+                Connect your account to save favorite websites and track your flow.
               </p>
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
-              <Button 
-                onClick={() => handleSocialLogin('google')}
-                disabled={authLoading}
-                className="bg-white text-background hover:bg-white/90 rounded-2xl h-16 font-bold text-lg shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3"
-              >
-                {authLoading ? <Loader2 className="animate-spin w-6 h-6" /> : <Chrome className="w-6 h-6" />}
+              <Button onClick={() => handleSocialLogin('google')} disabled={authLoading} className="bg-white text-background hover:bg-white/90 rounded-2xl h-16 font-bold text-lg">
+                {authLoading ? <Loader2 className="animate-spin w-6 h-6" /> : <Chrome className="w-6 h-6 mr-3" />}
                 Connect Google
               </Button>
-              <Button 
-                onClick={() => handleSocialLogin('apple')}
-                disabled={authLoading}
-                className="bg-black text-white hover:bg-black/90 border border-white/10 rounded-2xl h-16 font-bold text-lg shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3"
-              >
-                {authLoading ? <Loader2 className="animate-spin w-6 h-6" /> : <Apple className="w-6 h-6" />}
+              <Button onClick={() => handleSocialLogin('apple')} disabled={authLoading} className="bg-black text-white hover:bg-black/90 border border-white/10 rounded-2xl h-16 font-bold text-lg">
+                {authLoading ? <Loader2 className="animate-spin w-6 h-6" /> : <Apple className="w-6 h-6 mr-3" />}
                 Connect Apple
               </Button>
             </div>
-            
-            <p className="text-xs text-muted-foreground opacity-50 uppercase tracking-[0.2em] font-bold">
-              Join thousands of curators
-            </p>
           </div>
         ) : (
           <div className="flex flex-col items-center text-center mb-12">
             <div className="relative mb-6 group">
-              <Avatar className="w-32 h-32 border-4 border-background ring-4 ring-primary/20 shadow-2xl transition-transform duration-500 group-hover:scale-105">
+              <Avatar className="w-32 h-32 border-4 border-background ring-4 ring-primary/20 shadow-2xl">
                 <AvatarImage src={photoURL} />
-                <AvatarFallback className="bg-muted text-2xl font-bold">
-                  {displayName.charAt(0)}
-                </AvatarFallback>
+                <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
               </Avatar>
-              <Button size="icon" variant="ghost" className="absolute bottom-0 right-0 rounded-full bg-primary hover:bg-primary/90 text-white shadow-lg border-2 border-background w-10 h-10">
+              <Button size="icon" variant="ghost" className="absolute bottom-0 right-0 rounded-full bg-primary text-white w-10 h-10">
                 <Settings className="w-5 h-5" />
               </Button>
             </div>
-            
-            <h1 className="text-4xl font-headline font-extrabold text-white mb-2 tracking-tight">
-              {displayName}
-            </h1>
-            <p className="text-muted-foreground text-sm mb-6 font-medium bg-white/5 px-4 py-1 rounded-full border border-white/5 inline-block">
-              {email}
-            </p>
-            
+            <h1 className="text-4xl font-headline font-extrabold text-white mb-2 tracking-tight">{displayName}</h1>
+            <p className="text-muted-foreground text-sm mb-6 font-medium bg-white/5 px-4 py-1 rounded-full border border-white/5 inline-block">{email}</p>
             <div className="flex flex-wrap justify-center gap-2 mb-10 max-w-md">
               {interests.map((interest: string) => (
-                <Badge key={interest} variant="secondary" className="bg-white/5 text-white border-white/10 px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-wider">
-                  <Sparkles className="w-3 h-3 mr-2 text-primary" />
+                <Badge key={interest} variant="secondary" className="bg-white/5 text-white border-white/10 px-4 py-1.5 rounded-full font-bold text-[10px] uppercase">
                   {interest}
                 </Badge>
               ))}
             </div>
-            
             <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm justify-center">
-              <Button variant="outline" className="rounded-2xl px-10 border-white/10 hover:bg-white/5 h-14 font-bold text-lg flex-1" onClick={handleLogout}>
-                <LogOut className="w-5 h-5 mr-2" />
-                Sign Out
+              <Button variant="outline" className="rounded-2xl border-white/10 h-14 font-bold flex-1" onClick={handleLogout}>
+                <LogOut className="w-5 h-5 mr-2" /> Sign Out
               </Button>
               <Link href="/submit" className="flex-1">
-                <Button className="w-full rounded-2xl px-10 bg-white text-background hover:bg-white/90 h-14 font-bold text-lg shadow-xl">
-                  <Plus className="w-5 h-5 mr-2" />
-                  Submit Site
+                <Button className="w-full rounded-2xl bg-white text-background h-14 font-bold shadow-xl">
+                  <Plus className="w-5 h-5 mr-2" /> Submit Site
                 </Button>
               </Link>
             </div>
           </div>
         )}
 
-        <Tabs defaultValue="saved" className="w-full">
+        <Tabs defaultValue="liked" className="w-full">
           <div className="flex justify-center mb-12">
             <TabsList className="bg-white/5 border border-white/5 rounded-2xl p-1.5 h-auto">
-              <TabsTrigger 
-                value="saved" 
-                className="rounded-xl px-8 sm:px-12 py-3.5 data-[state=active]:bg-white data-[state=active]:text-background transition-all font-bold"
-              >
-                <Bookmark className="w-4 h-4 mr-2" />
-                Saved
+              <TabsTrigger value="liked" className="rounded-xl px-12 py-3.5 data-[state=active]:bg-white data-[state=active]:text-background font-bold">
+                <Heart className="w-4 h-4 mr-2" /> Liked
               </TabsTrigger>
-              <TabsTrigger 
-                value="liked" 
-                className="rounded-xl px-8 sm:px-12 py-3.5 data-[state=active]:bg-white data-[state=active]:text-background transition-all font-bold"
-              >
-                <Heart className="w-4 h-4 mr-2" />
-                Liked
-              </TabsTrigger>
-              <TabsTrigger 
-                value="uploads" 
-                className="rounded-xl px-8 sm:px-12 py-3.5 data-[state=active]:bg-white data-[state=active]:text-background transition-all font-bold"
-              >
-                <Grid className="w-4 h-4 mr-2" />
-                Uploads
+              <TabsTrigger value="uploads" className="rounded-xl px-12 py-3.5 data-[state=active]:bg-white data-[state=active]:text-background font-bold">
+                <Grid className="w-4 h-4 mr-2" /> Submissions
               </TabsTrigger>
             </TabsList>
           </div>
 
-          <TabsContent value="saved" className="mt-0 focus-visible:outline-none">
-            <div className="columns-2 md:columns-3 lg:columns-4 gap-6 px-2">
-              {savedWebsites.map((app) => (
-                <WebsiteCard key={app.id} website={app} />
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="liked" className="mt-0 focus-visible:outline-none">
-            <div className="columns-2 md:columns-3 lg:columns-4 gap-6 px-2">
-              {likedWebsites.map((app) => (
-                <WebsiteCard key={app.id} website={app} />
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="uploads" className="mt-0 focus-visible:outline-none">
-            <div className="flex flex-col items-center justify-center py-28 border-2 border-dashed border-white/5 rounded-[3.5rem] bg-white/[0.02] text-center px-4 max-w-3xl mx-auto">
-              <div className="bg-primary/10 p-8 rounded-[2rem] mb-8">
-                <Plus className="w-14 h-14 text-primary" />
+          <TabsContent value="liked">
+            {likedLoading ? (
+              <div className="flex justify-center py-20"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>
+            ) : likedWebsites.length > 0 ? (
+              <div className="columns-2 md:columns-3 lg:columns-4 gap-6 px-2">
+                {likedWebsites.map((app) => <WebsiteCard key={app.id} website={app} />)}
               </div>
-              <h3 className="text-3xl font-extrabold text-white mb-3 tracking-tight">Share your creation</h3>
-              <p className="text-muted-foreground max-w-sm mb-10 text-lg leading-relaxed font-medium">Got a cool web tool or unique experience? Submit it to the community.</p>
-              <Link href="/submit">
-                <Button className="rounded-2xl px-16 py-8 bg-white text-background hover:bg-white/90 font-extrabold text-xl h-auto shadow-2xl">
-                  Submit Now
-                </Button>
-              </Link>
+            ) : (
+              <div className="text-center py-20 opacity-40">
+                <Heart className="w-12 h-12 mx-auto mb-4" />
+                <p className="text-lg">No liked websites yet.</p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="uploads">
+            <div className="flex flex-col items-center justify-center py-28 border-2 border-dashed border-white/5 rounded-[3.5rem] bg-white/[0.02] text-center px-4 max-w-3xl mx-auto">
+              <Plus className="w-14 h-14 text-primary mb-8" />
+              <h3 className="text-3xl font-extrabold text-white mb-3">Share your creation</h3>
+              <p className="text-muted-foreground mb-10 text-lg">Got a cool web tool? Submit it to the community.</p>
+              <Link href="/submit"><Button className="rounded-2xl px-16 py-8 bg-white text-background font-extrabold text-xl h-auto">Submit Now</Button></Link>
             </div>
           </TabsContent>
         </Tabs>

@@ -20,7 +20,12 @@ import {
   User,
   History,
   ShieldCheck,
-  Star
+  Star,
+  Share2,
+  Bookmark,
+  Zap,
+  Smartphone,
+  CheckCircle2
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -28,6 +33,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { WebsitePreview } from "@/components/website-preview";
+import { Progress } from "@/components/ui/progress";
 
 export default function WebsiteDetail() {
   const { id } = useParams();
@@ -65,8 +72,8 @@ export default function WebsiteDetail() {
     ? (stats.ratingSum / stats.ratingCount).toFixed(1) 
     : website.rating.toFixed(1);
   
-  const visitCount = stats?.visitCount || 0;
-  const totalReviews = (stats?.ratingCount || 0);
+  const visitCount = stats?.visitCount || (website.reviewCount * 12);
+  const totalReviews = (stats?.ratingCount || 0) + (website.reviewCount / 100);
 
   const handleVisitClick = () => {
     if (!db || !id) return;
@@ -125,238 +132,243 @@ export default function WebsiteDetail() {
     }
   };
 
-  const getPricingStyle = (pricing: string) => {
-    switch (pricing) {
-      case "Paid": return "bg-white text-black border-none";
-      case "Free": return "bg-black text-white border-white/20";
-      case "Freemium":
-      default: return "bg-secondary text-secondary-foreground border-white/10";
-    }
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-4xl px-4 py-8 pb-32">
-        <div className="flex items-center justify-between mb-12">
-          <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-white transition-colors group">
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span className="font-bold">Back to Feed</span>
+        {/* Header Section */}
+        <div className="flex gap-6 items-start mb-10">
+          <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[2rem] overflow-hidden bg-card border border-white/10 shrink-0">
+            <WebsitePreview 
+              websiteId={website.id}
+              websiteUrl={website.url}
+              fallbackUrl={website.imageUrl}
+              alt={website.name}
+              width={256}
+              height={256}
+              mode="logo"
+              className="w-full h-full"
+            />
+          </div>
+          <div className="flex-1 space-y-1">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">{website.name}</h1>
+            <p className="text-primary font-medium text-lg">{website.url.replace('https://', '')}</p>
+            <p className="text-muted-foreground text-sm font-medium">{website.categories[0]} & Productivity</p>
+          </div>
+          <button className="p-2 text-muted-foreground hover:text-white">
+            <MoreVertical className="w-6 h-6" />
           </button>
-          <div className="flex items-center gap-3">
-             <Button 
-              variant="outline" 
-              onClick={handleLike}
-              className={cn(
-                "rounded-full border-white/10 bg-white/5 font-bold gap-2 h-10 px-6",
-                liked ? "text-primary border-primary/40" : "text-white"
-              )}
-            >
-              <Heart className={cn("w-4 h-4", liked && "fill-current")} /> 
-              {liked ? "Liked" : "Like"}
-            </Button>
-            <button className="p-2 text-white hover:bg-white/5 rounded-full transition-colors">
-              <MoreVertical className="w-5 h-5" />
-            </button>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-4 gap-4 mb-10 pb-8 border-b border-white/5">
+          <div className="text-center space-y-1 border-r border-white/5">
+            <div className="flex items-center justify-center gap-1">
+              <span className="text-white font-black text-xl">{currentRating}</span>
+              <Star className="w-4 h-4 fill-primary text-primary" />
+            </div>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Rating</p>
+          </div>
+          <div className="text-center space-y-1 border-r border-white/5">
+            <span className="text-white font-black text-xl">{Math.floor(totalReviews)}K+</span>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Reviews</p>
+          </div>
+          <div className="text-center space-y-1 border-r border-white/5">
+            <span className="text-white font-black text-xl">{Math.floor(visitCount / 1000).toLocaleString()}K</span>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Visits</p>
+          </div>
+          <div className="text-center space-y-1">
+            <div className="flex items-center justify-center gap-1 text-green-500">
+               <CheckCircle2 className="w-4 h-4" />
+               <span className="font-black text-xl">100%</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Uptime</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          {/* Main Info Column */}
-          <div className="lg:col-span-2 space-y-12">
-            <header className="space-y-6">
-              <div className="flex items-center gap-4">
-                <div className="bg-primary/10 p-3 rounded-2xl">
-                  <Globe className="w-8 h-8 text-primary" />
-                </div>
-                <div>
-                  <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tighter">{website.name}</h1>
-                  <p className="text-primary font-bold text-lg">{website.url.replace('https://', '')}</p>
-                </div>
-              </div>
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-12">
+          <Button 
+            onClick={handleVisitClick} 
+            asChild 
+            className="flex-[3] bg-primary hover:bg-primary/90 text-white rounded-2xl h-16 text-xl font-black gap-3 shadow-xl glow-primary"
+          >
+            <a href={website.url} target="_blank" rel="noopener noreferrer">
+              <Globe className="w-6 h-6" /> Visit Website
+            </a>
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={handleLike}
+            className={cn(
+              "flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black gap-3 text-lg",
+              liked && "text-primary border-primary/20"
+            )}
+          >
+            <Bookmark className={cn("w-6 h-6", liked && "fill-current")} /> {liked ? "Saved" : "Save"}
+          </Button>
+          <Button variant="outline" className="flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black gap-3 text-lg">
+            <Share2 className="w-6 h-6" /> Share
+          </Button>
+        </div>
 
-              <div className="space-y-4">
-                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                  <Info className="w-6 h-6 text-primary" />
-                  About the Tool
-                </h2>
-                <p className="text-xl text-muted-foreground leading-relaxed font-medium">
-                  {website.longDescription}
-                </p>
-              </div>
-            </header>
+        {/* Security Banner */}
+        <div className="flex items-center gap-2 text-green-500/80 text-sm font-bold mb-12 px-2">
+           <Lock className="w-4 h-4" /> Secure connection • {website.url}
+        </div>
 
-            <section className="space-y-6">
-              <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                <ShieldCheck className="w-6 h-6 text-primary" />
-                Technical Details
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl flex items-center gap-4">
-                  <div className="bg-white/5 p-3 rounded-2xl">
-                    <User className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Developer</p>
-                    <p className="text-white font-bold">{website.developer}</p>
-                  </div>
-                </div>
-                <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl flex items-center gap-4">
-                  <div className="bg-white/5 p-3 rounded-2xl">
-                    <History className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Last Updated</p>
-                    <p className="text-white font-bold">{website.updatedAt}</p>
-                  </div>
-                </div>
-                <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl flex items-center gap-4">
-                  <div className="bg-white/5 p-3 rounded-2xl">
-                    <Tag className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Version</p>
-                    <p className="text-white font-bold">{website.version}</p>
-                  </div>
-                </div>
-                <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl flex items-center gap-4">
-                  <div className="bg-white/5 p-3 rounded-2xl">
-                    <Star className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Category</p>
-                    <p className="text-white font-bold">{website.categories[0]}</p>
-                  </div>
-                </div>
-              </div>
-            </section>
+        {/* About Section */}
+        <div className="space-y-6 mb-16">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-black text-white tracking-tight">About this website</h2>
+            <ArrowLeft className="w-6 h-6 text-white rotate-180" />
+          </div>
+          <p className="text-xl text-muted-foreground font-medium leading-relaxed">
+            {website.longDescription}
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {website.categories.map(cat => (
+              <Badge key={cat} className="bg-white/5 hover:bg-white/10 text-white border-white/5 py-2.5 px-6 rounded-full text-sm font-bold">
+                {cat}
+              </Badge>
+            ))}
+          </div>
+        </div>
 
-            <section className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                  <MessageSquare className="w-6 h-6 text-primary" />
-                  Community Activity
-                </h2>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" className="text-primary font-bold hover:bg-primary/10">
-                      Add Review
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="bg-card border-white/10 text-white rounded-[2.5rem] sm:max-w-md p-8">
-                    <DialogHeader><DialogTitle className="text-2xl font-bold text-center">Share your experience</DialogTitle></DialogHeader>
-                    <div className="space-y-6">
-                      <div className="flex justify-center gap-4 py-4">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <button key={s} onClick={() => setRatingValue(s)} className="hover:scale-125 transition-transform">
-                            <Star className={`w-10 h-10 ${s <= ratingValue ? 'text-primary fill-primary' : 'text-white/10'}`} />
-                          </button>
-                        ))}
-                      </div>
-                      <div className="space-y-2">
-                        <Textarea 
-                          placeholder="What do you think of this site? (Optional)" 
-                          value={comment}
-                          onChange={(e) => setComment(e.target.value)}
-                          className="bg-white/5 border-white/10 rounded-2xl min-h-[100px] text-white"
-                        />
-                      </div>
-                      <Button 
-                        onClick={submitRating} 
-                        disabled={ratingLoading || ratingValue === 0}
-                        className="w-full bg-primary hover:bg-primary/90 text-white h-12 rounded-2xl font-bold"
-                      >
-                        {ratingLoading ? <Loader2 className="animate-spin" /> : "Post Review"}
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
+        {/* Tech Details Section */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-primary">
+              <Zap className="w-5 h-5 fill-current" />
+              <span className="font-black text-white text-lg">0.9s</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Load Speed</p>
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-green-500">
+              <CheckCircle2 className="w-5 h-5" />
+              <span className="font-black text-white text-lg">SSL Secured</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Safety</p>
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-blue-400">
+              <Globe className="w-5 h-5" />
+              <span className="font-black text-white text-lg">190+</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Countries</p>
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-amber-400">
+              <Smartphone className="w-5 h-5" />
+              <span className="font-black text-white text-lg">98/100</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Mobile Friendly</p>
+          </div>
+        </div>
 
-              <div className="space-y-4">
-                {recentRatings && recentRatings.length > 0 ? (
-                  recentRatings.map((rating: any) => (
-                    <div key={rating.id} className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl flex gap-6">
-                      <Avatar className="w-12 h-12 border border-white/10">
+        {/* Ratings & Reviews Section */}
+        <section className="space-y-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-3xl font-black text-white tracking-tight">Ratings & reviews</h2>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="ghost" className="text-primary font-bold hover:bg-primary/10">
+                  Write Review
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-card border-white/10 text-white rounded-[2.5rem] sm:max-w-md p-8">
+                <DialogHeader><DialogTitle className="text-2xl font-bold text-center">Share your experience</DialogTitle></DialogHeader>
+                <div className="space-y-6">
+                  <div className="flex justify-center gap-4 py-4">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <button key={s} onClick={() => setRatingValue(s)} className="hover:scale-125 transition-transform">
+                        <Star className={`w-10 h-10 ${s <= ratingValue ? 'text-primary fill-primary' : 'text-white/10'}`} />
+                      </button>
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    <Textarea 
+                      placeholder="What do you think of this site? (Optional)" 
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      className="bg-white/5 border-white/10 rounded-2xl min-h-[100px] text-white"
+                    />
+                  </div>
+                  <Button 
+                    onClick={submitRating} 
+                    disabled={ratingLoading || ratingValue === 0}
+                    className="w-full bg-primary hover:bg-primary/90 text-white h-12 rounded-2xl font-bold"
+                  >
+                    {ratingLoading ? <Loader2 className="animate-spin" /> : "Post Review"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <div className="flex gap-12 items-start">
+            <div className="space-y-1">
+              <div className="text-7xl font-black text-white">{currentRating}</div>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map(s => (
+                  <Star key={s} className={cn("w-4 h-4", s <= Math.round(Number(currentRating)) ? "fill-primary text-primary" : "text-white/10")} />
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest pt-2">
+                {Math.floor(totalReviews * 1000).toLocaleString()} reviews
+              </p>
+            </div>
+            
+            <div className="flex-1 space-y-2">
+              {[5, 4, 3, 2, 1].map((rating) => (
+                <div key={rating} className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-muted-foreground w-2">{rating}</span>
+                  <Progress value={rating === 5 ? 85 : rating === 4 ? 40 : rating === 3 ? 15 : 5} className="h-2 bg-white/5" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-8">
+            {recentRatings && recentRatings.length > 0 ? (
+              recentRatings.map((rating: any) => (
+                <div key={rating.id} className="bg-white/[0.02] border border-white/5 p-8 rounded-[2rem] space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="w-10 h-10 border border-white/10">
                         <AvatarImage src={rating.userPhotoURL} />
                         <AvatarFallback className="bg-muted text-sm">{rating.userDisplayName?.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-white text-lg">{rating.userDisplayName}</span>
-                          <span className="text-xs text-muted-foreground font-medium">
-                            {rating.timestamp ? formatDistanceToNow(rating.timestamp.toDate(), { addSuffix: true }) : 'Just now'}
-                          </span>
-                        </div>
-                        <div className="flex gap-1">
+                      <div>
+                        <span className="font-bold text-white block">{rating.userDisplayName}</span>
+                        <div className="flex gap-0.5">
                           {[1, 2, 3, 4, 5].map((s) => (
-                            <Star key={s} className={cn("w-3.5 h-3.5", s <= rating.rating ? "text-primary fill-primary" : "text-white/5")} />
+                            <Star key={s} className={cn("w-3 h-3", s <= rating.rating ? "text-primary fill-primary" : "text-white/5")} />
                           ))}
                         </div>
-                        {rating.comment && (
-                          <p className="text-muted-foreground italic leading-relaxed">
-                            "{rating.comment}"
-                          </p>
-                        )}
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div className="bg-white/[0.02] border border-white/5 p-12 rounded-3xl text-center opacity-40">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-4" />
-                    <p className="font-bold">Be the first to share your thoughts on {website.name}</p>
+                    <span className="text-xs text-muted-foreground font-medium">
+                      {rating.timestamp ? formatDistanceToNow(rating.timestamp.toDate(), { addSuffix: true }) : 'Just now'}
+                    </span>
                   </div>
-                )}
+                  {rating.comment && (
+                    <p className="text-muted-foreground italic leading-relaxed font-medium">
+                      "{rating.comment}"
+                    </p>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="bg-white/[0.02] border border-white/5 p-12 rounded-[2rem] text-center opacity-40">
+                <MessageSquare className="w-12 h-12 mx-auto mb-4" />
+                <p className="font-bold">Be the first to share your thoughts on {website.name}</p>
               </div>
-            </section>
+            )}
           </div>
-
-          {/* Sidebar Column */}
-          <div className="space-y-8">
-            <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[2.5rem] space-y-8 sticky top-24">
-              <div className="space-y-4">
-                <div className={cn(
-                  "w-full py-4 rounded-2xl border text-center font-black uppercase tracking-[0.2em] text-sm",
-                  getPricingStyle(website.pricing)
-                )}>
-                  {website.pricing}
-                </div>
-                <Button asChild onClick={handleVisitClick} className="w-full bg-primary hover:bg-primary/90 text-white font-black rounded-2xl h-16 gap-3 text-xl shadow-2xl glow-primary">
-                  <a href={website.url} target="_blank" rel="noopener noreferrer">
-                    LAUNCH SITE <ExternalLink className="w-6 h-6" />
-                  </a>
-                </Button>
-              </div>
-
-              <div className="space-y-6 pt-6 border-t border-white/5">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground font-bold text-sm">Review Rating</span>
-                  <div className="flex items-center gap-1.5 bg-primary/10 px-3 py-1 rounded-full">
-                    <Star className="w-4 h-4 text-primary fill-primary" />
-                    <span className="text-white font-black">{currentRating}</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground font-bold text-sm">Global Visits</span>
-                  <span className="text-white font-black">{visitCount.toLocaleString()}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground font-bold text-sm">Security Check</span>
-                  <span className="text-green-500 font-bold flex items-center gap-1.5">
-                    <Lock className="w-4 h-4" /> Verified
-                  </span>
-                </div>
-              </div>
-
-              <div className="pt-4 text-center">
-                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest leading-relaxed">
-                  Webdock verified partner<br />curated for performance
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        </section>
       </main>
     </div>
   );

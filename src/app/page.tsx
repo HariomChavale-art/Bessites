@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo } from "react";
@@ -7,7 +6,7 @@ import { MarqueeBanner } from "@/components/marquee-banner";
 import { MasonryFeed } from "@/components/masonry-feed";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, TrendingUp, Clock } from "lucide-react";
+import { Sparkles, TrendingUp, Clock, LayoutGrid } from "lucide-react";
 import { useUser, useDoc, useFirestore } from "@/firebase";
 import { doc } from "firebase/firestore";
 
@@ -24,7 +23,6 @@ export default function Home() {
   const { data: profile } = useDoc(userDocRef);
   const userInterests = profile?.interests || [];
 
-  // Pick a selection of diverse top websites for the staff picks marquee
   const featuredWebsites = useMemo(() => {
     return MOCK_WEBSITES.filter(w => w.rating >= 4.8).slice(0, 10);
   }, []);
@@ -38,7 +36,6 @@ export default function Home() {
         return list.slice().reverse();
       case "foryou":
       default:
-        // If user has interests, prioritize them in "For You"
         if (userInterests.length > 0) {
           return list.sort((a, b) => {
             const aMatch = a.categories.some(c => userInterests.includes(c)) ? 1 : 0;
@@ -46,12 +43,12 @@ export default function Home() {
             return bMatch - aMatch;
           });
         }
-        return MOCK_WEBSITES;
+        return list;
     }
   }, [activeTab, userInterests]);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navigation />
       
       <main className="flex-1">

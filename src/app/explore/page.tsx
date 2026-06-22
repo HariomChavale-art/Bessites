@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Navigation } from "@/components/navigation";
@@ -153,8 +152,8 @@ function ExploreItemRow({ app }: { app: Website }) {
 
   const getPricingStyle = (pricing: string) => {
     switch (pricing) {
-      case "Paid": return "bg-black text-white border-white/20";
-      case "Free": return "bg-white text-black border-none";
+      case "Paid": return "bg-white text-black border-none";
+      case "Free": return "bg-black text-white border-white/20";
       case "Freemium":
       default: return "bg-secondary text-secondary-foreground border-white/10";
     }

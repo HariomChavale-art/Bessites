@@ -1,15 +1,12 @@
-
 "use client"
 
 import { useParams, useRouter } from "next/navigation";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
-import { WebsitePreview } from "@/components/website-preview";
 import { useDoc, useUser, useFirestore, useCollection } from "@/firebase";
 import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc, collection, query, orderBy, limit } from "firebase/firestore";
 import { 
-  Star, 
   ArrowLeft, 
   Globe, 
   Lock,
@@ -18,7 +15,12 @@ import {
   ExternalLink,
   Heart,
   MessageSquare,
-  Tag
+  Tag,
+  Info,
+  User,
+  History,
+  ShieldCheck,
+  Star
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -125,8 +127,8 @@ export default function WebsiteDetail() {
 
   const getPricingStyle = (pricing: string) => {
     switch (pricing) {
-      case "Paid": return "bg-black text-white border-white/20";
-      case "Free": return "bg-white text-black border-none";
+      case "Paid": return "bg-white text-black border-none";
+      case "Free": return "bg-black text-white border-white/20";
       case "Freemium":
       default: return "bg-secondary text-secondary-foreground border-white/10";
     }
@@ -136,103 +138,110 @@ export default function WebsiteDetail() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navigation />
       
-      <main className="flex-1 container mx-auto max-w-2xl px-4 py-6 pb-24">
-        <div className="flex items-center justify-between mb-8">
-          <button onClick={() => router.back()} className="p-2 text-white hover:bg-white/5 rounded-full transition-colors">
-            <ArrowLeft className="w-6 h-6" />
+      <main className="flex-1 container mx-auto max-w-4xl px-4 py-8 pb-32">
+        <div className="flex items-center justify-between mb-12">
+          <button onClick={() => router.back()} className="flex items-center gap-2 text-muted-foreground hover:text-white transition-colors group">
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <span className="font-bold">Back to Feed</span>
           </button>
-          <button className="p-2 text-white hover:bg-white/5 rounded-full transition-colors">
-            <MoreVertical className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="flex flex-col items-center text-center gap-6 mb-12">
-          <div className="relative w-32 h-32 rounded-[2.5rem] overflow-hidden bg-white/5 p-4 shadow-2xl border border-white/10">
-            <WebsitePreview 
-              websiteId={website.id}
-              websiteUrl={website.url}
-              fallbackUrl={website.imageUrl}
-              alt={website.name}
-              width={256}
-              height={256}
-              mode="logo"
-              className="w-full h-full"
-            />
-          </div>
-          
-          <div className="space-y-1">
-            <h1 className="text-4xl font-bold text-white tracking-tight">{website.name}</h1>
-            <div className="flex items-center justify-center gap-2 text-[#8ab4f8] font-semibold text-base">
-              {website.url.replace('https://', '')}
-              <ExternalLink className="w-3.5 h-3.5" />
-            </div>
+          <div className="flex items-center gap-3">
+             <Button 
+              variant="outline" 
+              onClick={handleLike}
+              className={cn(
+                "rounded-full border-white/10 bg-white/5 font-bold gap-2 h-10 px-6",
+                liked ? "text-primary border-primary/40" : "text-white"
+              )}
+            >
+              <Heart className={cn("w-4 h-4", liked && "fill-current")} /> 
+              {liked ? "Liked" : "Like"}
+            </Button>
+            <button className="p-2 text-white hover:bg-white/5 rounded-full transition-colors">
+              <MoreVertical className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
-        <div className="flex items-start justify-center px-2 mb-10 bg-white/[0.02] border border-white/5 rounded-3xl p-6">
-          <div className="flex flex-col items-center flex-1">
-            <div className={cn(
-              "px-6 py-2 rounded-2xl border text-xl font-black uppercase tracking-widest transition-all",
-              getPricingStyle(website.pricing)
-            )}>
-               <Tag className="w-5 h-5 mr-2 inline" />
-               {website.pricing}
-            </div>
-            <span className="text-muted-foreground text-[10px] mt-2 uppercase tracking-wider font-bold">Pricing Model</span>
-          </div>
-          <div className="w-[1px] h-14 bg-white/10 self-center" />
-          <div className="flex flex-col items-center flex-1">
-            <div className="text-white font-bold text-xl">{visitCount.toLocaleString()}</div>
-            <span className="text-muted-foreground text-[10px] mt-2 uppercase tracking-wider font-bold">Total Visits</span>
-          </div>
-        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          {/* Main Info Column */}
+          <div className="lg:col-span-2 space-y-12">
+            <header className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="bg-primary/10 p-3 rounded-2xl">
+                  <Globe className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tighter">{website.name}</h1>
+                  <p className="text-primary font-bold text-lg">{website.url.replace('https://', '')}</p>
+                </div>
+              </div>
 
-        <div className="flex gap-3 mb-6">
-          <Button asChild onClick={handleVisitClick} className="flex-[2] bg-white text-background hover:bg-white/90 font-bold rounded-2xl h-14 gap-2 text-lg shadow-xl">
-            <a href={website.url} target="_blank" rel="noopener noreferrer">
-              <Globe className="w-5 h-5" /> Visit Site
-            </a>
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={handleLike}
-            className={`flex-1 border-white/10 bg-white/5 rounded-2xl h-14 font-semibold gap-2 ${liked ? "text-primary border-primary/40" : "text-white"}`}
-          >
-            <Heart className={`w-5 h-5 ${liked ? "fill-current" : ""}`} /> 
-            {liked ? "Liked" : "Like"}
-          </Button>
-        </div>
-        
-        <div className="flex items-center justify-center gap-2 mb-12 text-[11px] font-medium text-muted-foreground">
-          <Lock className="w-3 h-3 text-green-500" /> Verified Connection
-        </div>
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <Info className="w-6 h-6 text-primary" />
+                  About the Tool
+                </h2>
+                <p className="text-xl text-muted-foreground leading-relaxed font-medium">
+                  {website.longDescription}
+                </p>
+              </div>
+            </header>
 
-        <section className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-4 tracking-tight">Preview</h2>
-          <div className="rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl bg-card">
-            <WebsitePreview 
-              websiteId={website.id}
-              websiteUrl={website.url}
-              fallbackUrl={website.imageUrl}
-              alt={website.name}
-              width={1200}
-              height={800}
-              className="w-full aspect-video"
-            />
-          </div>
-        </section>
+            <section className="space-y-6">
+              <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                <ShieldCheck className="w-6 h-6 text-primary" />
+                Technical Details
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl flex items-center gap-4">
+                  <div className="bg-white/5 p-3 rounded-2xl">
+                    <User className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Developer</p>
+                    <p className="text-white font-bold">{website.developer}</p>
+                  </div>
+                </div>
+                <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl flex items-center gap-4">
+                  <div className="bg-white/5 p-3 rounded-2xl">
+                    <History className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Last Updated</p>
+                    <p className="text-white font-bold">{website.updatedAt}</p>
+                  </div>
+                </div>
+                <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl flex items-center gap-4">
+                  <div className="bg-white/5 p-3 rounded-2xl">
+                    <Tag className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Version</p>
+                    <p className="text-white font-bold">{website.version}</p>
+                  </div>
+                </div>
+                <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl flex items-center gap-4">
+                  <div className="bg-white/5 p-3 rounded-2xl">
+                    <Star className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Category</p>
+                    <p className="text-white font-bold">{website.categories[0]}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
 
-        <section className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-4 tracking-tight">Community Feed</h2>
-          <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 space-y-8">
-            <div className="flex flex-col md:flex-row items-center gap-10">
-              <div className="text-center">
-                <div className="text-6xl font-bold text-white mb-2">{currentRating}</div>
-                <div className="text-xs text-muted-foreground font-bold uppercase tracking-widest">{totalReviews.toLocaleString()} User Reviews</div>
+            <section className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <MessageSquare className="w-6 h-6 text-primary" />
+                  Community Activity
+                </h2>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button size="sm" className="mt-6 bg-primary/20 text-primary hover:bg-primary/30 font-bold rounded-full px-6">
-                      Rate Now
+                    <Button variant="ghost" className="text-primary font-bold hover:bg-primary/10">
+                      Add Review
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="bg-card border-white/10 text-white rounded-[2.5rem] sm:max-w-md p-8">
@@ -264,55 +273,90 @@ export default function WebsiteDetail() {
                   </DialogContent>
                 </Dialog>
               </div>
-              <div className="flex-1 w-full space-y-2">
-                {[5, 4, 3, 2, 1].map((r) => (
-                  <div key={r} className="flex items-center gap-3">
-                    <span className="text-[10px] text-muted-foreground w-2 font-bold">{r}</span>
-                    <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                      <div className="h-full bg-primary" style={{ width: `${r === 5 ? 80 : r === 4 ? 15 : 5}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            {recentRatings && recentRatings.length > 0 && (
-              <div className="space-y-6 pt-6 border-t border-white/5">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-primary" /> Recent Activity
-                </h3>
-                <div className="space-y-4">
-                  {recentRatings.map((rating: any) => (
-                    <div key={rating.id} className="bg-white/[0.03] p-4 rounded-2xl border border-white/5 flex gap-4">
-                      <Avatar className="w-10 h-10 border border-white/10">
+              <div className="space-y-4">
+                {recentRatings && recentRatings.length > 0 ? (
+                  recentRatings.map((rating: any) => (
+                    <div key={rating.id} className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl flex gap-6">
+                      <Avatar className="w-12 h-12 border border-white/10">
                         <AvatarImage src={rating.userPhotoURL} />
-                        <AvatarFallback className="bg-muted text-xs">{rating.userDisplayName?.charAt(0)}</AvatarFallback>
+                        <AvatarFallback className="bg-muted text-sm">{rating.userDisplayName?.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 space-y-1">
+                      <div className="flex-1 space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-bold text-white">{rating.userDisplayName}</span>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="font-bold text-white text-lg">{rating.userDisplayName}</span>
+                          <span className="text-xs text-muted-foreground font-medium">
                             {rating.timestamp ? formatDistanceToNow(rating.timestamp.toDate(), { addSuffix: true }) : 'Just now'}
                           </span>
                         </div>
-                        <div className="flex gap-0.5">
+                        <div className="flex gap-1">
                           {[1, 2, 3, 4, 5].map((s) => (
-                            <Star key={s} className={`w-3 h-3 ${s <= rating.rating ? 'text-primary fill-primary' : 'text-white/5'}`} />
+                            <Star key={s} className={cn("w-3.5 h-3.5", s <= rating.rating ? "text-primary fill-primary" : "text-white/5")} />
                           ))}
                         </div>
                         {rating.comment && (
-                          <p className="text-sm text-muted-foreground mt-2 leading-relaxed italic">
+                          <p className="text-muted-foreground italic leading-relaxed">
                             "{rating.comment}"
                           </p>
                         )}
                       </div>
                     </div>
-                  ))}
+                  ))
+                ) : (
+                  <div className="bg-white/[0.02] border border-white/5 p-12 rounded-3xl text-center opacity-40">
+                    <MessageSquare className="w-12 h-12 mx-auto mb-4" />
+                    <p className="font-bold">Be the first to share your thoughts on {website.name}</p>
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+
+          {/* Sidebar Column */}
+          <div className="space-y-8">
+            <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[2.5rem] space-y-8 sticky top-24">
+              <div className="space-y-4">
+                <div className={cn(
+                  "w-full py-4 rounded-2xl border text-center font-black uppercase tracking-[0.2em] text-sm",
+                  getPricingStyle(website.pricing)
+                )}>
+                  {website.pricing}
+                </div>
+                <Button asChild onClick={handleVisitClick} className="w-full bg-primary hover:bg-primary/90 text-white font-black rounded-2xl h-16 gap-3 text-xl shadow-2xl glow-primary">
+                  <a href={website.url} target="_blank" rel="noopener noreferrer">
+                    LAUNCH SITE <ExternalLink className="w-6 h-6" />
+                  </a>
+                </Button>
+              </div>
+
+              <div className="space-y-6 pt-6 border-t border-white/5">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground font-bold text-sm">Review Rating</span>
+                  <div className="flex items-center gap-1.5 bg-primary/10 px-3 py-1 rounded-full">
+                    <Star className="w-4 h-4 text-primary fill-primary" />
+                    <span className="text-white font-black">{currentRating}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground font-bold text-sm">Global Visits</span>
+                  <span className="text-white font-black">{visitCount.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground font-bold text-sm">Security Check</span>
+                  <span className="text-green-500 font-bold flex items-center gap-1.5">
+                    <Lock className="w-4 h-4" /> Verified
+                  </span>
                 </div>
               </div>
-            )}
+
+              <div className="pt-4 text-center">
+                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest leading-relaxed">
+                  Webdock verified partner<br />curated for performance
+                </p>
+              </div>
+            </div>
           </div>
-        </section>
+        </div>
       </main>
     </div>
   );

@@ -33,18 +33,26 @@ const getWebsitePreviewFlow = ai.defineFlow(
     const urlObj = new URL(input.url);
     const domain = urlObj.hostname;
     
-    // Default logo using Google's high-res favicon service
+    // Default fallback values
+    const screenshotUrl = `https://s0.wp.com/mshots/v1/${encodeURIComponent(input.url)}?w=1200`;
     const defaultLogoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
     try {
+      // Create a timeout controller to prevent hanging on dead websites
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+
       const response = await fetch(input.url, { 
-        next: { revalidate: 3600 },
+        signal: controller.signal,
         headers: { 
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' 
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
         }
       });
       
-      if (!response.ok) throw new Error('Fetch failed');
+      clearTimeout(timeoutId);
+
+      if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
       
       const html = await response.text();
       
@@ -56,15 +64,15 @@ const getWebsitePreviewFlow = ai.defineFlow(
       if (ogMatch && ogMatch[1]) {
         imageUrl = ogMatch[1];
         if (imageUrl.startsWith('/')) imageUrl = `${urlObj.origin}${imageUrl}`;
+        if (imageUrl.startsWith('//')) imageUrl = `https:${imageUrl}`;
       } else {
-        imageUrl = `https://s0.wp.com/mshots/v1/${encodeURIComponent(input.url)}?w=1200`;
+        imageUrl = screenshotUrl;
       }
 
-      // 2. Look for Logo (Apple touch icon is usually best quality)
+      // 2. Look for Logo
       let logoUrl = '';
       const appleIconMatch = html.match(/<link[^>]*rel=["']apple-touch-icon["'][^>]*href=["']([^"']+)["'][^>]*>/i);
       const iconMatch = html.match(/<link[^>]*rel=["'](?:shortcut )?icon["'][^>]*href=["']([^"']+)["'][^>]*>/i);
-      const manifestMatch = html.match(/<link[^>]*rel=["']manifest["'][^>]*href=["']([^"']+)["'][^>]*>/i);
 
       const foundIcon = (appleIconMatch && appleIconMatch[1]) || (iconMatch && iconMatch[1]);
       
@@ -82,15 +90,17 @@ const getWebsitePreviewFlow = ai.defineFlow(
       }
 
       return { 
-        imageUrl, 
-        logoUrl,
+        imageUrl: imageUrl || screenshotUrl, 
+        logoUrl: logoUrl || defaultLogoUrl,
         source: ogMatch ? 'og' : 'screenshot' 
       };
 
     } catch (error) {
-      console.error('Error fetching preview metadata:', error);
+      // Log the error for server monitoring but don't crash the UI
+      console.warn(`Website preview fetch failed for ${input.url}:`, error instanceof Error ? error.message : String(error));
+      
       return { 
-        imageUrl: `https://s0.wp.com/mshots/v1/${encodeURIComponent(input.url)}?w=1200`, 
+        imageUrl: screenshotUrl, 
         logoUrl: defaultLogoUrl,
         source: 'screenshot' 
       };

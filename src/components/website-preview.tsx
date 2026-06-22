@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react";
@@ -51,10 +52,12 @@ export function WebsitePreview({
       const fetchAndCache = async () => {
         setIsUpdating(true);
         try {
-          const result = await getWebsitePreview({ url: websiteUrl });
+          // Wrapped in a safe try-catch to ensure we don't break the client UI
+          const result = await getWebsitePreview({ url: websiteUrl }).catch(() => null);
+          
           if (result) {
             const logo = mode === 'logo' ? result.logoUrl : result.imageUrl;
-            setCurrentImage(logo);
+            setCurrentImage(logo || fallbackUrl);
 
             // Update cache in Firestore for future visitors
             if (db && websiteId) {
@@ -68,7 +71,7 @@ export function WebsitePreview({
             setCurrentImage(fallbackUrl);
           }
         } catch (e) {
-          console.error("Failed to update website assets", e);
+          console.warn("WebsitePreview: Error fetching metadata", e);
           setCurrentImage(fallbackUrl);
         } finally {
           setIsUpdating(false);
@@ -79,8 +82,10 @@ export function WebsitePreview({
     }
   }, [stats, statsLoading, db, websiteId, websiteUrl, mode, fallbackUrl]);
 
-  // Handle case where we don't have an image yet
-  if (!currentImage && !isUpdating) {
+  // Ensure currentImage is a valid string for next/image
+  const safeImageSrc = currentImage || fallbackUrl;
+
+  if (!safeImageSrc && !isUpdating) {
     return (
       <div className={cn("relative overflow-hidden bg-muted flex items-center justify-center", className)}>
         <Globe className="w-8 h-8 text-muted-foreground opacity-20" />
@@ -90,9 +95,9 @@ export function WebsitePreview({
 
   return (
     <div className={cn("relative overflow-hidden bg-muted flex items-center justify-center", className)}>
-      {currentImage && (
+      {safeImageSrc && (
         <Image 
-          src={currentImage} 
+          src={safeImageSrc} 
           alt={alt}
           width={width}
           height={height}
@@ -102,8 +107,6 @@ export function WebsitePreview({
             mode === 'logo' ? "object-contain p-4" : "object-cover",
             isUpdating ? "scale-105 blur-sm opacity-50" : "scale-100 blur-0 opacity-100"
           )}
-          // Since we are fetching dynamic domains for logos/previews, 
-          // we use unoptimized to bypass the next.config.js domain whitelist.
           unoptimized={true}
         />
       )}

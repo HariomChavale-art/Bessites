@@ -29,15 +29,8 @@ export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Default lists for the curated view
-  const trending = useMemo(() => [...MOCK_WEBSITES].sort((a, b) => (b.rating * b.reviewCount) - (a.rating * a.reviewCount)).slice(0, 6), []);
-  const newlyAdded = useMemo(() => MOCK_WEBSITES.filter(w => w.updatedAt.includes("2024")).reverse().slice(0, 6), []);
-  const recommended = useMemo(() => MOCK_WEBSITES.filter(w => w.rating >= 4.8).slice(0, 6), []);
-  
   // Search and Category filtering logic
   const filteredResults = useMemo(() => {
-    if (!searchQuery && !selectedCategory) return null;
-    
     return MOCK_WEBSITES.filter(app => {
       const matchesSearch = !searchQuery || 
         app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -111,67 +104,27 @@ export default function ExplorePage() {
           </div>
         </section>
 
-        {filteredResults ? (
-          <section className="space-y-8 sm:space-y-12">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tighter">
-                {selectedCategory ? `${selectedCategory} Results` : "Search Results"}
-                <span className="ml-4 text-sm font-medium text-muted-foreground">({filteredResults.length} items)</span>
-              </h2>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-6 sm:gap-12">
-              {filteredResults.length > 0 ? (
-                filteredResults.map((app) => (
-                  <ExploreItemRow key={app.id} app={app} />
-                ))
-              ) : (
-                <div className="py-20 text-center space-y-4">
-                  <LayoutGrid className="w-16 h-16 text-muted-foreground mx-auto opacity-20" />
-                  <p className="text-xl text-muted-foreground font-medium">No results found for your search.</p>
-                </div>
-              )}
-            </div>
-          </section>
-        ) : (
-          <>
-            <section className="space-y-8 sm:space-y-12">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tighter">Newly Added</h2>
-                <Button variant="ghost" size="sm" className="text-primary font-bold hover:bg-white/5 text-sm sm:text-lg">View All</Button>
+        <section className="space-y-8 sm:space-y-12">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tighter">
+              {selectedCategory || searchQuery ? "Filtered Results" : "Discovery Feed"}
+              <span className="ml-4 text-sm font-medium text-muted-foreground">({filteredResults.length} items)</span>
+            </h2>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-6 sm:gap-12">
+            {filteredResults.length > 0 ? (
+              filteredResults.map((app) => (
+                <ExploreItemRow key={app.id} app={app} />
+              ))
+            ) : (
+              <div className="py-20 text-center space-y-4">
+                <LayoutGrid className="w-16 h-16 text-muted-foreground mx-auto opacity-20" />
+                <p className="text-xl text-muted-foreground font-medium">No results found for your search.</p>
               </div>
-              <div className="grid grid-cols-1 gap-6 sm:gap-12">
-                {newlyAdded.map((app) => (
-                  <ExploreItemRow key={app.id} app={app} />
-                ))}
-              </div>
-            </section>
-            
-            <section className="space-y-8 sm:space-y-12">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tighter">Trending Now</h2>
-                <Button variant="ghost" size="sm" className="text-primary font-bold hover:bg-white/5 text-sm sm:text-lg">View All</Button>
-              </div>
-              <div className="grid grid-cols-1 gap-6 sm:gap-12">
-                {trending.map((app) => (
-                  <ExploreItemRow key={app.id} app={app} />
-                ))}
-              </div>
-            </section>
-
-            <section className="space-y-8 sm:space-y-12">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tighter">Top Recommended</h2>
-                <Button variant="ghost" size="sm" className="text-primary font-bold hover:bg-white/5 text-sm sm:text-lg">View All</Button>
-              </div>
-              <div className="grid grid-cols-1 gap-6 sm:gap-12">
-                {recommended.map((app) => (
-                  <ExploreItemRow key={app.id} app={app} />
-                ))}
-              </div>
-            </section>
-          </>
-        )}
+            )}
+          </div>
+        </section>
 
       </main>
     </div>

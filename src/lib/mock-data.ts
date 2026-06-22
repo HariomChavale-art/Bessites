@@ -1299,7 +1299,7 @@ export const MOCK_WEBSITES: Website[] = [
   },
   {
     id: "lovart",
-    name: "Lovart.ai",
+    name: "Lovart",
     developer: "Lovart Team",
     description: "AI design assistant for everyone.",
     longDescription: "A powerful AI creative partner that helps you brainstorm and execute design projects faster.",
@@ -1335,7 +1335,7 @@ export const MOCK_WEBSITES: Website[] = [
   },
   {
     id: "pippit",
-    name: "Pippit.ai",
+    name: "Pippit",
     developer: "Pippit AI",
     description: "Automated content summarizer.",
     longDescription: "Use advanced LLMs to instantly summarize long articles, videos, and documents into key takeaways.",

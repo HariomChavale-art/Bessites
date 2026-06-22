@@ -8,25 +8,17 @@ import { Badge } from "@/components/ui/badge";
 import { useDoc, useUser, useFirestore, useCollection } from "@/firebase";
 import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc, collection, query, orderBy, limit } from "firebase/firestore";
 import { 
-  ArrowLeft, 
   Globe, 
   Lock,
   MoreVertical,
   Loader2,
   ExternalLink,
-  Heart,
   MessageSquare,
-  Tag,
-  Info,
-  User,
-  History,
-  ShieldCheck,
   Star,
   Share2,
   Bookmark,
-  Zap,
-  Smartphone,
-  CheckCircle2
+  CheckCircle2,
+  ArrowRight
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -35,7 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { WebsitePreview } from "@/components/website-preview";
-import { Progress } from "@/components/ui/progress";
+import Link from "next/link";
 
 export default function WebsiteDetail() {
   const { id } = useParams();
@@ -67,9 +59,16 @@ export default function WebsiteDetail() {
 
   const { data: recentRatings } = useCollection(ratingsQuery);
 
+  const similarWebsites = useMemo(() => {
+    if (!website) return [];
+    return MOCK_WEBSITES.filter(w => 
+      w.id !== website.id && 
+      w.categories.some(cat => website.categories.includes(cat))
+    ).slice(0, 4);
+  }, [website]);
+
   if (!website) return <div className="p-8 text-center text-white">Website not found</div>;
 
-  // Only show real database stats, no fallbacks to mock data to avoid "fake" info
   const currentRating = stats?.ratingCount > 0 
     ? (stats.ratingSum / stats.ratingCount).toFixed(1) 
     : "0.0";
@@ -139,7 +138,6 @@ export default function WebsiteDetail() {
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-4xl px-4 py-8 pb-32">
-        {/* Header Section */}
         <div className="flex gap-6 items-start mb-10">
           <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[2rem] overflow-hidden bg-card border border-white/10 shrink-0">
             <WebsitePreview 
@@ -156,14 +154,22 @@ export default function WebsiteDetail() {
           <div className="flex-1 space-y-1">
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">{website.name}</h1>
             <p className="text-primary font-medium text-lg">{website.url.replace('https://', '')}</p>
-            <p className="text-muted-foreground text-sm font-medium">{website.categories[0]} & Productivity</p>
+            <div className="flex gap-2 items-center mt-2">
+              <Badge variant="secondary" className="bg-white/10 text-white border-none uppercase text-[10px] font-black tracking-widest px-3 py-1">
+                {website.categories[0]}
+              </Badge>
+              {website.categories[1] && (
+                <Badge variant="secondary" className="bg-white/10 text-white border-none uppercase text-[10px] font-black tracking-widest px-3 py-1">
+                  {website.categories[1]}
+                </Badge>
+              )}
+            </div>
           </div>
           <button className="p-2 text-muted-foreground hover:text-white">
             <MoreVertical className="w-6 h-6" />
           </button>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-4 gap-4 mb-10 pb-8 border-b border-white/5">
           <div className="text-center space-y-1 border-r border-white/5">
             <div className="flex items-center justify-center gap-1">
@@ -189,7 +195,6 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
           <Button 
             onClick={handleVisitClick} 
@@ -215,16 +220,12 @@ export default function WebsiteDetail() {
           </Button>
         </div>
 
-        {/* Security Banner */}
         <div className="flex items-center gap-2 text-green-500/80 text-sm font-bold mb-12 px-2">
            <Lock className="w-4 h-4" /> Secure connection • {website.url}
         </div>
 
-        {/* About Section */}
         <div className="space-y-6 mb-16">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-black text-white tracking-tight">About this website</h2>
-          </div>
+          <h2 className="text-2xl font-black text-white tracking-tight">About this website</h2>
           <p className="text-xl text-muted-foreground font-medium leading-relaxed">
             {website.longDescription}
           </p>
@@ -237,7 +238,42 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Ratings & Reviews Section */}
+        {/* Similar Websites Section */}
+        {similarWebsites.length > 0 && (
+          <section className="mb-16 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-black text-white tracking-tight">Similar to {website.name}</h2>
+              <Link href="/explore" className="text-primary text-sm font-bold flex items-center gap-1 hover:underline">
+                See all <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {similarWebsites.map((sub) => (
+                <Link key={sub.id} href={`/website/${sub.id}`}>
+                  <div className="flex items-center gap-4 p-4 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all group">
+                    <div className="w-16 h-16 rounded-2xl overflow-hidden bg-card border border-white/10 shrink-0">
+                      <WebsitePreview 
+                        websiteId={sub.id}
+                        websiteUrl={sub.url}
+                        fallbackUrl={sub.imageUrl}
+                        alt={sub.name}
+                        width={64}
+                        height={64}
+                        mode="logo"
+                        className="w-full h-full"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-white truncate group-hover:text-primary transition-colors">{sub.name}</h3>
+                      <p className="text-xs text-muted-foreground truncate">{sub.description}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section className="space-y-8">
           <div className="flex items-center justify-between">
             <h2 className="text-3xl font-black text-white tracking-tight">Community reviews</h2>

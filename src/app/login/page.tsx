@@ -3,7 +3,13 @@
 
 import { useState } from "react";
 import { useAuth, useFirestore } from "@/firebase";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  OAuthProvider 
+} from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -12,8 +18,7 @@ import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Zap, Chrome, Loader2, ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { Zap, Chrome, Loader2, Apple } from "lucide-react";
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -30,7 +35,7 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: "Configuration Error",
-        description: "Firebase is not properly configured. Please check your API keys.",
+        description: "Firebase is not properly configured.",
       });
       return;
     }
@@ -74,19 +79,22 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleSocialLogin = async (providerType: 'google' | 'apple') => {
     if (!auth || !db) {
       toast({
         variant: "destructive",
         title: "Configuration Error",
-        description: "Firebase is not properly configured. Please check your API keys.",
+        description: "Firebase is not properly configured.",
       });
       return;
     }
 
     setLoading(true);
     try {
-      const provider = new GoogleAuthProvider();
+      const provider = providerType === 'google' 
+        ? new GoogleAuthProvider() 
+        : new OAuthProvider('apple.com');
+        
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
@@ -112,13 +120,13 @@ export default function LoginPage() {
         }
       }
     } catch (error: any) {
-      console.error("Google Auth Error:", error);
+      console.error("Social Auth Error:", error);
       toast({
         variant: "destructive",
-        title: "Google Login Failed",
-        description: error.code === 'auth/configuration-not-found' 
-          ? "Google Sign-in is not enabled in Firebase Console." 
-          : error.message || "An error occurred with Google Sign-in.",
+        title: "Login Failed",
+        description: error.code === 'auth/operation-not-allowed'
+          ? "This login provider is not enabled in the Firebase Console."
+          : error.message || "An error occurred during sign-in.",
       });
     } finally {
       setLoading(false);
@@ -127,7 +135,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background overflow-hidden relative pt-24">
-      {/* Background Glows */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/20 rounded-full blur-[120px] pointer-events-none" />
 
@@ -212,7 +219,7 @@ export default function LoginPage() {
             </Tabs>
           </CardHeader>
           <CardContent className="pt-8">
-            <div className="relative mb-10">
+            <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-white/10" />
               </div>
@@ -220,19 +227,30 @@ export default function LoginPage() {
                 <span className="bg-[#1c1926] px-4 text-muted-foreground font-bold">Or continue with</span>
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={handleGoogleLogin} 
-              disabled={loading}
-              className="w-full border-white/10 bg-white/5 hover:bg-white/10 rounded-[1.8rem] h-16 gap-4 text-lg font-bold transition-all active:scale-95"
-            >
-              <Chrome className="w-6 h-6" />
-              Google
-            </Button>
+            <div className="grid grid-cols-2 gap-4">
+              <Button 
+                variant="outline" 
+                onClick={() => handleSocialLogin('google')} 
+                disabled={loading}
+                className="border-white/10 bg-white/5 hover:bg-white/10 rounded-[1.8rem] h-14 gap-2 text-sm font-bold transition-all active:scale-95"
+              >
+                <Chrome className="w-5 h-5" />
+                Google
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => handleSocialLogin('apple')} 
+                disabled={loading}
+                className="border-white/10 bg-white/5 hover:bg-white/10 rounded-[1.8rem] h-14 gap-2 text-sm font-bold transition-all active:scale-95"
+              >
+                <Apple className="w-5 h-5" />
+                Apple
+              </Button>
+            </div>
           </CardContent>
           <CardFooter className="pb-8">
             <p className="text-[11px] text-center w-full text-muted-foreground px-8 leading-relaxed opacity-60">
-              By joining NetFlow, you agree to our <span className="text-primary cursor-pointer hover:underline">Terms of Service</span> and <span className="text-primary cursor-pointer hover:underline">Privacy Policy</span>.
+              By joining NetFlow, you agree to our Terms and Privacy Policy.
             </p>
           </CardFooter>
         </Card>

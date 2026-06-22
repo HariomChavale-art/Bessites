@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Navigation } from "@/components/navigation";
@@ -163,7 +164,7 @@ function ExploreItemRow({ app }: { app: Website }) {
     <Link href={`/website/${app.id}`} className="group relative">
       <div className="flex flex-col md:flex-row items-start gap-6 sm:gap-12 p-5 sm:p-8 rounded-3xl sm:rounded-[3.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-500 overflow-hidden">
         <div className="flex flex-col items-center gap-3 sm:gap-5 w-full md:w-48 shrink-0 text-center">
-          <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-[2rem] sm:rounded-[3rem] overflow-hidden bg-card/80 border border-white/10 p-4 sm:p-6 shadow-xl group-hover:scale-105 transition-transform duration-700">
+          <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-[2rem] sm:rounded-[3rem] overflow-hidden bg-card/80 border border-white/10 shadow-xl group-hover:scale-105 transition-transform duration-700">
             <WebsitePreview 
               websiteId={app.id}
               websiteUrl={app.url}

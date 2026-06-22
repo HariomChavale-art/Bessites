@@ -52,7 +52,6 @@ export function WebsitePreview({
       const fetchAndCache = async () => {
         setIsUpdating(true);
         try {
-          // Wrapped in a safe try-catch to ensure we don't break the client UI
           const result = await getWebsitePreview({ url: websiteUrl }).catch(() => null);
           
           if (result) {
@@ -82,7 +81,6 @@ export function WebsitePreview({
     }
   }, [stats, statsLoading, db, websiteId, websiteUrl, mode, fallbackUrl]);
 
-  // Ensure currentImage is a valid string for next/image
   const safeImageSrc = currentImage || fallbackUrl;
 
   if (!safeImageSrc && !isUpdating) {
@@ -103,8 +101,8 @@ export function WebsitePreview({
           height={height}
           priority={priority}
           className={cn(
-            "transition-all duration-700",
-            mode === 'logo' ? "object-contain p-4" : "object-cover",
+            "transition-all duration-700 w-full h-full",
+            mode === 'logo' ? "object-cover p-0" : "object-cover",
             isUpdating ? "scale-105 blur-sm opacity-50" : "scale-100 blur-0 opacity-100"
           )}
           unoptimized={true}

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useParams, useRouter } from "next/navigation";
@@ -238,7 +239,6 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Similar Websites Section */}
         {similarWebsites.length > 0 && (
           <section className="mb-16 space-y-6">
             <div className="flex items-center justify-between">
@@ -250,8 +250,8 @@ export default function WebsiteDetail() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {similarWebsites.map((sub) => (
                 <Link key={sub.id} href={`/website/${sub.id}`}>
-                  <div className="flex items-center gap-4 p-4 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all group">
-                    <div className="w-16 h-16 rounded-2xl overflow-hidden bg-card border border-white/10 shrink-0">
+                  <div className="flex items-center gap-4 p-0 overflow-hidden rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all group">
+                    <div className="w-16 h-16 overflow-hidden bg-card border-r border-white/10 shrink-0">
                       <WebsitePreview 
                         websiteId={sub.id}
                         websiteUrl={sub.url}
@@ -263,7 +263,7 @@ export default function WebsiteDetail() {
                         className="w-full h-full"
                       />
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1 px-4">
                       <h3 className="font-bold text-white truncate group-hover:text-primary transition-colors">{sub.name}</h3>
                       <p className="text-xs text-muted-foreground truncate">{sub.description}</p>
                     </div>

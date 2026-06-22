@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Website } from "@/lib/mock-data";
@@ -18,7 +19,6 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   const { user } = useUser();
   const db = useFirestore();
   
-  // Real Liked Status from Firestore
   const likeDocRef = useMemo(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid, "likedWebsites", website.id);
@@ -56,7 +56,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
     <Link href={`/website/${website.id}`} className="block break-inside-avoid mb-4 sm:mb-6 group">
       <div className="relative rounded-2xl sm:rounded-[2.5rem] overflow-hidden bg-card/40 border border-white/5 transition-all duration-500 group-hover:border-primary/40 group-hover:bg-card/60">
         
-        <div className="relative aspect-square overflow-hidden flex items-center justify-center bg-gradient-to-br from-white/[0.03] to-transparent">
+        <div className="relative aspect-square overflow-hidden flex items-center justify-center">
           <WebsitePreview 
             websiteId={website.id}
             websiteUrl={website.url}
@@ -65,7 +65,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
             width={400}
             height={400}
             mode="logo"
-            className="w-2/3 h-2/3 drop-shadow-[0_10px_20px_rgba(0,0,0,0.3)] transition-transform duration-700 group-hover:scale-110"
+            className="w-full h-full transition-transform duration-700 group-hover:scale-110"
           />
           
           <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10">

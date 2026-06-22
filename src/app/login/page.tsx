@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react";
@@ -34,7 +35,7 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: "Configuration Error",
-        description: "Firebase is not properly configured.",
+        description: "Firebase is not properly configured. Check your environment variables.",
       });
       return;
     }
@@ -120,7 +121,7 @@ export default function LoginPage() {
       }
       
       toast({
-        title: "Welcome!",
+        title: "Welcome to Webdock!",
         description: `Successfully signed in with ${providerType === 'google' ? 'Google' : 'Apple'}.`,
       });
     } catch (error: any) {
@@ -129,7 +130,7 @@ export default function LoginPage() {
         variant: "destructive",
         title: "Login Failed",
         description: error.code === 'auth/operation-not-allowed'
-          ? "This provider is not enabled in the Firebase Console. Please enable it in Build > Authentication."
+          ? "This provider is not enabled in the Firebase Console. Please enable it in Build > Authentication > Sign-in method."
           : error.message || "An error occurred during sign-in.",
       });
     } finally {
@@ -138,7 +139,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background overflow-hidden relative pt-24">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background overflow-hidden relative pt-12">
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/20 rounded-full blur-[120px] pointer-events-none" />
 

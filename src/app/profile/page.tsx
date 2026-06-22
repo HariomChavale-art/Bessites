@@ -62,14 +62,21 @@ export default function ProfilePage() {
       await signOut(auth);
       toast({
         title: "Signed out",
-        description: "You have been successfully signed out.",
+        description: "You have been successfully signed out of Webdock.",
       });
       router.push("/");
     }
   };
 
   const handleSocialLogin = async (providerType: 'google' | 'apple') => {
-    if (!auth || !db) return;
+    if (!auth || !db) {
+      toast({
+        variant: "destructive",
+        title: "Configuration Error",
+        description: "Firebase is not properly configured.",
+      });
+      return;
+    }
 
     setAuthLoading(true);
     try {
@@ -94,8 +101,20 @@ export default function ProfilePage() {
         });
         router.push("/onboarding");
       }
+      
+      toast({
+        title: "Connection Successful",
+        description: `Welcome back, ${signedInUser.displayName || 'Curator'}!`,
+      });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Login Failed", description: error.message });
+      console.error("Profile Social Auth Error:", error);
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.code === 'auth/operation-not-allowed'
+          ? "This provider is not enabled in your Firebase Console. Go to Build > Authentication to enable it."
+          : error.message || "An error occurred during sign-in.",
+      });
     } finally {
       setAuthLoading(false);
     }

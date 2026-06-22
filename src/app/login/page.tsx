@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react";
@@ -38,23 +39,23 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (mode === 'login') {
-        const result = await signInWithEmailAndPassword(auth, email, password);
+        const result = await signInWithEmailAndPassword(auth!, email, password);
         const user = result.user;
         
-        const docRef = doc(db, "users", user.uid);
+        const docRef = doc(db!, "users", user.uid);
         const docSnap = await getDoc(docRef);
         const userData = docSnap.data();
 
         if (userData?.onboardingComplete) {
-          router.push("/profile");
+          router.push("/");
         } else {
           router.push("/onboarding");
         }
       } else {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth!, email, password);
         const user = userCredential.user;
         
-        await setDoc(doc(db, "users", user.uid), {
+        await setDoc(doc(db!, "users", user.uid), {
           email: user.email,
           createdAt: serverTimestamp(),
           onboardingComplete: false,
@@ -83,10 +84,10 @@ export default function LoginPage() {
         ? new GoogleAuthProvider() 
         : new OAuthProvider('apple.com');
         
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth!, provider);
       const user = result.user;
 
-      const docRef = doc(db, "users", user.uid);
+      const docRef = doc(db!, "users", user.uid);
       const docSnap = await getDoc(docRef);
 
       if (!docSnap.exists()) {
@@ -102,7 +103,7 @@ export default function LoginPage() {
       } else {
         const userData = docSnap.data();
         if (userData?.onboardingComplete) {
-          router.push("/profile");
+          router.push("/");
         } else {
           router.push("/onboarding");
         }
@@ -110,7 +111,7 @@ export default function LoginPage() {
       
       toast({
         title: "Welcome to Webdock!",
-        description: `Successfully signed in with ${providerType === 'google' ? 'Google' : 'Apple'}.`,
+        description: `Successfully signed in.`,
       });
     } catch (error: any) {
       console.error("Social Auth Error:", error);
@@ -144,8 +145,8 @@ export default function LoginPage() {
           <Alert variant="destructive" className="mb-6 rounded-2xl bg-destructive/10 border-destructive/20 text-white">
             <AlertCircle className="h-4 w-4 text-white" />
             <AlertTitle className="font-bold">Firebase Not Configured</AlertTitle>
-            <AlertDescription className="text-sm opacity-90">
-              Please add your Firebase keys to the <strong>.env</strong> file to enable authentication. You can find them in the Firebase Console.
+            <AlertDescription className="text-sm opacity-90 leading-relaxed">
+              Your <strong>.env</strong> file is missing the Firebase keys. Please copy the <strong>Firebase Config object</strong> from the studio and paste the values into your <strong>.env</strong> file.
             </AlertDescription>
           </Alert>
         )}

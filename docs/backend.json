@@ -64,7 +64,7 @@
     },
     "WebsiteStats": {
       "title": "Website Stats",
-      "description": "Global statistics and metadata for a website tracked on NetFlow.",
+      "description": "Global statistics and metadata for a website tracked on Webdock.",
       "type": "object",
       "properties": {
         "visitCount": {
@@ -81,11 +81,11 @@
         },
         "previewUrl": {
           "type": "string",
-          "description": "Cached URL for the website preview image (OG image or screenshot)."
+          "description": "Cached URL for the website preview image."
         },
         "logoUrl": {
           "type": "string",
-          "description": "Cached URL for the website logo or high-res icon."
+          "description": "Cached URL for the website logo."
         },
         "lastPreviewUpdate": {
           "type": "string",

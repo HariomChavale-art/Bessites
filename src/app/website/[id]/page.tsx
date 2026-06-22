@@ -61,7 +61,7 @@ export default function WebsiteDetail() {
     return query(
       collection(db, "websiteStats", id as string, "userRatings"),
       orderBy("timestamp", "desc"),
-      limit(5)
+      limit(10)
     );
   }, [db, id]);
 
@@ -69,12 +69,13 @@ export default function WebsiteDetail() {
 
   if (!website) return <div className="p-8 text-center text-white">Website not found</div>;
 
+  // Only show real database stats, no fallbacks to mock data to avoid "fake" info
   const currentRating = stats?.ratingCount > 0 
     ? (stats.ratingSum / stats.ratingCount).toFixed(1) 
-    : website.rating.toFixed(1);
+    : "0.0";
   
-  const visitCount = stats?.visitCount || (website.reviewCount * 12);
-  const totalReviews = (stats?.ratingCount || 0) + (website.reviewCount / 100);
+  const visitCount = stats?.visitCount || 0;
+  const totalReviews = stats?.ratingCount || 0;
 
   const handleVisitClick = () => {
     if (!db || !id) return;
@@ -172,11 +173,11 @@ export default function WebsiteDetail() {
             <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Rating</p>
           </div>
           <div className="text-center space-y-1 border-r border-white/5">
-            <span className="text-white font-black text-xl">{Math.floor(totalReviews)}K+</span>
+            <span className="text-white font-black text-xl">{totalReviews}</span>
             <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Reviews</p>
           </div>
           <div className="text-center space-y-1 border-r border-white/5">
-            <span className="text-white font-black text-xl">{Math.floor(visitCount / 1000).toLocaleString()}K</span>
+            <span className="text-white font-black text-xl">{visitCount}</span>
             <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Visits</p>
           </div>
           <div className="text-center space-y-1">
@@ -223,7 +224,6 @@ export default function WebsiteDetail() {
         <div className="space-y-6 mb-16">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-black text-white tracking-tight">About this website</h2>
-            <ArrowLeft className="w-6 h-6 text-white rotate-180" />
           </div>
           <p className="text-xl text-muted-foreground font-medium leading-relaxed">
             {website.longDescription}
@@ -237,42 +237,10 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Tech Details Section */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-primary">
-              <Zap className="w-5 h-5 fill-current" />
-              <span className="font-black text-white text-lg">0.9s</span>
-            </div>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Load Speed</p>
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-green-500">
-              <CheckCircle2 className="w-5 h-5" />
-              <span className="font-black text-white text-lg">SSL Secured</span>
-            </div>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Safety</p>
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-blue-400">
-              <Globe className="w-5 h-5" />
-              <span className="font-black text-white text-lg">190+</span>
-            </div>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Countries</p>
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-amber-400">
-              <Smartphone className="w-5 h-5" />
-              <span className="font-black text-white text-lg">98/100</span>
-            </div>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Mobile Friendly</p>
-          </div>
-        </div>
-
         {/* Ratings & Reviews Section */}
         <section className="space-y-8">
           <div className="flex items-center justify-between">
-            <h2 className="text-3xl font-black text-white tracking-tight">Ratings & reviews</h2>
+            <h2 className="text-3xl font-black text-white tracking-tight">Community reviews</h2>
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="ghost" className="text-primary font-bold hover:bg-primary/10">
@@ -318,17 +286,8 @@ export default function WebsiteDetail() {
                 ))}
               </div>
               <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest pt-2">
-                {Math.floor(totalReviews * 1000).toLocaleString()} reviews
+                {totalReviews} reviews
               </p>
-            </div>
-            
-            <div className="flex-1 space-y-2">
-              {[5, 4, 3, 2, 1].map((rating) => (
-                <div key={rating} className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-muted-foreground w-2">{rating}</span>
-                  <Progress value={rating === 5 ? 85 : rating === 4 ? 40 : rating === 3 ? 15 : 5} className="h-2 bg-white/5" />
-                </div>
-              ))}
             </div>
           </div>
 

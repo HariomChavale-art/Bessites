@@ -24,14 +24,14 @@ export default function Home() {
   const userInterests = profile?.interests || [];
 
   const featuredWebsites = useMemo(() => {
-    return MOCK_WEBSITES.filter(w => w.rating >= 4.8).slice(0, 10);
+    return MOCK_WEBSITES.slice(0, 10);
   }, []);
 
   const filteredWebsites = useMemo(() => {
     const list = [...MOCK_WEBSITES];
     switch (activeTab) {
       case "trending":
-        return list.sort((a, b) => (b.reviewCount * b.rating) - (a.reviewCount * a.rating));
+        return list.sort((a, b) => b.reviewCount - a.reviewCount);
       case "new":
         return list.slice().reverse();
       case "foryou":
@@ -69,7 +69,7 @@ export default function Home() {
                 Discover your next <span className="text-primary italic">flow</span>.
               </h1>
               <p className="text-muted-foreground text-sm sm:text-base max-w-lg">
-                The world's first curated directory of web applications, ranked by users.
+                The world's first curated directory of web applications, ranked by community.
               </p>
             </div>
             

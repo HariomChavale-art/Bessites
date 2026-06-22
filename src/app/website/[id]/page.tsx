@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useDoc, useUser, useFirestore, useCollection } from "@/firebase";
 import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc, collection, query, orderBy, limit } from "firebase/firestore";
 import { 

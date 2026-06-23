@@ -35,15 +35,19 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (currentUser && !loading) {
-      // Check if onboarding is complete
       const checkOnboarding = async () => {
         if (!db) return;
-        const docRef = doc(db, "users", currentUser.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists() && docSnap.data().onboardingComplete) {
-          router.push("/");
-        } else {
-          router.push("/onboarding");
+        try {
+          const docRef = doc(db, "users", currentUser.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists() && docSnap.data().onboardingComplete) {
+            router.push("/");
+          } else if (docSnap.exists()) {
+            router.push("/onboarding");
+          }
+        } catch (error) {
+          // If profile doesn't exist yet, we stay on onboarding or current page
+          console.warn("User profile check deferred");
         }
       };
       checkOnboarding();
@@ -63,7 +67,14 @@ export default function LoginPage() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth || !db) return;
+    if (!auth || !db) {
+      toast({
+        variant: "destructive",
+        title: "Connection Error",
+        description: "Firebase service is not initialized. Please check your configuration.",
+      });
+      return;
+    }
     
     setLoading(true);
     try {
@@ -71,7 +82,7 @@ export default function LoginPage() {
         const result = await signInWithEmailAndPassword(auth, email, password);
         const docRef = doc(db, "users", result.user.uid);
         const docSnap = await getDoc(docRef);
-        if (docSnap.data()?.onboardingComplete) {
+        if (docSnap.exists() && docSnap.data()?.onboardingComplete) {
           router.push("/");
         } else {
           router.push("/onboarding");
@@ -79,21 +90,32 @@ export default function LoginPage() {
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-        if (photoPreview) await updateProfile(user, { photoURL: photoPreview });
+        
+        if (photoPreview) {
+          await updateProfile(user, { photoURL: photoPreview });
+        }
+        
         await setDoc(doc(db, "users", user.uid), {
           email: user.email,
+          displayName: user.displayName || email.split('@')[0],
           photoURL: photoPreview || null,
           createdAt: serverTimestamp(),
           onboardingComplete: false,
           interests: []
         }, { merge: true });
+        
+        toast({
+          title: "Account Created",
+          description: "Welcome! Let's personalize your interests.",
+        });
+        
         router.push("/onboarding");
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Auth Error",
-        description: error.message || "Invalid credentials.",
+        title: "Authentication Failed",
+        description: error.message || "Please check your email and password.",
       });
     } finally {
       setLoading(false);
@@ -101,21 +123,46 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-background">
-      {/* Left side: Welcome Branding */}
-      <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center items-center md:items-start space-y-8 bg-gradient-to-br from-primary/10 to-transparent">
-        <Logo className="scale-150 origin-center md:origin-left mb-12" />
-        <div className="space-y-4 text-center md:text-left">
+    <div className="min-h-screen flex flex-col md:flex-row-reverse bg-background">
+      {/* Right side: Welcome Branding & Profile (Top on mobile) */}
+      <div className="flex-1 bg-gradient-to-br from-primary/10 to-transparent p-8 sm:p-16 flex flex-col items-center justify-center space-y-12 border-b md:border-b-0 md:border-l border-white/5">
+        <div className="space-y-4 text-center">
           <h1 className="text-5xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-tight">
             Welcome to <br />
             <span className="text-primary">Webdock!</span>
           </h1>
-          <p className="text-muted-foreground font-medium text-xl max-w-md">
+          <p className="text-muted-foreground font-medium text-xl max-w-md mx-auto">
             The world's most curated directory for web tools, games, and modern apps.
           </p>
         </div>
-        
-        <div className="w-full max-w-md mt-12">
+
+        {/* Profile Uploader */}
+        <div className="relative group">
+          <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-[#1A1A1A] border-4 border-white/5 overflow-hidden relative shadow-2xl transition-all group-hover:border-primary/50">
+            {photoPreview ? (
+              <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white/5">
+                <User className="w-24 h-24 sm:w-32 sm:h-32" />
+              </div>
+            )}
+          </div>
+          <button 
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="absolute bottom-2 right-2 bg-primary p-4 rounded-full text-white shadow-xl glow-primary hover:scale-110 transition-transform active:scale-95 z-10"
+          >
+            <Plus className="w-6 h-6" strokeWidth={5} />
+          </button>
+          <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+        </div>
+      </div>
+
+      {/* Left side: Form (Bottom on mobile) */}
+      <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center bg-background">
+        <div className="w-full max-w-md mx-auto">
+          <Logo className="mb-12" />
+          
           <form onSubmit={handleAuth} className="space-y-6">
             <div className="space-y-2">
               <Label className="text-white font-bold text-xs ml-1 uppercase tracking-widest opacity-60">Email Address</Label>
@@ -157,7 +204,7 @@ export default function LoginPage() {
               {loading ? <Loader2 className="animate-spin" /> : mode === 'login' ? 'SIGN IN' : 'JOIN WEBDOCK'}
             </Button>
             
-            <p className="text-center text-muted-foreground font-medium">
+            <p className="text-center text-muted-foreground font-medium pt-4">
               {mode === 'login' ? "New here? " : "Already have an account? "}
               <button 
                 type="button"
@@ -168,33 +215,6 @@ export default function LoginPage() {
               </button>
             </p>
           </form>
-        </div>
-      </div>
-
-      {/* Right side: Profile Uploader */}
-      <div className="flex-1 bg-card/20 flex flex-col items-center justify-center p-12 border-l border-white/5">
-        <div className="relative group">
-          <div className="w-64 h-64 sm:w-80 sm:h-80 rounded-full bg-[#222222] border-4 border-white/10 overflow-hidden relative shadow-2xl transition-all group-hover:border-primary/50">
-            {photoPreview ? (
-              <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-white/5">
-                <User className="w-32 h-32 sm:w-40 sm:h-40" />
-              </div>
-            )}
-          </div>
-          <button 
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="absolute bottom-4 right-4 bg-primary p-5 rounded-full text-white shadow-xl glow-primary hover:scale-110 transition-transform active:scale-95 z-10"
-          >
-            <Plus className="w-10 h-10" strokeWidth={4} />
-          </button>
-          <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
-        </div>
-        <div className="mt-12 text-center max-w-sm">
-          <h2 className="text-2xl font-black text-white mb-3 uppercase tracking-[0.2em] italic">Personalize</h2>
-          <p className="text-muted-foreground font-medium">Add a profile picture to customize your Webdock presence. This will be visible to the community.</p>
         </div>
       </div>
     </div>

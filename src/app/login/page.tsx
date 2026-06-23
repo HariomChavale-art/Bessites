@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react";
@@ -17,8 +18,9 @@ import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Zap, Chrome, Loader2, Apple } from "lucide-react";
+import { Zap, Chrome, Loader2, Apple, AlertCircle } from "lucide-react";
 import { Navigation } from "@/components/navigation";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -33,7 +35,14 @@ export default function LoginPage() {
   const isConfigured = !!auth && !!db;
 
   const handleEmailAuth = async (mode: 'login' | 'signup') => {
-    if (!isConfigured) return;
+    if (!isConfigured) {
+      toast({
+        variant: "destructive",
+        title: "Configuration Missing",
+        description: "Please add your Firebase keys to the .env file to enable authentication.",
+      });
+      return;
+    }
     
     setLoading(true);
     try {
@@ -75,7 +84,14 @@ export default function LoginPage() {
   };
 
   const handleSocialLogin = async (providerType: 'google' | 'apple') => {
-    if (!isConfigured) return;
+    if (!isConfigured) {
+      toast({
+        variant: "destructive",
+        title: "Configuration Missing",
+        description: "Firebase keys are required in .env for social sign-in.",
+      });
+      return;
+    }
 
     setLoading(true);
     try {
@@ -140,6 +156,16 @@ export default function LoginPage() {
             <p className="text-muted-foreground mt-3 text-center text-lg">The web's front page, curated by you.</p>
           </div>
 
+          {!isConfigured && (
+            <Alert variant="destructive" className="mb-6 rounded-2xl bg-destructive/10 border-destructive/20 text-white">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Action Required</AlertTitle>
+              <AlertDescription className="text-xs opacity-90">
+                Authentication is waiting for your Firebase config. Please add your credentials to the .env file.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <Card className="bg-card/40 backdrop-blur-3xl border-white/5 shadow-2xl rounded-[3rem] overflow-hidden p-2">
             <CardHeader className="pb-2">
               <Tabs defaultValue="login" className="w-full">
@@ -157,7 +183,6 @@ export default function LoginPage() {
                       placeholder="name@example.com" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      disabled={!isConfigured}
                       className="bg-white/5 border-white/10 rounded-2xl h-14 focus:ring-primary text-lg" 
                     />
                   </div>
@@ -168,13 +193,12 @@ export default function LoginPage() {
                       type="password" 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      disabled={!isConfigured}
                       className="bg-white/5 border-white/10 rounded-2xl h-14 focus:ring-primary text-lg" 
                     />
                   </div>
                   <Button 
                     onClick={() => handleEmailAuth('login')} 
-                    disabled={loading || !isConfigured}
+                    disabled={loading}
                     className="w-full bg-primary hover:bg-primary/90 text-white rounded-[1.8rem] h-16 text-xl font-bold glow-primary transition-all active:scale-95"
                   >
                     {loading ? <Loader2 className="animate-spin w-6 h-6" /> : "Sign In"}
@@ -190,7 +214,6 @@ export default function LoginPage() {
                       placeholder="name@example.com" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      disabled={!isConfigured}
                       className="bg-white/5 border-white/10 rounded-2xl h-14 focus:ring-primary text-lg" 
                     />
                   </div>
@@ -201,13 +224,12 @@ export default function LoginPage() {
                       type="password" 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      disabled={!isConfigured}
                       className="bg-white/5 border-white/10 rounded-2xl h-14 focus:ring-primary text-lg" 
                     />
                   </div>
                   <Button 
                     onClick={() => handleEmailAuth('signup')} 
-                    disabled={loading || !isConfigured}
+                    disabled={loading}
                     className="w-full bg-primary hover:bg-primary/90 text-white rounded-[1.8rem] h-16 text-xl font-bold glow-primary transition-all active:scale-95"
                   >
                     {loading ? <Loader2 className="animate-spin w-6 h-6" /> : "Start Discovery"}
@@ -228,7 +250,7 @@ export default function LoginPage() {
                 <Button 
                   variant="outline" 
                   onClick={() => handleSocialLogin('google')} 
-                  disabled={loading || !isConfigured}
+                  disabled={loading}
                   className="border-white/10 bg-white/5 hover:bg-white/10 rounded-[1.8rem] h-14 gap-2 text-sm font-bold transition-all active:scale-95"
                 >
                   <Chrome className="w-5 h-5" />
@@ -237,7 +259,7 @@ export default function LoginPage() {
                 <Button 
                   variant="outline" 
                   onClick={() => handleSocialLogin('apple')} 
-                  disabled={loading || !isConfigured}
+                  disabled={loading}
                   className="border-white/10 bg-white/5 hover:bg-white/10 rounded-[1.8rem] h-14 gap-2 text-sm font-bold transition-all active:scale-95"
                 >
                   <Apple className="w-5 h-5" />

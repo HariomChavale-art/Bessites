@@ -10,10 +10,8 @@ import { useDoc, useUser, useFirestore, useCollection } from "@/firebase";
 import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc, collection, query, orderBy, limit } from "firebase/firestore";
 import { 
   Globe, 
-  Lock,
   MoreVertical,
   Loader2,
-  ExternalLink,
   MessageSquare,
   Star,
   Share2,
@@ -69,7 +67,7 @@ export default function WebsiteDetail() {
     return MOCK_WEBSITES.filter(w => 
       w.id !== website.id && 
       w.categories.some(cat => website.categories.includes(cat))
-    ).slice(0, 6);
+    ).slice(0, 8);
   }, [website]);
 
   if (!website) return <div className="p-8 text-center text-white">Website not found</div>;
@@ -154,7 +152,7 @@ export default function WebsiteDetail() {
               width={256}
               height={256}
               mode="logo"
-              className="w-full h-full"
+              className="w-full h-full p-0"
             />
           </div>
           <div className="flex-1 min-w-0">
@@ -240,7 +238,7 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Performance Metrics Bar */}
+        {/* Performance Metrics Bar - AT THE TOP OF THE COMMUNITY SECTION */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5 mb-12">
           <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
             <div className="bg-green-500/10 p-2.5 rounded-xl">
@@ -392,7 +390,7 @@ export default function WebsiteDetail() {
                         width={80}
                         height={80}
                         mode="logo"
-                        className="w-full h-full"
+                        className="w-full h-full p-0"
                       />
                     </div>
                     <div className="min-w-0 flex-1 px-4">

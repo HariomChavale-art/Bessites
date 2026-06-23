@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useUser, useAuth, useDoc, useFirestore, useCollection } from "@/firebase";
@@ -8,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Heart, Grid, LogOut, Sparkles, Loader2, ExternalLink, Clock } from "lucide-react";
+import { Plus, Heart, Grid, LogOut, Loader2, ExternalLink, Clock, Settings } from "lucide-react";
 import Link from "next/link";
 import { signOut } from "firebase/auth";
 import { doc, collection, query, where, orderBy } from "firebase/firestore";
@@ -75,10 +76,32 @@ export default function ProfilePage() {
     );
   }
 
+  if (!user) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navigation />
+        <main className="flex-1 flex flex-col items-center justify-center p-4">
+          <div className="text-center space-y-6 max-w-sm">
+            <div className="bg-white/5 p-8 rounded-[3rem] border border-white/5">
+              <LogOut className="w-16 h-16 text-muted-foreground mx-auto mb-6 opacity-20" />
+              <h2 className="text-2xl font-black text-white mb-2">Login Required</h2>
+              <p className="text-muted-foreground font-medium mb-8">Sign in to view your profile, likes, and submissions.</p>
+              <Link href="/login">
+                <Button className="w-full h-14 bg-primary hover:bg-primary/90 rounded-2xl font-bold text-lg">
+                  Go to Login
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   const displayName = profileData?.displayName || user?.displayName || "Curator";
   const email = user?.email || "Guest User";
-  const photoURL = profileData?.photoURL || user?.photoURL || `https://picsum.photos/seed/curator/200`;
-  const interests = profileData?.interests?.length > 0 ? profileData.interests : ["Design", "AI", "Tech"];
+  const photoURL = profileData?.photoURL || user?.photoURL || `https://picsum.photos/seed/${user.uid}/200`;
+  const interests = profileData?.interests?.length > 0 ? profileData.interests : [];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -88,25 +111,30 @@ export default function ProfilePage() {
         <div className="flex flex-col items-center text-center mb-12">
           <div className="relative mb-6 group">
             <Avatar className="w-32 h-32 border-4 border-background ring-4 ring-primary/20 shadow-2xl">
-              <AvatarImage src={photoURL} />
-              <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
+              <AvatarImage src={photoURL} className="object-cover" />
+              <AvatarFallback className="text-2xl bg-primary/20 text-primary">{displayName.charAt(0)}</AvatarFallback>
             </Avatar>
+            <button className="absolute bottom-1 right-1 bg-white text-black p-2 rounded-full shadow-xl hover:scale-110 transition-transform">
+              <Settings className="w-4 h-4" />
+            </button>
           </div>
           <h1 className="text-4xl font-headline font-extrabold text-white mb-2 tracking-tight">{displayName}</h1>
           <p className="text-muted-foreground text-sm mb-6 font-medium bg-white/5 px-4 py-1 rounded-full border border-white/5 inline-block">{email}</p>
-          <div className="flex flex-wrap justify-center gap-2 mb-10 max-w-md">
-            {interests.map((interest: string) => (
-              <Badge key={interest} variant="secondary" className="bg-white/5 text-white border-white/10 px-4 py-1.5 rounded-full font-bold text-[10px] uppercase">
-                {interest}
-              </Badge>
-            ))}
-          </div>
+          
+          {interests.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2 mb-10 max-w-md">
+              {interests.map((interest: string) => (
+                <Badge key={interest} variant="secondary" className="bg-white/5 text-white border-white/10 px-4 py-1.5 rounded-full font-bold text-[10px] uppercase">
+                  {interest}
+                </Badge>
+              ))}
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm justify-center">
-            {user && (
-              <Button variant="outline" className="rounded-2xl border-white/10 h-14 font-bold flex-1" onClick={handleLogout}>
-                <LogOut className="w-5 h-5 mr-2" /> Sign Out
-              </Button>
-            )}
+            <Button variant="outline" className="rounded-2xl border-white/10 h-14 font-bold flex-1" onClick={handleLogout}>
+              <LogOut className="w-5 h-5 mr-2" /> Sign Out
+            </Button>
             <Link href="/submit" className="flex-1">
               <Button className="w-full rounded-2xl bg-white text-background h-14 font-bold shadow-xl">
                 <Plus className="w-5 h-5 mr-2" /> Submit Site
@@ -137,7 +165,7 @@ export default function ProfilePage() {
             ) : (
               <div className="text-center py-20 opacity-40">
                 <Heart className="w-12 h-12 mx-auto mb-4" />
-                <p className="text-lg">No liked websites yet on Webdock.</p>
+                <p className="text-lg">No saved tools in your collection yet.</p>
               </div>
             )}
           </TabsContent>
@@ -183,8 +211,8 @@ export default function ProfilePage() {
               ) : (
                 <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/5 rounded-[3.5rem] bg-white/[0.02] text-center px-4">
                   <Plus className="w-14 h-14 text-primary mb-8" />
-                  <h3 className="text-3xl font-extrabold text-white mb-3">Share your creation</h3>
-                  <p className="text-muted-foreground mb-10 text-lg">Got a cool web tool? Submit it to the Webdock community.</p>
+                  <h3 className="text-3xl font-extrabold text-white mb-3">Submit your project</h3>
+                  <p className="text-muted-foreground mb-10 text-lg">Got a cool web tool? Share it with the Webdock community.</p>
                   <Link href="/submit"><Button className="rounded-2xl px-16 py-8 bg-white text-background font-extrabold text-xl h-auto">Submit Now</Button></Link>
                 </div>
               )}

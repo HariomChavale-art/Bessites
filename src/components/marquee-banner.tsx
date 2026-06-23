@@ -3,7 +3,7 @@
 
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
-import Image from "next/image";
+import { WebsitePreview } from "./website-preview";
 
 interface MarqueeBannerProps {
   items: Website[];
@@ -22,13 +22,16 @@ export function MarqueeBanner({ items }: MarqueeBannerProps) {
             href={`/website/${item.id}`}
             className="inline-flex items-center mx-8 group"
           >
-            <div className="relative w-12 h-12 rounded-xl overflow-hidden mr-4 border border-white/10 group-hover:border-primary transition-colors">
-              <Image 
-                src={item.imageUrl} 
-                alt={item.name} 
-                fill 
-                className="object-cover"
-                data-ai-hint="app icon"
+            <div className="relative w-12 h-12 rounded-xl overflow-hidden mr-4 border border-white/10 group-hover:border-primary transition-colors bg-card">
+              <WebsitePreview 
+                websiteId={item.id}
+                websiteUrl={item.url}
+                fallbackUrl={item.imageUrl}
+                alt={item.name}
+                width={48}
+                height={48}
+                mode="logo"
+                className="w-full h-full"
               />
             </div>
             <div className="flex flex-col">

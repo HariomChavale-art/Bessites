@@ -5,7 +5,7 @@ import { Website } from "@/lib/mock-data";
 import Link from "next/link";
 import { Heart, Tag } from "lucide-react";
 import { WebsitePreview } from "./website-preview";
-import { useState, useMemo, useEffect } from "react";
+import { useMemo } from "react";
 import { useUser, useFirestore, useDoc } from "@/firebase";
 import { doc, setDoc, deleteDoc, increment } from "firebase/firestore";
 import { Button } from "./ui/button";

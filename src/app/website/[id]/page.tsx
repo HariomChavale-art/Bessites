@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,6 @@ import Link from "next/link";
 
 export default function WebsiteDetail() {
   const { id } = useParams();
-  const router = useRouter();
   const { user } = useUser();
   const db = useFirestore();
   
@@ -141,7 +140,6 @@ export default function WebsiteDetail() {
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-4xl px-4 py-8 pb-32">
-        {/* Header Section */}
         <div className="flex gap-6 items-start mb-10">
           <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[2rem] overflow-hidden bg-card border border-white/10 shrink-0">
             <WebsitePreview 
@@ -152,7 +150,7 @@ export default function WebsiteDetail() {
               width={256}
               height={256}
               mode="logo"
-              className="w-full h-full p-0"
+              className="w-full h-full"
             />
           </div>
           <div className="flex-1 min-w-0">
@@ -171,7 +169,6 @@ export default function WebsiteDetail() {
           </button>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-4 gap-4 mb-10 pb-8 border-b border-white/5">
           <div className="text-center space-y-1 border-r border-white/5">
             <div className="flex items-center justify-center gap-1">
@@ -197,7 +194,6 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
           <Button 
             onClick={handleVisitClick} 
@@ -223,7 +219,6 @@ export default function WebsiteDetail() {
           </Button>
         </div>
 
-        {/* About Section */}
         <div className="space-y-6 mb-12">
           <h2 className="text-2xl font-black text-white tracking-tight">About {website.name}</h2>
           <p className="text-lg text-muted-foreground font-medium leading-relaxed">
@@ -238,7 +233,6 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Performance Metrics Bar - AT THE TOP OF THE COMMUNITY SECTION */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5 mb-12">
           <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
             <div className="bg-green-500/10 p-2.5 rounded-xl">
@@ -289,7 +283,6 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Community Reviews Section */}
         <section className="space-y-8 mb-24">
           <div className="flex items-center justify-between">
             <h2 className="text-3xl font-black text-white tracking-tight">Community reviews</h2>
@@ -362,13 +355,12 @@ export default function WebsiteDetail() {
             ) : (
               <div className="bg-white/[0.02] border border-white/5 p-12 rounded-[2rem] text-center opacity-40">
                 <MessageSquare className="w-12 h-12 mx-auto mb-4" />
-                <p className="font-bold">Be the first to share your thoughts on {website.name}</p>
+                <p className="font-bold">No community reviews yet for {website.name}.</p>
               </div>
             )}
           </div>
         </section>
 
-        {/* Similar Websites Section - AT THE VERY BOTTOM */}
         {similarWebsites.length > 0 && (
           <section className="space-y-6 pt-12 border-t border-white/5">
             <div className="flex items-center justify-between">
@@ -390,7 +382,7 @@ export default function WebsiteDetail() {
                         width={80}
                         height={80}
                         mode="logo"
-                        className="w-full h-full p-0"
+                        className="w-full h-full"
                       />
                     </div>
                     <div className="min-w-0 flex-1 px-4">

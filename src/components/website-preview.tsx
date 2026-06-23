@@ -42,13 +42,11 @@ export function WebsitePreview({
   useEffect(() => {
     if (statsLoading) return;
 
-    // Use cached Firestore data if available
     const cachedUrl = mode === 'logo' ? stats?.logoUrl : stats?.previewUrl;
 
     if (cachedUrl) {
       setCurrentImage(cachedUrl);
     } else {
-      // If no cache, fetch the real logo/preview from the website
       const fetchAndCache = async () => {
         setIsUpdating(true);
         try {
@@ -58,7 +56,6 @@ export function WebsitePreview({
             const logo = mode === 'logo' ? result.logoUrl : result.imageUrl;
             setCurrentImage(logo || fallbackUrl);
 
-            // Update cache in Firestore for future visitors
             if (db && websiteId) {
               setDoc(doc(db, "websiteStats", websiteId), {
                 previewUrl: result.imageUrl,
@@ -101,8 +98,7 @@ export function WebsitePreview({
           height={height}
           priority={priority}
           className={cn(
-            "transition-all duration-700 w-full h-full",
-            mode === 'logo' ? "object-cover p-0" : "object-cover",
+            "transition-all duration-700 w-full h-full object-cover",
             isUpdating ? "scale-105 blur-sm opacity-50" : "scale-100 blur-0 opacity-100"
           )}
           unoptimized={true}

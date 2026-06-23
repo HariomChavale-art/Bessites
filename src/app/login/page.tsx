@@ -18,9 +18,8 @@ import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Zap, Chrome, Loader2, Apple, AlertCircle } from "lucide-react";
+import { Zap, Chrome, Loader2, Apple } from "lucide-react";
 import { Navigation } from "@/components/navigation";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -38,8 +37,8 @@ export default function LoginPage() {
     if (!isConfigured) {
       toast({
         variant: "destructive",
-        title: "Configuration Missing",
-        description: "Please add your Firebase keys to the .env file to enable authentication.",
+        title: "Configuration Needed",
+        description: "Please ensure your Firebase environment variables are set.",
       });
       return;
     }
@@ -75,8 +74,8 @@ export default function LoginPage() {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Authentication Failed",
-        description: error.message || "Please check your email and password.",
+        title: "Auth Error",
+        description: error.message || "Invalid credentials.",
       });
     } finally {
       setLoading(false);
@@ -87,8 +86,8 @@ export default function LoginPage() {
     if (!isConfigured) {
       toast({
         variant: "destructive",
-        title: "Configuration Missing",
-        description: "Firebase keys are required in .env for social sign-in.",
+        title: "Auth Disabled",
+        description: "Social login requires Firebase configuration.",
       });
       return;
     }
@@ -125,15 +124,14 @@ export default function LoginPage() {
       }
       
       toast({
-        title: "Welcome to Webdock!",
-        description: `Successfully signed in.`,
+        title: "Success",
+        description: `Welcome back!`,
       });
     } catch (error: any) {
-      console.error("Social Auth Error:", error);
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: error.message || "An error occurred during sign-in.",
+        description: error.message,
       });
     } finally {
       setLoading(false);
@@ -149,29 +147,19 @@ export default function LoginPage() {
 
         <div className="w-full max-w-md relative z-10">
           <div className="flex flex-col items-center mb-10">
-            <div className="bg-primary p-4 rounded-[1.5rem] mb-6 glow-primary shadow-[0_0_30px_rgba(123,51,255,0.4)] transition-transform hover:scale-110">
+            <div className="bg-primary p-4 rounded-[1.5rem] mb-6 glow-primary shadow-[0_0_30px_rgba(123,51,255,0.4)]">
               <Zap className="w-10 h-10 text-white" fill="white" />
             </div>
             <h1 className="text-5xl font-headline font-extrabold text-white tracking-tighter">Webdock</h1>
-            <p className="text-muted-foreground mt-3 text-center text-lg">The web's front page, curated by you.</p>
+            <p className="text-muted-foreground mt-3 text-center text-lg">Curating the modern web.</p>
           </div>
-
-          {!isConfigured && (
-            <Alert variant="destructive" className="mb-6 rounded-2xl bg-destructive/10 border-destructive/20 text-white">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Action Required</AlertTitle>
-              <AlertDescription className="text-xs opacity-90">
-                Authentication is waiting for your Firebase config. Please add your credentials to the .env file.
-              </AlertDescription>
-            </Alert>
-          )}
 
           <Card className="bg-card/40 backdrop-blur-3xl border-white/5 shadow-2xl rounded-[3rem] overflow-hidden p-2">
             <CardHeader className="pb-2">
               <Tabs defaultValue="login" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 bg-white/5 p-1.5 rounded-[1.8rem]">
-                  <TabsTrigger value="login" className="rounded-[1.4rem] data-[state=active]:bg-primary data-[state=active]:text-white font-bold h-12 transition-all">Login</TabsTrigger>
-                  <TabsTrigger value="signup" className="rounded-[1.4rem] data-[state=active]:bg-primary data-[state=active]:text-white font-bold h-12 transition-all">Join</TabsTrigger>
+                  <TabsTrigger value="login" className="rounded-[1.4rem] data-[state=active]:bg-primary data-[state=active]:text-white font-bold h-12">Login</TabsTrigger>
+                  <TabsTrigger value="signup" className="rounded-[1.4rem] data-[state=active]:bg-primary data-[state=active]:text-white font-bold h-12">Join</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="login" className="mt-10 space-y-6 px-4">
@@ -183,7 +171,7 @@ export default function LoginPage() {
                       placeholder="name@example.com" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="bg-white/5 border-white/10 rounded-2xl h-14 focus:ring-primary text-lg" 
+                      className="bg-white/5 border-white/10 rounded-2xl h-14" 
                     />
                   </div>
                   <div className="space-y-3">
@@ -193,15 +181,15 @@ export default function LoginPage() {
                       type="password" 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="bg-white/5 border-white/10 rounded-2xl h-14 focus:ring-primary text-lg" 
+                      className="bg-white/5 border-white/10 rounded-2xl h-14" 
                     />
                   </div>
                   <Button 
                     onClick={() => handleEmailAuth('login')} 
                     disabled={loading}
-                    className="w-full bg-primary hover:bg-primary/90 text-white rounded-[1.8rem] h-16 text-xl font-bold glow-primary transition-all active:scale-95"
+                    className="w-full bg-primary hover:bg-primary/90 text-white rounded-[1.8rem] h-16 text-xl font-bold"
                   >
-                    {loading ? <Loader2 className="animate-spin w-6 h-6" /> : "Sign In"}
+                    {loading ? <Loader2 className="animate-spin" /> : "Sign In"}
                   </Button>
                 </TabsContent>
 
@@ -214,7 +202,7 @@ export default function LoginPage() {
                       placeholder="name@example.com" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="bg-white/5 border-white/10 rounded-2xl h-14 focus:ring-primary text-lg" 
+                      className="bg-white/5 border-white/10 rounded-2xl h-14" 
                     />
                   </div>
                   <div className="space-y-3">
@@ -224,15 +212,15 @@ export default function LoginPage() {
                       type="password" 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="bg-white/5 border-white/10 rounded-2xl h-14 focus:ring-primary text-lg" 
+                      className="bg-white/5 border-white/10 rounded-2xl h-14" 
                     />
                   </div>
                   <Button 
                     onClick={() => handleEmailAuth('signup')} 
                     disabled={loading}
-                    className="w-full bg-primary hover:bg-primary/90 text-white rounded-[1.8rem] h-16 text-xl font-bold glow-primary transition-all active:scale-95"
+                    className="w-full bg-primary hover:bg-primary/90 text-white rounded-[1.8rem] h-16 text-xl font-bold"
                   >
-                    {loading ? <Loader2 className="animate-spin w-6 h-6" /> : "Start Discovery"}
+                    {loading ? <Loader2 className="animate-spin" /> : "Start Discovery"}
                   </Button>
                 </TabsContent>
               </Tabs>
@@ -243,7 +231,7 @@ export default function LoginPage() {
                   <span className="w-full border-t border-white/10" />
                 </div>
                 <div className="relative flex justify-center text-[10px] uppercase tracking-[0.2em]">
-                  <span className="bg-[#1c1926] px-4 text-muted-foreground font-bold">Or continue with</span>
+                  <span className="bg-card px-4 text-muted-foreground font-bold">Or continue with</span>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -251,7 +239,7 @@ export default function LoginPage() {
                   variant="outline" 
                   onClick={() => handleSocialLogin('google')} 
                   disabled={loading}
-                  className="border-white/10 bg-white/5 hover:bg-white/10 rounded-[1.8rem] h-14 gap-2 text-sm font-bold transition-all active:scale-95"
+                  className="border-white/10 bg-white/5 hover:bg-white/10 rounded-[1.8rem] h-14 gap-2 text-sm font-bold"
                 >
                   <Chrome className="w-5 h-5" />
                   Google
@@ -260,7 +248,7 @@ export default function LoginPage() {
                   variant="outline" 
                   onClick={() => handleSocialLogin('apple')} 
                   disabled={loading}
-                  className="border-white/10 bg-white/5 hover:bg-white/10 rounded-[1.8rem] h-14 gap-2 text-sm font-bold transition-all active:scale-95"
+                  className="border-white/10 bg-white/5 hover:bg-white/10 rounded-[1.8rem] h-14 gap-2 text-sm font-bold"
                 >
                   <Apple className="w-5 h-5" />
                   Apple
@@ -269,7 +257,7 @@ export default function LoginPage() {
             </CardContent>
             <CardFooter className="pb-8">
               <p className="text-[11px] text-center w-full text-muted-foreground px-8 leading-relaxed opacity-60">
-                By joining Webdock, you agree to our Terms and Privacy Policy.
+                Securely powered by Firebase.
               </p>
             </CardFooter>
           </Card>

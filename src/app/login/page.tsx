@@ -16,14 +16,13 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, User, Eye, EyeOff } from "lucide-react";
 import { Logo } from "@/components/logo";
-import { cn } from "@/lib/utils";
 
 export default function LoginPage() {
   const auth = useAuth();
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
-  const { user: currentUser } = useUser();
+  const { user: currentUser, loading: authLoading } = useUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
@@ -34,7 +33,7 @@ export default function LoginPage() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   useEffect(() => {
-    if (currentUser && !loading) {
+    if (currentUser && !authLoading) {
       const checkOnboarding = async () => {
         if (!db) return;
         try {
@@ -46,13 +45,12 @@ export default function LoginPage() {
             router.push("/onboarding");
           }
         } catch (error) {
-          // If profile doesn't exist yet, we stay on onboarding or current page
-          console.warn("User profile check deferred");
+          console.warn("Profile check deferred");
         }
       };
       checkOnboarding();
     }
-  }, [currentUser, db, router, loading]);
+  }, [currentUser, db, router, authLoading]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -70,8 +68,8 @@ export default function LoginPage() {
     if (!auth || !db) {
       toast({
         variant: "destructive",
-        title: "Connection Error",
-        description: "Firebase service is not initialized. Please check your configuration.",
+        title: "Configuration Error",
+        description: "Firebase service is not initialized correctly.",
       });
       return;
     }
@@ -105,8 +103,8 @@ export default function LoginPage() {
         }, { merge: true });
         
         toast({
-          title: "Account Created",
-          description: "Welcome! Let's personalize your interests.",
+          title: "Welcome!",
+          description: "Let's personalize your experience.",
         });
         
         router.push("/onboarding");
@@ -115,7 +113,7 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: "Authentication Failed",
-        description: error.message || "Please check your email and password.",
+        description: error.message || "Please check your credentials.",
       });
     } finally {
       setLoading(false);
@@ -124,8 +122,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row-reverse bg-background">
-      {/* Right side: Welcome Branding & Profile (Top on mobile) */}
-      <div className="flex-1 bg-gradient-to-br from-primary/10 to-transparent p-8 sm:p-16 flex flex-col items-center justify-center space-y-12 border-b md:border-b-0 md:border-l border-white/5">
+      {/* Right Side (Desktop) / Top (Mobile): Branding & Profile */}
+      <div className="flex-1 bg-gradient-to-br from-primary/15 to-transparent p-8 sm:p-16 flex flex-col items-center justify-center space-y-12 border-b md:border-b-0 md:border-l border-white/5">
         <div className="space-y-4 text-center">
           <h1 className="text-5xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-tight">
             Welcome to <br />
@@ -136,15 +134,13 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Profile Uploader */}
-        <div className="relative group">
-          <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-[#1A1A1A] border-4 border-white/5 overflow-hidden relative shadow-2xl transition-all group-hover:border-primary/50">
+        {/* Circular Profile Uploader */}
+        <div className="relative">
+          <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-[#1A1A1A] border-4 border-white/10 overflow-hidden relative shadow-2xl flex items-center justify-center">
             {photoPreview ? (
               <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-white/5">
-                <User className="w-24 h-24 sm:w-32 sm:h-32" />
-              </div>
+              <User className="w-24 h-24 sm:w-32 sm:h-32 text-white/10" />
             )}
           </div>
           <button 
@@ -158,10 +154,10 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Left side: Form (Bottom on mobile) */}
+      {/* Left Side (Desktop) / Bottom (Mobile): Form */}
       <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center bg-background">
         <div className="w-full max-w-md mx-auto">
-          <Logo className="mb-12" />
+          <Logo className="mb-12" showText />
           
           <form onSubmit={handleAuth} className="space-y-6">
             <div className="space-y-2">

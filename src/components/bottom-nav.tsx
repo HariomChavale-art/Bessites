@@ -9,11 +9,11 @@ import { useUser } from "@/firebase";
 
 export function BottomNav() {
   const pathname = usePathname();
-  const { user } = useUser();
+  const { user, loading } = useUser();
 
+  // Hide navigation on auth pages or when user is not loaded/logged in
   const isAuthPage = pathname === "/login" || pathname === "/onboarding";
-  
-  if (!user || isAuthPage) return null;
+  if (!user || isAuthPage || loading) return null;
 
   const navItems = [
     { href: "/", icon: Home, label: "Home" },

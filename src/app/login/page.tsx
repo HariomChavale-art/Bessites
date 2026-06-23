@@ -1,8 +1,8 @@
 
 "use client"
 
-import { useState, useRef } from "react";
-import { useAuth, useFirestore } from "@/firebase";
+import { useState, useRef, useEffect } from "react";
+import { useAuth, useFirestore, useUser } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
@@ -24,6 +24,7 @@ export default function LoginPage() {
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
+  const { user: currentUser } = useUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
@@ -32,6 +33,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      router.push("/");
+    }
+  }, [currentUser, router]);
 
   const isConfigured = !!auth && !!db;
 
@@ -48,7 +55,14 @@ export default function LoginPage() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isConfigured) return;
+    if (!isConfigured) {
+      toast({
+        variant: "destructive",
+        title: "Configuration Error",
+        description: "Firebase is not yet configured. Please check your environment variables.",
+      });
+      return;
+    }
     
     setLoading(true);
     try {
@@ -90,7 +104,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navigation />
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-5xl bg-card/40 backdrop-blur-3xl border border-white/5 rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-2xl flex flex-col md:flex-row">
+        <div className="w-full max-w-5xl bg-card/40 backdrop-blur-3xl border border-white/5 rounded-[2.5rem] sm:rounded-[3rem] overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[600px]">
           
           <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center order-2 md:order-1">
             <div className="space-y-4 mb-10">
@@ -145,7 +159,7 @@ export default function LoginPage() {
               <Button 
                 type="submit" 
                 disabled={loading}
-                className="w-full bg-primary hover:bg-primary/90 text-white rounded-full h-16 text-xl font-black shadow-xl mt-4 glow-primary"
+                className="w-full bg-primary hover:bg-primary/90 text-white rounded-full h-16 text-xl font-black shadow-xl mt-4 glow-primary transition-all active:scale-95"
               >
                 {loading ? <Loader2 className="animate-spin" /> : mode === 'login' ? 'SIGN IN' : 'JOIN NOW'}
               </Button>
@@ -154,11 +168,11 @@ export default function LoginPage() {
 
           <div className="flex-1 bg-white/[0.02] border-l border-white/5 p-12 flex flex-col items-center justify-center relative order-1 md:order-2">
             <div className="relative group">
-              <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-[#1A1A1A] border-4 border-white/10 overflow-hidden relative shadow-2xl transition-all group-hover:border-primary/50">
+              <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-[#333333] border-4 border-white/10 overflow-hidden relative shadow-2xl transition-all group-hover:border-primary/50">
                 {photoPreview ? (
                   <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground/20">
+                  <div className="w-full h-full flex items-center justify-center text-white/10">
                     <User className="w-24 h-24 sm:w-32 sm:h-32" />
                   </div>
                 )}

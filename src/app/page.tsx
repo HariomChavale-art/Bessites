@@ -1,19 +1,28 @@
+
 "use client"
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Navigation } from "@/components/navigation";
 import { MarqueeBanner } from "@/components/marquee-banner";
 import { MasonryFeed } from "@/components/masonry-feed";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, TrendingUp, Clock, LayoutGrid } from "lucide-react";
+import { Sparkles, TrendingUp, Clock, Loader2 } from "lucide-react";
 import { useUser, useDoc, useFirestore } from "@/firebase";
 import { doc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
-  const { user } = useUser();
+  const { user, loading: authLoading } = useUser();
   const db = useFirestore();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
 
   const userDocRef = useMemo(() => {
     if (!user || !db) return null;
@@ -46,6 +55,16 @@ export default function Home() {
         return list;
     }
   }, [activeTab, userInterests]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-12 h-12 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

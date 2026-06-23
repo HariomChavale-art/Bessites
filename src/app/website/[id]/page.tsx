@@ -20,7 +20,6 @@ import {
   ArrowRight,
   Zap,
   ShieldCheck,
-  Info,
   Smartphone
 } from "lucide-react";
 import { useMemo, useState } from "react";

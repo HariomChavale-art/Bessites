@@ -36,7 +36,6 @@ export function WebsitePreview({
   const statsRef = websiteId && db ? doc(db, "websiteStats", websiteId) : null;
   const { data: stats, loading: statsLoading } = useDoc(statsRef);
   
-  // Use a domain-based favicon as the immediate, official fallback logo
   const domain = new URL(websiteUrl).hostname;
   const officialFavicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
   
@@ -81,11 +80,10 @@ export function WebsitePreview({
     }
   }, [stats, statsLoading, db, websiteId, websiteUrl, mode, officialFavicon]);
 
-  // Priority order: Cached high-res -> Official Favicon
   const safeImageSrc = currentImage || officialFavicon;
 
   return (
-    <div className={cn("relative overflow-hidden bg-[#1A1A1A] flex items-center justify-center w-full h-full", className)}>
+    <div className={cn("relative bg-[#1A1A1A] flex items-center justify-center w-full h-full", className)}>
       {safeImageSrc ? (
         <Image 
           src={safeImageSrc} 
@@ -94,8 +92,8 @@ export function WebsitePreview({
           height={height}
           priority={priority}
           className={cn(
-            "transition-all duration-700 w-full h-full object-cover",
-            isUpdating ? "scale-105 blur-sm opacity-50" : "scale-100 blur-0 opacity-100"
+            "w-full h-full object-cover transition-opacity duration-700",
+            isUpdating ? "opacity-40" : "opacity-100"
           )}
           unoptimized={true}
         />
@@ -104,7 +102,7 @@ export function WebsitePreview({
       )}
       
       {isUpdating && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       )}

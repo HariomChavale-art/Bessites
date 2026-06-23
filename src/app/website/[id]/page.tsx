@@ -328,7 +328,7 @@ export default function WebsiteDetail() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <Avatar className="w-10 h-10 border border-white/10">
-                        <AvatarImage src={rating.userPhotoURL} />
+                        <AvatarImage src={rating.userPhotoURL} className="object-cover" />
                         <AvatarFallback className="bg-muted text-sm">{rating.userDisplayName?.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>

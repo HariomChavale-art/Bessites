@@ -5,9 +5,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUser } from "@/firebase";
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { user } = useUser();
+
+  const isAuthPage = pathname === "/login" || pathname === "/onboarding";
+  
+  if (!user || isAuthPage) return null;
 
   const navItems = [
     { href: "/", icon: Home, label: "Home" },

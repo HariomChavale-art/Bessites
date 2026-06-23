@@ -1,10 +1,12 @@
+
 "use client"
 
 import Link from "next/link";
-import { Zap, Bell } from "lucide-react";
+import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Logo } from "./logo";
 
 export function Navigation() {
   const { user, loading } = useUser();
@@ -15,11 +17,8 @@ export function Navigation() {
         
         {/* Left Side: Logo */}
         <div className="flex items-center gap-4 shrink-0">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="bg-primary p-2 rounded-xl glow-primary transition-all group-hover:scale-110 group-hover:rotate-12">
-              <Zap className="w-5 h-5 text-white" fill="white" />
-            </div>
-            <span className="text-xl font-black text-white tracking-tighter">Webdock</span>
+          <Link href="/">
+            <Logo showText />
           </Link>
         </div>
 

@@ -14,8 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Zap, Loader2, Plus, User, Eye, EyeOff } from "lucide-react";
+import { Loader2, Plus, User, Eye, EyeOff } from "lucide-react";
 import { Navigation } from "@/components/navigation";
+import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 
 export default function LoginPage() {
@@ -106,11 +107,14 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-5xl bg-card/40 backdrop-blur-3xl border border-white/5 rounded-[2.5rem] sm:rounded-[3.5rem] overflow-hidden shadow-2xl flex flex-col md:flex-row">
           
-          {/* Left Side: Auth Form */}
+          {/* Left Side: Welcome & Auth Form */}
           <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center order-2 md:order-1">
-            <div className="space-y-2 mb-10">
+            <div className="space-y-4 mb-10">
+              <div className="flex items-center gap-3 mb-2">
+                <Logo className="scale-125 origin-left" />
+              </div>
               <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase italic">
-                {mode === 'login' ? 'Welcome Back!' : 'Welcome to Webdock!'}
+                Welcome to Webdock!
               </h1>
               <p className="text-muted-foreground font-medium text-lg">
                 {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
@@ -156,20 +160,10 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between px-1">
-                <label className="flex items-center gap-2 text-sm text-muted-foreground font-medium cursor-pointer">
-                  <input type="checkbox" className="w-4 h-4 rounded border-white/10 bg-white/5 text-primary focus:ring-primary" />
-                  Remember me
-                </label>
-                <button type="button" className="text-sm text-primary font-bold hover:underline">
-                  Forget password?
-                </button>
-              </div>
-
               <Button 
                 type="submit" 
                 disabled={loading}
-                className="w-full bg-primary hover:bg-primary/90 text-white rounded-full h-16 text-xl font-black shadow-xl glow-primary"
+                className="w-full bg-primary hover:bg-primary/90 text-white rounded-full h-16 text-xl font-black shadow-xl glow-primary mt-4"
               >
                 {loading ? <Loader2 className="animate-spin" /> : mode === 'login' ? 'Sign In' : 'Join Now'}
               </Button>
@@ -178,12 +172,6 @@ export default function LoginPage() {
 
           {/* Right Side: Profile Uploader */}
           <div className="flex-1 bg-white/[0.02] border-l border-white/5 p-12 flex flex-col items-center justify-center relative order-1 md:order-2">
-            <div className="absolute top-8 left-8 hidden md:block">
-              <div className="bg-primary p-2.5 rounded-xl glow-primary">
-                <Zap className="w-6 h-6 text-white" fill="white" />
-              </div>
-            </div>
-
             <div className="relative group">
               <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-muted border-4 border-white/10 overflow-hidden relative shadow-2xl transition-all group-hover:border-primary/50">
                 {photoPreview ? (
@@ -214,9 +202,9 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="mt-8 text-center hidden md:block">
+            <div className="mt-8 text-center">
               <h2 className="text-xl font-bold text-white mb-2 uppercase tracking-widest opacity-60">Personalize Your Flow</h2>
-              <p className="text-sm text-muted-foreground max-w-[200px]">Add a profile photo to stand out in the community.</p>
+              <p className="text-sm text-muted-foreground max-w-[240px]">Add a profile photo to stand out in the community.</p>
             </div>
           </div>
         </div>

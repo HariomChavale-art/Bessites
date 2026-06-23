@@ -233,57 +233,57 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5 mb-12">
-          <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
-            <div className="bg-green-500/10 p-2.5 rounded-xl">
-              <Zap className="w-6 h-6 text-green-500" fill="currentColor" />
-            </div>
-            <div>
-              <div className="text-xl font-black text-white">0.9s</div>
-              <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
-                Load Speed <Info className="w-3 h-3" />
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
-            <div className="bg-green-500/10 p-2.5 rounded-xl">
-              <ShieldCheck className="w-6 h-6 text-green-500" />
-            </div>
-            <div>
-              <div className="text-xl font-black text-white">SSL</div>
-              <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
-                Secured <Info className="w-3 h-3" />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
-            <div className="bg-blue-500/10 p-2.5 rounded-xl">
-              <Globe className="w-6 h-6 text-blue-500" />
-            </div>
-            <div>
-              <div className="text-xl font-black text-white">190+</div>
-              <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
-                Countries <Info className="w-3 h-3" />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="bg-yellow-500/10 p-2.5 rounded-xl">
-              <Smartphone className="w-6 h-6 text-yellow-500" />
-            </div>
-            <div>
-              <div className="text-xl font-black text-white">98/100</div>
-              <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
-                Mobile Friendly <Info className="w-3 h-3" />
-              </div>
-            </div>
-          </div>
-        </div>
-
         <section className="space-y-8 mb-24">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5 mb-4">
+            <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
+              <div className="bg-green-500/10 p-2.5 rounded-xl">
+                <Zap className="w-6 h-6 text-green-500" fill="currentColor" />
+              </div>
+              <div>
+                <div className="text-xl font-black text-white">0.9s</div>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
+                  Load Speed <Info className="w-3 h-3" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
+              <div className="bg-green-500/10 p-2.5 rounded-xl">
+                <ShieldCheck className="w-6 h-6 text-green-500" />
+              </div>
+              <div>
+                <div className="text-xl font-black text-white">SSL</div>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
+                  Secured <Info className="w-3 h-3" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
+              <div className="bg-blue-500/10 p-2.5 rounded-xl">
+                <Globe className="w-6 h-6 text-blue-500" />
+              </div>
+              <div>
+                <div className="text-xl font-black text-white">190+</div>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
+                  Countries <Info className="w-3 h-3" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="bg-yellow-500/10 p-2.5 rounded-xl">
+                <Smartphone className="w-6 h-6 text-yellow-500" />
+              </div>
+              <div>
+                <div className="text-xl font-black text-white">98/100</div>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
+                  Mobile Friendly <Info className="w-3 h-3" />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between">
             <h2 className="text-3xl font-black text-white tracking-tight">Community reviews</h2>
             <Dialog>

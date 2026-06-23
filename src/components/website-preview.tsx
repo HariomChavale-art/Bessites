@@ -80,17 +80,9 @@ export function WebsitePreview({
 
   const safeImageSrc = currentImage || fallbackUrl;
 
-  if (!safeImageSrc && !isUpdating) {
-    return (
-      <div className={cn("relative overflow-hidden bg-muted flex items-center justify-center", className)}>
-        <Globe className="w-8 h-8 text-muted-foreground opacity-20" />
-      </div>
-    );
-  }
-
   return (
-    <div className={cn("relative overflow-hidden bg-muted flex items-center justify-center", className)}>
-      {safeImageSrc && (
+    <div className={cn("relative overflow-hidden bg-muted flex items-center justify-center w-full h-full", className)}>
+      {safeImageSrc ? (
         <Image 
           src={safeImageSrc} 
           alt={alt}
@@ -103,6 +95,8 @@ export function WebsitePreview({
           )}
           unoptimized={true}
         />
+      ) : (
+        <Globe className="w-8 h-8 text-muted-foreground opacity-20" />
       )}
       
       {isUpdating && (

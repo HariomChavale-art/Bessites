@@ -1,0 +1,455 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "lootdrop",
+      "description": "Loot Drop interface",
+      "imageUrl": "https://picsum.photos/seed/loot/600/400"
+    },
+    {
+      "id": "emojikitchen",
+      "description": "Emoji mashup tool",
+      "imageUrl": "https://picsum.photos/seed/emoji/600/400"
+    },
+    {
+      "id": "dofsimulator",
+      "description": "Depth of field camera simulator",
+      "imageUrl": "https://picsum.photos/seed/camera/600/400"
+    },
+    {
+      "id": "carcarekiosk",
+      "description": "DIY car repair guide",
+      "imageUrl": "https://picsum.photos/seed/car/600/400"
+    },
+    {
+      "id": "modsnation",
+      "description": "Gaming mod community",
+      "imageUrl": "https://picsum.photos/seed/mods/600/400"
+    },
+    {
+      "id": "kartbros",
+      "description": "Kart racing game portal",
+      "imageUrl": "https://picsum.photos/seed/kart/600/400"
+    },
+    {
+      "id": "tenasa",
+      "description": "Productivity dashboard",
+      "imageUrl": "https://picsum.photos/seed/tenasa/600/400"
+    },
+    {
+      "id": "delphi",
+      "description": "AI prediction market",
+      "imageUrl": "https://picsum.photos/seed/delphi/600/400"
+    },
+    {
+      "id": "privnote",
+      "description": "Self-destructing notes",
+      "imageUrl": "https://picsum.photos/seed/note/600/400"
+    },
+    {
+      "id": "picular",
+      "description": "Color search engine",
+      "imageUrl": "https://picsum.photos/seed/color/600/400"
+    },
+    {
+      "id": "redcoats",
+      "description": "Strategy game interface",
+      "imageUrl": "https://picsum.photos/seed/battle/600/400"
+    },
+    {
+      "id": "3dsvg",
+      "description": "SVG to 3D converter",
+      "imageUrl": "https://picsum.photos/seed/3d/600/400"
+    },
+    {
+      "id": "storyset",
+      "description": "Customizable illustrations",
+      "imageUrl": "https://picsum.photos/seed/story/600/400"
+    },
+    {
+      "id": "eyecandy",
+      "description": "Visual design inspiration",
+      "imageUrl": "https://picsum.photos/seed/candy/600/400"
+    },
+    {
+      "id": "entertrained",
+      "description": "Educational training portal",
+      "imageUrl": "https://picsum.photos/seed/train/600/400"
+    },
+    {
+      "id": "toontone",
+      "description": "Cartoon voice effects",
+      "imageUrl": "https://picsum.photos/seed/toon/600/400"
+    },
+    {
+      "id": "paperme",
+      "description": "Digital paper crafting",
+      "imageUrl": "https://picsum.photos/seed/paper/600/400"
+    },
+    {
+      "id": "workout",
+      "description": "Interactive fitness coach",
+      "imageUrl": "https://picsum.photos/seed/gym/600/400"
+    },
+    {
+      "id": "hotkey",
+      "description": "Keyboard shortcut database",
+      "imageUrl": "https://picsum.photos/seed/keys/600/400"
+    },
+    {
+      "id": "apps123",
+      "description": "Online tool suite",
+      "imageUrl": "https://picsum.photos/seed/apps/600/400"
+    },
+    {
+      "id": "neal",
+      "description": "Quirky web experiments",
+      "imageUrl": "https://picsum.photos/seed/fun/600/400"
+    },
+    {
+      "id": "tinkercad",
+      "description": "3D design for beginners",
+      "imageUrl": "https://picsum.photos/seed/cad/600/400"
+    },
+    {
+      "id": "buildcores",
+      "description": "PC building simulator",
+      "imageUrl": "https://picsum.photos/seed/pc/600/400"
+    },
+    {
+      "id": "funes",
+      "description": "Historical memory game",
+      "imageUrl": "https://picsum.photos/seed/history/600/400"
+    },
+    {
+      "id": "deadshot",
+      "description": "Aim trainer for FPS",
+      "imageUrl": "https://picsum.photos/seed/aim/600/400"
+    },
+    {
+      "id": "movewalls",
+      "description": "Dynamic wall art generator",
+      "imageUrl": "https://picsum.photos/seed/wall/600/400"
+    },
+    {
+      "id": "zperiod",
+      "description": "Minimalist focused timer",
+      "imageUrl": "https://picsum.photos/seed/time/600/400"
+    },
+    {
+      "id": "shader",
+      "description": "Abstract gradient designer",
+      "imageUrl": "https://picsum.photos/seed/gradient/600/400"
+    },
+    {
+      "id": "jetpunk",
+      "description": "Educational trivia quizzes",
+      "imageUrl": "https://picsum.photos/seed/quiz/600/400"
+    },
+    {
+      "id": "autodraw",
+      "description": "AI-powered drawing tool",
+      "imageUrl": "https://picsum.photos/seed/draw/600/400"
+    },
+    {
+      "id": "uniqcode",
+      "description": "Unicode character database",
+      "imageUrl": "https://picsum.photos/seed/unicode/600/400"
+    },
+    {
+      "id": "goblin",
+      "description": "AI aids for tasks",
+      "imageUrl": "https://picsum.photos/seed/goblin/600/400"
+    },
+    {
+      "id": "origami",
+      "description": "Origami folding guides",
+      "imageUrl": "https://picsum.photos/seed/fold/600/400"
+    },
+    {
+      "id": "zoomquilt",
+      "description": "Infinite zoom artwork",
+      "imageUrl": "https://picsum.photos/seed/zoom/600/400"
+    },
+    {
+      "id": "langguide",
+      "description": "Visual language guide",
+      "imageUrl": "https://picsum.photos/seed/lang/600/400"
+    },
+    {
+      "id": "textrepeat",
+      "description": "Simple text repeater",
+      "imageUrl": "https://picsum.photos/seed/repeat/600/400"
+    },
+    {
+      "id": "motor",
+      "description": "Car specs comparison",
+      "imageUrl": "https://picsum.photos/seed/motor/600/400"
+    },
+    {
+      "id": "travelmap",
+      "description": "Personal travel journals",
+      "imageUrl": "https://picsum.photos/seed/map/600/400"
+    },
+    {
+      "id": "jigsaw",
+      "description": "Multiplayer jigsaw puzzles",
+      "imageUrl": "https://picsum.photos/seed/puzzle/600/400"
+    },
+    {
+      "id": "terrainx",
+      "description": "3D terrain analysis",
+      "imageUrl": "https://picsum.photos/seed/topo/600/400"
+    },
+    {
+      "id": "perchance",
+      "description": "Random generator creator",
+      "imageUrl": "https://picsum.photos/seed/dice/600/400"
+    },
+    {
+      "id": "koupon",
+      "description": "Coupon aggregator",
+      "imageUrl": "https://picsum.photos/seed/sale/600/400"
+    },
+    {
+      "id": "avanka",
+      "description": "UI design resources",
+      "imageUrl": "https://picsum.photos/seed/ui/600/400"
+    },
+    {
+      "id": "veck",
+      "description": "Video creative tools",
+      "imageUrl": "https://picsum.photos/seed/video/600/400"
+    },
+    {
+      "id": "autocatalog",
+      "description": "Car brochure archive",
+      "imageUrl": "https://picsum.photos/seed/brochure/600/400"
+    },
+    {
+      "id": "tasteatlas",
+      "description": "World food encyclopedia",
+      "imageUrl": "https://picsum.photos/seed/food/600/400"
+    },
+    {
+      "id": "emojicombos",
+      "description": "Emoji search engine",
+      "imageUrl": "https://picsum.photos/seed/smile/600/400"
+    },
+    {
+      "id": "universe",
+      "description": "Mobile web builder",
+      "imageUrl": "https://picsum.photos/seed/uni/600/400"
+    },
+    {
+      "id": "drifted",
+      "description": "Car drifting games",
+      "imageUrl": "https://picsum.photos/seed/drift/600/400"
+    },
+    {
+      "id": "creativemodo",
+      "description": "Graphic inspiration",
+      "imageUrl": "https://picsum.photos/seed/inspire/600/400"
+    },
+    {
+      "id": "toools",
+      "description": "Design tool directory",
+      "imageUrl": "https://picsum.photos/seed/gear/600/400"
+    },
+    {
+      "id": "instants",
+      "description": "Instant sound buttons",
+      "imageUrl": "https://picsum.photos/seed/sound/600/400"
+    },
+    {
+      "id": "idiot",
+      "description": "Brain teaser games",
+      "imageUrl": "https://picsum.photos/seed/brain/600/400"
+    },
+    {
+      "id": "coolors",
+      "description": "Color generator",
+      "imageUrl": "https://picsum.photos/seed/palette/600/400"
+    },
+    {
+      "id": "vetted",
+      "description": "AI shopping guide",
+      "imageUrl": "https://picsum.photos/seed/shop/600/400"
+    },
+    {
+      "id": "tosdr",
+      "description": "Privacy summaries",
+      "imageUrl": "https://picsum.photos/seed/law/600/400"
+    },
+    {
+      "id": "recipe",
+      "description": "Clean recipe view",
+      "imageUrl": "https://picsum.photos/seed/cook/600/400"
+    },
+    {
+      "id": "frame",
+      "description": "Driving simulators",
+      "imageUrl": "https://picsum.photos/seed/sim/600/400"
+    },
+    {
+      "id": "parler",
+      "description": "Bead art patterns",
+      "imageUrl": "https://picsum.photos/seed/bead/600/400"
+    },
+    {
+      "id": "glint",
+      "description": "AI data insights",
+      "imageUrl": "https://picsum.photos/seed/data/600/400"
+    },
+    {
+      "id": "smart",
+      "description": "Smart automation",
+      "imageUrl": "https://picsum.photos/seed/smart/600/400"
+    },
+    {
+      "id": "withdiode",
+      "description": "Decentralized hosting",
+      "imageUrl": "https://picsum.photos/seed/diode/600/400"
+    },
+    {
+      "id": "hackerai",
+      "description": "AI security audit",
+      "imageUrl": "https://picsum.photos/seed/hacker/600/400"
+    },
+    {
+      "id": "atomanimation",
+      "description": "Browser animation tool",
+      "imageUrl": "https://picsum.photos/seed/atom/600/400"
+    },
+    {
+      "id": "snazzymaps",
+      "description": "Styled Google Maps",
+      "imageUrl": "https://picsum.photos/seed/snazzy/600/400"
+    },
+    {
+      "id": "rxresume",
+      "description": "Resume creator",
+      "imageUrl": "https://picsum.photos/seed/resume/600/400"
+    },
+    {
+      "id": "maze",
+      "description": "User research platform",
+      "imageUrl": "https://picsum.photos/seed/maze/600/400"
+    },
+    {
+      "id": "recipescal",
+      "description": "Recipe scaling tool",
+      "imageUrl": "https://picsum.photos/seed/scale/600/400"
+    },
+    {
+      "id": "textbehind",
+      "description": "AI text placement",
+      "imageUrl": "https://picsum.photos/seed/subject/600/400"
+    },
+    {
+      "id": "formia",
+      "description": "Modern form builder",
+      "imageUrl": "https://picsum.photos/seed/form/600/400"
+    },
+    {
+      "id": "paper53",
+      "description": "Digital idea capture",
+      "imageUrl": "https://picsum.photos/seed/journal/600/400"
+    },
+    {
+      "id": "exercism",
+      "description": "Coding fluency practice",
+      "imageUrl": "https://picsum.photos/seed/code/600/400"
+    },
+    {
+      "id": "slowroads",
+      "description": "Zen driving simulator",
+      "imageUrl": "https://picsum.photos/seed/drive/600/400"
+    },
+    {
+      "id": "ifixit",
+      "description": "Global repair guides",
+      "imageUrl": "https://picsum.photos/seed/fixit/600/400"
+    },
+    {
+      "id": "runnable",
+      "description": "Fast code testing",
+      "imageUrl": "https://picsum.photos/seed/run/600/400"
+    },
+    {
+      "id": "3daim",
+      "description": "Elite aim training",
+      "imageUrl": "https://picsum.photos/seed/target/600/400"
+    },
+    {
+      "id": "radio",
+      "description": "Global live radio",
+      "imageUrl": "https://picsum.photos/seed/radio/600/400"
+    },
+    {
+      "id": "pixabay",
+      "description": "Free creative assets",
+      "imageUrl": "https://picsum.photos/seed/stock/600/400"
+    },
+    {
+      "id": "massager",
+      "description": "Haptic vibration tool",
+      "imageUrl": "https://picsum.photos/seed/relax/600/400"
+    },
+    {
+      "id": "onelook",
+      "description": "Dictionary search engine",
+      "imageUrl": "https://picsum.photos/seed/dictionary/600/400"
+    },
+    {
+      "id": "prepostseo",
+      "description": "SEO content suite",
+      "imageUrl": "https://picsum.photos/seed/seo/600/400"
+    },
+    {
+      "id": "wifimap",
+      "description": "Free hotspot map",
+      "imageUrl": "https://picsum.photos/seed/wifi/600/400"
+    },
+    {
+      "id": "cyri",
+      "description": "PC requirements tool",
+      "imageUrl": "https://picsum.photos/seed/gpu/600/400"
+    },
+    {
+      "id": "darebee",
+      "description": "Visual fitness guides",
+      "imageUrl": "https://picsum.photos/seed/darebee/600/400"
+    },
+    {
+      "id": "bonk",
+      "description": "Physics ball game",
+      "imageUrl": "https://picsum.photos/seed/bonk/600/400"
+    },
+    {
+      "id": "docsity",
+      "description": "Study resource engine",
+      "imageUrl": "https://picsum.photos/seed/study/600/400"
+    },
+    {
+      "id": "chefai",
+      "description": "AI culinary coach",
+      "imageUrl": "https://picsum.photos/seed/chef/600/400"
+    },
+    {
+      "id": "beforeiplay",
+      "description": "Game starter hints",
+      "imageUrl": "https://picsum.photos/seed/game/600/400"
+    },
+    {
+      "id": "3dtuning",
+      "description": "3D car simulator",
+      "imageUrl": "https://picsum.photos/seed/tuning/600/400"
+    },
+    {
+      "id": "reactbits",
+      "description": "React component library",
+      "imageUrl": "https://picsum.photos/seed/react/600/400"
+    }
+  ]
+}

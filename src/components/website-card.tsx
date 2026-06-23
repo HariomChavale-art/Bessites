@@ -54,9 +54,9 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
 
   return (
     <Link href={`/website/${website.id}`} className="block break-inside-avoid mb-4 sm:mb-6 group">
-      <div className="relative rounded-2xl sm:rounded-[2.5rem] overflow-hidden bg-card/40 border border-white/5 transition-all duration-500 group-hover:border-primary/40 group-hover:bg-card/60">
+      <div className="relative rounded-2xl sm:rounded-[2rem] overflow-hidden bg-card/40 border border-white/5 transition-all duration-500 group-hover:border-primary/40 group-hover:bg-card/60">
         
-        <div className="relative aspect-square overflow-hidden flex items-center justify-center">
+        <div className="relative aspect-square overflow-hidden flex items-center justify-center bg-[#1A1A1A]">
           <WebsitePreview 
             websiteId={website.id}
             websiteUrl={website.url}
@@ -93,7 +93,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
           </div>
         </div>
 
-        <div className="p-3 sm:p-6 pt-1 sm:pt-2 space-y-1.5 sm:space-y-3">
+        <div className="p-3 sm:p-6 pt-1 sm:pt-2 space-y-1 sm:space-y-3">
           <div className="text-center">
             <h3 className="font-headline font-bold text-sm sm:text-lg text-white group-hover:text-primary transition-colors truncate">
               {website.name}

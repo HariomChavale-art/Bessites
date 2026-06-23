@@ -36,6 +36,10 @@ export function WebsitePreview({
   const statsRef = websiteId && db ? doc(db, "websiteStats", websiteId) : null;
   const { data: stats, loading: statsLoading } = useDoc(statsRef);
   
+  // Use a domain-based favicon as the immediate, official fallback logo
+  const domain = new URL(websiteUrl).hostname;
+  const officialFavicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+  
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -54,7 +58,7 @@ export function WebsitePreview({
           
           if (result) {
             const logo = mode === 'logo' ? result.logoUrl : result.imageUrl;
-            setCurrentImage(logo || fallbackUrl);
+            setCurrentImage(logo || officialFavicon);
 
             if (db && websiteId) {
               setDoc(doc(db, "websiteStats", websiteId), {
@@ -64,11 +68,10 @@ export function WebsitePreview({
               }, { merge: true });
             }
           } else {
-            setCurrentImage(fallbackUrl);
+            setCurrentImage(officialFavicon);
           }
         } catch (e) {
-          console.warn("WebsitePreview: Error fetching metadata", e);
-          setCurrentImage(fallbackUrl);
+          setCurrentImage(officialFavicon);
         } finally {
           setIsUpdating(false);
         }
@@ -76,12 +79,13 @@ export function WebsitePreview({
       
       fetchAndCache();
     }
-  }, [stats, statsLoading, db, websiteId, websiteUrl, mode, fallbackUrl]);
+  }, [stats, statsLoading, db, websiteId, websiteUrl, mode, officialFavicon]);
 
-  const safeImageSrc = currentImage || fallbackUrl;
+  // Priority order: Cached high-res -> Official Favicon
+  const safeImageSrc = currentImage || officialFavicon;
 
   return (
-    <div className={cn("relative overflow-hidden bg-muted flex items-center justify-center w-full h-full", className)}>
+    <div className={cn("relative overflow-hidden bg-[#1A1A1A] flex items-center justify-center w-full h-full", className)}>
       {safeImageSrc ? (
         <Image 
           src={safeImageSrc} 
@@ -100,8 +104,8 @@ export function WebsitePreview({
       )}
       
       {isUpdating && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/10 backdrop-blur-[2px]">
-          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       )}
     </div>

@@ -48,26 +48,16 @@ export default function LoginPage() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isConfigured) {
-      toast({
-        variant: "destructive",
-        title: "Configuration Needed",
-        description: "Please ensure your Firebase environment variables are set.",
-      });
-      return;
-    }
+    if (!isConfigured) return;
     
     setLoading(true);
     try {
       if (mode === 'login') {
         const result = await signInWithEmailAndPassword(auth!, email, password);
         const user = result.user;
-        
         const docRef = doc(db!, "users", user.uid);
         const docSnap = await getDoc(docRef);
-        const userData = docSnap.data();
-
-        if (userData?.onboardingComplete) {
+        if (docSnap.data()?.onboardingComplete) {
           router.push("/");
         } else {
           router.push("/onboarding");
@@ -75,11 +65,7 @@ export default function LoginPage() {
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth!, email, password);
         const user = userCredential.user;
-        
-        if (photoPreview) {
-          await updateProfile(user, { photoURL: photoPreview });
-        }
-
+        if (photoPreview) await updateProfile(user, { photoURL: photoPreview });
         await setDoc(doc(db!, "users", user.uid), {
           email: user.email,
           photoURL: photoPreview || null,
@@ -87,7 +73,6 @@ export default function LoginPage() {
           onboardingComplete: false,
           interests: []
         }, { merge: true });
-
         router.push("/onboarding");
       }
     } catch (error: any) {
@@ -104,15 +89,12 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navigation />
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
-        <div className="w-full max-w-5xl bg-card/40 backdrop-blur-3xl border border-white/5 rounded-[2.5rem] sm:rounded-[3.5rem] overflow-hidden shadow-2xl flex flex-col md:flex-row">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-5xl bg-card/40 backdrop-blur-3xl border border-white/5 rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-2xl flex flex-col md:flex-row">
           
-          {/* Left Side: Welcome & Auth Form */}
           <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center order-2 md:order-1">
             <div className="space-y-4 mb-10">
-              <div className="flex items-center gap-3 mb-2">
-                <Logo className="scale-125 origin-left" />
-              </div>
+              <Logo className="scale-125 origin-left mb-6" />
               <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase italic">
                 Welcome to Webdock!
               </h1>
@@ -129,26 +111,26 @@ export default function LoginPage() {
 
             <form onSubmit={handleAuth} className="space-y-6">
               <div className="space-y-2">
-                <Label className="text-white font-bold text-base ml-1">Email</Label>
+                <Label className="text-white font-bold text-base ml-1 uppercase tracking-widest">Email</Label>
                 <Input 
                   type="email" 
                   placeholder="example@gmail.com" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg focus:ring-primary focus:border-primary"
+                  className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg focus:ring-primary"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-white font-bold text-base ml-1">Password</Label>
+                <Label className="text-white font-bold text-base ml-1 uppercase tracking-widest">Password</Label>
                 <div className="relative">
                   <Input 
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg pr-12 focus:ring-primary focus:border-primary"
+                    className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg pr-12 focus:ring-primary"
                   />
                   <button 
                     type="button"
@@ -163,25 +145,20 @@ export default function LoginPage() {
               <Button 
                 type="submit" 
                 disabled={loading}
-                className="w-full bg-primary hover:bg-primary/90 text-white rounded-full h-16 text-xl font-black shadow-xl glow-primary mt-4"
+                className="w-full bg-primary hover:bg-primary/90 text-white rounded-full h-16 text-xl font-black shadow-xl mt-4 glow-primary"
               >
-                {loading ? <Loader2 className="animate-spin" /> : mode === 'login' ? 'Sign In' : 'Join Now'}
+                {loading ? <Loader2 className="animate-spin" /> : mode === 'login' ? 'SIGN IN' : 'JOIN NOW'}
               </Button>
             </form>
           </div>
 
-          {/* Right Side: Profile Uploader */}
           <div className="flex-1 bg-white/[0.02] border-l border-white/5 p-12 flex flex-col items-center justify-center relative order-1 md:order-2">
             <div className="relative group">
-              <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-muted border-4 border-white/10 overflow-hidden relative shadow-2xl transition-all group-hover:border-primary/50">
+              <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-[#1A1A1A] border-4 border-white/10 overflow-hidden relative shadow-2xl transition-all group-hover:border-primary/50">
                 {photoPreview ? (
-                  <img 
-                    src={photoPreview} 
-                    alt="Profile Preview" 
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground/20">
                     <User className="w-24 h-24 sm:w-32 sm:h-32" />
                   </div>
                 )}
@@ -189,22 +166,15 @@ export default function LoginPage() {
               <button 
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 bg-primary p-3 sm:p-4 rounded-full text-white shadow-xl glow-primary hover:scale-110 transition-transform active:scale-95 z-10"
+                className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 bg-primary p-4 rounded-full text-white shadow-xl glow-primary hover:scale-110 transition-transform active:scale-95 z-10"
               >
-                <Plus className="w-6 h-6 sm:w-8 sm:h-8" strokeWidth={3} />
+                <Plus className="w-8 h-8" strokeWidth={3} />
               </button>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                className="hidden" 
-                accept="image/*"
-                onChange={handleFileChange}
-              />
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
             </div>
-
             <div className="mt-8 text-center">
-              <h2 className="text-xl font-bold text-white mb-2 uppercase tracking-widest opacity-60">Personalize Your Flow</h2>
-              <p className="text-sm text-muted-foreground max-w-[240px]">Add a profile photo to stand out in the community.</p>
+              <h2 className="text-xl font-black text-white mb-2 uppercase tracking-[0.2em] opacity-60 italic">Your Identity</h2>
+              <p className="text-sm text-muted-foreground max-w-[240px]">Personalize your Webdock presence with a custom avatar.</p>
             </div>
           </div>
         </div>

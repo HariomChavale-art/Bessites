@@ -1,39 +1,52 @@
 
 "use client"
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth, useFirestore } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
-  OAuthProvider 
+  createUserWithEmailAndPassword,
+  updateProfile
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Zap, Chrome, Loader2, Apple } from "lucide-react";
+import { Zap, Loader2, Plus, User, Eye, EyeOff } from "lucide-react";
 import { Navigation } from "@/components/navigation";
+import { cn } from "@/lib/utils";
 
 export default function LoginPage() {
   const auth = useAuth();
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const isConfigured = !!auth && !!db;
 
-  const handleEmailAuth = async (mode: 'login' | 'signup') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!isConfigured) {
       toast({
         variant: "destructive",
@@ -62,8 +75,13 @@ export default function LoginPage() {
         const userCredential = await createUserWithEmailAndPassword(auth!, email, password);
         const user = userCredential.user;
         
+        if (photoPreview) {
+          await updateProfile(user, { photoURL: photoPreview });
+        }
+
         await setDoc(doc(db!, "users", user.uid), {
           email: user.email,
+          photoURL: photoPreview || null,
           createdAt: serverTimestamp(),
           onboardingComplete: false,
           interests: []
@@ -82,185 +100,125 @@ export default function LoginPage() {
     }
   };
 
-  const handleSocialLogin = async (providerType: 'google' | 'apple') => {
-    if (!isConfigured) {
-      toast({
-        variant: "destructive",
-        title: "Auth Disabled",
-        description: "Social login requires Firebase configuration.",
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const provider = providerType === 'google' 
-        ? new GoogleAuthProvider() 
-        : new OAuthProvider('apple.com');
-        
-      const result = await signInWithPopup(auth!, provider);
-      const user = result.user;
-
-      const docRef = doc(db!, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) {
-        await setDoc(docRef, {
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          createdAt: serverTimestamp(),
-          onboardingComplete: false,
-          interests: []
-        });
-        router.push("/onboarding");
-      } else {
-        const userData = docSnap.data();
-        if (userData?.onboardingComplete) {
-          router.push("/");
-        } else {
-          router.push("/onboarding");
-        }
-      }
-      
-      toast({
-        title: "Success",
-        description: `Welcome back!`,
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: error.message,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navigation />
-      <div className="flex-1 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/20 rounded-full blur-[120px] pointer-events-none" />
-
-        <div className="w-full max-w-md relative z-10">
-          <div className="flex flex-col items-center mb-10">
-            <div className="bg-primary p-4 rounded-[1.5rem] mb-6 glow-primary shadow-[0_0_30px_rgba(123,51,255,0.4)]">
-              <Zap className="w-10 h-10 text-white" fill="white" />
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
+        <div className="w-full max-w-5xl bg-card/40 backdrop-blur-3xl border border-white/5 rounded-[2.5rem] sm:rounded-[3.5rem] overflow-hidden shadow-2xl flex flex-col md:flex-row">
+          
+          {/* Left Side: Auth Form */}
+          <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center order-2 md:order-1">
+            <div className="space-y-2 mb-10">
+              <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase italic">
+                {mode === 'login' ? 'Welcome Back!' : 'Welcome to Webdock!'}
+              </h1>
+              <p className="text-muted-foreground font-medium text-lg">
+                {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
+                <button 
+                  onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                  className="text-primary font-bold hover:underline"
+                >
+                  {mode === 'login' ? 'Sign up' : 'Sign in'}
+                </button>
+              </p>
             </div>
-            <h1 className="text-5xl font-headline font-extrabold text-white tracking-tighter">Webdock</h1>
-            <p className="text-muted-foreground mt-3 text-center text-lg">Curating the modern web.</p>
+
+            <form onSubmit={handleAuth} className="space-y-6">
+              <div className="space-y-2">
+                <Label className="text-white font-bold text-base ml-1">Email</Label>
+                <Input 
+                  type="email" 
+                  placeholder="example@gmail.com" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg focus:ring-primary focus:border-primary"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-white font-bold text-base ml-1">Password</Label>
+                <div className="relative">
+                  <Input 
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg pr-12 focus:ring-primary focus:border-primary"
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between px-1">
+                <label className="flex items-center gap-2 text-sm text-muted-foreground font-medium cursor-pointer">
+                  <input type="checkbox" className="w-4 h-4 rounded border-white/10 bg-white/5 text-primary focus:ring-primary" />
+                  Remember me
+                </label>
+                <button type="button" className="text-sm text-primary font-bold hover:underline">
+                  Forget password?
+                </button>
+              </div>
+
+              <Button 
+                type="submit" 
+                disabled={loading}
+                className="w-full bg-primary hover:bg-primary/90 text-white rounded-full h-16 text-xl font-black shadow-xl glow-primary"
+              >
+                {loading ? <Loader2 className="animate-spin" /> : mode === 'login' ? 'Sign In' : 'Join Now'}
+              </Button>
+            </form>
           </div>
 
-          <Card className="bg-card/40 backdrop-blur-3xl border-white/5 shadow-2xl rounded-[3rem] overflow-hidden p-2">
-            <CardHeader className="pb-2">
-              <Tabs defaultValue="login" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 bg-white/5 p-1.5 rounded-[1.8rem]">
-                  <TabsTrigger value="login" className="rounded-[1.4rem] data-[state=active]:bg-primary data-[state=active]:text-white font-bold h-12">Login</TabsTrigger>
-                  <TabsTrigger value="signup" className="rounded-[1.4rem] data-[state=active]:bg-primary data-[state=active]:text-white font-bold h-12">Join</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="login" className="mt-10 space-y-6 px-4">
-                  <div className="space-y-3">
-                    <Label htmlFor="email" className="text-white ml-1 font-bold">Email</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      placeholder="name@example.com" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="bg-white/5 border-white/10 rounded-2xl h-14" 
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <Label htmlFor="password" title="Password" className="text-white ml-1 font-bold">Password</Label>
-                    <Input 
-                      id="password" 
-                      type="password" 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="bg-white/5 border-white/10 rounded-2xl h-14" 
-                    />
-                  </div>
-                  <Button 
-                    onClick={() => handleEmailAuth('login')} 
-                    disabled={loading}
-                    className="w-full bg-primary hover:bg-primary/90 text-white rounded-[1.8rem] h-16 text-xl font-bold"
-                  >
-                    {loading ? <Loader2 className="animate-spin" /> : "Sign In"}
-                  </Button>
-                </TabsContent>
+          {/* Right Side: Profile Uploader */}
+          <div className="flex-1 bg-white/[0.02] border-l border-white/5 p-12 flex flex-col items-center justify-center relative order-1 md:order-2">
+            <div className="absolute top-8 left-8 hidden md:block">
+              <div className="bg-primary p-2.5 rounded-xl glow-primary">
+                <Zap className="w-6 h-6 text-white" fill="white" />
+              </div>
+            </div>
 
-                <TabsContent value="signup" className="mt-10 space-y-6 px-4">
-                  <div className="space-y-3">
-                    <Label htmlFor="signup-email" className="text-white ml-1 font-bold">Email</Label>
-                    <Input 
-                      id="signup-email" 
-                      type="email" 
-                      placeholder="name@example.com" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="bg-white/5 border-white/10 rounded-2xl h-14" 
-                    />
+            <div className="relative group">
+              <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-muted border-4 border-white/10 overflow-hidden relative shadow-2xl transition-all group-hover:border-primary/50">
+                {photoPreview ? (
+                  <img 
+                    src={photoPreview} 
+                    alt="Profile Preview" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
+                    <User className="w-24 h-24 sm:w-32 sm:h-32" />
                   </div>
-                  <div className="space-y-3">
-                    <Label htmlFor="signup-password" title="Password" className="text-white ml-1 font-bold">Password</Label>
-                    <Input 
-                      id="signup-password" 
-                      type="password" 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="bg-white/5 border-white/10 rounded-2xl h-14" 
-                    />
-                  </div>
-                  <Button 
-                    onClick={() => handleEmailAuth('signup')} 
-                    disabled={loading}
-                    className="w-full bg-primary hover:bg-primary/90 text-white rounded-[1.8rem] h-16 text-xl font-bold"
-                  >
-                    {loading ? <Loader2 className="animate-spin" /> : "Start Discovery"}
-                  </Button>
-                </TabsContent>
-              </Tabs>
-            </CardHeader>
-            <CardContent className="pt-8">
-              <div className="relative mb-6">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-white/10" />
-                </div>
-                <div className="relative flex justify-center text-[10px] uppercase tracking-[0.2em]">
-                  <span className="bg-card px-4 text-muted-foreground font-bold">Or continue with</span>
-                </div>
+                )}
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => handleSocialLogin('google')} 
-                  disabled={loading}
-                  className="border-white/10 bg-white/5 hover:bg-white/10 rounded-[1.8rem] h-14 gap-2 text-sm font-bold"
-                >
-                  <Chrome className="w-5 h-5" />
-                  Google
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => handleSocialLogin('apple')} 
-                  disabled={loading}
-                  className="border-white/10 bg-white/5 hover:bg-white/10 rounded-[1.8rem] h-14 gap-2 text-sm font-bold"
-                >
-                  <Apple className="w-5 h-5" />
-                  Apple
-                </Button>
-              </div>
-            </CardContent>
-            <CardFooter className="pb-8">
-              <p className="text-[11px] text-center w-full text-muted-foreground px-8 leading-relaxed opacity-60">
-                Securely powered by Firebase.
-              </p>
-            </CardFooter>
-          </Card>
+              <button 
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 bg-primary p-3 sm:p-4 rounded-full text-white shadow-xl glow-primary hover:scale-110 transition-transform active:scale-95 z-10"
+              >
+                <Plus className="w-6 h-6 sm:w-8 sm:h-8" strokeWidth={3} />
+              </button>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept="image/*"
+                onChange={handleFileChange}
+              />
+            </div>
+
+            <div className="mt-8 text-center hidden md:block">
+              <h2 className="text-xl font-bold text-white mb-2 uppercase tracking-widest opacity-60">Personalize Your Flow</h2>
+              <p className="text-sm text-muted-foreground max-w-[200px]">Add a profile photo to stand out in the community.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

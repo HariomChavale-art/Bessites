@@ -22,12 +22,12 @@ export function WebsitePreview({
   websiteUrl, 
   alt, 
   className,
-  width = 600,
-  height = 400,
+  width = 512,
+  height = 512,
   priority = false,
   mode = 'preview'
 }: WebsitePreviewProps) {
-  // Directly derive the favicon URL from the domain
+  // Directly derive the favicon URL from the domain for absolute branding accuracy
   const safeImageSrc = useMemo(() => {
     try {
       const url = new URL(websiteUrl);
@@ -50,7 +50,7 @@ export function WebsitePreview({
           priority={priority}
           className={cn(
             "w-full h-full transition-opacity duration-700 opacity-100",
-            // logos touch the borders with zero internal padding
+            // Logos touch the borders with zero internal padding
             "object-cover"
           )}
           unoptimized={true}

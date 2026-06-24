@@ -7,9 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { intelligentCategoryTagging } from "@/ai/flows/intelligent-category-tagging";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Sparkles, Send, Check } from "lucide-react";
+import { Loader2, Send, Check, Plus, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useUser, useFirestore } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -22,36 +21,35 @@ export default function SubmitWebsite() {
   const { toast } = useToast();
   
   const [url, setUrl] = useState("");
-  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleCategorize = async (e: React.FormEvent) => {
+  const handleAddTag = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!url) return;
-
-    setLoading(true);
-    try {
-      const result = await intelligentCategoryTagging({ url });
-      setTags(result.categories);
-      toast({
-        title: "AI Analysis Complete",
-        description: `Successfully analyzed content and generated tags.`,
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Analysis Failed",
-        description: "Could not fetch content. Please try another URL.",
-      });
-    } finally {
-      setLoading(false);
+    if (!tagInput.trim()) return;
+    if (tags.includes(tagInput.trim())) {
+      setTagInput("");
+      return;
     }
+    setTags([...tags, tagInput.trim()]);
+    setTagInput("");
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter(t => t !== tagToRemove));
   };
 
   const handleFinalSubmit = async () => {
-    if (!db || !url || tags.length === 0) return;
+    if (!db || !url || tags.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please provide a URL and at least one category tag.",
+      });
+      return;
+    }
     
     setSubmitting(true);
     try {
@@ -111,55 +109,64 @@ export default function SubmitWebsite() {
                 Add to the <span className="text-primary italic">Flow</span>
               </CardTitle>
               <CardDescription className="text-lg">
-                Submit a website and let our AI handle the categorization.
+                Submit a website and categorize it for the community.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-8 pt-4 space-y-8">
-              <form onSubmit={handleCategorize} className="space-y-6">
+              <div className="space-y-6">
                 <div className="space-y-3">
                   <Label htmlFor="url" className="text-white text-lg font-bold ml-1">Website URL</Label>
-                  <div className="flex gap-3">
+                  <Input 
+                    id="url"
+                    type="url"
+                    placeholder="https://awesome-web-app.com"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    required
+                    className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg focus:ring-primary"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="tags" className="text-white text-lg font-bold ml-1">Categories / Tags</Label>
+                  <form onSubmit={handleAddTag} className="flex gap-3">
                     <Input 
-                      id="url"
-                      type="url"
-                      placeholder="https://awesome-web-app.com"
-                      value={url}
-                      onChange={(e) => setUrl(e.target.value)}
-                      required
+                      id="tags"
+                      placeholder="e.g. AI, Gaming, Tools"
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
                       className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg focus:ring-primary"
                     />
                     <Button 
                       type="submit" 
-                      disabled={loading || !url}
-                      className="bg-primary hover:bg-primary/90 text-white rounded-2xl h-14 px-8 glow-primary shrink-0 font-bold"
+                      variant="outline"
+                      className="rounded-2xl h-14 px-6 shrink-0 font-bold border-white/10 hover:bg-white/5"
                     >
-                      {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Sparkles className="w-5 h-5 mr-2" />}
-                      AI Analysis
+                      <Plus className="w-5 h-5 mr-2" />
+                      Add
                     </Button>
+                  </form>
+                  
+                  <div className="flex flex-wrap gap-2 mt-4 min-h-[40px]">
+                    {tags.map((tag, idx) => (
+                      <Badge key={idx} className="bg-primary/10 text-primary border-none py-2 px-4 rounded-full text-sm font-bold flex items-center gap-2">
+                        {tag}
+                        <button onClick={() => removeTag(tag)} className="hover:text-white transition-colors">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                    {tags.length === 0 && (
+                      <span className="text-muted-foreground text-sm italic py-2">Add at least one tag...</span>
+                    )}
                   </div>
                 </div>
-
-                {tags.length > 0 && (
-                  <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
-                    <Label className="text-white text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-primary" />
-                      Suggested Tags
-                    </Label>
-                    <div className="flex flex-wrap gap-2">
-                      {tags.map((tag, idx) => (
-                        <Badge key={idx} className="bg-primary/10 text-primary hover:bg-primary/20 transition-colors border-none py-2.5 px-5 rounded-full text-sm font-bold">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </form>
+              </div>
             </CardContent>
             <CardFooter className="p-8 pt-4 border-t border-white/5 bg-white/[0.02]">
               <Button 
                 onClick={handleFinalSubmit}
-                disabled={tags.length === 0 || submitting} 
+                disabled={tags.length === 0 || submitting || !url} 
                 className="w-full h-16 rounded-2xl bg-white text-background hover:bg-white/90 text-xl font-black shadow-xl disabled:opacity-30 transition-all active:scale-95"
               >
                 {submitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-5 h-5 mr-3" />}
@@ -169,7 +176,7 @@ export default function SubmitWebsite() {
           </Card>
           
           <p className="text-center mt-8 text-sm text-muted-foreground px-12 leading-relaxed opacity-60">
-            By submitting, you agree to our curator guidelines. Our AI analyzes metadata and content snippets to ensure relevance and safety for the community.
+            By submitting, you agree to our curator guidelines. Our team will review your project for quality and relevance to the community.
           </p>
         </div>
       </main>

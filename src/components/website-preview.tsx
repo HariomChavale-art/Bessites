@@ -1,13 +1,10 @@
 
 "use client"
 
-import { useState, useEffect } from "react";
-import { useDoc, useFirestore } from "@/firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { getWebsitePreview } from "@/ai/flows/get-website-preview";
+import { useMemo } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { Loader2, Globe } from "lucide-react";
+import { Globe } from "lucide-react";
 
 interface WebsitePreviewProps {
   websiteId: string;
@@ -22,9 +19,7 @@ interface WebsitePreviewProps {
 }
 
 export function WebsitePreview({ 
-  websiteId, 
   websiteUrl, 
-  fallbackUrl, 
   alt, 
   className,
   width = 600,
@@ -32,55 +27,17 @@ export function WebsitePreview({
   priority = false,
   mode = 'preview'
 }: WebsitePreviewProps) {
-  const db = useFirestore();
-  const statsRef = websiteId && db ? doc(db, "websiteStats", websiteId) : null;
-  const { data: stats, loading: statsLoading } = useDoc(statsRef);
-  
-  const domain = new URL(websiteUrl).hostname;
-  const officialFavicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
-  
-  const [currentImage, setCurrentImage] = useState<string | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  useEffect(() => {
-    if (statsLoading) return;
-
-    const cachedUrl = mode === 'logo' ? stats?.logoUrl : stats?.previewUrl;
-
-    if (cachedUrl) {
-      setCurrentImage(cachedUrl);
-    } else {
-      const fetchAndCache = async () => {
-        setIsUpdating(true);
-        try {
-          const result = await getWebsitePreview({ url: websiteUrl }).catch(() => null);
-          
-          if (result) {
-            const logo = mode === 'logo' ? result.logoUrl : result.imageUrl;
-            setCurrentImage(logo || officialFavicon);
-
-            if (db && websiteId) {
-              setDoc(doc(db, "websiteStats", websiteId), {
-                previewUrl: result.imageUrl,
-                logoUrl: result.logoUrl,
-                lastPreviewUpdate: serverTimestamp()
-              }, { merge: true });
-            }
-          } else {
-            setCurrentImage(officialFavicon);
-          }
-        } catch (e) {
-          setCurrentImage(officialFavicon);
-        } finally {
-          setIsUpdating(false);
-        }
-      };
-      
-      fetchAndCache();
+  // Directly derive the favicon URL from the domain to avoid expensive AI/crawling calls
+  const safeImageSrc = useMemo(() => {
+    try {
+      const url = new URL(websiteUrl);
+      const domain = url.hostname;
+      // Using Google's favicon service which is fast, free, and accurate
+      return `https://www.google.com/s2/favicons?domain=${domain}&sz=256`;
+    } catch (e) {
+      return null;
     }
-  }, [stats, statsLoading, db, websiteId, websiteUrl, mode, officialFavicon]);
-
-  const safeImageSrc = currentImage || officialFavicon;
+  }, [websiteUrl]);
 
   return (
     <div className={cn("relative bg-[#1A1A1A] flex items-center justify-center w-full h-full", className)}>
@@ -92,19 +49,14 @@ export function WebsitePreview({
           height={height}
           priority={priority}
           className={cn(
-            "w-full h-full object-cover transition-opacity duration-700",
-            isUpdating ? "opacity-40" : "opacity-100"
+            "w-full h-full transition-opacity duration-700 opacity-100",
+            // For logo mode, we want a contained look, for preview we fill
+            mode === 'logo' ? "object-contain p-4" : "object-cover"
           )}
           unoptimized={true}
         />
       ) : (
         <Globe className="w-8 h-8 text-muted-foreground opacity-20" />
-      )}
-      
-      {isUpdating && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
       )}
     </div>
   );

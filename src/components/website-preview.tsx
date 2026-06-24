@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useMemo } from "react";
@@ -27,12 +26,12 @@ export function WebsitePreview({
   priority = false,
   mode = 'preview'
 }: WebsitePreviewProps) {
-  // Directly derive the favicon URL from the domain to avoid expensive AI/crawling calls
+  // Directly derive the favicon URL from the domain to avoid external crawl delays
   const safeImageSrc = useMemo(() => {
     try {
       const url = new URL(websiteUrl);
       const domain = url.hostname;
-      // Using Google's favicon service which is fast, free, and accurate
+      // Using Google's favicon service at 256px for high clarity
       return `https://www.google.com/s2/favicons?domain=${domain}&sz=256`;
     } catch (e) {
       return null;
@@ -51,7 +50,7 @@ export function WebsitePreview({
           className={cn(
             "w-full h-full transition-opacity duration-700 opacity-100",
             // For logo mode, we want a contained look, for preview we fill
-            mode === 'logo' ? "object-contain p-4" : "object-cover"
+            mode === 'logo' ? "object-contain p-0" : "object-cover"
           )}
           unoptimized={true}
         />

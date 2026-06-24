@@ -69,7 +69,7 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: "Configuration Error",
-        description: "Firebase service is not initialized correctly.",
+        description: "Firebase service is not initialized correctly. Please check your config.",
       });
       return;
     }
@@ -103,8 +103,8 @@ export default function LoginPage() {
         }, { merge: true });
         
         toast({
-          title: "Welcome!",
-          description: "Let's personalize your experience.",
+          title: "Account Created!",
+          description: "Welcome to the Webdock community.",
         });
         
         router.push("/onboarding");
@@ -121,41 +121,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row-reverse bg-background">
-      {/* Right Side (Desktop) / Top (Mobile): Branding & Profile */}
-      <div className="flex-1 bg-gradient-to-br from-primary/15 to-transparent p-8 sm:p-16 flex flex-col items-center justify-center space-y-12 border-b md:border-b-0 md:border-l border-white/5">
-        <div className="space-y-4 text-center">
-          <h1 className="text-5xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-tight">
-            Welcome to <br />
-            <span className="text-primary">Webdock!</span>
-          </h1>
-          <p className="text-muted-foreground font-medium text-xl max-w-md mx-auto">
-            The world's most curated directory for web tools, games, and modern apps.
-          </p>
-        </div>
-
-        {/* Circular Profile Uploader */}
-        <div className="relative">
-          <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-[#1A1A1A] border-4 border-white/10 overflow-hidden relative shadow-2xl flex items-center justify-center">
-            {photoPreview ? (
-              <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
-            ) : (
-              <User className="w-24 h-24 sm:w-32 sm:h-32 text-white/10" />
-            )}
-          </div>
-          <button 
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="absolute bottom-2 right-2 bg-primary p-4 rounded-full text-white shadow-xl glow-primary hover:scale-110 transition-transform active:scale-95 z-10"
-          >
-            <Plus className="w-6 h-6" strokeWidth={5} />
-          </button>
-          <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
-        </div>
-      </div>
-
-      {/* Left Side (Desktop) / Bottom (Mobile): Form */}
-      <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center bg-background">
+    <div className="min-h-screen flex flex-col md:flex-row bg-background">
+      {/* Left Side: Entry Form */}
+      <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center bg-background order-2 md:order-1">
         <div className="w-full max-w-md mx-auto">
           <Logo className="mb-12" showText />
           
@@ -211,6 +179,38 @@ export default function LoginPage() {
               </button>
             </p>
           </form>
+        </div>
+      </div>
+
+      {/* Right Side: Branding & Profile Uploader */}
+      <div className="flex-1 bg-gradient-to-br from-primary/15 to-transparent p-8 sm:p-16 flex flex-col items-center justify-center space-y-12 border-b md:border-b-0 md:border-l border-white/5 order-1 md:order-2">
+        <div className="space-y-4 text-center">
+          <h1 className="text-5xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-tight">
+            Welcome to <br />
+            <span className="text-primary">Webdock!</span>
+          </h1>
+          <p className="text-muted-foreground font-medium text-xl max-w-md mx-auto">
+            The world's most curated directory for web tools, games, and modern apps.
+          </p>
+        </div>
+
+        {/* Circular Profile Uploader */}
+        <div className="relative">
+          <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-[#1A1A1A] border-4 border-white/10 overflow-hidden relative shadow-2xl flex items-center justify-center">
+            {photoPreview ? (
+              <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+            ) : (
+              <User className="w-24 h-24 sm:w-32 sm:h-32 text-white/10" />
+            )}
+          </div>
+          <button 
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="absolute bottom-2 right-2 bg-primary p-4 rounded-full text-white shadow-xl glow-primary hover:scale-110 transition-transform active:scale-95 z-10"
+          >
+            <Plus className="w-6 h-6" strokeWidth={5} />
+          </button>
+          <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
         </div>
       </div>
     </div>

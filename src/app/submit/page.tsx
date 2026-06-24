@@ -8,12 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send, Check, Plus, X, Sparkles } from "lucide-react";
+import { Loader2, Send, Check, Plus, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useUser, useFirestore } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { intelligentCategoryTagging } from "@/ai/flows/intelligent-category-tagging";
 
 export default function SubmitWebsite() {
   const { user } = useUser();
@@ -23,24 +22,9 @@ export default function SubmitWebsite() {
   
   const [url, setUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
-
-  const handleAutoTag = async () => {
-    if (!url) return;
-    setAnalyzing(true);
-    try {
-      const result = await intelligentCategoryTagging({ url });
-      setTags(Array.from(new Set([...tags, ...result.categories])));
-      toast({ title: "Tags generated!", description: "AI has suggested categories based on the URL." });
-    } catch (e) {
-      toast({ variant: "destructive", title: "AI Tagging failed", description: "Could not auto-generate tags." });
-    } finally {
-      setAnalyzing(false);
-    }
-  };
 
   const handleAddTag = (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,19 +115,7 @@ export default function SubmitWebsite() {
             <CardContent className="p-8 pt-4 space-y-8">
               <div className="space-y-6">
                 <div className="space-y-3">
-                  <div className="flex justify-between items-end">
-                    <Label htmlFor="url" className="text-white text-lg font-bold ml-1">Website URL</Label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={handleAutoTag}
-                      disabled={!url || analyzing}
-                      className="text-primary font-bold gap-2 hover:bg-primary/10"
-                    >
-                      {analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                      AI Suggest Tags
-                    </Button>
-                  </div>
+                  <Label htmlFor="url" className="text-white text-lg font-bold ml-1">Website URL</Label>
                   <Input 
                     id="url"
                     type="url"

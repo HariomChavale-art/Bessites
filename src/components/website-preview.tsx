@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useMemo } from "react";
@@ -26,7 +27,7 @@ export function WebsitePreview({
   priority = false,
   mode = 'preview'
 }: WebsitePreviewProps) {
-  // Directly derive the favicon URL from the domain to avoid external crawl delays
+  // Directly derive the favicon URL from the domain
   const safeImageSrc = useMemo(() => {
     try {
       const url = new URL(websiteUrl);
@@ -39,7 +40,7 @@ export function WebsitePreview({
   }, [websiteUrl]);
 
   return (
-    <div className={cn("relative bg-[#1A1A1A] flex items-center justify-center w-full h-full", className)}>
+    <div className={cn("relative bg-[#1A1A1A] flex items-center justify-center w-full h-full overflow-hidden", className)}>
       {safeImageSrc ? (
         <Image 
           src={safeImageSrc} 
@@ -49,8 +50,8 @@ export function WebsitePreview({
           priority={priority}
           className={cn(
             "w-full h-full transition-opacity duration-700 opacity-100",
-            // For logo mode, we want a contained look, for preview we fill
-            mode === 'logo' ? "object-contain p-0" : "object-cover"
+            // logos touch the borders with zero internal padding
+            "object-cover"
           )}
           unoptimized={true}
         />

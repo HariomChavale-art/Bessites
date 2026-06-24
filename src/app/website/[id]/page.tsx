@@ -139,7 +139,7 @@ export default function WebsiteDetail() {
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-4xl px-4 py-8">
-        {/* Logo and Identity */}
+        {/* Logo and Identity - Logos fill entirely, touching borders */}
         <div className="flex gap-6 items-start mb-10">
           <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden bg-card border border-white/10 shrink-0">
             <WebsitePreview 

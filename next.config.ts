@@ -2,8 +2,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  /* Static export mode for $0 hosting on Firebase Spark */
-  output: 'export',
+  /* Removed static export to support Server Actions and Genkit AI flows */
   typescript: {
     ignoreBuildErrors: true,
   },

@@ -8,11 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send, Check, Plus, X } from "lucide-react";
+import { Loader2, Send, Check, Plus, X, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useUser, useFirestore } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import { intelligentCategoryTagging } from "@/ai/flows/intelligent-category-tagging";
 
 export default function SubmitWebsite() {
   const { user } = useUser();
@@ -22,12 +23,13 @@ export default function SubmitWebsite() {
   
   const [url, setUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleAddTag = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddTag = (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!tagInput.trim()) return;
     if (tags.includes(tagInput.trim())) {
       setTagInput("");
@@ -35,6 +37,36 @@ export default function SubmitWebsite() {
     }
     setTags([...tags, tagInput.trim()]);
     setTagInput("");
+  };
+
+  const handleSuggestTags = async () => {
+    if (!url || !url.startsWith('http')) {
+      toast({
+        variant: "destructive",
+        title: "Invalid URL",
+        description: "Please enter a valid URL first.",
+      });
+      return;
+    }
+    setSuggesting(true);
+    try {
+      const result = await intelligentCategoryTagging({ url });
+      if (result && result.categories) {
+        setTags(prev => Array.from(new Set([...prev, ...result.categories])));
+        toast({
+          title: "Tags suggested!",
+          description: `Added ${result.categories.length} new categories via AI.`,
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "AI Suggestion Failed",
+        description: "Could not automatically categorize this site.",
+      });
+    } finally {
+      setSuggesting(false);
+    }
   };
 
   const removeTag = (tagToRemove: string) => {
@@ -115,7 +147,19 @@ export default function SubmitWebsite() {
             <CardContent className="p-8 pt-4 space-y-8">
               <div className="space-y-6">
                 <div className="space-y-3">
-                  <Label htmlFor="url" className="text-white text-lg font-bold ml-1">Website URL</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="url" className="text-white text-lg font-bold ml-1">Website URL</Label>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      onClick={handleSuggestTags}
+                      disabled={suggesting || !url}
+                      className="text-primary hover:text-primary hover:bg-primary/10 font-bold h-8 text-xs"
+                    >
+                      {suggesting ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}
+                      Magic Categorize
+                    </Button>
+                  </div>
                   <Input 
                     id="url"
                     type="url"
@@ -129,23 +173,25 @@ export default function SubmitWebsite() {
 
                 <div className="space-y-3">
                   <Label htmlFor="tags" className="text-white text-lg font-bold ml-1">Categories / Tags</Label>
-                  <form onSubmit={handleAddTag} className="flex gap-3">
+                  <div className="flex gap-3">
                     <Input 
                       id="tags"
                       placeholder="e.g. AI, Gaming, Tools"
                       value={tagInput}
                       onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
                       className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg focus:ring-primary"
                     />
                     <Button 
-                      type="submit" 
+                      type="button" 
+                      onClick={() => handleAddTag()}
                       variant="outline"
                       className="rounded-2xl h-14 px-6 shrink-0 font-bold border-white/10 hover:bg-white/5"
                     >
                       <Plus className="w-5 h-5 mr-2" />
                       Add
                     </Button>
-                  </form>
+                  </div>
                   
                   <div className="flex flex-wrap gap-2 mt-4 min-h-[40px]">
                     {tags.map((tag, idx) => (

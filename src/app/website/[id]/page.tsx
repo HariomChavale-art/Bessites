@@ -68,7 +68,7 @@ export default function WebsiteDetail() {
     ).slice(0, 8);
   }, [website]);
 
-  if (!website) return <div className="p-8 text-center text-white">Website not found</div>;
+  if (!website) return <div className="p-8 text-center text-white font-bold">Website not found</div>;
 
   const currentRating = stats?.ratingCount > 0 
     ? (stats.ratingSum / stats.ratingCount).toFixed(1) 
@@ -139,12 +139,13 @@ export default function WebsiteDetail() {
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-4xl px-4 py-8">
+        {/* Logo and Identity */}
         <div className="flex gap-6 items-start mb-10">
-          <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden bg-[#1A1A1A] border border-white/10 shrink-0">
+          <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden bg-card border border-white/10 shrink-0">
             <WebsitePreview 
               websiteId={website.id}
               websiteUrl={website.url}
-              fallbackUrl={website.imageUrl}
+              fallbackUrl=""
               alt={website.name}
               width={256}
               height={256}
@@ -157,7 +158,7 @@ export default function WebsiteDetail() {
             <p className="text-primary font-bold text-lg truncate">{website.url.replace('https://', '')}</p>
             <div className="flex flex-wrap gap-2 mt-2">
               {website.categories.map((cat) => (
-                <Badge key={cat} variant="secondary" className="bg-white/10 text-white border-none uppercase text-[9px] font-black tracking-widest px-3 py-1">
+                <Badge key={cat} variant="secondary" className="bg-white/5 text-white border-none uppercase text-[9px] font-black tracking-widest px-3 py-1">
                   {cat}
                 </Badge>
               ))}
@@ -168,31 +169,7 @@ export default function WebsiteDetail() {
           </button>
         </div>
 
-        <div className="grid grid-cols-4 gap-4 mb-10 pb-8 border-b border-white/5">
-          <div className="text-center space-y-1 border-r border-white/5">
-            <div className="flex items-center justify-center gap-1">
-              <span className="text-white font-black text-xl">{currentRating}</span>
-              <Star className="w-4 h-4 fill-primary text-primary" />
-            </div>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Rating</p>
-          </div>
-          <div className="text-center space-y-1 border-r border-white/5">
-            <span className="text-white font-black text-xl">{totalReviews.toLocaleString()}</span>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Reviews</p>
-          </div>
-          <div className="text-center space-y-1 border-r border-white/5">
-            <span className="text-white font-black text-xl">{visitCount.toLocaleString()}</span>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Visits</p>
-          </div>
-          <div className="text-center space-y-1">
-            <div className="flex items-center justify-center gap-1 text-green-500">
-               <CheckCircle2 className="w-4 h-4" />
-               <span className="font-black text-xl">100%</span>
-            </div>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Uptime</p>
-          </div>
-        </div>
-
+        {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
           <Button 
             onClick={handleVisitClick} 
@@ -218,6 +195,33 @@ export default function WebsiteDetail() {
           </Button>
         </div>
 
+        {/* Stats Grid */}
+        <div className="grid grid-cols-4 gap-4 mb-10 pb-8 border-b border-white/5">
+          <div className="text-center space-y-1 border-r border-white/5">
+            <div className="flex items-center justify-center gap-1">
+              <span className="text-white font-black text-xl">{currentRating}</span>
+              <Star className="w-4 h-4 fill-primary text-primary" />
+            </div>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Rating</p>
+          </div>
+          <div className="text-center space-y-1 border-r border-white/5">
+            <span className="text-white font-black text-xl">{totalReviews.toLocaleString()}</span>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Reviews</p>
+          </div>
+          <div className="text-center space-y-1 border-r border-white/5">
+            <span className="text-white font-black text-xl">{visitCount.toLocaleString()}</span>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Visits</p>
+          </div>
+          <div className="text-center space-y-1">
+            <div className="flex items-center justify-center gap-1 text-green-500">
+               <CheckCircle2 className="w-4 h-4" />
+               <span className="font-black text-xl">100%</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Uptime</p>
+          </div>
+        </div>
+
+        {/* Description Section */}
         <div className="space-y-6 mb-12">
           <h2 className="text-2xl font-black text-white tracking-tight italic uppercase">About {website.name}</h2>
           <p className="text-lg text-muted-foreground font-medium leading-relaxed">
@@ -232,6 +236,7 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
+        {/* Performance Metrics - Positioned directly before reviews */}
         <section className="space-y-8 mb-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
             <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
@@ -291,7 +296,7 @@ export default function WebsiteDetail() {
                   Write Review
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-[#121212] border-white/10 text-white rounded-[2rem] sm:max-w-md p-8">
+              <DialogContent className="bg-background border-white/10 text-white rounded-[2rem] sm:max-w-md p-8">
                 <DialogHeader><DialogTitle className="text-2xl font-bold text-center">Share your experience</DialogTitle></DialogHeader>
                 <div className="space-y-6">
                   <div className="flex justify-center gap-4 py-4">
@@ -329,7 +334,7 @@ export default function WebsiteDetail() {
                     <div className="flex items-center gap-4">
                       <Avatar className="w-10 h-10 border border-white/10">
                         <AvatarImage src={rating.userPhotoURL} className="object-cover" />
-                        <AvatarFallback className="bg-muted text-sm">{rating.userDisplayName?.charAt(0)}</AvatarFallback>
+                        <AvatarFallback className="bg-muted text-sm font-bold">{rating.userDisplayName?.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
                         <span className="font-bold text-white block">{rating.userDisplayName}</span>
@@ -360,6 +365,7 @@ export default function WebsiteDetail() {
           </div>
         </section>
 
+        {/* Similar Websites - ABSOLUTE BOTTOM */}
         {similarWebsites.length > 0 && (
           <section className="space-y-6 pt-24 pb-32">
             <div className="flex items-center justify-between">
@@ -372,11 +378,11 @@ export default function WebsiteDetail() {
               {similarWebsites.map((sub) => (
                 <Link key={sub.id} href={`/website/${sub.id}`}>
                   <div className="flex items-center gap-4 p-0 overflow-hidden rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all group">
-                    <div className="w-20 h-20 overflow-hidden bg-[#1A1A1A] border-r border-white/10 shrink-0">
+                    <div className="w-20 h-20 overflow-hidden bg-card border-r border-white/10 shrink-0">
                       <WebsitePreview 
                         websiteId={sub.id}
                         websiteUrl={sub.url}
-                        fallbackUrl={sub.imageUrl}
+                        fallbackUrl=""
                         alt={sub.name}
                         width={80}
                         height={80}

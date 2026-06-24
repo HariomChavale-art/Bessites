@@ -6,7 +6,9 @@ import { useAuth, useFirestore, useUser } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
-  updateProfile
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -41,11 +43,11 @@ export default function LoginPage() {
           const docSnap = await getDoc(docRef);
           if (docSnap.exists() && docSnap.data().onboardingComplete) {
             router.push("/");
-          } else if (docSnap.exists()) {
+          } else {
             router.push("/onboarding");
           }
         } catch (error) {
-          console.warn("Profile check deferred");
+          console.warn("Auth redirect check deferred");
         }
       };
       checkOnboarding();
@@ -63,16 +65,40 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    if (!auth || !db) return;
+    setLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          createdAt: serverTimestamp(),
+          onboardingComplete: false,
+          interests: []
+        });
+        router.push("/onboarding");
+      } else {
+        router.push(userSnap.data().onboardingComplete ? "/" : "/onboarding");
+      }
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Sign In Error", description: error.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth || !db) {
-      toast({
-        variant: "destructive",
-        title: "Configuration Error",
-        description: "Firebase service is not initialized correctly. Please check your config.",
-      });
-      return;
-    }
+    if (!auth || !db) return;
     
     setLoading(true);
     try {
@@ -80,11 +106,7 @@ export default function LoginPage() {
         const result = await signInWithEmailAndPassword(auth, email, password);
         const docRef = doc(db, "users", result.user.uid);
         const docSnap = await getDoc(docRef);
-        if (docSnap.exists() && docSnap.data()?.onboardingComplete) {
-          router.push("/");
-        } else {
-          router.push("/onboarding");
-        }
+        router.push(docSnap.exists() && docSnap.data()?.onboardingComplete ? "/" : "/onboarding");
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
@@ -100,11 +122,6 @@ export default function LoginPage() {
           createdAt: serverTimestamp(),
           onboardingComplete: false,
           interests: []
-        }, { merge: true });
-        
-        toast({
-          title: "Account Created!",
-          description: "Welcome to the Webdock community.",
         });
         
         router.push("/onboarding");
@@ -112,8 +129,8 @@ export default function LoginPage() {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Authentication Failed",
-        description: error.message || "Please check your credentials.",
+        title: "Auth Failed",
+        description: error.message,
       });
     } finally {
       setLoading(false);
@@ -167,6 +184,21 @@ export default function LoginPage() {
             >
               {loading ? <Loader2 className="animate-spin" /> : mode === 'login' ? 'SIGN IN' : 'JOIN WEBDOCK'}
             </Button>
+
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/5" /></div>
+              <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-4 text-muted-foreground font-bold tracking-widest">Or continue with</span></div>
+            </div>
+
+            <Button 
+              type="button"
+              variant="outline"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="w-full rounded-full h-14 border-white/10 hover:bg-white/5 font-bold"
+            >
+              Sign in with Google
+            </Button>
             
             <p className="text-center text-muted-foreground font-medium pt-4">
               {mode === 'login' ? "New here? " : "Already have an account? "}
@@ -182,7 +214,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Side: Branding & Profile Uploader */}
+      {/* Right Side: Welcome & Profile Uploader */}
       <div className="flex-1 bg-gradient-to-br from-primary/15 to-transparent p-8 sm:p-16 flex flex-col items-center justify-center space-y-12 border-b md:border-b-0 md:border-l border-white/5 order-1 md:order-2">
         <div className="space-y-4 text-center">
           <h1 className="text-5xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-tight">
@@ -196,7 +228,7 @@ export default function LoginPage() {
 
         {/* Circular Profile Uploader */}
         <div className="relative">
-          <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-[#1A1A1A] border-4 border-white/10 overflow-hidden relative shadow-2xl flex items-center justify-center">
+          <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-muted border-4 border-white/10 overflow-hidden relative shadow-2xl flex items-center justify-center">
             {photoPreview ? (
               <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
             ) : (

@@ -27,7 +27,7 @@ export function WebsitePreview({
   priority = false,
   mode = 'preview'
 }: WebsitePreviewProps) {
-  // Directly derive the favicon URL from the domain for absolute branding accuracy
+  // Derive the favicon URL from the domain for absolute branding accuracy
   const safeImageSrc = useMemo(() => {
     try {
       const url = new URL(websiteUrl);

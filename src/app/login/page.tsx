@@ -139,7 +139,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
-      {/* Left Side: Entry Form (Order 2 on mobile, 1 on desktop) */}
+      {/* Left Side: Entry Form (Desktop: Left, Mobile: Bottom) */}
       <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center bg-background order-2 md:order-1">
         <div className="w-full max-w-md mx-auto">
           <Logo className="mb-12" showText />
@@ -214,7 +214,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Side: Welcome & Profile Uploader (Order 1 on mobile, 2 on desktop) */}
+      {/* Right Side: Welcome & Profile Uploader (Desktop: Right, Mobile: Top) */}
       <div className="flex-1 bg-gradient-to-br from-primary/15 to-transparent p-8 sm:p-16 flex flex-col items-center justify-center space-y-12 border-b md:border-b-0 md:border-l border-white/5 order-1 md:order-2">
         <div className="space-y-4 text-center">
           <h1 className="text-5xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-tight">

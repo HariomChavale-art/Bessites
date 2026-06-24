@@ -236,7 +236,7 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Performance Metrics - Positioned directly before reviews */}
+        {/* Performance Metrics - POSITIONED DIRECTLY BEFORE REVIEWS */}
         <section className="space-y-8 mb-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
             <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">

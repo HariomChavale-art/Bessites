@@ -9,7 +9,7 @@ import { Globe } from "lucide-react";
 interface WebsitePreviewProps {
   websiteId: string;
   websiteUrl: string;
-  fallbackUrl: string;
+  fallbackUrl: string; // Used for Supabase stored logos
   alt: string;
   className?: string;
   width?: number;
@@ -20,36 +20,40 @@ interface WebsitePreviewProps {
 
 export function WebsitePreview({ 
   websiteUrl, 
+  fallbackUrl,
   alt, 
   className,
   width = 512,
   height = 512,
   priority = false,
 }: WebsitePreviewProps) {
-  // Derive the favicon URL from the domain for absolute branding accuracy
-  const safeImageSrc = useMemo(() => {
+  
+  const imageSrc = useMemo(() => {
+    // Prioritize manual Supabase uploads
+    if (fallbackUrl && fallbackUrl.startsWith('http')) return fallbackUrl;
+    
+    // Fallback to domain-based favicon
     try {
       const url = new URL(websiteUrl);
       const domain = url.hostname;
-      // Using Google's favicon service at 256px for high clarity
       return `https://www.google.com/s2/favicons?domain=${domain}&sz=256`;
     } catch (e) {
       return null;
     }
-  }, [websiteUrl]);
+  }, [websiteUrl, fallbackUrl]);
 
   return (
     <div className={cn("relative bg-[#1A1A1A] flex items-center justify-center w-full h-full overflow-hidden", className)}>
-      {safeImageSrc ? (
+      {imageSrc ? (
         <Image 
-          src={safeImageSrc} 
+          src={imageSrc} 
           alt={alt}
           width={width}
           height={height}
           priority={priority}
           className={cn(
             "w-full h-full transition-opacity duration-700 opacity-100",
-            // Logos touch the borders with zero internal padding (Constraint: Fill containers entirely)
+            // Logos touch the borders with zero internal padding
             "object-cover"
           )}
           unoptimized={true}

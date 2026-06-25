@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, User, Eye, EyeOff } from "lucide-react";
 import { Logo } from "@/components/logo";
+import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -33,6 +34,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (currentUser && !authLoading) {
@@ -57,12 +59,30 @@ export default function LoginPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const uploadToSupabase = async (file: File, userId: string) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `profiles/${userId}-${Date.now()}.${fileExt}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('Website-images')
+      .upload(fileName, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+      .from('Website-images')
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
   };
 
   const handleGoogleSignIn = async () => {
@@ -111,14 +131,23 @@ export default function LoginPage() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         
-        if (photoPreview) {
-          await updateProfile(user, { photoURL: photoPreview });
+        let finalPhotoURL = null;
+        if (selectedFile) {
+          try {
+            finalPhotoURL = await uploadToSupabase(selectedFile, user.uid);
+          } catch (e) {
+            console.error("Supabase upload failed, falling back", e);
+          }
+        }
+        
+        if (finalPhotoURL) {
+          await updateProfile(user, { photoURL: finalPhotoURL });
         }
         
         await setDoc(doc(db, "users", user.uid), {
           email: user.email,
           displayName: user.displayName || email.split('@')[0],
-          photoURL: photoPreview || null,
+          photoURL: finalPhotoURL,
           createdAt: serverTimestamp(),
           onboardingComplete: false,
           interests: []
@@ -139,7 +168,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
-      {/* Left Side: Entry Form (Desktop: Left, Mobile: Bottom) */}
+      {/* Left Side: Entry Form */}
       <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center bg-background order-2 md:order-1">
         <div className="w-full max-w-md mx-auto">
           <Logo className="mb-12" showText />
@@ -214,7 +243,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Side: Welcome & Profile Uploader (Desktop: Right, Mobile: Top) */}
+      {/* Right Side: Welcome & Profile Uploader */}
       <div className="flex-1 bg-gradient-to-br from-primary/15 to-transparent p-8 sm:p-16 flex flex-col items-center justify-center space-y-12 border-b md:border-b-0 md:border-l border-white/5 order-1 md:order-2">
         <div className="space-y-4 text-center">
           <h1 className="text-5xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-tight">
@@ -226,7 +255,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Circular Profile Uploader */}
         <div className="relative">
           <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-muted border-4 border-white/10 overflow-hidden relative shadow-2xl flex items-center justify-center">
             {photoPreview ? (

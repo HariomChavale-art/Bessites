@@ -139,13 +139,13 @@ export default function WebsiteDetail() {
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-4xl px-4 py-8">
-        {/* Logo and Identity - Logos fill entirely, touching borders */}
+        {/* Logo and Identity */}
         <div className="flex gap-6 items-start mb-10">
           <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden bg-card border border-white/10 shrink-0">
             <WebsitePreview 
               websiteId={website.id}
               websiteUrl={website.url}
-              fallbackUrl=""
+              fallbackUrl={stats?.logoUrl || ""}
               alt={website.name}
               width={256}
               height={256}
@@ -236,7 +236,7 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Performance Metrics - POSITIONED DIRECTLY BEFORE REVIEWS */}
+        {/* Performance Metrics */}
         <section className="space-y-8 mb-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
             <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
@@ -365,7 +365,7 @@ export default function WebsiteDetail() {
           </div>
         </section>
 
-        {/* Similar Websites - ABSOLUTE BOTTOM */}
+        {/* Similar Websites */}
         {similarWebsites.length > 0 && (
           <section className="space-y-6 pt-24 pb-32">
             <div className="flex items-center justify-between">

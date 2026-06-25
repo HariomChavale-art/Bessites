@@ -1,25 +1,27 @@
 
 "use client"
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send, Check, Plus, X, Sparkles } from "lucide-react";
+import { Loader2, Send, Check, Plus, X, Sparkles, Image as ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useUser, useFirestore } from "@/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, setDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { intelligentCategoryTagging } from "@/ai/flows/intelligent-category-tagging";
+import { supabase } from "@/lib/supabase";
 
 export default function SubmitWebsite() {
   const { user } = useUser();
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [url, setUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -27,6 +29,18 @@ export default function SubmitWebsite() {
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setLogoPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleAddTag = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -85,14 +99,39 @@ export default function SubmitWebsite() {
     
     setSubmitting(true);
     try {
-      await addDoc(collection(db, "submissions"), {
+      let publicLogoUrl = "";
+      if (logoFile) {
+        const fileExt = logoFile.name.split('.').pop();
+        const path = `logos/${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('Website-images')
+          .upload(path, logoFile);
+        
+        if (uploadError) throw uploadError;
+        publicLogoUrl = supabase.storage.from('Website-images').getPublicUrl(path).data.publicUrl;
+      }
+
+      const submissionRef = await addDoc(collection(db, "submissions"), {
         url,
         categories: tags,
+        logoUrl: publicLogoUrl,
         userId: user?.uid || "guest",
         userEmail: user?.email || "anonymous",
         status: "pending",
         timestamp: serverTimestamp()
       });
+
+      // Also seed websiteStats if logo is present
+      if (publicLogoUrl) {
+        const statsRef = doc(db, "websiteStats", submissionRef.id);
+        await setDoc(statsRef, {
+          logoUrl: publicLogoUrl,
+          visitCount: 0,
+          ratingSum: 0,
+          ratingCount: 0,
+          lastPreviewUpdate: serverTimestamp()
+        }, { merge: true });
+      }
       
       setSubmitted(true);
       toast({
@@ -146,6 +185,24 @@ export default function SubmitWebsite() {
             </CardHeader>
             <CardContent className="p-8 pt-4 space-y-8">
               <div className="space-y-6">
+                <div className="space-y-3">
+                   <Label className="text-white text-lg font-bold ml-1">Logo / Branding</Label>
+                   <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="group relative w-full h-40 rounded-2xl border-2 border-dashed border-white/10 hover:border-primary/40 bg-white/5 flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all"
+                   >
+                    {logoPreview ? (
+                      <img src={logoPreview} alt="Logo Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <>
+                        <ImageIcon className="w-10 h-10 text-muted-foreground group-hover:text-primary transition-colors" />
+                        <span className="text-sm font-bold text-muted-foreground mt-2">Upload Tool Logo</span>
+                      </>
+                    )}
+                   </div>
+                   <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+                </div>
+
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="url" className="text-white text-lg font-bold ml-1">Website URL</Label>
@@ -222,7 +279,7 @@ export default function SubmitWebsite() {
           </Card>
           
           <p className="text-center mt-8 text-sm text-muted-foreground px-12 leading-relaxed opacity-60">
-            By submitting, you agree to our curator guidelines. Our team will review your project for quality and relevance to the community.
+            By submitting, you agree to our curator guidelines. Our team will review your project for quality and relevance.
           </p>
         </div>
       </main>

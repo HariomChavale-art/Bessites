@@ -17,6 +17,10 @@ interface WebsitePreviewProps {
   priority?: boolean;
 }
 
+/**
+ * WebsitePreview component for displaying site logos or previews.
+ * Rule: All logos must fill their container entirely, touching borders with zero internal padding.
+ */
 export function WebsitePreview({ 
   websiteUrl, 
   fallbackUrl,
@@ -31,7 +35,7 @@ export function WebsitePreview({
     // Prioritize manual Supabase uploads (fallbackUrl is the stored public URL)
     if (fallbackUrl && fallbackUrl.startsWith('http')) return fallbackUrl;
     
-    // Fallback to domain-based favicon for non-uploaded assets
+    // Fallback to domain-based favicon for non-uploaded assets (Zero cost)
     try {
       const url = new URL(websiteUrl);
       const domain = url.hostname;
@@ -52,7 +56,7 @@ export function WebsitePreview({
           priority={priority}
           className={cn(
             "w-full h-full transition-opacity duration-700 opacity-100",
-            // logos touch the borders with zero internal padding
+            // logos touch the borders with zero internal padding using object-cover
             "object-cover"
           )}
           unoptimized={true}

@@ -9,13 +9,12 @@ import { Globe } from "lucide-react";
 interface WebsitePreviewProps {
   websiteId: string;
   websiteUrl: string;
-  fallbackUrl: string; // Used for Supabase stored logos
+  fallbackUrl: string; 
   alt: string;
   className?: string;
   width?: number;
   height?: number;
   priority?: boolean;
-  mode?: 'preview' | 'logo';
 }
 
 export function WebsitePreview({ 
@@ -29,10 +28,10 @@ export function WebsitePreview({
 }: WebsitePreviewProps) {
   
   const imageSrc = useMemo(() => {
-    // Prioritize manual Supabase uploads
+    // Prioritize manual Supabase uploads (fallbackUrl is the stored public URL)
     if (fallbackUrl && fallbackUrl.startsWith('http')) return fallbackUrl;
     
-    // Fallback to domain-based favicon
+    // Fallback to domain-based favicon for non-uploaded assets
     try {
       const url = new URL(websiteUrl);
       const domain = url.hostname;
@@ -53,7 +52,7 @@ export function WebsitePreview({
           priority={priority}
           className={cn(
             "w-full h-full transition-opacity duration-700 opacity-100",
-            // Logos touch the borders with zero internal padding
+            // logos touch the borders with zero internal padding
             "object-cover"
           )}
           unoptimized={true}

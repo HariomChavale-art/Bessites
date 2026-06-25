@@ -121,17 +121,15 @@ export default function SubmitWebsite() {
         timestamp: serverTimestamp()
       });
 
-      // Also seed websiteStats if logo is present
-      if (publicLogoUrl) {
-        const statsRef = doc(db, "websiteStats", submissionRef.id);
-        await setDoc(statsRef, {
-          logoUrl: publicLogoUrl,
-          visitCount: 0,
-          ratingSum: 0,
-          ratingCount: 0,
-          lastPreviewUpdate: serverTimestamp()
-        }, { merge: true });
-      }
+      // Seed websiteStats with logo and initial metrics
+      const statsRef = doc(db, "websiteStats", submissionRef.id);
+      await setDoc(statsRef, {
+        logoUrl: publicLogoUrl,
+        visitCount: 0,
+        ratingSum: 0,
+        ratingCount: 0,
+        lastPreviewUpdate: serverTimestamp()
+      }, { merge: true });
       
       setSubmitted(true);
       toast({
@@ -259,9 +257,6 @@ export default function SubmitWebsite() {
                         </button>
                       </Badge>
                     ))}
-                    {tags.length === 0 && (
-                      <span className="text-muted-foreground text-sm italic py-2">Add at least one tag...</span>
-                    )}
                   </div>
                 </div>
               </div>
@@ -277,10 +272,6 @@ export default function SubmitWebsite() {
               </Button>
             </CardFooter>
           </Card>
-          
-          <p className="text-center mt-8 text-sm text-muted-foreground px-12 leading-relaxed opacity-60">
-            By submitting, you agree to our curator guidelines. Our team will review your project for quality and relevance.
-          </p>
         </div>
       </main>
     </div>

@@ -149,7 +149,6 @@ export default function WebsiteDetail() {
               alt={website.name}
               width={256}
               height={256}
-              mode="logo"
               className="w-full h-full"
             />
           </div>
@@ -221,23 +220,9 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Description Section */}
-        <div className="space-y-6 mb-12">
-          <h2 className="text-2xl font-black text-white tracking-tight italic uppercase">About {website.name}</h2>
-          <p className="text-lg text-muted-foreground font-medium leading-relaxed">
-            {website.longDescription}
-          </p>
-          <div className="flex flex-wrap gap-3">
-            {website.categories.map(cat => (
-              <Badge key={cat} className="bg-white/5 hover:bg-white/10 text-white border-white/5 py-2.5 px-6 rounded-full text-sm font-bold">
-                {cat}
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        {/* Performance Metrics */}
+        {/* Performance Metrics (Benchmarks) */}
         <section className="space-y-8 mb-12">
+           <h2 className="text-2xl font-black text-white tracking-tight italic uppercase">Technical Benchmarks</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
             <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
               <div className="bg-green-500/10 p-2.5 rounded-xl">
@@ -365,7 +350,15 @@ export default function WebsiteDetail() {
           </div>
         </section>
 
-        {/* Similar Websites */}
+        {/* About Section */}
+        <div className="space-y-6 mb-12">
+          <h2 className="text-2xl font-black text-white tracking-tight italic uppercase">About {website.name}</h2>
+          <p className="text-lg text-muted-foreground font-medium leading-relaxed">
+            {website.longDescription}
+          </p>
+        </div>
+
+        {/* Similar Websites - Absolute Bottom */}
         {similarWebsites.length > 0 && (
           <section className="space-y-6 pt-24 pb-32">
             <div className="flex items-center justify-between">
@@ -386,7 +379,6 @@ export default function WebsiteDetail() {
                         alt={sub.name}
                         width={80}
                         height={80}
-                        mode="logo"
                         className="w-full h-full"
                       />
                     </div>

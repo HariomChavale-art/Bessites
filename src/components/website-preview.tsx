@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { Globe } from "lucide-react";
 
 interface WebsitePreviewProps {
-  websiteId: string;
+  websiteId?: string;
   websiteUrl: string;
   fallbackUrl: string; 
   alt: string;

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
@@ -52,8 +51,10 @@ export default function Home() {
       imageUrl: s.logoUrl || "",
       screenshots: [],
       url: s.url,
-      pricing: "Free",
+      pricing: "Free" as const,
       updatedAt: "2024",
+      size: "N/A",
+      version: "1.0",
       ...s
     }));
     
@@ -62,7 +63,7 @@ export default function Home() {
     
     firestoreSites.forEach(s => {
       if (!seenIds.has(s.id)) {
-        uniquePool.push(s);
+        uniquePool.push(s as any);
         seenIds.add(s.id);
       }
     });
@@ -70,7 +71,6 @@ export default function Home() {
     return uniquePool;
   }, [submittedSites]);
 
-  // Staff Picks (Featured) - Always unique
   const featuredWebsites = useMemo(() => {
     return allAvailableWebsites.slice(0, 10);
   }, [allAvailableWebsites]);
@@ -92,7 +92,6 @@ export default function Home() {
         break;
       case "foryou":
       default:
-        // Personalization: Recommend websites by interest first, but keep EVERYTHING
         if (userInterests.length > 0) {
           results.sort((a, b) => {
             const aMatchCount = a.categories.filter(c => userInterests.includes(c)).length;

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useParams } from "next/navigation";
@@ -36,6 +35,7 @@ export default function WebsiteDetail() {
   const { user } = useUser();
   const db = useFirestore();
   
+  // Merge Firestore submitted sites if needed, but primarily use mock data here for discovery
   const website = MOCK_WEBSITES.find(w => w.id === id);
   const [ratingLoading, setRatingLoading] = useState(false);
   const [liked, setLiked] = useState(false);
@@ -139,7 +139,6 @@ export default function WebsiteDetail() {
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-4xl px-4 py-8">
-        {/* Logo and Identity */}
         <div className="flex gap-6 items-start mb-10">
           <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden bg-card border border-white/10 shrink-0">
             <WebsitePreview 
@@ -168,7 +167,6 @@ export default function WebsiteDetail() {
           </button>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
           <Button 
             onClick={handleVisitClick} 
@@ -194,7 +192,6 @@ export default function WebsiteDetail() {
           </Button>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-4 gap-4 mb-10 pb-8 border-b border-white/5">
           <div className="text-center space-y-1 border-r border-white/5">
             <div className="flex items-center justify-center gap-1">
@@ -220,7 +217,6 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Performance Metrics (Benchmarks) */}
         <section className="space-y-8 mb-12">
            <h2 className="text-2xl font-black text-white tracking-tight italic uppercase">Technical Benchmarks</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
@@ -350,7 +346,6 @@ export default function WebsiteDetail() {
           </div>
         </section>
 
-        {/* About Section */}
         <div className="space-y-6 mb-12">
           <h2 className="text-2xl font-black text-white tracking-tight italic uppercase">About {website.name}</h2>
           <p className="text-lg text-muted-foreground font-medium leading-relaxed">
@@ -358,7 +353,6 @@ export default function WebsiteDetail() {
           </p>
         </div>
 
-        {/* Similar Websites - Absolute Bottom */}
         {similarWebsites.length > 0 && (
           <section className="space-y-6 pt-24 pb-32">
             <div className="flex items-center justify-between">

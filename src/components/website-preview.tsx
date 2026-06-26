@@ -31,10 +31,10 @@ export function WebsitePreview({
 }: WebsitePreviewProps) {
   
   const imageSrc = useMemo(() => {
-    // Prioritize manual Supabase uploads (fallbackUrl is the stored public URL)
+    // Prioritize manual Supabase uploads
     if (fallbackUrl && fallbackUrl.startsWith('http')) return fallbackUrl;
     
-    // Fallback to domain-based favicon for non-uploaded assets (Zero cost)
+    // Fallback to domain-based favicon for non-uploaded assets
     try {
       const url = new URL(websiteUrl);
       const domain = url.hostname;

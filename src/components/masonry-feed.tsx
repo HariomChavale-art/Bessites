@@ -4,19 +4,18 @@
 import { Website } from "@/lib/mock-data";
 import { WebsiteCard } from "./website-card";
 import { Button } from "./ui/button";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 interface MasonryFeedProps {
   initialWebsites: Website[];
 }
 
 export function MasonryFeed({ initialWebsites }: MasonryFeedProps) {
-  // Use a state to manage the slice of websites shown if we had a large list.
-  // For now, we ensure we only show unique websites from the provided list.
-  const [displayCount, setDisplayCount] = useState(12);
+  // Start with a larger initial count to show more upfront
+  const [displayCount, setDisplayCount] = useState(24);
   const [loading, setLoading] = useState(false);
 
-  // Filter out any duplicates just in case the input has them
+  // Ensure strict uniqueness in the display list
   const uniqueWebsites = useMemo(() => {
     const seen = new Set();
     return initialWebsites.filter(w => {
@@ -31,11 +30,11 @@ export function MasonryFeed({ initialWebsites }: MasonryFeedProps) {
 
   const loadMore = () => {
     setLoading(true);
-    // Simulate loading state then show more unique items from the list
+    // Smooth transition to more items
     setTimeout(() => {
       setDisplayCount(prev => prev + 12);
       setLoading(false);
-    }, 600);
+    }, 400);
   };
 
   return (
@@ -52,16 +51,23 @@ export function MasonryFeed({ initialWebsites }: MasonryFeedProps) {
             variant="outline" 
             onClick={loadMore} 
             disabled={loading}
-            className="rounded-full px-12 py-6 border-white/10 hover:bg-white/5 text-muted-foreground hover:text-white"
+            className="rounded-full px-12 py-6 border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold h-auto shadow-xl"
           >
-            {loading ? "Discovering more niche apps..." : "Load More Suggestions"}
+            {loading ? "Discovering more niche apps..." : "Load More Websites"}
           </Button>
         </div>
       )}
 
       {!hasMore && uniqueWebsites.length > 0 && (
-        <div className="text-center py-20 opacity-20">
-          <p className="text-sm font-bold uppercase tracking-widest">You've reached the edge of the web</p>
+        <div className="text-center py-20 opacity-10">
+          <div className="h-px w-32 bg-white/20 mx-auto mb-4" />
+          <p className="text-[10px] font-black uppercase tracking-[0.2em]">End of Collection</p>
+        </div>
+      )}
+      
+      {uniqueWebsites.length === 0 && (
+        <div className="py-20 text-center opacity-40">
+          <p className="text-lg font-bold italic">No websites found here.</p>
         </div>
       )}
     </div>

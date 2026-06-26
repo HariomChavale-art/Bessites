@@ -32,43 +32,49 @@ export default function Home() {
   const { data: profile } = useDoc(userDocRef);
   const userInterests = profile?.interests || [];
 
+  // Staff Picks (Featured)
   const featuredWebsites = useMemo(() => {
-    return MOCK_WEBSITES.slice(0, 10);
+    // Take a small subset for the marquee
+    return MOCK_WEBSITES.slice(0, 6);
   }, []);
 
   const filteredWebsites = useMemo(() => {
-    // Create a copy and ensure absolute uniqueness by ID
+    // 1. Ensure absolute uniqueness by ID
     const seen = new Set();
-    const uniqueList = MOCK_WEBSITES.filter(w => {
+    const uniquePool = MOCK_WEBSITES.filter(w => {
       if (seen.has(w.id)) return false;
       seen.add(w.id);
       return true;
     });
 
+    // 2. "Stop repeating website": Exclude featured marquee items from the main feed
+    const featuredIds = new Set(featuredWebsites.map(w => w.id));
+    const mainList = uniquePool.filter(w => !featuredIds.has(w.id));
+
+    // 3. Sorting logic (No filtering, just reordering)
     switch (activeTab) {
       case "trending":
-        return [...uniqueList].sort((a, b) => b.reviewCount - a.reviewCount);
+        return [...mainList].sort((a, b) => b.reviewCount - a.reviewCount);
       case "new":
-        return [...uniqueList].reverse();
+        return [...mainList].reverse();
       case "foryou":
       default:
-        // Personalization: We reorder unique items rather than filtering out.
-        // This ensures the user sees everything once, but matches appear first.
+        // Personalization: Recommend websites by interest first, but keep EVERYTHING
         if (userInterests.length > 0) {
-          return [...uniqueList].sort((a, b) => {
+          return [...mainList].sort((a, b) => {
             const aMatchCount = a.categories.filter(c => userInterests.includes(c)).length;
             const bMatchCount = b.categories.filter(c => userInterests.includes(c)).length;
             
-            // Primary sort by interest match count, secondary sort by rating
             if (bMatchCount !== aMatchCount) {
               return bMatchCount - aMatchCount;
             }
+            // Secondary sort by rating for quality
             return b.rating - a.rating;
           });
         }
-        return uniqueList;
+        return mainList;
     }
-  }, [activeTab, userInterests]);
+  }, [activeTab, userInterests, featuredWebsites]);
 
   if (authLoading) {
     return (
@@ -132,7 +138,8 @@ export default function Home() {
         </section>
 
         <section className="container mx-auto px-2">
-          <MasonryFeed key={activeTab + userInterests.join(',')} initialWebsites={filteredWebsites} />
+          {/* Using a key that combines length and state to force re-render if the pool changes */}
+          <MasonryFeed key={activeTab + userInterests.join(',') + filteredWebsites.length} initialWebsites={filteredWebsites} />
         </section>
       </main>
 

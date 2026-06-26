@@ -1,11 +1,10 @@
-
 "use client"
 
 import { Navigation } from "@/components/navigation";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, ExternalLink, Heart, Tag, X } from "lucide-react";
+import { Search, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, ExternalLink, Heart, Tag, X, Briefcase, Zap, Layout } from "lucide-react";
 import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
 import { Input } from "@/components/ui/input";
@@ -15,12 +14,15 @@ import { doc, setDoc, deleteDoc, increment, collection } from "firebase/firestor
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
-  { name: "AI", icon: Sparkles, color: "text-purple-400" },
   { name: "Gaming", icon: Gamepad2, color: "text-red-400" },
+  { name: "AI", icon: Sparkles, color: "text-purple-400" },
   { name: "Tools", icon: Wrench, color: "text-blue-400" },
+  { name: "Productivity", icon: Briefcase, color: "text-indigo-400" },
   { name: "Education", icon: GraduationCap, color: "text-green-400" },
   { name: "Design", icon: Palette, color: "text-pink-400" },
   { name: "Dev", icon: Cpu, color: "text-orange-400" },
+  { name: "3D", icon: Layout, color: "text-violet-400" },
+  { name: "Fun", icon: Zap, color: "text-blue-300" },
   { name: "Health", icon: HeartPulse, color: "text-rose-400" },
   { name: "Food", icon: Utensils, color: "text-amber-400" },
 ];
@@ -95,7 +97,7 @@ export default function ExplorePage() {
           <div className="relative group">
             <Search className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input 
-              placeholder="Search anything (e.g. 'ai', 'game', 'tools')..." 
+              placeholder="Search by name, category, or URL..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 sm:pl-16 bg-white/5 border-white/10 rounded-2xl sm:rounded-[2.5rem] h-14 sm:h-20 text-base sm:text-xl font-bold focus:ring-primary focus:border-primary transition-all shadow-xl"
@@ -128,7 +130,7 @@ export default function ExplorePage() {
               </Button>
             )}
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6">
             {CATEGORIES.map((cat) => (
               <Button 
                 key={cat.name} 
@@ -140,7 +142,7 @@ export default function ExplorePage() {
                 )}
               >
                 <cat.icon className={cn(`w-6 h-6 sm:w-10 sm:h-10 shrink-0`, cat.color)} />
-                <span className="text-sm sm:text-lg font-bold text-white truncate">{cat.name}</span>
+                <span className="text-xs sm:text-sm font-bold text-white truncate">{cat.name}</span>
               </Button>
             ))}
           </div>
@@ -149,7 +151,7 @@ export default function ExplorePage() {
         <section className="space-y-8 sm:space-y-12">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tighter">
-              {selectedCategory || searchQuery ? "Matching Results" : "Total Projects"}
+              {selectedCategory || searchQuery ? "Matching Results" : "All Unique Projects"}
               <span className="ml-4 text-sm font-medium text-muted-foreground">({filteredResults.length})</span>
             </h2>
           </div>
@@ -162,7 +164,7 @@ export default function ExplorePage() {
             ) : (
               <div className="py-20 text-center space-y-4">
                 <LayoutGrid className="w-16 h-16 text-muted-foreground mx-auto opacity-20" />
-                <p className="text-xl text-muted-foreground font-medium">No projects found. Try a different term.</p>
+                <p className="text-xl text-muted-foreground font-medium">No matches found. Try exploring by interest.</p>
               </div>
             )}
           </div>

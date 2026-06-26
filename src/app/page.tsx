@@ -72,15 +72,15 @@ export default function Home() {
   }, [submittedSites]);
 
   const featuredWebsites = useMemo(() => {
-    return allAvailableWebsites.slice(0, 10);
+    return allAvailableWebsites.slice(0, 15);
   }, [allAvailableWebsites]);
 
   const filteredWebsites = useMemo(() => {
-    // 1. Exclude featured marquee items from the main feed to stop repeating
+    // 1. Exclude featured marquee items from the main feed to prevent repetition
     const featuredIds = new Set(featuredWebsites.map(w => w.id));
     const mainList = allAvailableWebsites.filter(w => !featuredIds.has(w.id));
 
-    // 2. Sorting logic (No filtering, just reordering)
+    // 2. Sorting logic (Unique list only)
     let results = [...mainList];
     
     switch (activeTab) {
@@ -92,17 +92,17 @@ export default function Home() {
         break;
       case "foryou":
       default:
-        if (userInterests.length > 0) {
-          results.sort((a, b) => {
-            const aMatchCount = a.categories.filter(c => userInterests.includes(c)).length;
-            const bMatchCount = b.categories.filter(c => userInterests.includes(c)).length;
-            
-            if (bMatchCount !== aMatchCount) {
-              return bMatchCount - aMatchCount;
-            }
-            return (b.rating || 0) - (a.rating || 0);
-          });
-        }
+        // Sort by user interests first, then the rest randomly
+        results.sort((a, b) => {
+          const aMatchCount = a.categories.filter(c => userInterests.includes(c)).length;
+          const bMatchCount = b.categories.filter(c => userInterests.includes(c)).length;
+          
+          if (bMatchCount !== aMatchCount) {
+            return bMatchCount - aMatchCount;
+          }
+          // Stability for non-matches
+          return (b.rating || 0) - (a.rating || 0);
+        });
         break;
     }
     

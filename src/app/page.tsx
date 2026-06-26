@@ -8,8 +8,8 @@ import { MasonryFeed } from "@/components/masonry-feed";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sparkles, TrendingUp, Clock, Loader2 } from "lucide-react";
-import { useUser, useDoc, useFirestore } from "@/firebase";
-import { doc } from "firebase/firestore";
+import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
+import { doc, collection } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
@@ -32,29 +32,58 @@ export default function Home() {
   const { data: profile } = useDoc(userDocRef);
   const userInterests = profile?.interests || [];
 
-  // Staff Picks (Featured)
-  const featuredWebsites = useMemo(() => {
-    // Take a small subset for the marquee
-    return MOCK_WEBSITES.slice(0, 6);
-  }, []);
+  const submissionsRef = useMemo(() => {
+    if (!db) return null;
+    return collection(db, "submissions");
+  }, [db]);
 
-  const filteredWebsites = useMemo(() => {
-    // 1. Ensure absolute uniqueness by ID
-    const seen = new Set();
-    const uniquePool = MOCK_WEBSITES.filter(w => {
-      if (seen.has(w.id)) return false;
-      seen.add(w.id);
-      return true;
+  const { data: submittedSites } = useCollection(submissionsRef);
+
+  const allAvailableWebsites = useMemo(() => {
+    const firestoreSites = (submittedSites || []).map(s => ({
+      id: s.id,
+      name: s.name || s.url?.split('//')[1]?.split('.')[0] || "New Project",
+      developer: s.userEmail || "Community",
+      description: s.description || "User submitted project",
+      longDescription: s.longDescription || "A new project shared via Webdock.",
+      rating: 4.5,
+      reviewCount: 0,
+      categories: s.categories || ["Web App"],
+      imageUrl: s.logoUrl || "",
+      screenshots: [],
+      url: s.url,
+      pricing: "Free",
+      updatedAt: "2024",
+      ...s
+    }));
+    
+    const uniquePool = [...MOCK_WEBSITES];
+    const seenIds = new Set(uniquePool.map(w => w.id));
+    
+    firestoreSites.forEach(s => {
+      if (!seenIds.has(s.id)) {
+        uniquePool.push(s);
+        seenIds.add(s.id);
+      }
     });
 
-    // 2. "Stop repeating website": Exclude featured marquee items from the main feed
-    const featuredIds = new Set(featuredWebsites.map(w => w.id));
-    const mainList = uniquePool.filter(w => !featuredIds.has(w.id));
+    return uniquePool;
+  }, [submittedSites]);
 
-    // 3. Sorting logic (No filtering, just reordering)
+  // Staff Picks (Featured) - Always unique
+  const featuredWebsites = useMemo(() => {
+    return allAvailableWebsites.slice(0, 6);
+  }, [allAvailableWebsites]);
+
+  const filteredWebsites = useMemo(() => {
+    // 1. Exclude featured marquee items from the main feed to stop repeating
+    const featuredIds = new Set(featuredWebsites.map(w => w.id));
+    const mainList = allAvailableWebsites.filter(w => !featuredIds.has(w.id));
+
+    // 2. Sorting logic (No filtering, just reordering)
     switch (activeTab) {
       case "trending":
-        return [...mainList].sort((a, b) => b.reviewCount - a.reviewCount);
+        return [...mainList].sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
       case "new":
         return [...mainList].reverse();
       case "foryou":
@@ -68,13 +97,12 @@ export default function Home() {
             if (bMatchCount !== aMatchCount) {
               return bMatchCount - aMatchCount;
             }
-            // Secondary sort by rating for quality
-            return b.rating - a.rating;
+            return (b.rating || 0) - (a.rating || 0);
           });
         }
         return mainList;
     }
-  }, [activeTab, userInterests, featuredWebsites]);
+  }, [activeTab, userInterests, featuredWebsites, allAvailableWebsites]);
 
   if (authLoading) {
     return (
@@ -138,7 +166,6 @@ export default function Home() {
         </section>
 
         <section className="container mx-auto px-2">
-          {/* Using a key that combines length and state to force re-render if the pool changes */}
           <MasonryFeed key={activeTab + userInterests.join(',') + filteredWebsites.length} initialWebsites={filteredWebsites} />
         </section>
       </main>

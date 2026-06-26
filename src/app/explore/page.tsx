@@ -2,7 +2,7 @@
 "use client"
 
 import { Navigation } from "@/components/navigation";
-import { MOCK_WEBSITES, Website } from "@/lib/mock-data";
+import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, ExternalLink, Heart, Tag, X } from "lucide-react";
@@ -10,8 +10,8 @@ import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
 import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
-import { useUser, useFirestore } from "@/firebase";
-import { doc, setDoc, deleteDoc, increment } from "firebase/firestore";
+import { useUser, useFirestore, useCollection } from "@/firebase";
+import { doc, setDoc, deleteDoc, increment, collection } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
@@ -28,24 +28,53 @@ const CATEGORIES = [
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const db = useFirestore();
 
-  const filteredResults = useMemo(() => {
-    // 1. Ensure Uniqueness
-    const seen = new Set();
-    const uniquePool = MOCK_WEBSITES.filter(w => {
-      if (seen.has(w.id)) return false;
-      seen.add(w.id);
-      return true;
+  const submissionsRef = useMemo(() => {
+    if (!db) return null;
+    return collection(db, "submissions");
+  }, [db]);
+
+  const { data: submittedSites } = useCollection(submissionsRef);
+
+  const allWebsites = useMemo(() => {
+    const firestoreSites = (submittedSites || []).map(s => ({
+      id: s.id,
+      name: s.name || s.url?.split('//')[1]?.split('.')[0] || "New Project",
+      developer: s.userEmail || "Community",
+      description: s.description || "User submitted project",
+      longDescription: s.longDescription || "A project shared by the Webdock community.",
+      categories: s.categories || ["Web App"],
+      rating: 4.5,
+      reviewCount: 0,
+      pricing: "Free",
+      imageUrl: s.logoUrl || "",
+      screenshots: [],
+      url: s.url,
+      updatedAt: "2024",
+      ...s
+    }));
+    
+    const uniquePool = [...MOCK_WEBSITES];
+    const seenIds = new Set(uniquePool.map(w => w.id));
+    
+    firestoreSites.forEach(s => {
+      if (!seenIds.has(s.id)) {
+        uniquePool.push(s);
+        seenIds.add(s.id);
+      }
     });
 
-    return uniquePool.filter(app => {
+    return uniquePool;
+  }, [submittedSites]);
+
+  const filteredResults = useMemo(() => {
+    return allWebsites.filter(app => {
       const query = searchQuery.toLowerCase().trim();
       
-      // Fuzzy Search logic: Check if query is contained in any key field
       const matchesSearch = !searchQuery || 
         app.name.toLowerCase().includes(query) ||
         app.description.toLowerCase().includes(query) ||
-        app.longDescription.toLowerCase().includes(query) ||
         app.url.toLowerCase().includes(query) ||
         app.categories.some(cat => cat.toLowerCase().includes(query));
       
@@ -54,7 +83,7 @@ export default function ExplorePage() {
       
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, allWebsites]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -66,7 +95,7 @@ export default function ExplorePage() {
           <div className="relative group">
             <Search className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input 
-              placeholder="Search by name, description, or URL..." 
+              placeholder="Search anything (e.g. 'ai', 'game', 'tools')..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 sm:pl-16 bg-white/5 border-white/10 rounded-2xl sm:rounded-[2.5rem] h-14 sm:h-20 text-base sm:text-xl font-bold focus:ring-primary focus:border-primary transition-all shadow-xl"
@@ -120,7 +149,7 @@ export default function ExplorePage() {
         <section className="space-y-8 sm:space-y-12">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tighter">
-              {selectedCategory || searchQuery ? "Matching Results" : "All Projects"}
+              {selectedCategory || searchQuery ? "Matching Results" : "Total Projects"}
               <span className="ml-4 text-sm font-medium text-muted-foreground">({filteredResults.length})</span>
             </h2>
           </div>
@@ -128,7 +157,7 @@ export default function ExplorePage() {
           <div className="grid grid-cols-1 gap-6 sm:gap-12">
             {filteredResults.length > 0 ? (
               filteredResults.map((app) => (
-                <ExploreItemRow key={app.id} app={app} />
+                <ExploreItemRow key={app.id} app={app as any} />
               ))
             ) : (
               <div className="py-20 text-center space-y-4">
@@ -143,7 +172,7 @@ export default function ExplorePage() {
   );
 }
 
-function ExploreItemRow({ app }: { app: Website }) {
+function ExploreItemRow({ app }: { app: any }) {
   const { user } = useUser();
   const db = useFirestore();
   const [liked, setLiked] = useState(false);
@@ -182,7 +211,7 @@ function ExploreItemRow({ app }: { app: Website }) {
             <WebsitePreview 
               websiteId={app.id}
               websiteUrl={app.url}
-              fallbackUrl={app.imageUrl}
+              fallbackUrl={app.imageUrl || ""}
               alt={app.name}
               width={512}
               height={512}
@@ -242,20 +271,6 @@ function ExploreItemRow({ app }: { app: Website }) {
           >
              <Heart className={liked ? "fill-current w-5 h-5 mr-2" : "w-5 h-5 mr-2"} />
              {liked ? "Liked" : "Like"}
-           </Button>
-        </div>
-
-        <div className="absolute top-5 right-5 lg:hidden flex gap-2">
-           <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={(e) => {
-              e.preventDefault();
-              handleLike(e);
-            }}
-            className={liked ? "text-primary" : "text-muted-foreground"}
-          >
-             <Heart className={liked ? "fill-current w-6 h-6" : "w-6 h-6"} />
            </Button>
         </div>
       </div>

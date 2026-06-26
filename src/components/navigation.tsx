@@ -3,8 +3,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useUser } from "@/firebase";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Logo } from "./logo";
 import { usePathname } from "next/navigation";
 import { Sparkles } from "lucide-react";
@@ -18,7 +16,6 @@ const SUGGESTIONS = [
 ];
 
 export function Navigation() {
-  const { user, loading } = useUser();
   const pathname = usePathname();
   const [suggestionIdx, setSuggestionIdx] = useState(0);
 
@@ -51,24 +48,7 @@ export function Navigation() {
           </span>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-          {!loading && user && (
-            <Link href="/profile">
-              <Avatar className="w-8 h-8 border border-white/10 hover:ring-2 hover:ring-primary transition-all">
-                <AvatarImage src={user.photoURL || ""} className="object-cover" />
-                <AvatarFallback className="bg-primary/20 text-primary text-[10px] font-bold">
-                  {user.displayName?.charAt(0) || "U"}
-                </AvatarFallback>
-              </Avatar>
-            </Link>
-          )}
-          
-          {!user && !loading && (
-            <Link href="/login">
-              <span className="text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-colors">Sign In</span>
-            </Link>
-          )}
-        </div>
+        <div className="w-10 h-10 md:hidden" /> {/* Spacer for mobile balance */}
       </div>
     </nav>
   );

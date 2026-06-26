@@ -31,9 +31,13 @@ export default function ExplorePage() {
 
   const filteredResults = useMemo(() => {
     return MOCK_WEBSITES.filter(app => {
+      const query = searchQuery.toLowerCase();
+      
       const matchesSearch = !searchQuery || 
-        app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        app.description.toLowerCase().includes(searchQuery.toLowerCase());
+        app.name.toLowerCase().includes(query) ||
+        app.description.toLowerCase().includes(query) ||
+        app.url.toLowerCase().includes(query) ||
+        app.categories.some(cat => cat.toLowerCase().includes(query));
       
       const matchesCategory = !selectedCategory || 
         app.categories.some(cat => cat.toLowerCase().includes(selectedCategory.toLowerCase()));
@@ -52,7 +56,7 @@ export default function ExplorePage() {
           <div className="relative group">
             <Search className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input 
-              placeholder="Search for tools, games, and web apps..." 
+              placeholder="Search tools, tags, or domains..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 sm:pl-16 bg-white/5 border-white/10 rounded-2xl sm:rounded-[2.5rem] h-14 sm:h-20 text-base sm:text-xl font-bold focus:ring-primary focus:border-primary transition-all shadow-xl"
@@ -106,8 +110,8 @@ export default function ExplorePage() {
         <section className="space-y-8 sm:space-y-12">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tighter">
-              {selectedCategory || searchQuery ? "Filtered Results" : "Discovery Feed"}
-              <span className="ml-4 text-sm font-medium text-muted-foreground">({filteredResults.length} items)</span>
+              {selectedCategory || searchQuery ? "Results Found" : "Everything on Webdock"}
+              <span className="ml-4 text-sm font-medium text-muted-foreground">({filteredResults.length})</span>
             </h2>
           </div>
           
@@ -119,7 +123,7 @@ export default function ExplorePage() {
             ) : (
               <div className="py-20 text-center space-y-4">
                 <LayoutGrid className="w-16 h-16 text-muted-foreground mx-auto opacity-20" />
-                <p className="text-xl text-muted-foreground font-medium">No results found for your search.</p>
+                <p className="text-xl text-muted-foreground font-medium">No results found for that search.</p>
               </div>
             )}
           </div>
@@ -172,7 +176,6 @@ function ExploreItemRow({ app }: { app: Website }) {
               alt={app.name}
               width={512}
               height={512}
-              mode="logo"
               className="w-full h-full"
             />
           </div>

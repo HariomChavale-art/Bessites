@@ -2,16 +2,32 @@
 "use client"
 
 import Link from "next/link";
-import { Bell } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 import { useUser } from "@/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Logo } from "./logo";
 import { usePathname } from "next/navigation";
+import { Sparkles } from "lucide-react";
+
+const SUGGESTIONS = [
+  "Try searching 'AI' to find new tools.",
+  "Tip: Save apps to build your collection.",
+  "Check the 'Trending' tab for what's hot.",
+  "Submit your own web app via Profile.",
+  "Use 'Magic Categorize' for fast uploads.",
+];
 
 export function Navigation() {
   const { user, loading } = useUser();
   const pathname = usePathname();
+  const [suggestionIdx, setSuggestionIdx] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSuggestionIdx((prev) => (prev + 1) % SUGGESTIONS.length);
+    }, 8000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Hide navigation on auth and onboarding pages
   const isAuthPage = pathname === "/login" || pathname === "/onboarding";
@@ -27,32 +43,31 @@ export function Navigation() {
           </Link>
         </div>
 
+        {/* Smart Suggestion Bar */}
+        <div className="hidden md:flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/5 max-w-md animate-in fade-in slide-in-from-top-2 duration-700">
+          <Sparkles className="w-3.5 h-3.5 text-primary" />
+          <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider truncate">
+            {SUGGESTIONS[suggestionIdx]}
+          </span>
+        </div>
+
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-          {!loading && (
-            <>
-              {user ? (
-                <Link href="/profile">
-                  <Avatar className="w-8 h-8 border border-white/10">
-                    <AvatarImage src={user.photoURL || ""} className="object-cover" />
-                    <AvatarFallback className="bg-primary/20 text-primary text-[10px] font-bold">
-                      {user.displayName?.charAt(0) || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                </Link>
-              ) : (
-                <Link href="/login">
-                  <Button variant="ghost" size="sm" className="text-sm font-bold text-muted-foreground hover:text-white px-2 sm:px-4">
-                    Sign In
-                  </Button>
-                </Link>
-              )}
-            </>
+          {!loading && user && (
+            <Link href="/profile">
+              <Avatar className="w-8 h-8 border border-white/10 hover:ring-2 hover:ring-primary transition-all">
+                <AvatarImage src={user.photoURL || ""} className="object-cover" />
+                <AvatarFallback className="bg-primary/20 text-primary text-[10px] font-bold">
+                  {user.displayName?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
           )}
           
-          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-white relative">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full ring-2 ring-background" />
-          </Button>
+          {!user && !loading && (
+            <Link href="/login">
+              <span className="text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-colors">Sign In</span>
+            </Link>
+          )}
         </div>
       </div>
     </nav>

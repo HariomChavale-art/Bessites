@@ -45,11 +45,13 @@ export default function Home() {
         return list.slice().reverse();
       case "foryou":
       default:
+        // Personalization: We reorder rather than filter out.
+        // This ensures the user sees everything, but matches appear first.
         if (userInterests.length > 0) {
           return list.sort((a, b) => {
-            const aMatch = a.categories.some(c => userInterests.includes(c)) ? 1 : 0;
-            const bMatch = b.categories.some(c => userInterests.includes(c)) ? 1 : 0;
-            return bMatch - aMatch;
+            const aMatchCount = a.categories.filter(c => userInterests.includes(c)).length;
+            const bMatchCount = b.categories.filter(c => userInterests.includes(c)).length;
+            return bMatchCount - aMatchCount;
           });
         }
         return list;

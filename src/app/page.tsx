@@ -72,7 +72,7 @@ export default function Home() {
 
   // Staff Picks (Featured) - Always unique
   const featuredWebsites = useMemo(() => {
-    return allAvailableWebsites.slice(0, 6);
+    return allAvailableWebsites.slice(0, 10);
   }, [allAvailableWebsites]);
 
   const filteredWebsites = useMemo(() => {
@@ -81,16 +81,20 @@ export default function Home() {
     const mainList = allAvailableWebsites.filter(w => !featuredIds.has(w.id));
 
     // 2. Sorting logic (No filtering, just reordering)
+    let results = [...mainList];
+    
     switch (activeTab) {
       case "trending":
-        return [...mainList].sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
+        results.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
+        break;
       case "new":
-        return [...mainList].reverse();
+        results.reverse();
+        break;
       case "foryou":
       default:
         // Personalization: Recommend websites by interest first, but keep EVERYTHING
         if (userInterests.length > 0) {
-          return [...mainList].sort((a, b) => {
+          results.sort((a, b) => {
             const aMatchCount = a.categories.filter(c => userInterests.includes(c)).length;
             const bMatchCount = b.categories.filter(c => userInterests.includes(c)).length;
             
@@ -100,8 +104,10 @@ export default function Home() {
             return (b.rating || 0) - (a.rating || 0);
           });
         }
-        return mainList;
+        break;
     }
+    
+    return results;
   }, [activeTab, userInterests, featuredWebsites, allAvailableWebsites]);
 
   if (authLoading) {

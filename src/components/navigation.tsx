@@ -40,15 +40,15 @@ export function Navigation() {
           </Link>
         </div>
 
-        {/* Smart Suggestion Bar */}
-        <div className="hidden md:flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/5 max-w-md animate-in fade-in slide-in-from-top-2 duration-700">
-          <Sparkles className="w-3.5 h-3.5 text-primary" />
-          <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider truncate">
+        {/* Smart Suggestion Bar - Minimalist and Helpful */}
+        <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/5 max-w-[200px] sm:max-w-md animate-in fade-in slide-in-from-top-2 duration-700">
+          <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" />
+          <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-wider truncate">
             {SUGGESTIONS[suggestionIdx]}
           </span>
         </div>
 
-        <div className="w-10 h-10 md:hidden" /> {/* Spacer for mobile balance */}
+        <div className="w-10 h-10 md:hidden" /> {/* Spacer for balance */}
       </div>
     </nav>
   );

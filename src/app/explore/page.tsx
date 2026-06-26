@@ -70,13 +70,13 @@ export default function ExplorePage() {
 
   const filteredResults = useMemo(() => {
     return allWebsites.filter(app => {
-      const query = searchQuery.toLowerCase().trim();
+      const queryText = searchQuery.toLowerCase().trim();
       
       const matchesSearch = !searchQuery || 
-        app.name.toLowerCase().includes(query) ||
-        app.description.toLowerCase().includes(query) ||
-        app.url.toLowerCase().includes(query) ||
-        app.categories.some(cat => cat.toLowerCase().includes(query));
+        app.name.toLowerCase().includes(queryText) ||
+        app.description.toLowerCase().includes(queryText) ||
+        app.url.toLowerCase().includes(queryText) ||
+        app.categories.some(cat => cat.toLowerCase().includes(queryText));
       
       const matchesCategory = !selectedCategory || 
         app.categories.some(cat => cat.toLowerCase().includes(selectedCategory.toLowerCase()));

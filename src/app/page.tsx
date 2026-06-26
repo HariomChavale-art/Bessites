@@ -37,24 +37,36 @@ export default function Home() {
   }, []);
 
   const filteredWebsites = useMemo(() => {
-    const list = [...MOCK_WEBSITES];
+    // Create a copy and ensure absolute uniqueness by ID
+    const seen = new Set();
+    const uniqueList = MOCK_WEBSITES.filter(w => {
+      if (seen.has(w.id)) return false;
+      seen.add(w.id);
+      return true;
+    });
+
     switch (activeTab) {
       case "trending":
-        return list.sort((a, b) => b.reviewCount - a.reviewCount);
+        return [...uniqueList].sort((a, b) => b.reviewCount - a.reviewCount);
       case "new":
-        return list.slice().reverse();
+        return [...uniqueList].reverse();
       case "foryou":
       default:
-        // Personalization: We reorder rather than filter out.
-        // This ensures the user sees everything, but matches appear first.
+        // Personalization: We reorder unique items rather than filtering out.
+        // This ensures the user sees everything once, but matches appear first.
         if (userInterests.length > 0) {
-          return list.sort((a, b) => {
+          return [...uniqueList].sort((a, b) => {
             const aMatchCount = a.categories.filter(c => userInterests.includes(c)).length;
             const bMatchCount = b.categories.filter(c => userInterests.includes(c)).length;
-            return bMatchCount - aMatchCount;
+            
+            // Primary sort by interest match count, secondary sort by rating
+            if (bMatchCount !== aMatchCount) {
+              return bMatchCount - aMatchCount;
+            }
+            return b.rating - a.rating;
           });
         }
-        return list;
+        return uniqueList;
     }
   }, [activeTab, userInterests]);
 

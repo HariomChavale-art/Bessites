@@ -78,7 +78,7 @@ export default function Home() {
 
   const filteredWebsites = useMemo(() => {
     const featuredIds = new Set(featuredWebsites.map(w => w.id));
-    // Exclude featured from main feed to prevent repetition as requested
+    // Exclude featured from main feed to prevent repetition
     const mainList = allAvailableWebsites.filter(w => !featuredIds.has(w.id));
 
     let results = [...mainList];
@@ -92,7 +92,7 @@ export default function Home() {
         break;
       case "foryou":
       default:
-        // Interest-first discovery: prioritize user interests, then show remaining random unique sites
+        // Interest-first discovery: prioritize user interests, then show remaining unique sites
         results.sort((a, b) => {
           const aMatchCount = a.categories.filter(c => userInterests.includes(c)).length;
           const bMatchCount = b.categories.filter(c => userInterests.includes(c)).length;
@@ -100,7 +100,7 @@ export default function Home() {
           if (bMatchCount !== aMatchCount) {
             return bMatchCount - aMatchCount;
           }
-          // Stability for non-matches
+          // Maintain stability
           return 0;
         });
         break;

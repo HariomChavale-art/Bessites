@@ -35,7 +35,6 @@ export default function WebsiteDetail() {
   const { user } = useUser();
   const db = useFirestore();
   
-  // Merge Firestore submitted sites if needed, but primarily use mock data here for discovery
   const website = MOCK_WEBSITES.find(w => w.id === id);
   const [ratingLoading, setRatingLoading] = useState(false);
   const [liked, setLiked] = useState(false);
@@ -269,7 +268,7 @@ export default function WebsiteDetail() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mt-12">
             <h2 className="text-3xl font-black text-white tracking-tight">Community reviews</h2>
             <Dialog>
               <DialogTrigger asChild>

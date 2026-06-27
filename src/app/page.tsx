@@ -100,8 +100,8 @@ export default function Home() {
           if (bMatchCount !== aMatchCount) {
             return bMatchCount - aMatchCount;
           }
-          // Fallback to random stability if no match
-          return 0.5 - Math.random();
+          // Stability for non-matches
+          return 0;
         });
         break;
     }

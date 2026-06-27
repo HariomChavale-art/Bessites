@@ -6,7 +6,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, Camera, Map, ShoppingBag, Music, Loader2, Zap, Briefcase, Layout } from "lucide-react";
+import { Check, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, Camera, Map, ShoppingBag, Music, Loader2, Zap, Briefcase, Layout, Globe, Search, Camera as PhotographyIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,13 +18,15 @@ const ONBOARDING_INTERESTS = [
   { id: "Design", label: "Design", icon: Palette, color: "text-pink-400", bg: "bg-pink-500/10" },
   { id: "Developer", label: "Developer", icon: Cpu, color: "text-orange-400", bg: "bg-orange-500/10" },
   { id: "Health", label: "Health", icon: HeartPulse, color: "text-rose-400", bg: "bg-rose-500/10" },
-  { id: "Food", label: "Food", icon: Utensils, color: "text-amber-400", bg: "bg-amber-500/10" },
+  { id: "Food", label: "Food & Recipes", icon: Utensils, color: "text-amber-400", bg: "bg-amber-500/10" },
   { id: "Productivity", label: "Productivity", icon: Briefcase, color: "text-indigo-400", bg: "bg-indigo-500/10" },
-  { id: "Travel", label: "Travel", icon: Map, color: "text-cyan-400", bg: "bg-cyan-500/10" },
-  { id: "Shopping", label: "Shopping", icon: ShoppingBag, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+  { id: "Travel", label: "Travel & Maps", icon: Map, color: "text-cyan-400", bg: "bg-cyan-500/10" },
+  { id: "Photography", label: "Photography", icon: PhotographyIcon, color: "text-emerald-400", bg: "bg-emerald-500/10" },
   { id: "Audio", label: "Music & Audio", icon: Music, color: "text-yellow-400", bg: "bg-yellow-500/10" },
-  { id: "Fun", label: "Fun", icon: Zap, iconLabel: "Zap", color: "text-blue-300", bg: "bg-blue-300/10" },
+  { id: "Fun", label: "Fun", icon: Zap, color: "text-blue-300", bg: "bg-blue-300/10" },
   { id: "3D", label: "3D & VR", icon: Layout, color: "text-violet-400", bg: "bg-violet-400/10" },
+  { id: "Security", label: "Privacy & Security", icon: Globe, color: "text-red-300", bg: "bg-red-300/10" },
+  { id: "Shopping", label: "Shopping", icon: ShoppingBag, color: "text-rose-300", bg: "bg-rose-300/10" },
 ];
 
 export default function OnboardingPage() {

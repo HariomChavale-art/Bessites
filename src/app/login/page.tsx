@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect } from "react";
@@ -7,8 +6,6 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
   updateProfile,
-  GoogleAuthProvider,
-  signInWithPopup
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -83,37 +80,6 @@ export default function LoginPage() {
       .getPublicUrl(fileName);
 
     return data.publicUrl;
-  };
-
-  const handleGoogleSignIn = async () => {
-    if (!auth || !db) return;
-    setLoading(true);
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
-      
-      if (!userSnap.exists()) {
-        await setDoc(userRef, {
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          createdAt: serverTimestamp(),
-          onboardingComplete: false,
-          interests: []
-        });
-        router.push("/onboarding");
-      } else {
-        router.push(userSnap.data().onboardingComplete ? "/" : "/onboarding");
-      }
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Sign In Error", description: error.message });
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -212,21 +178,6 @@ export default function LoginPage() {
               className="w-full bg-primary hover:bg-primary/90 text-white rounded-full h-16 text-xl font-black shadow-xl glow-primary transition-all active:scale-95"
             >
               {loading ? <Loader2 className="animate-spin" /> : mode === 'login' ? 'SIGN IN' : 'JOIN WEBDOCK'}
-            </Button>
-
-            <div className="relative my-8">
-              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/5" /></div>
-              <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-4 text-muted-foreground font-bold tracking-widest">Or continue with</span></div>
-            </div>
-
-            <Button 
-              type="button"
-              variant="outline"
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-              className="w-full rounded-full h-14 border-white/10 hover:bg-white/5 font-bold"
-            >
-              Sign in with Google
             </Button>
             
             <p className="text-center text-muted-foreground font-medium pt-4">

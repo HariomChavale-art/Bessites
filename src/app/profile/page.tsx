@@ -131,7 +131,12 @@ export default function ProfilePage() {
                 <div className="p-4 space-y-2">
                   <SettingsOption icon={UserIcon} label="Account Info" description="Manage your display name and email." />
                   <SettingsOption icon={Shield} label="Privacy & Security" description="Password and authentication methods." />
-                  <SettingsOption icon={Palette} label="Discovery Preferences" description="Update your 3+ interest tags." onClick={() => router.push('/onboarding')} />
+                  <SettingsOption 
+                    icon={Palette} 
+                    label="Discovery Preferences" 
+                    description="Update your 3+ interest tags." 
+                    onClick={() => router.push('/onboarding')} 
+                  />
                   <SettingsOption icon={Bell} label="Notifications" description="Manage app-wide staff pick alerts." />
                   <SettingsOption icon={Eye} label="Display Mode" description="Theme and appearance settings." />
                   <div className="pt-4 px-4 pb-6">

@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react";
-import { useUser, useFirestore } from "@/firebase";
+import { useState, useEffect, useMemo } from "react";
+import { useUser, useFirestore, useDoc } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, Camera, Map, ShoppingBag, Music, Loader2, Zap, Briefcase, Layout, Globe, Search, Camera as PhotographyIcon } from "lucide-react";
+import { Check, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, Map, ShoppingBag, Music, Loader2, Zap, Briefcase, Layout, Globe, Camera as PhotographyIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -34,6 +34,15 @@ export default function OnboardingPage() {
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
+  
+  const userDocRef = useMemo(() => {
+    if (!user || !db) return null;
+    return doc(db, "users", user.uid);
+  }, [user, db]);
+
+  const { data: profile } = useDoc(userDocRef);
+  const isExistingUser = profile?.onboardingComplete === true;
+
   const [selected, setSelected] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -42,6 +51,12 @@ export default function OnboardingPage() {
       router.push("/login");
     }
   }, [user, userLoading, router]);
+
+  useEffect(() => {
+    if (profile?.interests) {
+      setSelected(profile.interests);
+    }
+  }, [profile]);
 
   const toggleInterest = (id: string) => {
     setSelected(prev => 
@@ -61,8 +76,10 @@ export default function OnboardingPage() {
       });
       
       toast({
-        title: "Profile setup!",
-        description: "Welcome to Webdock. We've personalized your feed.",
+        title: isExistingUser ? "Preferences updated!" : "Profile setup!",
+        description: isExistingUser 
+          ? "Your discovery feed has been refreshed." 
+          : "Welcome to Webdock. We've personalized your feed.",
       });
       
       router.push("/");
@@ -92,7 +109,7 @@ export default function OnboardingPage() {
       <div className="max-w-4xl w-full space-y-12 text-center relative z-10">
         <div className="space-y-4">
           <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase italic leading-none">
-            Welcome to <span className="text-primary">Webdock</span>
+            {isExistingUser ? "Update your" : "Welcome to"} <span className="text-primary">{isExistingUser ? "Interests" : "Webdock"}</span>
           </h1>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium">
             Pick at least <span className="text-white font-bold underline decoration-primary underline-offset-4">3 categories</span> to personalize your discovery feed.
@@ -146,7 +163,7 @@ export default function OnboardingPage() {
                 : "bg-white/10 text-muted-foreground opacity-50"
             )}
           >
-            {saving ? <Loader2 className="w-8 h-8 animate-spin" /> : selected.length < 3 ? `Pick ${3 - selected.length} more` : "Enter Webdock"}
+            {saving ? <Loader2 className="w-8 h-8 animate-spin" /> : selected.length < 3 ? `Pick ${3 - selected.length} more` : isExistingUser ? "Save Changes" : "Enter Webdock"}
           </Button>
         </div>
       </div>

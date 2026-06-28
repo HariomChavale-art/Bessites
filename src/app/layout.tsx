@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { BottomNav } from "@/components/bottom-nav";
 import { FirebaseClientProvider } from '@/firebase';
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   title: 'Webdock | Discover Web Apps',
@@ -26,6 +27,7 @@ export default function RootLayout({
           {children}
           <BottomNav />
           <Toaster />
+          <Analytics />
         </FirebaseClientProvider>
       </body>
     </html>

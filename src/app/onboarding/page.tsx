@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from "react";
@@ -109,7 +110,7 @@ export default function OnboardingPage() {
       <div className="max-w-4xl w-full space-y-12 text-center relative z-10">
         <div className="space-y-4">
           <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase italic leading-none">
-            {isExistingUser ? "Update your" : "Welcome to"} <span className="text-primary">{isExistingUser ? "Interests" : "Webdock"}</span>
+            {isExistingUser ? "Discovery" : "Welcome to"} <span className="text-primary">{isExistingUser ? "Preferences" : "Webdock"}</span>
           </h1>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium">
             Pick at least <span className="text-white font-bold underline decoration-primary underline-offset-4">3 categories</span> to personalize your discovery feed.

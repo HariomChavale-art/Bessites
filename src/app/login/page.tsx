@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect } from "react";
@@ -135,7 +134,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
-      {/* Left Side: Entry Form */}
+      {/* Left Side: Entry Form (Strictly Email/Password, no Google) */}
       <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center bg-background order-2 md:order-1">
         <div className="w-full max-w-md mx-auto">
           <Logo className="mb-12" showText />

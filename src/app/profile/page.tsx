@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useUser, useAuth, useDoc, useFirestore, useCollection } from "@/firebase";
@@ -9,15 +8,16 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Heart, Grid, LogOut, Loader2, ExternalLink, Clock, Settings } from "lucide-react";
+import { Plus, Heart, Grid, LogOut, Loader2, ExternalLink, Clock, Settings, Shield, Bell, User as UserIcon, Palette, Eye } from "lucide-react";
 import Link from "next/link";
 import { signOut } from "firebase/auth";
 import { doc, collection, query, where, orderBy } from "firebase/firestore";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function ProfilePage() {
   const { user, loading: userLoading } = useUser();
@@ -114,10 +114,36 @@ export default function ProfilePage() {
               <AvatarImage src={photoURL} className="object-cover" />
               <AvatarFallback className="text-2xl bg-primary/20 text-primary">{displayName.charAt(0)}</AvatarFallback>
             </Avatar>
-            <button className="absolute bottom-1 right-1 bg-white text-black p-2 rounded-full shadow-xl hover:scale-110 transition-transform">
-              <Settings className="w-4 h-4" />
-            </button>
+            
+            {/* Settings Dialog Button */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="absolute bottom-1 right-1 bg-white text-black p-2.5 rounded-full shadow-xl hover:scale-110 transition-transform active:scale-95 z-10 border border-black/5">
+                  <Settings className="w-5 h-5" />
+                </button>
+              </DialogTrigger>
+              <DialogContent className="bg-background border-white/10 text-white rounded-[2.5rem] sm:max-w-md p-0 overflow-hidden">
+                <div className="p-8 pb-4">
+                  <DialogHeader>
+                    <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">Settings</DialogTitle>
+                  </DialogHeader>
+                </div>
+                <div className="p-4 space-y-2">
+                  <SettingsOption icon={UserIcon} label="Account Info" description="Manage your display name and email." />
+                  <SettingsOption icon={Shield} label="Privacy & Security" description="Password and authentication methods." />
+                  <SettingsOption icon={Palette} label="Discovery Preferences" description="Update your 3+ interest tags." onClick={() => router.push('/onboarding')} />
+                  <SettingsOption icon={Bell} label="Notifications" description="Manage app-wide staff pick alerts." />
+                  <SettingsOption icon={Eye} label="Display Mode" description="Theme and appearance settings." />
+                  <div className="pt-4 px-4 pb-6">
+                    <Button variant="ghost" onClick={handleLogout} className="w-full h-14 rounded-2xl border border-white/5 hover:bg-destructive/10 hover:text-destructive font-bold transition-all">
+                      <LogOut className="w-5 h-5 mr-3" /> Sign Out
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
+
           <h1 className="text-4xl font-headline font-extrabold text-white mb-2 tracking-tight">{displayName}</h1>
           <p className="text-muted-foreground text-sm mb-6 font-medium bg-white/5 px-4 py-1 rounded-full border border-white/5 inline-block">{email}</p>
           
@@ -132,12 +158,9 @@ export default function ProfilePage() {
           )}
 
           <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm justify-center">
-            <Button variant="outline" className="rounded-2xl border-white/10 h-14 font-bold flex-1" onClick={handleLogout}>
-              <LogOut className="w-5 h-5 mr-2" /> Sign Out
-            </Button>
             <Link href="/submit" className="flex-1">
-              <Button className="w-full rounded-2xl bg-white text-background h-14 font-bold shadow-xl">
-                <Plus className="w-5 h-5 mr-2" /> Submit Site
+              <Button className="w-full rounded-2xl bg-white text-background h-14 font-black text-lg shadow-xl hover:bg-white/90">
+                <Plus className="w-5 h-5 mr-2" strokeWidth={3} /> SUBMIT SITE
               </Button>
             </Link>
           </div>
@@ -221,5 +244,19 @@ export default function ProfilePage() {
         </Tabs>
       </main>
     </div>
+  );
+}
+
+function SettingsOption({ icon: Icon, label, description, onClick }: { icon: any, label: string, description: string, onClick?: () => void }) {
+  return (
+    <button onClick={onClick} className="w-full flex items-center gap-5 p-5 rounded-[1.5rem] hover:bg-white/5 transition-all text-left group">
+      <div className="bg-white/5 p-3 rounded-2xl group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+        <Icon className="w-6 h-6" />
+      </div>
+      <div>
+        <h4 className="font-bold text-white leading-none mb-1">{label}</h4>
+        <p className="text-xs text-muted-foreground font-medium">{description}</p>
+      </div>
+    </button>
   );
 }

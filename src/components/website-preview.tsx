@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Globe } from "lucide-react";
@@ -9,7 +9,7 @@ import { Globe } from "lucide-react";
 interface WebsitePreviewProps {
   websiteId?: string;
   websiteUrl: string;
-  fallbackUrl: string; 
+  fallbackUrl?: string; 
   alt: string;
   className?: string;
   width?: number;
@@ -18,8 +18,12 @@ interface WebsitePreviewProps {
 }
 
 /**
- * WebsitePreview component for displaying site logos or previews.
- * Rule: All logos must fill their container entirely, touching borders with zero internal padding.
+ * WebsitePreview component with a self-healing fallback chain.
+ * Tier 1: Manual Upload (Supabase/Firestore)
+ * Tier 2: Clearbit (High-res Logo)
+ * Tier 3: Google Favicon (256px)
+ * Tier 4: Unavatar (Social Aggregator)
+ * Tier 5: Identicon (Never blank)
  */
 export function WebsitePreview({ 
   websiteUrl, 
@@ -31,48 +35,66 @@ export function WebsitePreview({
   priority = false,
 }: WebsitePreviewProps) {
   
+  const [retryCount, setRetryCount] = useState(0);
   const [error, setError] = useState(false);
 
-  const imageSrc = useMemo(() => {
-    // Prioritize manual Supabase uploads
-    if (fallbackUrl && fallbackUrl.startsWith('http')) return fallbackUrl;
-    
-    // Fallback to domain-based favicon for non-uploaded assets
+  // Extract domain once
+  const domain = useMemo(() => {
     try {
       const url = new URL(websiteUrl);
-      const domain = url.hostname;
-      
-      // Tier 1: Google Favicon (256px)
-      // Tier 2: Clearbit Logo (Often higher res)
-      // Tier 3: Unavatar (Unified service)
-      if (error) {
-        return `https://logo.clearbit.com/${domain}`;
-      }
-      return `https://www.google.com/s2/favicons?domain=${domain}&sz=256`;
+      return url.hostname;
     } catch (e) {
-      return null;
+      return "webdock.app";
     }
-  }, [websiteUrl, fallbackUrl, error]);
+  }, [websiteUrl]);
+
+  // The Fallback Chain
+  const imageSrc = useMemo(() => {
+    // If we have a manual upload, use it first
+    if (fallbackUrl && fallbackUrl.startsWith('http') && retryCount === 0) {
+      return fallbackUrl;
+    }
+
+    const tiers = [
+      `https://logo.clearbit.com/${domain}`,
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=256`,
+      `https://unavatar.io/${domain}?fallback=false`,
+      `https://api.dicebear.com/7.x/initials/svg?seed=${domain}&backgroundColor=7B33FF&fontFamily=Arial&bold=true`
+    ];
+
+    // Select the current tier based on failures
+    const index = fallbackUrl ? Math.max(0, retryCount - 1) : retryCount;
+    return tiers[Math.min(index, tiers.length - 1)];
+  }, [domain, fallbackUrl, retryCount]);
+
+  const handleError = () => {
+    if (retryCount < 4) {
+      setRetryCount(prev => prev + 1);
+    } else {
+      setError(true);
+    }
+  };
 
   return (
     <div className={cn("relative bg-[#1A1A1A] flex items-center justify-center w-full h-full overflow-hidden", className)}>
-      {imageSrc ? (
+      {!error ? (
         <Image 
           src={imageSrc} 
           alt={alt}
           width={width}
           height={height}
           priority={priority}
-          onError={() => setError(true)}
+          onError={handleError}
           className={cn(
             "w-full h-full transition-opacity duration-700 opacity-100",
-            // logos touch the borders with zero internal padding using object-cover
             "object-cover"
           )}
           unoptimized={true}
         />
       ) : (
-        <Globe className="w-8 h-8 text-muted-foreground opacity-20" />
+        <div className="w-full h-full bg-primary/20 flex items-center justify-center">
+          <Globe className="w-1/2 h-1/2 text-primary opacity-50" />
+        </div>
       )}
     </div>
   );

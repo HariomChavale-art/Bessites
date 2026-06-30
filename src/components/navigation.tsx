@@ -13,6 +13,7 @@ const SUGGESTIONS = [
   "Check the 'Trending' tab for what's hot.",
   "Submit your own web app via Profile.",
   "Use 'Magic Categorize' for fast uploads.",
+  "Webdock: Discover 100+ unique web apps.",
 ];
 
 export function Navigation() {
@@ -39,17 +40,18 @@ export function Navigation() {
           </Link>
         </div>
 
-        {/* Hyper-Responsive Suggestion Bar: No character cutting, fits every screen */}
+        {/* HYPER-RESPONSIVE SUGGESTION BAR: Liquid layout that never cuts text */}
         <div className="flex items-center gap-2 bg-white/5 px-4 py-2 sm:px-6 sm:py-2.5 rounded-full border border-white/5 
           flex-1 min-w-0 max-w-2xl
-          animate-in fade-in slide-in-from-top-2 duration-700 transition-all group hover:bg-white/10">
+          animate-in fade-in slide-in-from-top-2 duration-700 transition-all group hover:bg-white/10 overflow-hidden">
           <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0 group-hover:scale-110 transition-transform" />
-          <span className="text-[10px] sm:text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider whitespace-normal leading-tight text-center flex-1 overflow-visible">
+          <span className="text-[10px] sm:text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider whitespace-normal leading-tight text-center flex-1">
             {SUGGESTIONS[suggestionIdx]}
           </span>
         </div>
 
-        <div className="w-8 h-8 md:hidden shrink-0" />
+        {/* Spacer to keep suggestion bar centered on desktop */}
+        <div className="w-10 h-10 hidden md:block shrink-0" />
       </div>
     </nav>
   );

@@ -18,12 +18,12 @@ export interface Website {
 }
 
 const RAW_SITES = [
-  // User provided list 1
+  // List 1
   { name: "Lovart", url: "https://lovart.ai", cat: ["AI", "Design"], desc: "AI-driven art generation platform." },
   { name: "Code Banana", url: "https://codebanana.com", cat: ["Developer", "Tools"], desc: "Streamlined code snippets and developer utilities." },
   { name: "Pippit", url: "https://pippit.ai", cat: ["AI", "Social"], desc: "Intelligent social discovery engine." },
   { name: "Have I Been Pwned", url: "https://haveibeenpwned.com", cat: ["Security"], desc: "Check if your email has been in a data breach." },
-  { name: "Atom Animation", url: "https://atomanimatio.com", cat: ["Design", "3D"], desc: "Powerful web-based animation toolkit." },
+  { name: "Atom Animation", url: "https://atomanimation.com", cat: ["Design", "3D"], desc: "Powerful web-based animation toolkit." },
   { name: "Class Central", url: "https://classcentral.com", cat: ["Education"], desc: "The search engine for free online courses." },
   { name: "Room Unlocker", url: "https://roomunlocker.com", cat: ["Tools"], desc: "Utility for managing and unlocking digital workspaces." },
   { name: "Eat This Much", url: "https://eatthismuch.com", cat: ["Food", "Health"], desc: "Automatic meal planner based on your goals." },
@@ -39,7 +39,7 @@ const RAW_SITES = [
   { name: "Project X", url: "https://projectx.cloud", cat: ["Developer", "Tools"], desc: "Decentralized cloud infrastructure manager." },
   { name: "Ankool", url: "https://ankool.com", cat: ["Shopping", "Tools"], desc: "Smart shopping assistant for better deals." },
   { name: "Meow Camera", url: "https://meow.camera", cat: ["Photography", "Fun"], desc: "Quirky filters and camera effects for everyone." },
-  { name: "Pixel Thought", url: "https://pixelthough.so", cat: ["Fun", "Health"], desc: "Meditation tool for letting go of intrusive thoughts." },
+  { name: "Pixel Thought", url: "https://pixelthought.so", cat: ["Fun", "Health"], desc: "Meditation tool for letting go of intrusive thoughts." },
   { name: "Flova", url: "https://flova.ai", cat: ["AI", "Productivity"], desc: "Flow-based AI productivity suite." },
   { name: "Meet August", url: "https://meetaugust.ai", cat: ["AI"], desc: "Intelligent scheduling and meeting assistant." },
   { name: "Rainy Mood", url: "https://rainymood.com", cat: ["Health", "Audio"], desc: "The internet's most popular rain sounds." },
@@ -114,7 +114,7 @@ const RAW_SITES = [
   { name: "VirusTotal", url: "https://virustotal.com", cat: ["Security"], desc: "Analyze suspicious files and URLs instantly." },
   { name: "Every Noise", url: "https://everynoise.com", cat: ["Audio", "Fun"], desc: "Every music genre visualized by sound." },
 
-  // User list 2 (90 items)
+  // List 2
   { name: "Loot Drop", url: "https://lootdrop.io", cat: ["Gaming"], desc: "Discover rare loot and game rewards." },
   { name: "Emojikitchen", url: "https://emojikitchen.com", cat: ["Fun"], desc: "Combine emojis to create unique mashups." },
   { name: "Dofsimulator", url: "https://dofsimulator.net", cat: ["Photography"], desc: "Advanced depth of field and bokeh simulator." },
@@ -170,40 +170,6 @@ const RAW_SITES = [
   { name: "Idiot", url: "https://idiottest.net", cat: ["Fun"], desc: "Tricky brain teasers and logic games." },
   { name: "Coolors", url: "https://coolors.co", cat: ["Design"], desc: "The super fast color palette generator." },
   { name: "Vetted", url: "https://vetted.ai", cat: ["AI", "Shopping"], desc: "AI-powered product research assistant." },
-  { name: "Just The Recipe", url: "https://justtherecipe.com", cat: ["Food"], desc: "Get recipes without the fluff." },
-  { name: "Frame Synthesis", url: "https://framesynthesis.com", cat: ["Gaming"], desc: "Realistic web-based driving simulators." },
-  { name: "Parler", url: "https://parlerbeads.com", cat: ["Design"], desc: "Bead art patterns and templates." },
-  { name: "Glint", url: "https://glint.ai", cat: ["AI", "Developer"], desc: "AI observability and performance monitoring." },
-  { name: "Smart", url: "https://smart.ai", cat: ["AI", "Tools"], desc: "Automate your digital life with AI." },
-  { name: "HackerAI", url: "https://hackerai.co", cat: ["AI", "Security"], desc: "AI-driven cybersecurity audit platform." },
-  { name: "Snazzymaps", url: "https://snazzymaps.com", cat: ["Design", "Travel"], desc: "Custom styles for Google Maps." },
-  { name: "Rxresume", url: "https://rxresume.me", cat: ["Productivity"], desc: "The professional resume builder." },
-  { name: "Maze", url: "https://maze.co", cat: ["Tools", "Design"], desc: "Rapid user research and testing." },
-  { name: "Recipescal", url: "https://recipescal.com", cat: ["Food"], desc: "Scale your recipes instantly." },
-  { name: "Textbehind", url: "https://textbehindimage.com", cat: ["Design", "AI"], desc: "Place text behind image subjects easily." },
-  { name: "Formia", url: "https://formia.io", cat: ["Tools"], desc: "Modern and interactive form builder." },
-  { name: "Paper", url: "https://paper.com", cat: ["Productivity"], desc: "Minimalist digital paper and journals." },
-  { name: "Exercism", url: "https://exercism.org", cat: ["Developer", "Education"], desc: "Code practice and mentorship for everyone." },
-  { name: "Slowroads", url: "https://slowroads.io", cat: ["Gaming"], desc: "Zen-like infinite driving simulator." },
-  { name: "iFixit", url: "https://ifixit.com", cat: ["Tools"], desc: "The free repair guide for everything." },
-  { name: "Runnable", url: "https://runnable.com", cat: ["Developer"], desc: "Fast code testing and execution." },
-  { name: "3DAim", url: "https://3daimtrainer.com", cat: ["Gaming"], desc: "Elite FPS aim training." },
-  { name: "Radio Garden", url: "https://radio.garden", cat: ["Audio", "Travel"], desc: "Explore live radio across the globe." },
-  { name: "Pixabay", url: "https://pixabay.com", cat: ["Design"], desc: "Stunning free images and royalty free stock." },
-  { name: "Massager", url: "https://massager.com", cat: ["Health", "Fun"], desc: "Haptic feedback and vibration tools." },
-  { name: "Onelook", url: "https://onelook.com", cat: ["Education"], desc: "The dictionary of dictionaries." },
-  { name: "Prepostseo", url: "https://prepostseo.com", cat: ["Tools", "Productivity"], desc: "All-in-one SEO and content tools." },
-  { name: "Wifimap", url: "https://wifimap.io", cat: ["Travel", "Tools"], desc: "Free wifi hotspot locator." },
-  { name: "CYRI", url: "https://systemrequirementslab.com", cat: ["Gaming", "Tools"], desc: "Can You Run It? - PC specs tool." },
-  { name: "Darebee", url: "https://darebee.com", cat: ["Health"], desc: "Visual fitness guides and workouts." },
-  { name: "Bonk", url: "https://bonk.io", cat: ["Gaming", "Fun"], desc: "Physics-based multiplayer ball game." },
-  { name: "Docsity", url: "https://docsity.com", cat: ["Education"], desc: "The search engine for study resources." },
-  { name: "Chef", url: "https://chef.ai", cat: ["AI", "Food"], desc: "Your personal AI culinary coach." },
-  { name: "Beforeiplay", url: "https://beforeiplay.com", cat: ["Gaming"], desc: "Non-spoiler tips for starting new games." },
-  { name: "3Dtuning", url: "https://3dtuning.com", cat: ["Gaming", "Tools"], desc: "The ultimate 3D car tuner." },
-  { name: "Reactbits", url: "https://reactbits.dev", cat: ["Developer"], desc: "The library of animated React components." },
-
-  // User list 3 (Extra unique ones)
   { name: "Convertio", url: "https://convertio.co", cat: ["Tools"], desc: "File converter for any format." },
   { name: "Photopea", url: "https://photopea.com", cat: ["Design"], desc: "Advanced web-based image editor." },
   { name: "Remove.bg", url: "https://remove.bg", cat: ["Design", "AI"], desc: "Remove image backgrounds automatically." },

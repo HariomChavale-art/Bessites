@@ -72,14 +72,14 @@ export default function Home() {
     return uniquePool;
   }, [submittedSites]);
 
-  // Featured websites for the marquee
+  // Staff Picks - Use a slice of the pool
   const featuredWebsites = useMemo(() => {
     return allAvailableWebsites.slice(0, 15);
   }, [allAvailableWebsites]);
 
   const filteredWebsites = useMemo(() => {
     const featuredIds = new Set(featuredWebsites.map(w => w.id));
-    // Exclude featured from main feed to prevent repetition
+    // RULE: Do not repeat featured websites in the main feed
     const mainList = allAvailableWebsites.filter(w => !featuredIds.has(w.id));
 
     let results = [...mainList];
@@ -93,7 +93,7 @@ export default function Home() {
         break;
       case "foryou":
       default:
-        // Interest-first discovery: prioritize user interests, then show remaining unique sites
+        // Interest-first discovery: prioritize user interests, then random unique remaining sites
         results.sort((a, b) => {
           const aMatchCount = a.categories.filter(c => userInterests.includes(c)).length;
           const bMatchCount = b.categories.filter(c => userInterests.includes(c)).length;
@@ -101,7 +101,6 @@ export default function Home() {
           if (bMatchCount !== aMatchCount) {
             return bMatchCount - aMatchCount;
           }
-          // Stability sort
           return 0;
         });
         break;

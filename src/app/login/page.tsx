@@ -6,6 +6,7 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
   updateProfile,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -13,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, User, Eye, EyeOff } from "lucide-react";
+import { Loader2, Plus, User, Eye, EyeOff, KeyRound } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { supabase } from "@/lib/supabase";
 
@@ -26,6 +27,7 @@ export default function LoginPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -82,6 +84,26 @@ export default function LoginPage() {
     return data.publicUrl;
   };
 
+  const formatAuthError = (error: any) => {
+    const code = error.code || "";
+    switch (code) {
+      case 'auth/user-not-found':
+        return "Account not found. Check your email or join the flow!";
+      case 'auth/wrong-password':
+        return "Access denied: Incorrect password for this account.";
+      case 'auth/invalid-email':
+        return "Please enter a valid email address.";
+      case 'auth/email-already-in-use':
+        return "This email is already part of the community. Try signing in!";
+      case 'auth/weak-password':
+        return "Security alert: Password is too weak. Use 6+ characters.";
+      case 'auth/too-many-requests':
+        return "System lockout: Too many attempts. Try again later.";
+      default:
+        return "Authentication glitch. Please verify your details and try again.";
+    }
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth || !db) return;
@@ -124,11 +146,39 @@ export default function LoginPage() {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Auth Failed",
-        description: error.message,
+        title: "Icantfindawebsite Auth",
+        description: formatAuthError(error),
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!auth || !email) {
+      toast({
+        variant: "destructive",
+        title: "Email Required",
+        description: "Please enter your email address to reset your password.",
+      });
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast({
+        title: "Reset Sent",
+        description: "A recovery link has been sent to your inbox. Please check your mail.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Recovery Error",
+        description: formatAuthError(error),
+      });
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -152,13 +202,15 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-white font-bold text-xs ml-1 uppercase tracking-widest opacity-60">Password</Label>
+              <div className="flex justify-between items-center">
+                <Label className="text-white font-bold text-xs ml-1 uppercase tracking-widest opacity-60">Password</Label>
+              </div>
               <div className="relative">
                 <Input 
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
+                  required={mode === 'login' || mode === 'signup'}
                   className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg pr-12 focus:ring-primary"
                 />
                 <button 
@@ -169,6 +221,17 @@ export default function LoginPage() {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              {mode === 'login' && (
+                <button 
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={resetLoading}
+                  className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors ml-1 mt-1 flex items-center gap-1.5"
+                >
+                  {resetLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <KeyRound className="w-3 h-3" />}
+                  Forgot Password?
+                </button>
+              )}
             </div>
 
             <Button 
@@ -200,7 +263,7 @@ export default function LoginPage() {
             <span className="text-primary">Icantfindawebsite!</span>
           </h1>
           <p className="text-muted-foreground font-medium text-xl max-w-md mx-auto">
-            The world's most curated directory for web tools, games, and modern apps.
+            The world's most curated directory for web tools, games, and modern webs.
           </p>
         </div>
 

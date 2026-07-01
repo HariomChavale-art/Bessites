@@ -71,10 +71,10 @@ export default function WebsiteDetail() {
 
   const currentRating = stats?.ratingCount > 0 
     ? (stats.ratingSum / stats.ratingCount).toFixed(1) 
-    : website.rating.toFixed(1);
+    : "0.0";
   
   const visitCount = stats?.visitCount || 0;
-  const totalReviews = stats?.ratingCount || website.reviewCount;
+  const totalReviews = stats?.ratingCount || 0;
 
   const handleVisitClick = () => {
     if (!db || !id) return;
@@ -191,31 +191,6 @@ export default function WebsiteDetail() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-4 gap-4 mb-10 pb-8 border-b border-white/5">
-          <div className="text-center space-y-1 border-r border-white/5">
-            <div className="flex items-center justify-center gap-1">
-              <span className="text-white font-black text-xl">{currentRating}</span>
-              <Star className="w-4 h-4 fill-primary text-primary" />
-            </div>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Rating</p>
-          </div>
-          <div className="text-center space-y-1 border-r border-white/5">
-            <span className="text-white font-black text-xl">{totalReviews.toLocaleString()}</span>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Reviews</p>
-          </div>
-          <div className="text-center space-y-1 border-r border-white/5">
-            <span className="text-white font-black text-xl">{visitCount.toLocaleString()}</span>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Visits</p>
-          </div>
-          <div className="text-center space-y-1">
-            <div className="flex items-center justify-center gap-1 text-green-500">
-               <CheckCircle2 className="w-4 h-4" />
-               <span className="font-black text-xl">100%</span>
-            </div>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Uptime</p>
-          </div>
-        </div>
-
         <section className="space-y-8 mb-12">
            <h2 className="text-2xl font-black text-white tracking-tight italic uppercase">Technical Benchmarks</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
@@ -265,6 +240,20 @@ export default function WebsiteDetail() {
                   Mobile
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-10 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
+            <div className="text-center space-y-1 border-r border-white/5">
+              <div className="flex items-center justify-center gap-1">
+                <span className="text-white font-black text-2xl">{currentRating}</span>
+                <Star className="w-5 h-5 fill-primary text-primary" />
+              </div>
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Community Rating</p>
+            </div>
+            <div className="text-center space-y-1">
+              <span className="text-white font-black text-2xl">{totalReviews.toLocaleString()}</span>
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Real Reviews</p>
             </div>
           </div>
 

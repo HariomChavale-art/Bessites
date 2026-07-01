@@ -86,7 +86,6 @@ export default function LoginPage() {
 
   const formatAuthError = (error: any) => {
     const code = error.code || "";
-    // Hide technical Firebase references and show branded errors
     switch (code) {
       case 'auth/user-not-found':
         return "Account not found. Check your email or join the community!";

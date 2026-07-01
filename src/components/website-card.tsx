@@ -1,9 +1,8 @@
-
 "use client"
 
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
-import { Heart, Tag } from "lucide-react";
+import { Heart, Tag, Star } from "lucide-react";
 import { WebsitePreview } from "./website-preview";
 import { useMemo } from "react";
 import { useUser, useFirestore, useDoc } from "@/firebase";
@@ -27,19 +26,26 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   const { data: likeData } = useDoc(likeDocRef);
   const isLiked = !!likeData;
 
+  const statsRef = useMemo(() => {
+    if (!db) return null;
+    return doc(db, "websiteStats", website.id);
+  }, [db, website.id]);
+
+  const { data: stats } = useDoc(statsRef);
+
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!user || !db) return;
     
     const likeRef = doc(db, "users", user.uid, "likedWebsites", website.id);
-    const statsRef = doc(db, "websiteStats", website.id);
+    const globalStatsRef = doc(db, "websiteStats", website.id);
 
     if (isLiked) {
       deleteDoc(likeRef);
-      setDoc(statsRef, { ratingSum: increment(-1), ratingCount: increment(-1) }, { merge: true });
+      setDoc(globalStatsRef, { ratingSum: increment(-1), ratingCount: increment(-1) }, { merge: true });
     } else {
       setDoc(likeRef, { id: website.id, timestamp: new Date().toISOString() });
-      setDoc(statsRef, { ratingSum: increment(5), ratingCount: increment(1) }, { merge: true });
+      setDoc(globalStatsRef, { ratingSum: increment(5), ratingCount: increment(1) }, { merge: true });
     }
   };
 
@@ -52,6 +58,10 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
     }
   };
 
+  const currentRating = stats?.ratingCount > 0 
+    ? (stats.ratingSum / stats.ratingCount).toFixed(1) 
+    : null;
+
   return (
     <Link href={`/website/${website.id}`} className="block break-inside-avoid mb-4 sm:mb-6 group">
       <div className="relative rounded-2xl sm:rounded-[2.5rem] overflow-hidden bg-card/40 border border-white/5 transition-all duration-500 group-hover:border-primary/40 group-hover:bg-card/60">
@@ -60,15 +70,14 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
           <WebsitePreview 
             websiteId={website.id}
             websiteUrl={website.url}
-            fallbackUrl={website.imageUrl}
+            fallbackUrl={stats?.logoUrl || website.imageUrl}
             alt={website.name}
             width={400}
             height={400}
-            mode="logo"
             className="w-full h-full transition-transform duration-700 group-hover:scale-110"
           />
           
-          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10">
+          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex flex-col gap-2">
             <div className={cn(
               "flex items-center gap-1 backdrop-blur-xl px-2.5 py-1 sm:px-4 sm:py-1.5 rounded-full border shadow-lg",
               getPricingStyle(website.pricing)
@@ -76,6 +85,12 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
               <Tag className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
               <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider">{website.pricing}</span>
             </div>
+            {currentRating && (
+              <div className="flex items-center gap-1 bg-primary/90 text-white backdrop-blur-xl px-2.5 py-1 sm:px-4 sm:py-1.5 rounded-full shadow-lg border border-primary/20">
+                <Star className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-current" />
+                <span className="text-[9px] sm:text-[11px] font-black">{currentRating}</span>
+              </div>
+            )}
           </div>
 
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">

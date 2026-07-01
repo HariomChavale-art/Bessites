@@ -45,7 +45,7 @@ export default function Home() {
       developer: s.userEmail || "Community",
       description: s.description || "User submitted project",
       longDescription: s.longDescription || "A new project shared via Icantfindawebsite.",
-      rating: 4.8,
+      rating: 0,
       reviewCount: 0,
       categories: s.categories || ["Web App"],
       imageUrl: s.logoUrl || "",
@@ -82,7 +82,8 @@ export default function Home() {
     
     switch (activeTab) {
       case "trending":
-        results.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
+        // Sort by actual rating count if available, or just name
+        results.sort((a, b) => b.name.localeCompare(a.name));
         break;
       case "new":
         results.reverse();
@@ -136,7 +137,7 @@ export default function Home() {
                 Discover your next <span className="text-primary italic">flow</span>.
               </h1>
               <p className="text-muted-foreground text-sm sm:text-base max-w-lg">
-                Your interest-driven directory of modern web applications.
+                Your interest-driven directory of modern webs.
               </p>
             </div>
             

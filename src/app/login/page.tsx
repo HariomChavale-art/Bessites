@@ -86,19 +86,22 @@ export default function LoginPage() {
 
   const formatAuthError = (error: any) => {
     const code = error.code || "";
+    // Hide technical Firebase references and show branded errors
     switch (code) {
       case 'auth/user-not-found':
-        return "Account not found. Check your email or join the flow!";
+        return "Account not found. Check your email or join the community!";
       case 'auth/wrong-password':
         return "Access denied: Incorrect password for this account.";
       case 'auth/invalid-email':
         return "Please enter a valid email address.";
       case 'auth/email-already-in-use':
-        return "This email is already part of the community. Try signing in!";
+        return "This email is already registered. Try signing in instead!";
       case 'auth/weak-password':
-        return "Security alert: Password is too weak. Use 6+ characters.";
+        return "Security alert: Password is too weak. Please use at least 6 characters.";
       case 'auth/too-many-requests':
-        return "System lockout: Too many attempts. Try again later.";
+        return "System lockout: Too many attempts. Please try again later.";
+      case 'auth/invalid-credential':
+        return "Incorrect email or password. Please verify and try again.";
       default:
         return "Authentication glitch. Please verify your details and try again.";
     }
@@ -146,7 +149,7 @@ export default function LoginPage() {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Icantfindawebsite Auth",
+        title: "Icantfindawebsite Access",
         description: formatAuthError(error),
       });
     } finally {
@@ -168,8 +171,8 @@ export default function LoginPage() {
     try {
       await sendPasswordResetEmail(auth, email);
       toast({
-        title: "Reset Sent",
-        description: "A recovery link has been sent to your inbox. Please check your mail.",
+        title: "Recovery Sent",
+        description: "A secure reset link has been sent to your inbox. Please check your mail.",
       });
     } catch (error: any) {
       toast({
@@ -185,7 +188,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
       <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center bg-background order-2 md:order-1">
-        <div className="w-full max-w-md mx-auto">
+        <div className="w-full max-md mx-auto">
           <Logo className="mb-12" showText />
           
           <form onSubmit={handleAuth} className="space-y-6">
@@ -202,15 +205,13 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <Label className="text-white font-bold text-xs ml-1 uppercase tracking-widest opacity-60">Password</Label>
-              </div>
+              <Label className="text-white font-bold text-xs ml-1 uppercase tracking-widest opacity-60">Password</Label>
               <div className="relative">
                 <Input 
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required={mode === 'login' || mode === 'signup'}
+                  required
                   className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg pr-12 focus:ring-primary"
                 />
                 <button 
@@ -221,17 +222,17 @@ export default function LoginPage() {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {mode === 'login' && (
+              <div className="flex justify-end">
                 <button 
                   type="button"
                   onClick={handleForgotPassword}
                   disabled={resetLoading}
-                  className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors ml-1 mt-1 flex items-center gap-1.5"
+                  className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors mt-2 flex items-center gap-1.5"
                 >
                   {resetLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <KeyRound className="w-3 h-3" />}
                   Forgot Password?
                 </button>
-              )}
+              </div>
             </div>
 
             <Button 
@@ -239,11 +240,11 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full bg-primary hover:bg-primary/90 text-white rounded-full h-16 text-xl font-black shadow-xl glow-primary transition-all active:scale-95"
             >
-              {loading ? <Loader2 className="animate-spin" /> : mode === 'login' ? 'SIGN IN' : 'JOIN ICANTFINDAWEBSITE'}
+              {loading ? <Loader2 className="animate-spin" /> : mode === 'login' ? 'SIGN IN' : 'JOIN THE FLOW'}
             </Button>
             
             <p className="text-center text-muted-foreground font-medium pt-4">
-              {mode === 'login' ? "New here? " : "Already have an account? "}
+              {mode === 'login' ? "New here? " : "Already part of the flow? "}
               <button 
                 type="button"
                 onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}

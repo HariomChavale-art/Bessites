@@ -16,14 +16,14 @@ export function initializeFirebase(): {
   const firebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   
   let firestore: Firestore;
-  try {
-    // We attempt to initialize with long-polling to fix "Could not reach Firestore backend" errors
+  // If we have existing apps, we should get the existing firestore instance.
+  // Otherwise, we initialize it with experimentalAutoDetectLongPolling for stable connections.
+  if (getApps().length > 0) {
+    firestore = getFirestore(firebaseApp);
+  } else {
     firestore = initializeFirestore(firebaseApp, {
       experimentalAutoDetectLongPolling: true,
     });
-  } catch (e) {
-    // If already initialized, get the existing instance
-    firestore = getFirestore(firebaseApp);
   }
   
   const auth = getAuth(firebaseApp);

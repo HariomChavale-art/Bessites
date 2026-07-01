@@ -45,7 +45,7 @@ export default function ExplorePage() {
       name: s.name || s.url?.split('//')[1]?.split('.')[0] || "New Project",
       developer: s.userEmail || "Community",
       description: s.description || "User submitted project",
-      longDescription: s.longDescription || "A project shared by the Webdock community.",
+      longDescription: s.longDescription || "A project shared by the Icantfindawebsite community.",
       categories: s.categories || ["Web App"],
       rating: 4.5,
       reviewCount: 0,

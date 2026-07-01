@@ -1,4 +1,3 @@
-
 export interface Website {
   id: string;
   name: string;
@@ -18,7 +17,6 @@ export interface Website {
 }
 
 const RAW_SITES = [
-  // User Provided List 1
   { name: "Lovart", url: "https://lovart.ai", cat: ["AI", "Design"], desc: "AI-driven art generation platform." },
   { name: "Code Banana", url: "https://codebanana.com", cat: ["Developer", "Tools"], desc: "Streamlined code snippets and developer utilities." },
   { name: "Pippit", url: "https://pippit.ai", cat: ["AI", "Social"], desc: "Intelligent social discovery engine." },
@@ -90,8 +88,6 @@ const RAW_SITES = [
   { name: "Study Via AI", url: "https://studyviaai.com", cat: ["AI", "Education"], desc: "Customized study paths using Gemini AI." },
   { name: "PlayPhrase", url: "https://playphrase.me", cat: ["Audio", "Fun"], desc: "Search through movie clips by spoken phrases." },
   { name: "VirusTotal", url: "https://virustotal.com", cat: ["Security"], desc: "Analyze suspicious files and URLs instantly." },
-
-  // User Provided List 2 (90 Sites)
   { name: "Loot Drop", url: "https://lootdrop.io", cat: ["Gaming"], desc: "Discover rare loot and game rewards." },
   { name: "Emojikitchen", url: "https://emojikitchen.com", cat: ["Fun"], desc: "Combine emojis to create unique mashups." },
   { name: "Dofsimulator", url: "https://dofsimulator.net", cat: ["Photography"], desc: "Advanced depth of field and bokeh simulator." },
@@ -152,8 +148,6 @@ const RAW_SITES = [
   { name: "Remove.bg", url: "https://remove.bg", cat: ["Design", "AI"], desc: "Remove image backgrounds automatically." },
   { name: "Cymath", url: "https://cymath.com", cat: ["Education"], desc: "Step-by-step math solver." },
   { name: "Radio Garden", url: "https://radio.garden", cat: ["Travel", "Audio"], desc: "Listen to any radio station on the globe." },
-
-  // User Provided List 3
   { name: "Nikon Small World", url: "https://nikonsmallworld.com", cat: ["Photography", "Education"], desc: "The best microscopic photography on the web." },
   { name: "LingoHut", url: "https://lingohut.com", cat: ["Education"], desc: "Free language learning for all levels." },
   { name: "Split My Song", url: "https://splitmysong.com", cat: ["AI", "Audio"], desc: "AI vocal and instrument separator." },
@@ -177,7 +171,7 @@ export const MOCK_WEBSITES: Website[] = Array.from(new Set(RAW_SITES.map(s => s.
     return {
       id: `site-${index}`,
       name: site.name,
-      developer: "Webdock Curator",
+      developer: "Icantfindawebsite Curator",
       description: site.desc,
       longDescription: `${site.name} is a leading digital platform for ${site.cat.join(" and ")}. It provides high-quality resources and tools for the modern web community.`,
       rating: 4.5 + (Math.random() * 0.4),

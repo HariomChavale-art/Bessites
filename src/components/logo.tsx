@@ -1,4 +1,3 @@
-
 'use client';
 
 import { cn } from "@/lib/utils";
@@ -41,7 +40,7 @@ export function Logo({ className, showText = false }: LogoProps) {
       </div>
       {showText && (
         <span className="text-xl font-black text-white tracking-tighter uppercase italic">
-          Webdock
+          Icantfindawebsite
         </span>
       )}
     </div>

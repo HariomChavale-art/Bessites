@@ -6,7 +6,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
-  title: 'Webdock | Discover Web Apps',
+  title: 'Icantfindawebsite | Discover Web Apps',
   description: 'A Pinterest-inspired directory for modern web applications.',
 };
 

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef } from "react";
@@ -121,7 +120,6 @@ export default function SubmitWebsite() {
         timestamp: serverTimestamp()
       });
 
-      // Seed websiteStats with logo and initial metrics
       const statsRef = doc(db, "websiteStats", submissionRef.id);
       await setDoc(statsRef, {
         logoUrl: publicLogoUrl,
@@ -178,7 +176,7 @@ export default function SubmitWebsite() {
                 Add to the <span className="text-primary italic">Flow</span>
               </CardTitle>
               <CardDescription className="text-lg">
-                Submit a website and categorize it for the community.
+                Submit a website and categorize it for the Icantfindawebsite community.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-8 pt-4 space-y-8">

@@ -62,7 +62,7 @@ export default function ProfilePage() {
       await signOut(auth);
       toast({
         title: "Signed out",
-        description: "You have been successfully signed out of Webdock.",
+        description: "You have been successfully signed out of Icantfindawebsite.",
       });
       router.push("/");
     }
@@ -115,7 +115,6 @@ export default function ProfilePage() {
               <AvatarFallback className="text-2xl bg-primary/20 text-primary">{displayName.charAt(0)}</AvatarFallback>
             </Avatar>
             
-            {/* Settings Dialog Button */}
             <Dialog>
               <DialogTrigger asChild>
                 <button className="absolute bottom-1 right-1 bg-white text-black p-2.5 rounded-full shadow-xl hover:scale-110 transition-transform active:scale-95 z-10 border border-black/5">
@@ -240,7 +239,7 @@ export default function ProfilePage() {
                 <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/5 rounded-[3.5rem] bg-white/[0.02] text-center px-4">
                   <Plus className="w-14 h-14 text-primary mb-8" />
                   <h3 className="text-3xl font-extrabold text-white mb-3">Submit your project</h3>
-                  <p className="text-muted-foreground mb-10 text-lg">Got a cool web tool? Share it with the Webdock community.</p>
+                  <p className="text-muted-foreground mb-10 text-lg">Got a cool web tool? Share it with the Icantfindawebsite community.</p>
                   <Link href="/submit"><Button className="rounded-2xl px-16 py-8 bg-white text-background font-extrabold text-xl h-auto">Submit Now</Button></Link>
                 </div>
               )}

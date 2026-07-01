@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
@@ -45,7 +44,7 @@ export default function Home() {
       name: s.name || s.url?.split('//')[1]?.split('.')[0] || "New Project",
       developer: s.userEmail || "Community",
       description: s.description || "User submitted project",
-      longDescription: s.longDescription || "A new project shared via Webdock.",
+      longDescription: s.longDescription || "A new project shared via Icantfindawebsite.",
       rating: 4.8,
       reviewCount: 0,
       categories: s.categories || ["Web App"],
@@ -72,17 +71,13 @@ export default function Home() {
     return uniquePool;
   }, [submittedSites]);
 
-  // FEATURED: Strictly top 15 sites for the marquee
   const featuredWebsites = useMemo(() => {
     return allAvailableWebsites.slice(0, 15);
   }, [allAvailableWebsites]);
 
   const filteredWebsites = useMemo(() => {
     const featuredIds = new Set(featuredWebsites.map(w => w.id));
-    
-    // NO REPETITION RULE: Exclude anything already in the Staff Picks Marquee
     const mainList = allAvailableWebsites.filter(w => !featuredIds.has(w.id));
-
     let results = [...mainList];
     
     switch (activeTab) {
@@ -94,7 +89,6 @@ export default function Home() {
         break;
       case "foryou":
       default:
-        // WORKABLE INTERESTS: Prioritize user interests first, then fill with random unique sites
         results.sort((a, b) => {
           const aMatchCount = a.categories.filter(c => userInterests.includes(c)).length;
           const bMatchCount = b.categories.filter(c => userInterests.includes(c)).length;
@@ -102,7 +96,6 @@ export default function Home() {
           if (bMatchCount !== aMatchCount) {
             return bMatchCount - aMatchCount;
           }
-          // Secondary sort to keep randomness stable but unique
           return a.name.localeCompare(b.name);
         });
         break;
@@ -180,7 +173,7 @@ export default function Home() {
       <footer className="bg-card/50 border-t border-white/5 py-12">
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-muted-foreground">
-            © 2024 Webdock. Zero Duplication. Zero Padding.
+            © 2024 Icantfindawebsite. Zero Duplication. Zero Padding.
           </p>
         </div>
       </footer>

@@ -1,4 +1,3 @@
-
 "use client"
 
 import Link from "next/link";
@@ -13,7 +12,7 @@ const SUGGESTIONS = [
   "Check the 'Trending' tab for what's hot.",
   "Submit your own web app via Profile.",
   "Use 'Magic Categorize' for fast uploads.",
-  "Webdock: Discover 100+ unique web apps.",
+  "Icantfindawebsite: Discover 100+ unique web apps.",
 ];
 
 export function Navigation() {
@@ -40,7 +39,6 @@ export function Navigation() {
           </Link>
         </div>
 
-        {/* HYPER-RESPONSIVE SUGGESTION BAR: Liquid layout that never cuts text */}
         <div className="flex items-center gap-2 bg-white/5 px-4 py-2 sm:px-6 sm:py-2.5 rounded-full border border-white/5 
           flex-1 min-w-0 max-w-2xl
           animate-in fade-in slide-in-from-top-2 duration-700 transition-all group hover:bg-white/10 overflow-hidden">
@@ -50,7 +48,6 @@ export function Navigation() {
           </span>
         </div>
 
-        {/* Spacer to keep suggestion bar centered on desktop */}
         <div className="w-10 h-10 hidden md:block shrink-0" />
       </div>
     </nav>

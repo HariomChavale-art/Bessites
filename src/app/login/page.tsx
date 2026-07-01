@@ -134,7 +134,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
-      {/* Left Side: Entry Form (Strictly Email/Password, no Google) */}
       <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center bg-background order-2 md:order-1">
         <div className="w-full max-w-md mx-auto">
           <Logo className="mb-12" showText />
@@ -177,7 +176,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full bg-primary hover:bg-primary/90 text-white rounded-full h-16 text-xl font-black shadow-xl glow-primary transition-all active:scale-95"
             >
-              {loading ? <Loader2 className="animate-spin" /> : mode === 'login' ? 'SIGN IN' : 'JOIN WEBDOCK'}
+              {loading ? <Loader2 className="animate-spin" /> : mode === 'login' ? 'SIGN IN' : 'JOIN ICANTFINDAWEBSITE'}
             </Button>
             
             <p className="text-center text-muted-foreground font-medium pt-4">
@@ -194,12 +193,11 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Side: Welcome & Profile Uploader */}
       <div className="flex-1 bg-gradient-to-br from-primary/15 to-transparent p-8 sm:p-16 flex flex-col items-center justify-center space-y-12 border-b md:border-b-0 md:border-l border-white/5 order-1 md:order-2">
         <div className="space-y-4 text-center">
           <h1 className="text-5xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-tight">
             Welcome to <br />
-            <span className="text-primary">Webdock!</span>
+            <span className="text-primary">Icantfindawebsite!</span>
           </h1>
           <p className="text-muted-foreground font-medium text-xl max-w-md mx-auto">
             The world's most curated directory for web tools, games, and modern apps.

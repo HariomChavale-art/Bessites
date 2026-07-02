@@ -143,26 +143,10 @@ const RAW_SITES = [
   { name: "Idiot", url: "https://idiottest.net", cat: ["Fun"], desc: "Tricky brain teasers and logic games." },
   { name: "Coolors", url: "https://coolors.co", cat: ["Design"], desc: "The super fast color palette generator." },
   { name: "Vetted", url: "https://vetted.ai", cat: ["AI", "Shopping"], desc: "AI-powered product research assistant." },
-  { name: "Convertio", url: "https://convertio.co", cat: ["Tools"], desc: "File converter for any format." },
+  { name: "Tosdr", url: "https://tosdr.org", cat: ["Security"], desc: "Privacy summaries for modern web apps." },
   { name: "Photopea", url: "https://photopea.com", cat: ["Design"], desc: "Advanced web-based image editor." },
-  { name: "Remove.bg", url: "https://remove.bg", cat: ["Design", "AI"], desc: "Remove image backgrounds automatically." },
-  { name: "Cymath", url: "https://cymath.com", cat: ["Education"], desc: "Step-by-step math solver." },
-  { name: "Radio Garden", url: "https://radio.garden", cat: ["Travel", "Audio"], desc: "Listen to any radio station on the globe." },
-  { name: "Nikon Small World", url: "https://nikonsmallworld.com", cat: ["Photography", "Education"], desc: "The best microscopic photography on the web." },
-  { name: "LingoHut", url: "https://lingohut.com", cat: ["Education"], desc: "Free language learning for all levels." },
-  { name: "Split My Song", url: "https://splitmysong.com", cat: ["AI", "Audio"], desc: "AI vocal and instrument separator." },
-  { name: "OEC World", url: "https://oec.world", cat: ["Education", "Tools"], desc: "The Observatory of Economic Complexity." },
-  { name: "FutureMe", url: "https://futureme.org", cat: ["Fun"], desc: "Write a letter to your future self." },
-  { name: "Pointer Pointer", url: "https://pointerpointer.com", cat: ["Fun"], desc: "A person points at your cursor." },
-  { name: "Strobe Cool", url: "https://strobe.cool", cat: ["Fun"], desc: "Hallucinogenic visual effects in your browser." },
-  { name: "This Person Does Not Exist", url: "https://thispersondoesnotexist.com", cat: ["AI"], desc: "Generate hyper-realistic human faces using GANs." },
-  { name: "A Soft Murmur", url: "https://asoftmurmur.com", cat: ["Health", "Audio"], desc: "Ambient sounds for focus and relaxation." },
-  { name: "StoryTribe", url: "https://storytribeapp.com", cat: ["Design"], desc: "Create stunning storyboards and visuals." },
-  { name: "F4Map", url: "https://demo.f4map.com", cat: ["Travel", "3D"], desc: "Interactive 3D map of the world." },
-  { name: "AnimeJS", url: "https://animejs.com", cat: ["Developer", "Design"], desc: "Powerful JavaScript animation engine." },
-  { name: "Swishy AI", url: "https://swishy.ai", cat: ["AI", "Productivity"], desc: "AI companion for business communication." },
-  { name: "Higgsfield", url: "https://higgsfield.ai", cat: ["AI", "Video"], desc: "Next-gen AI video creation platform." },
-  { name: "Adam.new", url: "https://adam.new", cat: ["Tools"], desc: "AI-powered product management toolkit." }
+  { name: "Remove bg", url: "https://remove.bg", cat: ["Design", "AI"], desc: "Remove image backgrounds automatically." },
+  { name: "Convertio", url: "https://convertio.co", cat: ["Tools"], desc: "File converter for any format." }
 ];
 
 export const MOCK_WEBSITES: Website[] = Array.from(new Set(RAW_SITES.map(s => s.url)))

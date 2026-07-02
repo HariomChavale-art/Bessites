@@ -102,7 +102,7 @@ export default function LoginPage() {
       case 'auth/invalid-credential':
         return "Incorrect email or password. Please verify and try again.";
       default:
-        return "Authentication glitch. Please verify your details and try again.";
+        return "Icantfindawebsite Access: An authentication glitch occurred. Please verify your details.";
     }
   };
 
@@ -160,8 +160,8 @@ export default function LoginPage() {
     if (!auth || !email) {
       toast({
         variant: "destructive",
-        title: "Email Required",
-        description: "Please enter your email address to reset your password.",
+        title: "Icantfindawebsite Support",
+        description: "Please enter your email address to receive a recovery link.",
       });
       return;
     }
@@ -275,13 +275,15 @@ export default function LoginPage() {
               <User className="w-24 h-24 sm:w-32 sm:h-32 text-white/10" />
             )}
           </div>
-          <button 
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="absolute bottom-2 right-2 bg-primary p-4 rounded-full text-white shadow-xl glow-primary hover:scale-110 transition-transform active:scale-95 z-10"
-          >
-            <Plus className="w-6 h-6" strokeWidth={5} />
-          </button>
+          {mode === 'signup' && (
+            <button 
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute bottom-2 right-2 bg-primary p-4 rounded-full text-white shadow-xl glow-primary hover:scale-110 transition-transform active:scale-95 z-10"
+            >
+              <Plus className="w-6 h-6" strokeWidth={5} />
+            </button>
+          )}
           <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
         </div>
       </div>

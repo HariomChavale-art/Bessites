@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Heart, Grid, LogOut, Loader2, ExternalLink, Clock, Settings, Shield, Bell, User as UserIcon, Palette, Eye } from "lucide-react";
 import Link from "next/link";
 import { signOut } from "firebase/auth";
-import { doc, collection, query, where, orderBy } from "firebase/firestore";
+import { doc, collection, query, where } from "firebase/firestore";
 import { useMemo, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -40,16 +40,26 @@ export default function ProfilePage() {
 
   const { data: likedDocs, loading: likedLoading } = useCollection(likedCollectionRef);
 
+  // Simplified query to avoid composite index requirement
   const submissionsQuery = useMemo(() => {
     if (!user || !db) return null;
     return query(
       collection(db, "submissions"),
-      where("userId", "==", user.uid),
-      orderBy("timestamp", "desc")
+      where("userId", "==", user.uid)
     );
   }, [user, db]);
 
-  const { data: userSubmissions, loading: submissionsLoading } = useCollection(submissionsQuery);
+  const { data: rawSubmissions, loading: submissionsLoading } = useCollection(submissionsQuery);
+
+  // Client-side sorting for submissions
+  const userSubmissions = useMemo(() => {
+    if (!rawSubmissions) return [];
+    return [...rawSubmissions].sort((a: any, b: any) => {
+      const aTime = a.timestamp?.seconds || 0;
+      const bTime = b.timestamp?.seconds || 0;
+      return bTime - aTime;
+    });
+  }, [rawSubmissions]);
 
   const likedWebsites = useMemo(() => {
     if (!likedDocs) return [];
@@ -61,8 +71,8 @@ export default function ProfilePage() {
     if (auth) {
       await signOut(auth);
       toast({
-        title: "Signed out",
-        description: "You have been successfully signed out of Icantfindawebsite.",
+        title: "Icantfindawebsite Access",
+        description: "You have been successfully signed out of your account.",
       });
       router.push("/");
     }
@@ -239,7 +249,7 @@ export default function ProfilePage() {
                 <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/5 rounded-[3.5rem] bg-white/[0.02] text-center px-4">
                   <Plus className="w-14 h-14 text-primary mb-8" />
                   <h3 className="text-3xl font-extrabold text-white mb-3">Submit your project</h3>
-                  <p className="text-muted-foreground mb-10 text-lg">Got a cool web tool? Share it with the Icantfindawebsite community.</p>
+                  <p className="text-muted-foreground mb-10 text-lg">Got a cool web tool? Share it with the community.</p>
                   <Link href="/submit"><Button className="rounded-2xl px-16 py-8 bg-white text-background font-extrabold text-xl h-auto">Submit Now</Button></Link>
                 </div>
               )}

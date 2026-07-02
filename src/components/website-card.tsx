@@ -3,7 +3,7 @@
 
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
-import { Heart, Tag, Star, Eye, Trophy, TrendingUp, Sparkles } from "lucide-react";
+import { Heart, Tag, Star, Eye, Trophy, TrendingUp, Sparkles, Share2 } from "lucide-react";
 import { WebsitePreview } from "./website-preview";
 import { useMemo } from "react";
 import { useUser, useFirestore, useDoc } from "@/firebase";
@@ -65,8 +65,8 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
 
   const totalLikes = stats?.likeCount || 0;
   const totalVisits = stats?.visitCount || 0;
+  const totalShares = stats?.shareCount || 0;
 
-  // Dynamic status badges based on real stats
   const AchievementBadge = () => {
     if (totalLikes > 50) return (
       <div className="flex items-center gap-1 bg-amber-500/90 text-black px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter">
@@ -140,21 +140,25 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
             {website.description}
           </p>
           
-          {/* Horizontal Play Store Style Stats Row */}
-          <div className="flex items-center justify-center gap-3 sm:gap-4 py-2 mt-1 border-t border-white/5">
-             <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground/80">
-                <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+          <div className="flex items-center justify-center gap-2 sm:gap-3 py-2 mt-1 border-t border-white/5 overflow-x-auto no-scrollbar">
+             <div className="flex items-center gap-1 text-[9px] font-bold text-muted-foreground/80 shrink-0">
+                <Star className={cn("w-2.5 h-2.5", currentRating ? "text-amber-500 fill-amber-500" : "text-white/20")} />
                 <span>{currentRating || "0.0"}</span>
              </div>
-             <div className="h-3 w-[1px] bg-white/10" />
-             <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground/80">
-                <Heart className="w-3 h-3 text-primary" />
+             <div className="h-3 w-[1px] bg-white/10 shrink-0" />
+             <div className="flex items-center gap-1 text-[9px] font-bold text-muted-foreground/80 shrink-0">
+                <Heart className="w-2.5 h-2.5 text-primary" />
                 <span>{totalLikes}</span>
              </div>
-             <div className="h-3 w-[1px] bg-white/10" />
-             <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground/80">
-                <Eye className="w-3 h-3 text-blue-400" />
+             <div className="h-3 w-[1px] bg-white/10 shrink-0" />
+             <div className="flex items-center gap-1 text-[9px] font-bold text-muted-foreground/80 shrink-0">
+                <Eye className="w-2.5 h-2.5 text-blue-400" />
                 <span>{totalVisits}</span>
+             </div>
+             <div className="h-3 w-[1px] bg-white/10 shrink-0" />
+             <div className="flex items-center gap-1 text-[9px] font-bold text-muted-foreground/80 shrink-0">
+                <Share2 className="w-2.5 h-2.5 text-green-400" />
+                <span>{totalShares}</span>
              </div>
           </div>
         </div>

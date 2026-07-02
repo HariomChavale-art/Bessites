@@ -5,7 +5,7 @@ import { Navigation } from "@/components/navigation";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, ExternalLink, Heart, Tag, X, Briefcase, Zap, Layout, Eye, Star, Trophy, TrendingUp } from "lucide-react";
+import { Search, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, ExternalLink, Heart, Tag, X, Briefcase, Zap, Layout, Eye, Star, Trophy, TrendingUp, Share2 } from "lucide-react";
 import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
 import { Input } from "@/components/ui/input";
@@ -210,6 +210,12 @@ function ExploreItemRow({ app }: { app: any }) {
     }
   };
 
+  const handleVisit = () => {
+    if (!db || !app.id) return;
+    const globalStatsRef = doc(db, "websiteStats", app.id);
+    setDoc(globalStatsRef, { visitCount: increment(1) }, { merge: true });
+  };
+
   const getPricingStyle = (pricing: string) => {
     switch (pricing) {
       case "Paid": return "bg-white text-black border-none";
@@ -225,11 +231,12 @@ function ExploreItemRow({ app }: { app: any }) {
 
   const totalLikes = stats?.likeCount || 0;
   const totalVisits = stats?.visitCount || 0;
+  const totalShares = stats?.shareCount || 0;
 
   return (
-    <Link href={`/website/${app.id}`} className="group relative">
+    <div className="group relative">
       <div className="flex flex-col md:flex-row items-start gap-6 sm:gap-12 p-5 sm:p-8 rounded-3xl sm:rounded-[3.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-500 overflow-hidden">
-        <div className="flex flex-col items-center gap-3 sm:gap-5 w-full md:w-48 shrink-0 text-center">
+        <Link href={`/website/${app.id}`} className="flex flex-col items-center gap-3 sm:gap-5 w-full md:w-48 shrink-0 text-center">
           <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-[2rem] sm:rounded-[3rem] overflow-hidden bg-card/80 border border-white/10 shadow-xl group-hover:scale-105 transition-transform duration-700">
             <WebsitePreview 
               websiteId={app.id}
@@ -260,14 +267,14 @@ function ExploreItemRow({ app }: { app: any }) {
               )}
             </div>
           </div>
-        </div>
+        </Link>
 
         <div className="flex-1 min-w-0 md:pt-4">
-          <div className="flex items-center gap-3 mb-3">
+          <Link href={`/website/${app.id}`} className="flex items-center gap-3 mb-3">
             <h4 className="text-xl sm:text-3xl font-extrabold text-white leading-tight tracking-tighter group-hover:text-primary transition-colors line-clamp-2">
               {app.description}
             </h4>
-          </div>
+          </Link>
 
           <p className="text-sm sm:text-xl text-muted-foreground line-clamp-2 sm:line-clamp-3 leading-relaxed mb-6 sm:mb-8 font-medium">
             {app.longDescription}
@@ -292,15 +299,15 @@ function ExploreItemRow({ app }: { app: any }) {
 
             {/* Horizontal Play Store Style Stats Row */}
             <div className="flex items-center gap-6 py-3 border-t border-white/5 max-w-fit">
-               <div className="flex flex-col items-center gap-0.5">
+               <div className="flex flex-col items-center gap-0.5 min-w-[40px]">
                   <div className="flex items-center gap-1 text-white font-black text-sm">
-                    <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                    <Star className={cn("w-3.5 h-3.5", currentRating ? "text-amber-500 fill-amber-500" : "text-white/20")} />
                     {currentRating || "0.0"}
                   </div>
                   <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Rating</span>
                </div>
                <div className="h-6 w-[1px] bg-white/10" />
-               <div className="flex flex-col items-center gap-0.5">
+               <div className="flex flex-col items-center gap-0.5 min-w-[40px]">
                   <div className="flex items-center gap-1 text-white font-black text-sm">
                     <Heart className="w-3.5 h-3.5 text-primary" />
                     {totalLikes}
@@ -308,21 +315,36 @@ function ExploreItemRow({ app }: { app: any }) {
                   <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Likes</span>
                </div>
                <div className="h-6 w-[1px] bg-white/10" />
-               <div className="flex flex-col items-center gap-0.5">
+               <div className="flex flex-col items-center gap-0.5 min-w-[40px]">
                   <div className="flex items-center gap-1 text-white font-black text-sm">
                     <Eye className="w-3.5 h-3.5 text-blue-400" />
                     {totalVisits}
                   </div>
                   <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Visits</span>
                </div>
+               <div className="h-6 w-[1px] bg-white/10" />
+               <div className="flex flex-col items-center gap-0.5 min-w-[40px]">
+                  <div className="flex items-center gap-1 text-white font-black text-sm">
+                    <Share2 className="w-3.5 h-3.5 text-green-400" />
+                    {totalShares}
+                  </div>
+                  <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Shares</span>
+               </div>
             </div>
           </div>
         </div>
 
         <div className="hidden lg:flex flex-col items-center justify-center gap-4 shrink-0 pl-4">
-           <Button className="bg-white text-background hover:bg-white/90 rounded-2xl h-14 px-8 font-black text-lg shadow-xl">
-              GET <ExternalLink className="w-5 h-5 ml-2" />
-           </Button>
+           <a 
+            href={app.url} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            onClick={handleVisit}
+           >
+             <Button className="bg-white text-background hover:bg-white/90 rounded-2xl h-14 px-8 font-black text-lg shadow-xl">
+                GET <ExternalLink className="w-5 h-5 ml-2" />
+             </Button>
+           </a>
            <Button 
             variant="ghost" 
             onClick={(e) => {
@@ -336,6 +358,6 @@ function ExploreItemRow({ app }: { app: any }) {
            </Button>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

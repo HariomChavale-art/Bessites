@@ -36,11 +36,13 @@ import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { WebsitePreview } from "@/components/website-preview";
 import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
 
 export default function WebsiteDetail() {
   const { id } = useParams();
   const { user } = useUser();
   const db = useFirestore();
+  const { toast } = useToast();
   
   const website = MOCK_WEBSITES.find(w => w.id === id);
   const [ratingLoading, setRatingLoading] = useState(false);
@@ -89,6 +91,7 @@ export default function WebsiteDetail() {
   
   const visitCount = stats?.visitCount || 0;
   const likeCount = stats?.likeCount || 0;
+  const shareCount = stats?.shareCount || 0;
 
   const handleVisitClick = () => {
     if (!db || !id) return;
@@ -108,6 +111,25 @@ export default function WebsiteDetail() {
     } else {
       setDoc(likeRef, { id, timestamp: new Date().toISOString() });
       setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
+    }
+  };
+
+  const handleShare = async () => {
+    if (!db || !id) return;
+    const globalStatsRef = doc(db, "websiteStats", id as string);
+    setDoc(globalStatsRef, { shareCount: increment(1) }, { merge: true });
+    
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link Copied!",
+        description: "Website link has been copied to your clipboard.",
+      });
+    } catch (e) {
+      toast({
+        title: "Shared!",
+        description: "Interaction recorded.",
+      });
     }
   };
 
@@ -211,7 +233,11 @@ export default function WebsiteDetail() {
           >
             <Bookmark className={cn("w-6 h-6", liked && "fill-current")} /> {liked ? "Saved" : "Save"}
           </Button>
-          <Button variant="outline" className="flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black gap-3 text-lg">
+          <Button 
+            variant="outline" 
+            onClick={handleShare}
+            className="flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black gap-3 text-lg"
+          >
             <Share2 className="w-6 h-6" /> Share
           </Button>
         </div>
@@ -224,7 +250,7 @@ export default function WebsiteDetail() {
             </Badge>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl text-center space-y-2 group hover:bg-white/5 transition-colors">
               <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-2 text-blue-500 group-hover:scale-110 transition-transform">
                 <Eye className="w-6 h-6" />
@@ -243,10 +269,18 @@ export default function WebsiteDetail() {
 
             <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl text-center space-y-2 group hover:bg-white/5 transition-colors">
               <div className="w-12 h-12 bg-yellow-500/10 rounded-2xl flex items-center justify-center mx-auto mb-2 text-yellow-500 group-hover:scale-110 transition-transform">
-                <Star className="w-6 h-6 fill-current" />
+                <Star className={cn("w-6 h-6", currentRating !== "0.0" && "fill-current")} />
               </div>
               <div className="text-3xl font-black text-white">{currentRating}</div>
               <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Avg. Rating</p>
+            </div>
+
+            <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl text-center space-y-2 group hover:bg-white/5 transition-colors">
+              <div className="w-12 h-12 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-2 text-green-500 group-hover:scale-110 transition-transform">
+                <Share2 className="w-6 h-6" />
+              </div>
+              <div className="text-3xl font-black text-white">{shareCount.toLocaleString()}</div>
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Global Shares</p>
             </div>
           </div>
 

@@ -64,12 +64,20 @@
     },
     "WebsiteStats": {
       "title": "Website Stats",
-      "description": "Global statistics and metadata for a website tracked on Webdock.",
+      "description": "Global statistics and metadata for a website tracked on Icantfindawebsite.",
       "type": "object",
       "properties": {
         "visitCount": {
           "type": "number",
           "description": "Total clicks on the 'Visit Website' button."
+        },
+        "likeCount": {
+          "type": "number",
+          "description": "Total number of users who liked/saved the project."
+        },
+        "shareCount": {
+          "type": "number",
+          "description": "Total times shared."
         },
         "ratingSum": {
           "type": "number",
@@ -127,8 +135,6 @@
   },
   "auth": {
     "providers": [
-      "google.com",
-      "apple.com",
       "password"
     ]
   },

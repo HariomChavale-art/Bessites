@@ -3,7 +3,7 @@
 
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
-import { Heart, Tag, Star } from "lucide-react";
+import { Heart, Tag, Star, Eye, Trophy, TrendingUp, Sparkles } from "lucide-react";
 import { WebsitePreview } from "./website-preview";
 import { useMemo } from "react";
 import { useUser, useFirestore, useDoc } from "@/firebase";
@@ -64,6 +64,27 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
     : null;
 
   const totalLikes = stats?.likeCount || 0;
+  const totalVisits = stats?.visitCount || 0;
+
+  // Dynamic status badges based on real stats
+  const AchievementBadge = () => {
+    if (totalLikes > 50) return (
+      <div className="flex items-center gap-1 bg-amber-500/90 text-black px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter">
+        <Trophy className="w-2.5 h-2.5" /> Most Liked
+      </div>
+    );
+    if (totalVisits > 500) return (
+      <div className="flex items-center gap-1 bg-primary/90 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter">
+        <TrendingUp className="w-2.5 h-2.5" /> Trending
+      </div>
+    );
+    if (currentRating && parseFloat(currentRating) >= 4.5) return (
+      <div className="flex items-center gap-1 bg-green-500/90 text-black px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter">
+        <Sparkles className="w-2.5 h-2.5" /> Community Pick
+      </div>
+    );
+    return null;
+  };
 
   return (
     <Link href={`/website/${website.id}`} className="block break-inside-avoid mb-4 sm:mb-6 group">
@@ -80,7 +101,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
             className="w-full h-full transition-transform duration-700 group-hover:scale-110"
           />
           
-          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex flex-col gap-2">
+          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex flex-col gap-1.5 items-start">
             <div className={cn(
               "flex items-center gap-1 backdrop-blur-xl px-2.5 py-1 sm:px-4 sm:py-1.5 rounded-full border shadow-lg",
               getPricingStyle(website.pricing)
@@ -88,12 +109,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
               <Tag className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
               <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider">{website.pricing}</span>
             </div>
-            {currentRating && (
-              <div className="flex items-center gap-1 bg-primary/90 text-white backdrop-blur-xl px-2.5 py-1 sm:px-4 sm:py-1.5 rounded-full shadow-lg border border-primary/20">
-                <Star className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-current" />
-                <span className="text-[9px] sm:text-[11px] font-black">{currentRating}</span>
-              </div>
-            )}
+            <AchievementBadge />
           </div>
 
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
@@ -123,10 +139,23 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
           <p className="text-[10px] sm:text-[13px] text-muted-foreground/80 line-clamp-2 leading-relaxed text-center font-medium px-1 sm:px-2">
             {website.description}
           </p>
-          <div className="flex items-center justify-center gap-4 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 pt-1">
-             <span className="flex items-center gap-1"><Heart className="w-2.5 h-2.5" /> {totalLikes}</span>
-             <span className="h-2 w-[1px] bg-white/10" />
-             <span className="flex items-center gap-1"><Star className="w-2.5 h-2.5" /> {currentRating || "0.0"}</span>
+          
+          {/* Horizontal Play Store Style Stats Row */}
+          <div className="flex items-center justify-center gap-3 sm:gap-4 py-2 mt-1 border-t border-white/5">
+             <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground/80">
+                <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                <span>{currentRating || "0.0"}</span>
+             </div>
+             <div className="h-3 w-[1px] bg-white/10" />
+             <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground/80">
+                <Heart className="w-3 h-3 text-primary" />
+                <span>{totalLikes}</span>
+             </div>
+             <div className="h-3 w-[1px] bg-white/10" />
+             <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground/80">
+                <Eye className="w-3 h-3 text-blue-400" />
+                <span>{totalVisits}</span>
+             </div>
           </div>
         </div>
       </div>

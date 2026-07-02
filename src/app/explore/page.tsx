@@ -1,15 +1,16 @@
+
 "use client"
 
 import { Navigation } from "@/components/navigation";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, ExternalLink, Heart, Tag, X, Briefcase, Zap, Layout } from "lucide-react";
+import { Search, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, ExternalLink, Heart, Tag, X, Briefcase, Zap, Layout, Eye, Star, Trophy, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
 import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
-import { useUser, useFirestore, useCollection } from "@/firebase";
+import { useUser, useFirestore, useCollection, useDoc } from "@/firebase";
 import { doc, setDoc, deleteDoc, increment, collection } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 
@@ -47,7 +48,7 @@ export default function ExplorePage() {
       description: s.description || "User submitted project",
       longDescription: s.longDescription || "A project shared by the Icantfindawebsite community.",
       categories: s.categories || ["Web App"],
-      rating: 4.5,
+      rating: 0,
       reviewCount: 0,
       pricing: "Free",
       imageUrl: s.logoUrl || "",
@@ -177,23 +178,36 @@ export default function ExplorePage() {
 function ExploreItemRow({ app }: { app: any }) {
   const { user } = useUser();
   const db = useFirestore();
-  const [liked, setLiked] = useState(false);
+  
+  const likeDocRef = useMemo(() => {
+    if (!user || !db) return null;
+    return doc(db, "users", user.uid, "likedWebsites", app.id);
+  }, [user, db, app.id]);
+
+  const { data: likeData } = useDoc(likeDocRef);
+  const liked = !!likeData;
+
+  const statsRef = useMemo(() => {
+    if (!db) return null;
+    return doc(db, "websiteStats", app.id);
+  }, [db, app.id]);
+
+  const { data: stats } = useDoc(statsRef);
 
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!user || !db) return;
     
     const likeRef = doc(db, "users", user.uid, "likedWebsites", app.id);
-    const statsRef = doc(db, "websiteStats", app.id);
+    const globalStatsRef = doc(db, "websiteStats", app.id);
 
     if (liked) {
       deleteDoc(likeRef);
-      setDoc(statsRef, { ratingSum: increment(-1), ratingCount: increment(-1) }, { merge: true });
+      setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
     } else {
       setDoc(likeRef, { id: app.id, timestamp: new Date().toISOString() });
-      setDoc(statsRef, { ratingSum: increment(5), ratingCount: increment(1) }, { merge: true });
+      setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
     }
-    setLiked(!liked);
   };
 
   const getPricingStyle = (pricing: string) => {
@@ -204,6 +218,13 @@ function ExploreItemRow({ app }: { app: any }) {
       default: return "bg-secondary text-secondary-foreground border-white/10";
     }
   };
+
+  const currentRating = stats?.ratingCount > 0 
+    ? (stats.ratingSum / stats.ratingCount).toFixed(1) 
+    : null;
+
+  const totalLikes = stats?.likeCount || 0;
+  const totalVisits = stats?.visitCount || 0;
 
   return (
     <Link href={`/website/${app.id}`} className="group relative">
@@ -220,13 +241,24 @@ function ExploreItemRow({ app }: { app: any }) {
               className="w-full h-full"
             />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-2">
             <span className="text-xl sm:text-2xl font-black text-white group-hover:text-primary transition-colors tracking-tight block">
               {app.name}
             </span>
-            <Badge variant="secondary" className="bg-white/10 text-[9px] uppercase font-black tracking-widest px-2 sm:px-3 py-1 text-muted-foreground border-none">
-              {app.categories[0]}
-            </Badge>
+            <div className="flex flex-col items-center gap-1.5">
+              <div className={cn(
+                "flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-wider",
+                getPricingStyle(app.pricing)
+              )}>
+                <Tag className="w-3 h-3" />
+                {app.pricing}
+              </div>
+              {totalLikes > 50 && (
+                <div className="flex items-center gap-1 bg-amber-500/90 text-black px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter">
+                  <Trophy className="w-2.5 h-2.5" /> Most Liked
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -241,20 +273,48 @@ function ExploreItemRow({ app }: { app: any }) {
             {app.longDescription}
           </p>
 
-          <div className="flex items-center gap-6 sm:gap-10">
-            <div className={cn(
-              "flex items-center gap-2 px-5 py-2.5 rounded-2xl border text-base font-black uppercase tracking-wider",
-              getPricingStyle(app.pricing)
-            )}>
-              <Tag className="w-5 h-5" />
-              {app.pricing}
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-6 sm:gap-10">
+              <div className="flex flex-col">
+                <span className="text-white font-bold text-sm sm:text-lg flex items-center gap-2 italic">
+                  {app.updatedAt}
+                </span>
+                <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Last Updated</span>
+              </div>
+              <div className="h-4 sm:h-6 w-[1px] bg-white/10" />
+              <div className="flex flex-col">
+                <span className="text-white font-bold text-sm sm:text-lg">
+                  {app.categories[0]}
+                </span>
+                <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Category</span>
+              </div>
             </div>
-            <div className="h-4 sm:h-6 w-[1px] bg-white/10" />
-            <div className="flex flex-col">
-              <span className="text-white font-bold text-sm sm:text-lg flex items-center gap-2 italic">
-                {app.updatedAt}
-              </span>
-              <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Last Updated</span>
+
+            {/* Horizontal Play Store Style Stats Row */}
+            <div className="flex items-center gap-6 py-3 border-t border-white/5 max-w-fit">
+               <div className="flex flex-col items-center gap-0.5">
+                  <div className="flex items-center gap-1 text-white font-black text-sm">
+                    <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                    {currentRating || "0.0"}
+                  </div>
+                  <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Rating</span>
+               </div>
+               <div className="h-6 w-[1px] bg-white/10" />
+               <div className="flex flex-col items-center gap-0.5">
+                  <div className="flex items-center gap-1 text-white font-black text-sm">
+                    <Heart className="w-3.5 h-3.5 text-primary" />
+                    {totalLikes}
+                  </div>
+                  <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Likes</span>
+               </div>
+               <div className="h-6 w-[1px] bg-white/10" />
+               <div className="flex flex-col items-center gap-0.5">
+                  <div className="flex items-center gap-1 text-white font-black text-sm">
+                    <Eye className="w-3.5 h-3.5 text-blue-400" />
+                    {totalVisits}
+                  </div>
+                  <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Visits</span>
+               </div>
             </div>
           </div>
         </div>

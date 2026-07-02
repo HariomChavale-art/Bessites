@@ -23,7 +23,10 @@ import {
   Smartphone,
   Users,
   Heart,
-  Eye
+  Eye,
+  Trophy,
+  TrendingUp,
+  Sparkles
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -41,7 +44,6 @@ export default function WebsiteDetail() {
   
   const website = MOCK_WEBSITES.find(w => w.id === id);
   const [ratingLoading, setRatingLoading] = useState(false);
-  const [liked, setLiked] = useState(false);
   const [comment, setComment] = useState("");
   const [ratingValue, setRatingValue] = useState(0);
 
@@ -51,6 +53,14 @@ export default function WebsiteDetail() {
   }, [db, id]);
 
   const { data: stats } = useDoc(statsRef);
+
+  const likeDocRef = useMemo(() => {
+    if (!user || !db || !id) return null;
+    return doc(db, "users", user.uid, "likedWebsites", id as string);
+  }, [user, db, id]);
+
+  const { data: likeData } = useDoc(likeDocRef);
+  const liked = !!likeData;
 
   const ratingsQuery = useMemo(() => {
     if (!db || !id) return null;
@@ -79,7 +89,6 @@ export default function WebsiteDetail() {
   
   const visitCount = stats?.visitCount || 0;
   const likeCount = stats?.likeCount || 0;
-  const totalReviews = stats?.ratingCount || 0;
 
   const handleVisitClick = () => {
     if (!db || !id) return;
@@ -100,7 +109,6 @@ export default function WebsiteDetail() {
       setDoc(likeRef, { id, timestamp: new Date().toISOString() });
       setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
     }
-    setLiked(!liked);
   };
 
   const submitRating = async () => {
@@ -165,6 +173,18 @@ export default function WebsiteDetail() {
                 </Badge>
               ))}
             </div>
+            <div className="flex flex-wrap gap-2 mt-3">
+               {likeCount > 50 && (
+                <Badge className="bg-amber-500 text-black border-none uppercase text-[9px] font-black tracking-widest px-3 py-1">
+                  <Trophy className="w-3 h-3 mr-1" /> Most Liked
+                </Badge>
+              )}
+              {visitCount > 500 && (
+                <Badge className="bg-primary text-white border-none uppercase text-[9px] font-black tracking-widest px-3 py-1">
+                  <TrendingUp className="w-3 h-3 mr-1" /> Trending
+                </Badge>
+              )}
+            </div>
           </div>
           <button className="p-2 text-muted-foreground hover:text-white shrink-0">
             <MoreVertical className="w-6 h-6" />
@@ -185,8 +205,8 @@ export default function WebsiteDetail() {
             variant="outline" 
             onClick={handleLike}
             className={cn(
-              "flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black gap-3 text-lg",
-              liked && "text-primary border-primary/20"
+              "flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black gap-3 text-lg transition-all",
+              liked && "text-primary border-primary/20 bg-primary/5"
             )}
           >
             <Bookmark className={cn("w-6 h-6", liked && "fill-current")} /> {liked ? "Saved" : "Save"}

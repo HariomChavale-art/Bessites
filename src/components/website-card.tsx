@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Website } from "@/lib/mock-data";
@@ -42,10 +43,10 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
 
     if (isLiked) {
       deleteDoc(likeRef);
-      setDoc(globalStatsRef, { ratingSum: increment(-1), ratingCount: increment(-1) }, { merge: true });
+      setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
     } else {
       setDoc(likeRef, { id: website.id, timestamp: new Date().toISOString() });
-      setDoc(globalStatsRef, { ratingSum: increment(5), ratingCount: increment(1) }, { merge: true });
+      setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
     }
   };
 
@@ -61,6 +62,8 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   const currentRating = stats?.ratingCount > 0 
     ? (stats.ratingSum / stats.ratingCount).toFixed(1) 
     : null;
+
+  const totalLikes = stats?.likeCount || 0;
 
   return (
     <Link href={`/website/${website.id}`} className="block break-inside-avoid mb-4 sm:mb-6 group">
@@ -120,6 +123,11 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
           <p className="text-[10px] sm:text-[13px] text-muted-foreground/80 line-clamp-2 leading-relaxed text-center font-medium px-1 sm:px-2">
             {website.description}
           </p>
+          <div className="flex items-center justify-center gap-4 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 pt-1">
+             <span className="flex items-center gap-1"><Heart className="w-2.5 h-2.5" /> {totalLikes}</span>
+             <span className="h-2 w-[1px] bg-white/10" />
+             <span className="flex items-center gap-1"><Star className="w-2.5 h-2.5" /> {currentRating || "0.0"}</span>
+          </div>
         </div>
       </div>
     </Link>

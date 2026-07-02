@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useParams } from "next/navigation";
@@ -19,7 +20,10 @@ import {
   ArrowRight,
   Zap,
   ShieldCheck,
-  Smartphone
+  Smartphone,
+  Users,
+  Heart,
+  Eye
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -74,6 +78,7 @@ export default function WebsiteDetail() {
     : "0.0";
   
   const visitCount = stats?.visitCount || 0;
+  const likeCount = stats?.likeCount || 0;
   const totalReviews = stats?.ratingCount || 0;
 
   const handleVisitClick = () => {
@@ -90,10 +95,10 @@ export default function WebsiteDetail() {
 
     if (liked) {
       deleteDoc(likeRef);
-      setDoc(globalStatsRef, { ratingSum: increment(-1), ratingCount: increment(-1) }, { merge: true });
+      setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
     } else {
       setDoc(likeRef, { id, timestamp: new Date().toISOString() });
-      setDoc(globalStatsRef, { ratingSum: increment(5), ratingCount: increment(1) }, { merge: true });
+      setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
     }
     setLiked(!liked);
   };
@@ -192,7 +197,40 @@ export default function WebsiteDetail() {
         </div>
 
         <section className="space-y-8 mb-12">
-           <h2 className="text-2xl font-black text-white tracking-tight italic uppercase">Technical Benchmarks</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-black text-white tracking-tight italic uppercase">Community Insights</h2>
+            <Badge className="bg-primary/10 text-primary border-none text-[10px] font-black uppercase tracking-widest px-3 py-1">
+              Real-time Analytics
+            </Badge>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl text-center space-y-2 group hover:bg-white/5 transition-colors">
+              <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-2 text-blue-500 group-hover:scale-110 transition-transform">
+                <Eye className="w-6 h-6" />
+              </div>
+              <div className="text-3xl font-black text-white">{visitCount.toLocaleString()}</div>
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Total Visits</p>
+            </div>
+            
+            <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl text-center space-y-2 group hover:bg-white/5 transition-colors">
+              <div className="w-12 h-12 bg-pink-500/10 rounded-2xl flex items-center justify-center mx-auto mb-2 text-pink-500 group-hover:scale-110 transition-transform">
+                <Heart className="w-6 h-6" />
+              </div>
+              <div className="text-3xl font-black text-white">{likeCount.toLocaleString()}</div>
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Global Likes</p>
+            </div>
+
+            <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl text-center space-y-2 group hover:bg-white/5 transition-colors">
+              <div className="w-12 h-12 bg-yellow-500/10 rounded-2xl flex items-center justify-center mx-auto mb-2 text-yellow-500 group-hover:scale-110 transition-transform">
+                <Star className="w-6 h-6 fill-current" />
+              </div>
+              <div className="text-3xl font-black text-white">{currentRating}</div>
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Avg. Rating</p>
+            </div>
+          </div>
+
+          <h2 className="text-2xl font-black text-white tracking-tight italic uppercase pt-8">Technical Benchmarks</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
             <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
               <div className="bg-green-500/10 p-2.5 rounded-xl">
@@ -243,22 +281,8 @@ export default function WebsiteDetail() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-10 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
-            <div className="text-center space-y-1 border-r border-white/5">
-              <div className="flex items-center justify-center gap-1">
-                <span className="text-white font-black text-2xl">{currentRating}</span>
-                <Star className="w-5 h-5 fill-primary text-primary" />
-              </div>
-              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Community Rating</p>
-            </div>
-            <div className="text-center space-y-1">
-              <span className="text-white font-black text-2xl">{totalReviews.toLocaleString()}</span>
-              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Real Reviews</p>
-            </div>
-          </div>
-
           <div className="flex items-center justify-between mt-12">
-            <h2 className="text-3xl font-black text-white tracking-tight">Community reviews</h2>
+            <h2 className="text-3xl font-black text-white tracking-tight italic uppercase">Community reviews</h2>
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="ghost" className="text-primary font-bold hover:bg-primary/10">

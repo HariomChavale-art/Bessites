@@ -2,17 +2,15 @@
 
 import { Navigation } from "@/components/navigation";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, ExternalLink, Heart, Tag, X, Briefcase, Zap, Layout, Eye, Star, Share2, Bookmark, TrendingUp } from "lucide-react";
+import { Search, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, X, Briefcase, Zap, Layout, TrendingUp, Tag } from "lucide-react";
 import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
 import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
-import { useUser, useFirestore, useCollection, useDoc } from "@/firebase";
-import { doc, setDoc, deleteDoc, increment, collection } from "firebase/firestore";
+import { useFirestore, useCollection, useDoc } from "@/firebase";
+import { doc, collection } from "firebase/firestore";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
 
 const CATEGORIES = [
   { name: "Gaming", icon: Gamepad2, color: "text-red-400" },
@@ -176,86 +174,14 @@ export default function ExplorePage() {
 }
 
 function ExploreItemRow({ app }: { app: any }) {
-  const { user } = useUser();
   const db = useFirestore();
-  const { toast } = useToast();
   
-  // Save logic (Bookmark) - Profile Collection
-  const saveDocRef = useMemo(() => {
-    if (!user || !db) return null;
-    return doc(db, "users", user.uid, "likedWebsites", app.id);
-  }, [user, db, app.id]);
-
-  const { data: saveData } = useDoc(saveDocRef);
-  const isSaved = !!saveData;
-
-  // Like logic (Heart) - Global Popularity Toggle
-  const likeDocRef = useMemo(() => {
-    if (!user || !db) return null;
-    return doc(db, "users", user.uid, "userLikes", app.id);
-  }, [user, db, app.id]);
-
-  const { data: likeData } = useDoc(likeDocRef);
-  const isLiked = !!likeData;
-
   const statsRef = useMemo(() => {
     if (!db) return null;
     return doc(db, "websiteStats", app.id);
   }, [db, app.id]);
 
   const { data: stats } = useDoc(statsRef);
-
-  const handleLike = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!user || !db) {
-      toast({ title: "Bessites Access", description: "Please sign in to like projects." });
-      return;
-    }
-    
-    const globalStatsRef = doc(db, "websiteStats", app.id);
-    const userLikeRef = doc(db, "users", user.uid, "userLikes", app.id);
-
-    if (isLiked) {
-      deleteDoc(userLikeRef);
-      setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
-      toast({ title: "Unliked", description: "Vote removed." });
-    } else {
-      setDoc(userLikeRef, { likedAt: new Date().toISOString() });
-      setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
-      toast({ title: "Liked!", description: "Community popularity increased." });
-    }
-  };
-
-  const handleSave = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!user || !db) {
-      toast({ title: "Bessites Access", description: "Please sign in to save projects." });
-      return;
-    }
-    
-    const saveRef = doc(db, "users", user.uid, "likedWebsites", app.id);
-    if (isSaved) {
-      deleteDoc(saveRef);
-      toast({ title: "Removed", description: "Project removed from profile." });
-    } else {
-      setDoc(saveRef, { id: app.id, timestamp: new Date().toISOString() });
-      toast({ title: "Saved!", description: "Added to your collection." });
-    }
-  };
-
-  const handleVisit = () => {
-    if (!db || !app.id) return;
-    const globalStatsRef = doc(db, "websiteStats", app.id);
-    setDoc(globalStatsRef, { visitCount: increment(1) }, { merge: true });
-  };
-
-  const handleShare = () => {
-    if (!db || !app.id) return;
-    const globalStatsRef = doc(db, "websiteStats", app.id);
-    setDoc(globalStatsRef, { shareCount: increment(1) }, { merge: true });
-    navigator.clipboard.writeText(`${window.location.origin}/website/${app.id}`);
-    toast({ title: "Copied!", description: "Share link ready." });
-  };
 
   const getPricingStyle = (pricing: string) => {
     switch (pricing) {
@@ -266,14 +192,8 @@ function ExploreItemRow({ app }: { app: any }) {
     }
   };
 
-  const currentRating = stats?.ratingCount > 0 
-    ? (stats.ratingSum / stats.ratingCount).toFixed(1) 
-    : "0.0";
-
   const totalLikes = stats?.likeCount || 0;
   const totalVisits = stats?.visitCount || 0;
-  const totalShares = stats?.shareCount || 0;
-
   const isTrending = totalVisits > 100 || totalLikes > 20;
 
   return (
@@ -315,80 +235,13 @@ function ExploreItemRow({ app }: { app: any }) {
         <div className="flex-1 min-w-0 md:pt-4">
           <Link href={`/website/${app.id}`} className="flex items-center gap-3 mb-3">
             <h4 className="text-xl sm:text-3xl font-extrabold text-white leading-tight tracking-tighter group-hover:text-primary transition-colors line-clamp-2">
-              {app.description}
+              {app.name}
             </h4>
           </Link>
 
           <p className="text-sm sm:text-xl text-muted-foreground line-clamp-2 sm:line-clamp-3 leading-relaxed mb-6 sm:mb-8 font-medium">
-            {app.longDescription}
+            {app.description}
           </p>
-
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-6 py-3 border-t border-white/5 max-w-fit">
-               <div className="flex flex-col items-center gap-0.5 min-w-[40px]">
-                  <div className="flex items-center gap-1 text-white font-black text-sm">
-                    <Star className={cn("w-3.5 h-3.5", currentRating !== "0.0" ? "text-amber-500 fill-amber-500" : "text-white/20")} />
-                    {currentRating}
-                  </div>
-                  <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Rate</span>
-               </div>
-               <div className="h-6 w-[1px] bg-white/10" />
-               <button onClick={handleLike} className="flex flex-col items-center gap-0.5 min-w-[40px] hover:scale-110 transition-transform">
-                  <div className="flex items-center gap-1 text-white font-black text-sm">
-                    <Heart className={cn("w-3.5 h-3.5 text-pink-500", isLiked && "fill-current")} />
-                    {totalLikes}
-                  </div>
-                  <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Likes</span>
-               </button>
-               <div className="h-6 w-[1px] bg-white/10" />
-               <div className="flex flex-col items-center gap-0.5 min-w-[40px]">
-                  <div className="flex items-center gap-1 text-white font-black text-sm">
-                    <Eye className="w-3.5 h-3.5 text-blue-400" />
-                    {totalVisits}
-                  </div>
-                  <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Views</span>
-               </div>
-               <div className="h-6 w-[1px] bg-white/10" />
-               <div className="flex flex-col items-center gap-0.5 min-w-[40px]">
-                  <div className="flex items-center gap-1 text-white font-black text-sm">
-                    <Share2 className="w-3.5 h-3.5 text-green-400" />
-                    {totalShares}
-                  </div>
-                  <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Shares</span>
-               </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="hidden lg:flex flex-col items-center justify-center gap-4 shrink-0 pl-4">
-           <a 
-            href={app.url} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            onClick={handleVisit}
-           >
-             <Button className="bg-white text-background hover:bg-white/90 rounded-2xl h-14 px-8 font-black text-lg shadow-xl">
-                GET <ExternalLink className="w-5 h-5 ml-2" />
-             </Button>
-           </a>
-           <div className="flex flex-col gap-2">
-             <Button 
-                variant="ghost" 
-                onClick={handleSave}
-                className={isSaved ? "text-primary" : "text-muted-foreground"}
-              >
-                 <Bookmark className={cn("w-5 h-5 mr-2", isSaved && "fill-current")} />
-                 {isSaved ? "Saved" : "Save"}
-             </Button>
-             <Button 
-                variant="ghost" 
-                onClick={handleShare}
-                className="text-muted-foreground"
-              >
-                 <Share2 className="w-5 h-5 mr-2" />
-                 Share
-             </Button>
-           </div>
         </div>
       </div>
     </div>

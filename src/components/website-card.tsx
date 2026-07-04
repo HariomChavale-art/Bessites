@@ -69,10 +69,10 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
 
         <div className="p-3 sm:p-6 pt-1 sm:pt-2">
           <Link href={`/website/${website.id}`} className="text-center block">
-            <h3 className="font-headline font-bold text-sm sm:text-lg text-white group-hover:text-primary transition-colors truncate">
-              {website.name}
+            <h3 className="font-headline font-bold text-sm sm:text-base text-white group-hover:text-primary transition-colors truncate">
+              {website.name} • <span className="text-muted-foreground font-normal">{website.description}</span>
             </h3>
-            <p className="text-[10px] sm:text-xs text-muted-foreground/60 font-medium truncate mt-0.5">
+            <p className="text-[10px] sm:text-xs text-muted-foreground/40 font-medium truncate mt-0.5">
               {website.url.replace('https://', '').replace('www.', '').split('/')[0]}
             </p>
           </Link>

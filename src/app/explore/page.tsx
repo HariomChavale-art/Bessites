@@ -198,7 +198,7 @@ function ExploreItemRow({ app }: { app: any }) {
 
   return (
     <div className="group relative">
-      <div className="flex flex-col md:flex-row items-start gap-6 sm:gap-12 p-5 sm:p-8 rounded-3xl sm:rounded-[3.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-500 overflow-hidden">
+      <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-12 p-5 sm:p-8 rounded-3xl sm:rounded-[3.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-500 overflow-hidden">
         <Link href={`/website/${app.id}`} className="flex flex-col items-center gap-3 sm:gap-5 w-full md:w-48 shrink-0 text-center">
           <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-[2rem] sm:rounded-[3rem] overflow-hidden bg-card/80 border border-white/10 shadow-xl group-hover:scale-105 transition-transform duration-700">
             <WebsitePreview 
@@ -212,9 +212,6 @@ function ExploreItemRow({ app }: { app: any }) {
             />
           </div>
           <div className="space-y-2">
-            <span className="text-xl sm:text-2xl font-black text-white group-hover:text-primary transition-colors tracking-tight block">
-              {app.name}
-            </span>
             <div className="flex flex-col items-center gap-1.5">
               <div className={cn(
                 "flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-wider",
@@ -232,16 +229,15 @@ function ExploreItemRow({ app }: { app: any }) {
           </div>
         </Link>
 
-        <div className="flex-1 min-w-0 md:pt-4">
-          <Link href={`/website/${app.id}`} className="flex items-center gap-3 mb-3">
+        <div className="flex-1 min-w-0 text-center md:text-left">
+          <Link href={`/website/${app.id}`} className="flex flex-col md:flex-row items-center md:items-start gap-3 mb-3">
             <h4 className="text-xl sm:text-3xl font-extrabold text-white leading-tight tracking-tighter group-hover:text-primary transition-colors line-clamp-2">
-              {app.name}
+              {app.name} • <span className="text-muted-foreground font-normal">{app.description}</span>
             </h4>
           </Link>
-
-          <p className="text-sm sm:text-xl text-muted-foreground line-clamp-2 sm:line-clamp-3 leading-relaxed mb-6 sm:mb-8 font-medium">
-            {app.description}
-          </p>
+          <div className="text-[10px] sm:text-xs text-muted-foreground/30 font-medium tracking-widest uppercase">
+            {app.url.replace('https://', '').replace('www.', '').split('/')[0]}
+          </div>
         </div>
       </div>
     </div>

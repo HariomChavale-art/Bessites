@@ -173,6 +173,12 @@ export default function ExplorePage() {
   );
 }
 
+/**
+ * ExploreItemRow refined for Bessites.
+ * - Displays full title + description without truncation.
+ * - Removes engagement icons (moved to checkout/detail).
+ * - Dynamic vertical expansion to prevent text clipping.
+ */
 function ExploreItemRow({ app }: { app: any }) {
   const db = useFirestore();
   
@@ -198,7 +204,7 @@ function ExploreItemRow({ app }: { app: any }) {
 
   return (
     <div className="group relative">
-      <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-12 p-5 sm:p-8 rounded-3xl sm:rounded-[3.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-500 overflow-hidden">
+      <div className="flex flex-col md:flex-row items-start gap-6 sm:gap-12 p-5 sm:p-8 rounded-3xl sm:rounded-[3.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-500 overflow-hidden min-h-fit">
         <Link href={`/website/${app.id}`} className="flex flex-col items-center gap-3 sm:gap-5 w-full md:w-48 shrink-0 text-center">
           <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-[2rem] sm:rounded-[3rem] overflow-hidden bg-card/80 border border-white/10 shadow-xl group-hover:scale-105 transition-transform duration-700">
             <WebsitePreview 
@@ -229,9 +235,10 @@ function ExploreItemRow({ app }: { app: any }) {
           </div>
         </Link>
 
-        <div className="flex-1 min-w-0 text-center md:text-left">
-          <Link href={`/website/${app.id}`} className="flex flex-col md:flex-row items-center md:items-start gap-3 mb-3">
-            <h4 className="text-xl sm:text-3xl font-extrabold text-white leading-tight tracking-tighter group-hover:text-primary transition-colors line-clamp-2">
+        <div className="flex-1 min-w-0 py-2">
+          <Link href={`/website/${app.id}`} className="block mb-4">
+            {/* Title formatted as Name • Description. Removed line-clamp to allow vertical growth. */}
+            <h4 className="text-xl sm:text-3xl font-extrabold text-white leading-tight tracking-tighter group-hover:text-primary transition-colors whitespace-normal">
               {app.name} • <span className="text-muted-foreground font-normal">{app.description}</span>
             </h4>
           </Link>

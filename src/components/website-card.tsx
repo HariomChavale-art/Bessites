@@ -13,6 +13,13 @@ interface WebsiteCardProps {
   website: Website;
 }
 
+/**
+ * WebsiteCard refined for Bessites discovery.
+ * - Displays full title + description without truncation.
+ * - Zero-padding logos (object-cover).
+ * - Removes engagement icons (moved to checkout/detail).
+ * - Dynamic height to prevent text clipping.
+ */
 export function WebsiteCard({ website }: WebsiteCardProps) {
   const db = useFirestore();
   
@@ -67,12 +74,13 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
           </div>
         </Link>
 
-        <div className="p-3 sm:p-6 pt-1 sm:pt-2">
+        <div className="p-3 sm:p-6 pt-2 sm:pt-4">
           <Link href={`/website/${website.id}`} className="text-center block">
-            <h3 className="font-headline font-bold text-sm sm:text-base text-white group-hover:text-primary transition-colors truncate">
+            {/* Title formatted as Name • Description. No truncation to allow cards to expand vertically. */}
+            <h3 className="font-headline font-bold text-sm sm:text-lg text-white group-hover:text-primary transition-colors whitespace-normal leading-tight">
               {website.name} • <span className="text-muted-foreground font-normal">{website.description}</span>
             </h3>
-            <p className="text-[10px] sm:text-xs text-muted-foreground/40 font-medium truncate mt-0.5">
+            <p className="text-[10px] sm:text-xs text-muted-foreground/30 font-medium tracking-widest uppercase mt-2">
               {website.url.replace('https://', '').replace('www.', '').split('/')[0]}
             </p>
           </Link>

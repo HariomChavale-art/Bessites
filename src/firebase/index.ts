@@ -24,7 +24,7 @@ export function initializeFirebase(): {
     firestore = initializeFirestore(firebaseApp, {
       experimentalAutoDetectLongPolling: true,
       // Force long polling if standard detection is insufficient in the current environment
-      // experimentalForceLongPolling: true, 
+      experimentalForceLongPolling: true, 
     });
   }
   

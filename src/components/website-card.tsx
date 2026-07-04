@@ -20,7 +20,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   const db = useFirestore();
   const { toast } = useToast();
   
-  // Save logic (Bookmark) - Profile Collection
+  // Save logic (Bookmark) - Profile Collection Only
   const saveDocRef = useMemo(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid, "likedWebsites", website.id);
@@ -29,7 +29,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   const { data: saveData } = useDoc(saveDocRef);
   const isSaved = !!saveData;
 
-  // Like logic (Heart) - Global Popularity Toggle
+  // Like logic (Heart) - Global Popularity Toggle (+1 / -1)
   const likeDocRef = useMemo(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid, "userLikes", website.id);
@@ -58,7 +58,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
     if (isLiked) {
       deleteDoc(userLikeRef);
       setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
-      toast({ title: "Unliked", description: "Vote removed." });
+      toast({ title: "Liked Removed", description: "Global vote updated." });
     } else {
       setDoc(userLikeRef, { likedAt: new Date().toISOString() });
       setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });

@@ -17,25 +17,14 @@ export function Logo({ className, showText = false }: LogoProps) {
           xmlns="http://www.w3.org/2000/svg"
           className="w-7 h-7 transition-transform group-hover:scale-110 duration-500"
         >
-          {/* Stylized 'B' for Bessites */}
+          {/* Bold Official 'B' Logo */}
           <path
-            d="M25 20H55C65 20 75 25 75 40C75 50 70 55 60 55C70 55 80 60 80 75C80 85 70 95 55 95H25V20Z"
-            stroke="white"
-            strokeWidth="10"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M25 55H55"
-            stroke="white"
-            strokeWidth="10"
-            strokeLinecap="round"
-          />
-          {/* Star accent */}
-          <path
-            d="M85 15L88 22H95L89 26L91 33L85 29L79 33L81 26L75 22H82L85 15Z"
+            d="M30 20H55C70 20 80 30 80 42.5C80 50 75 55 65 57.5C75 60 85 67.5 85 80C85 92.5 75 100 60 100H30V20Z"
             fill="white"
           />
+          <rect x="30" y="20" width="12" height="80" fill="white" />
+          <path d="M42 45H55C60 45 65 42 65 37.5C65 33 60 30 55 30H42V45Z" fill="hsl(var(--primary))" />
+          <path d="M42 90H60C65 90 70 87 70 80C70 73 65 70 60 70H42V90Z" fill="hsl(var(--primary))" />
         </svg>
       </div>
       {showText && (

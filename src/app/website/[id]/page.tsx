@@ -57,7 +57,7 @@ export default function WebsiteDetail() {
   const { data: saveData } = useDoc(saveDocRef);
   const isSaved = !!saveData;
 
-  // Like logic (Heart) - Global Popularity Toggle
+  // Like logic (Heart) - Global Popularity Toggle (+1 / -1)
   const likeDocRef = useMemo(() => {
     if (!user || !db || !id) return null;
     return doc(db, "users", user.uid, "userLikes", id as string);
@@ -105,7 +105,7 @@ export default function WebsiteDetail() {
     if (isLiked) {
       deleteDoc(userLikeRef);
       setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
-      toast({ title: "Unliked", description: "Your vote was removed." });
+      toast({ title: "Liked Removed", description: "Global vote removed." });
     } else {
       setDoc(userLikeRef, { likedAt: serverTimestamp() });
       setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });

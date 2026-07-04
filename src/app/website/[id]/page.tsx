@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useParams } from "next/navigation";
@@ -10,23 +9,17 @@ import { useDoc, useUser, useFirestore, useCollection } from "@/firebase";
 import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc, collection, query, orderBy, limit } from "firebase/firestore";
 import { 
   Globe, 
-  MoreVertical,
   Loader2,
   MessageSquare,
   Star,
   Share2,
   Bookmark,
-  CheckCircle2,
-  ArrowRight,
   Zap,
   ShieldCheck,
   Smartphone,
-  Users,
   Heart,
   Eye,
-  Trophy,
   TrendingUp,
-  Sparkles
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -35,7 +28,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { WebsitePreview } from "@/components/website-preview";
-import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 
 export default function WebsiteDetail() {
@@ -56,13 +48,13 @@ export default function WebsiteDetail() {
 
   const { data: stats } = useDoc(statsRef);
 
-  const likeDocRef = useMemo(() => {
+  const saveDocRef = useMemo(() => {
     if (!user || !db || !id) return null;
     return doc(db, "users", user.uid, "likedWebsites", id as string);
   }, [user, db, id]);
 
-  const { data: likeData } = useDoc(likeDocRef);
-  const isSaved = !!likeData;
+  const { data: saveData } = useDoc(saveDocRef);
+  const isSaved = !!saveData;
 
   const ratingsQuery = useMemo(() => {
     if (!db || !id) return null;
@@ -74,14 +66,6 @@ export default function WebsiteDetail() {
   }, [db, id]);
 
   const { data: recentRatings } = useCollection(ratingsQuery);
-
-  const similarWebsites = useMemo(() => {
-    if (!website) return [];
-    return MOCK_WEBSITES.filter(w => 
-      w.id !== website.id && 
-      w.categories.some(cat => website.categories.includes(cat))
-    ).slice(0, 8);
-  }, [website]);
 
   if (!website) return <div className="p-8 text-center text-white font-bold">Website not found</div>;
 
@@ -102,16 +86,20 @@ export default function WebsiteDetail() {
   const handleLike = async () => {
     if (!user || !db || !id) return;
     const globalStatsRef = doc(db, "websiteStats", id as string);
-    const likeRef = doc(db, "users", user.uid, "likedWebsites", id as string);
+    await setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
+    toast({ title: "Liked!", description: "Thanks for showing support." });
+  };
+
+  const handleSave = async () => {
+    if (!user || !db || !id) return;
+    const saveRef = doc(db, "users", user.uid, "likedWebsites", id as string);
     
     if (isSaved) {
-      await deleteDoc(likeRef);
-      await setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
-      toast({ title: "Removed from saves", description: "Project no longer in your flow." });
+      await deleteDoc(saveRef);
+      toast({ title: "Removed", description: "Project removed from your profile." });
     } else {
-      await setDoc(likeRef, { id, timestamp: new Date().toISOString() });
-      await setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
-      toast({ title: "Bessites Saved!", description: "Added to your discovery profile." });
+      await setDoc(saveRef, { id, timestamp: new Date().toISOString() });
+      toast({ title: "Saved!", description: "Added to your discovery collection." });
     }
   };
 
@@ -124,13 +112,10 @@ export default function WebsiteDetail() {
       await navigator.clipboard.writeText(window.location.href);
       toast({
         title: "Link Copied!",
-        description: "Website link has been copied to your clipboard.",
+        description: "Bessites link copied to clipboard.",
       });
     } catch (e) {
-      toast({
-        title: "Shared!",
-        description: "Interaction recorded.",
-      });
+      toast({ title: "Shared!", description: "Interaction recorded." });
     }
   };
 
@@ -170,7 +155,7 @@ export default function WebsiteDetail() {
     }
   };
 
-  const TopAchievement = () => {
+  const AchievementBadge = () => {
     const isTrending = visitCount > 50 || likeCount > 10;
     if (!isTrending) return null;
     return (
@@ -185,7 +170,7 @@ export default function WebsiteDetail() {
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-4xl px-4 py-8">
-        <div className="flex gap-6 items-start mb-8">
+        <div className="flex gap-6 items-start mb-6">
           <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden bg-card border border-white/10 shrink-0 shadow-2xl">
             <WebsitePreview 
               websiteId={website.id}
@@ -206,19 +191,19 @@ export default function WebsiteDetail() {
                   {cat}
                 </Badge>
               ))}
-              <TopAchievement />
+              <AchievementBadge />
             </div>
           </div>
         </div>
 
-        <div className="space-y-4 mb-8">
-          <p className="text-lg text-muted-foreground font-medium leading-relaxed">
+        <div className="space-y-4 mb-6">
+          <p className="text-lg text-white font-medium leading-relaxed bg-white/5 p-6 rounded-3xl border border-white/5">
             {website.longDescription}
           </p>
         </div>
 
         {/* Compact Play Store Style Insights Bar */}
-        <div className="flex items-center justify-around py-6 border-y border-white/5 mb-8">
+        <div className="flex items-center justify-around py-6 border-y border-white/5 mb-8 bg-card/20 rounded-2xl">
            <div className="text-center flex-1">
               <div className="flex items-center justify-center gap-1 text-white font-black text-xl">
                 {currentRating}
@@ -262,23 +247,32 @@ export default function WebsiteDetail() {
               <Globe className="w-6 h-6" /> Visit Website
             </a>
           </Button>
-          <Button 
-            variant="outline" 
-            onClick={handleLike}
-            className={cn(
-              "flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black gap-3 text-lg transition-all",
-              isSaved && "text-primary border-primary/20 bg-primary/5"
-            )}
-          >
-            <Heart className={cn("w-6 h-6", isSaved && "fill-current")} /> {isSaved ? "Saved" : "Save"}
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={handleShare}
-            className="flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black gap-3 text-lg"
-          >
-            <Share2 className="w-6 h-6" /> Share
-          </Button>
+          <div className="flex flex-1 gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleLike}
+              className="flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black text-pink-500"
+            >
+              <Heart className="w-6 h-6" />
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleSave}
+              className={cn(
+                "flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black transition-all",
+                isSaved ? "text-primary border-primary/20 bg-primary/5" : "text-white"
+              )}
+            >
+              <Bookmark className={cn("w-6 h-6", isSaved && "fill-current")} />
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleShare}
+              className="flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black text-green-400"
+            >
+              <Share2 className="w-6 h-6" />
+            </Button>
+          </div>
         </div>
 
         <section className="space-y-8 mb-12">

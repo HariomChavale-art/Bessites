@@ -1,15 +1,15 @@
-
 "use client"
 
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
-import { Heart, Tag, Star, Eye, Trophy, TrendingUp, Share2, Bookmark } from "lucide-react";
+import { Heart, Tag, Star, Eye, TrendingUp, Share2, Bookmark } from "lucide-react";
 import { WebsitePreview } from "./website-preview";
 import { useMemo } from "react";
 import { useUser, useFirestore, useDoc } from "@/firebase";
 import { doc, setDoc, deleteDoc, increment } from "firebase/firestore";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface WebsiteCardProps {
   website: Website;
@@ -18,14 +18,15 @@ interface WebsiteCardProps {
 export function WebsiteCard({ website }: WebsiteCardProps) {
   const { user } = useUser();
   const db = useFirestore();
+  const { toast } = useToast();
   
-  const likeDocRef = useMemo(() => {
+  const saveDocRef = useMemo(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid, "likedWebsites", website.id);
   }, [user, db, website.id]);
 
-  const { data: likeData } = useDoc(likeDocRef);
-  const isSaved = !!likeData;
+  const { data: saveData } = useDoc(saveDocRef);
+  const isSaved = !!saveData;
 
   const statsRef = useMemo(() => {
     if (!db) return null;
@@ -34,20 +35,36 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
 
   const { data: stats } = useDoc(statsRef);
 
+  const handleLike = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!db) return;
+    const globalStatsRef = doc(db, "websiteStats", website.id);
+    setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
+    toast({ title: "Liked!", description: "Popularity increased." });
+  };
+
   const handleSave = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!user || !db) return;
     
-    const likeRef = doc(db, "users", user.uid, "likedWebsites", website.id);
-    const globalStatsRef = doc(db, "websiteStats", website.id);
-
+    const saveRef = doc(db, "users", user.uid, "likedWebsites", website.id);
     if (isSaved) {
-      deleteDoc(likeRef);
-      setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
+      deleteDoc(saveRef);
+      toast({ title: "Removed", description: "Project removed from your profile." });
     } else {
-      setDoc(likeRef, { id: website.id, timestamp: new Date().toISOString() });
-      setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
+      setDoc(saveRef, { id: website.id, timestamp: new Date().toISOString() });
+      toast({ title: "Saved!", description: "Added to your profile collection." });
     }
+  };
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!db) return;
+    const globalStatsRef = doc(db, "websiteStats", website.id);
+    setDoc(globalStatsRef, { shareCount: increment(1) }, { merge: true });
+    
+    navigator.clipboard.writeText(`${window.location.origin}/website/${website.id}`);
+    toast({ title: "Copied!", description: "Link copied to clipboard." });
   };
 
   const getPricingStyle = (pricing: string) => {
@@ -70,7 +87,6 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   const AchievementBadge = () => {
     const isTrending = totalVisits > 50 || totalLikes > 10;
     if (!isTrending) return null;
-    
     return (
       <div className="flex items-center gap-1 bg-primary text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter italic shadow-lg">
         <TrendingUp className="w-2.5 h-2.5" /> Community Pick
@@ -79,10 +95,10 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   };
 
   return (
-    <Link href={`/website/${website.id}`} className="block break-inside-avoid mb-4 sm:mb-6 group">
+    <div className="block break-inside-avoid mb-4 sm:mb-6 group">
       <div className="relative rounded-2xl sm:rounded-[2.5rem] overflow-hidden bg-card/40 border border-white/5 transition-all duration-500 group-hover:border-primary/40 group-hover:bg-card/60">
         
-        <div className="relative aspect-square overflow-hidden flex items-center justify-center bg-[#1A1A1A]">
+        <Link href={`/website/${website.id}`} className="relative aspect-square overflow-hidden flex items-center justify-center bg-[#1A1A1A]">
           <WebsitePreview 
             websiteId={website.id}
             websiteUrl={website.url}
@@ -104,7 +120,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
             <AchievementBadge />
           </div>
 
-          <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
+          <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 flex flex-col gap-2">
              <Button 
                 variant="ghost" 
                 size="icon" 
@@ -116,20 +132,28 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
              >
                 <Bookmark className={cn("w-4 h-4 sm:w-5 sm:h-5", isSaved && "fill-current")} />
              </Button>
+             <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleShare}
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 text-white hover:bg-black/60"
+             >
+                <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+             </Button>
           </div>
-        </div>
+        </Link>
 
         <div className="p-3 sm:p-6 pt-1 sm:pt-2 space-y-1 sm:space-y-3">
-          <div className="text-center">
+          <Link href={`/website/${website.id}`} className="text-center block">
             <h3 className="font-headline font-bold text-sm sm:text-lg text-white group-hover:text-primary transition-colors truncate">
               {website.name}
             </h3>
             <p className="text-[10px] sm:text-xs text-muted-foreground/60 font-medium truncate mt-0.5">
               {website.url.replace('https://', '').replace('www.', '').split('/')[0]}
             </p>
-          </div>
+          </Link>
           
-          <div className="flex items-center justify-center gap-2 sm:gap-3 py-3 border-t border-white/5 mt-2 overflow-x-auto no-scrollbar">
+          <div className="flex items-center justify-center gap-2 sm:gap-3 py-3 border-t border-white/5 mt-2">
              <div className="flex flex-col items-center gap-0.5 min-w-[35px]">
                 <div className="flex items-center gap-0.5 text-white font-black text-[10px]">
                   {currentRating}
@@ -138,13 +162,13 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
                 <span className="text-[7px] text-muted-foreground uppercase font-black tracking-widest">Rate</span>
              </div>
              <div className="h-4 w-[1px] bg-white/10 shrink-0" />
-             <div className="flex flex-col items-center gap-0.5 min-w-[35px]">
+             <button onClick={handleLike} className="flex flex-col items-center gap-0.5 min-w-[35px] hover:scale-110 transition-transform">
                 <div className="flex items-center gap-0.5 text-white font-black text-[10px]">
                   {totalLikes}
                   <Heart className="w-2.5 h-2.5 text-pink-500" />
                 </div>
                 <span className="text-[7px] text-muted-foreground uppercase font-black tracking-widest">Likes</span>
-             </div>
+             </button>
              <div className="h-4 w-[1px] bg-white/10 shrink-0" />
              <div className="flex flex-col items-center gap-0.5 min-w-[35px]">
                 <div className="flex items-center gap-0.5 text-white font-black text-[10px]">
@@ -153,9 +177,17 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
                 </div>
                 <span className="text-[7px] text-muted-foreground uppercase font-black tracking-widest">Views</span>
              </div>
+             <div className="h-4 w-[1px] bg-white/10 shrink-0" />
+             <div className="flex flex-col items-center gap-0.5 min-w-[35px]">
+                <div className="flex items-center gap-0.5 text-white font-black text-[10px]">
+                  {totalShares}
+                  <Share2 className="w-2.5 h-2.5 text-green-400" />
+                </div>
+                <span className="text-[7px] text-muted-foreground uppercase font-black tracking-widest">Shares</span>
+             </div>
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

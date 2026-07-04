@@ -1,11 +1,10 @@
-
 "use client"
 
 import { Navigation } from "@/components/navigation";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, ExternalLink, Heart, Tag, X, Briefcase, Zap, Layout, Eye, Star, Trophy, TrendingUp, Share2 } from "lucide-react";
+import { Search, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, ExternalLink, Heart, Tag, X, Briefcase, Zap, Layout, Eye, Star, Share2, Bookmark, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
 import { Input } from "@/components/ui/input";
@@ -13,6 +12,7 @@ import { useState, useMemo } from "react";
 import { useUser, useFirestore, useCollection, useDoc } from "@/firebase";
 import { doc, setDoc, deleteDoc, increment, collection } from "firebase/firestore";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 const CATEGORIES = [
   { name: "Gaming", icon: Gamepad2, color: "text-red-400" },
@@ -178,14 +178,15 @@ export default function ExplorePage() {
 function ExploreItemRow({ app }: { app: any }) {
   const { user } = useUser();
   const db = useFirestore();
+  const { toast } = useToast();
   
-  const likeDocRef = useMemo(() => {
+  const saveDocRef = useMemo(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid, "likedWebsites", app.id);
   }, [user, db, app.id]);
 
-  const { data: likeData } = useDoc(likeDocRef);
-  const liked = !!likeData;
+  const { data: saveData } = useDoc(saveDocRef);
+  const isSaved = !!saveData;
 
   const statsRef = useMemo(() => {
     if (!db) return null;
@@ -196,17 +197,23 @@ function ExploreItemRow({ app }: { app: any }) {
 
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (!db) return;
+    const globalStatsRef = doc(db, "websiteStats", app.id);
+    setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
+    toast({ title: "Liked!", description: "Popularity increased." });
+  };
+
+  const handleSave = (e: React.MouseEvent) => {
+    e.preventDefault();
     if (!user || !db) return;
     
-    const likeRef = doc(db, "users", user.uid, "likedWebsites", app.id);
-    const globalStatsRef = doc(db, "websiteStats", app.id);
-
-    if (liked) {
-      deleteDoc(likeRef);
-      setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
+    const saveRef = doc(db, "users", user.uid, "likedWebsites", app.id);
+    if (isSaved) {
+      deleteDoc(saveRef);
+      toast({ title: "Removed", description: "Project removed from profile." });
     } else {
-      setDoc(likeRef, { id: app.id, timestamp: new Date().toISOString() });
-      setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
+      setDoc(saveRef, { id: app.id, timestamp: new Date().toISOString() });
+      toast({ title: "Saved!", description: "Added to your collection." });
     }
   };
 
@@ -221,6 +228,7 @@ function ExploreItemRow({ app }: { app: any }) {
     const globalStatsRef = doc(db, "websiteStats", app.id);
     setDoc(globalStatsRef, { shareCount: increment(1) }, { merge: true });
     navigator.clipboard.writeText(`${window.location.origin}/website/${app.id}`);
+    toast({ title: "Copied!", description: "Share link ready." });
   };
 
   const getPricingStyle = (pricing: string) => {
@@ -234,7 +242,7 @@ function ExploreItemRow({ app }: { app: any }) {
 
   const currentRating = stats?.ratingCount > 0 
     ? (stats.ratingSum / stats.ratingCount).toFixed(1) 
-    : null;
+    : "0.0";
 
   const totalLikes = stats?.likeCount || 0;
   const totalVisits = stats?.visitCount || 0;
@@ -294,26 +302,26 @@ function ExploreItemRow({ app }: { app: any }) {
             <div className="flex items-center gap-6 py-3 border-t border-white/5 max-w-fit">
                <div className="flex flex-col items-center gap-0.5 min-w-[40px]">
                   <div className="flex items-center gap-1 text-white font-black text-sm">
-                    <Star className={cn("w-3.5 h-3.5", currentRating ? "text-amber-500 fill-amber-500" : "text-white/20")} />
-                    {currentRating || "0.0"}
+                    <Star className={cn("w-3.5 h-3.5", currentRating !== "0.0" ? "text-amber-500 fill-amber-500" : "text-white/20")} />
+                    {currentRating}
                   </div>
-                  <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Rating</span>
+                  <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Rate</span>
                </div>
                <div className="h-6 w-[1px] bg-white/10" />
-               <div className="flex flex-col items-center gap-0.5 min-w-[40px]">
+               <button onClick={handleLike} className="flex flex-col items-center gap-0.5 min-w-[40px] hover:scale-110 transition-transform">
                   <div className="flex items-center gap-1 text-white font-black text-sm">
-                    <Heart className="w-3.5 h-3.5 text-primary" />
+                    <Heart className="w-3.5 h-3.5 text-pink-500" />
                     {totalLikes}
                   </div>
                   <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Likes</span>
-               </div>
+               </button>
                <div className="h-6 w-[1px] bg-white/10" />
                <div className="flex flex-col items-center gap-0.5 min-w-[40px]">
                   <div className="flex items-center gap-1 text-white font-black text-sm">
                     <Eye className="w-3.5 h-3.5 text-blue-400" />
                     {totalVisits}
                   </div>
-                  <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Visits</span>
+                  <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Views</span>
                </div>
                <div className="h-6 w-[1px] bg-white/10" />
                <div className="flex flex-col items-center gap-0.5 min-w-[40px]">
@@ -341,11 +349,11 @@ function ExploreItemRow({ app }: { app: any }) {
            <div className="flex flex-col gap-2">
              <Button 
                 variant="ghost" 
-                onClick={handleLike}
-                className={liked ? "text-primary" : "text-muted-foreground"}
+                onClick={handleSave}
+                className={isSaved ? "text-primary" : "text-muted-foreground"}
               >
-                 <Heart className={liked ? "fill-current w-5 h-5 mr-2" : "w-5 h-5 mr-2"} />
-                 {liked ? "Liked" : "Like"}
+                 <Bookmark className={isSaved ? "fill-current w-5 h-5 mr-2" : "w-5 h-5 mr-2"} />
+                 {isSaved ? "Saved" : "Save"}
              </Button>
              <Button 
                 variant="ghost" 

@@ -48,6 +48,7 @@ export default function WebsiteDetail() {
 
   const { data: stats } = useDoc(statsRef);
 
+  // Save logic (Bookmark) - Profile Collection
   const saveDocRef = useMemo(() => {
     if (!user || !db || !id) return null;
     return doc(db, "users", user.uid, "likedWebsites", id as string);
@@ -55,6 +56,15 @@ export default function WebsiteDetail() {
 
   const { data: saveData } = useDoc(saveDocRef);
   const isSaved = !!saveData;
+
+  // Like logic (Heart) - Global Popularity Toggle
+  const likeDocRef = useMemo(() => {
+    if (!user || !db || !id) return null;
+    return doc(db, "users", user.uid, "userLikes", id as string);
+  }, [user, db, id]);
+
+  const { data: likeData } = useDoc(likeDocRef);
+  const isLiked = !!likeData;
 
   const ratingsQuery = useMemo(() => {
     if (!db || !id) return null;
@@ -84,14 +94,31 @@ export default function WebsiteDetail() {
   };
 
   const handleLike = async () => {
-    if (!user || !db || !id) return;
+    if (!user || !db || !id) {
+      toast({ title: "Bessites Access", description: "Please sign in to like projects." });
+      return;
+    }
+    
     const globalStatsRef = doc(db, "websiteStats", id as string);
-    await setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
-    toast({ title: "Liked!", description: "Bessites community popularity increased." });
+    const userLikeRef = doc(db, "users", user.uid, "userLikes", id as string);
+
+    if (isLiked) {
+      deleteDoc(userLikeRef);
+      setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
+      toast({ title: "Unliked", description: "Your vote was removed." });
+    } else {
+      setDoc(userLikeRef, { likedAt: serverTimestamp() });
+      setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
+      toast({ title: "Liked!", description: "Community popularity increased." });
+    }
   };
 
   const handleSave = async () => {
-    if (!user || !db || !id) return;
+    if (!user || !db || !id) {
+      toast({ title: "Bessites Access", description: "Please sign in to save projects." });
+      return;
+    }
+    
     const saveRef = doc(db, "users", user.uid, "likedWebsites", id as string);
     
     if (isSaved) {
@@ -210,7 +237,7 @@ export default function WebsiteDetail() {
            <div className="text-center flex-1">
               <div className="flex items-center justify-center gap-1 text-white font-black text-xl">
                 {likeCount.toLocaleString()}
-                <Heart className="w-4 h-4 text-pink-500" />
+                <Heart className={cn("w-4 h-4 text-pink-500", isLiked && "fill-current")} />
               </div>
               <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">Likes</p>
            </div>
@@ -246,9 +273,12 @@ export default function WebsiteDetail() {
             <Button 
               variant="outline" 
               onClick={handleLike}
-              className="flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black text-pink-500"
+              className={cn(
+                "flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black transition-all",
+                isLiked ? "text-pink-500 border-pink-500/20 bg-pink-500/5" : "text-white"
+              )}
             >
-              <Heart className="w-6 h-6" />
+              <Heart className={cn("w-6 h-6", isLiked && "fill-current")} />
             </Button>
             <Button 
               variant="outline" 

@@ -180,6 +180,7 @@ function ExploreItemRow({ app }: { app: any }) {
   const db = useFirestore();
   const { toast } = useToast();
   
+  // Save logic (Bookmark) - Profile Collection
   const saveDocRef = useMemo(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid, "likedWebsites", app.id);
@@ -187,6 +188,15 @@ function ExploreItemRow({ app }: { app: any }) {
 
   const { data: saveData } = useDoc(saveDocRef);
   const isSaved = !!saveData;
+
+  // Like logic (Heart) - Global Popularity Toggle
+  const likeDocRef = useMemo(() => {
+    if (!user || !db) return null;
+    return doc(db, "users", user.uid, "userLikes", app.id);
+  }, [user, db, app.id]);
+
+  const { data: likeData } = useDoc(likeDocRef);
+  const isLiked = !!likeData;
 
   const statsRef = useMemo(() => {
     if (!db) return null;
@@ -197,15 +207,31 @@ function ExploreItemRow({ app }: { app: any }) {
 
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!db) return;
+    if (!user || !db) {
+      toast({ title: "Bessites Access", description: "Please sign in to like projects." });
+      return;
+    }
+    
     const globalStatsRef = doc(db, "websiteStats", app.id);
-    setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
-    toast({ title: "Liked!", description: "Popularity increased." });
+    const userLikeRef = doc(db, "users", user.uid, "userLikes", app.id);
+
+    if (isLiked) {
+      deleteDoc(userLikeRef);
+      setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
+      toast({ title: "Unliked", description: "Vote removed." });
+    } else {
+      setDoc(userLikeRef, { likedAt: new Date().toISOString() });
+      setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
+      toast({ title: "Liked!", description: "Community popularity increased." });
+    }
   };
 
   const handleSave = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!user || !db) return;
+    if (!user || !db) {
+      toast({ title: "Bessites Access", description: "Please sign in to save projects." });
+      return;
+    }
     
     const saveRef = doc(db, "users", user.uid, "likedWebsites", app.id);
     if (isSaved) {
@@ -309,7 +335,7 @@ function ExploreItemRow({ app }: { app: any }) {
                <div className="h-6 w-[1px] bg-white/10" />
                <button onClick={handleLike} className="flex flex-col items-center gap-0.5 min-w-[40px] hover:scale-110 transition-transform">
                   <div className="flex items-center gap-1 text-white font-black text-sm">
-                    <Heart className="w-3.5 h-3.5 text-pink-500" />
+                    <Heart className={cn("w-3.5 h-3.5 text-pink-500", isLiked && "fill-current")} />
                     {totalLikes}
                   </div>
                   <span className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Likes</span>
@@ -351,7 +377,7 @@ function ExploreItemRow({ app }: { app: any }) {
                 onClick={handleSave}
                 className={isSaved ? "text-primary" : "text-muted-foreground"}
               >
-                 <Bookmark className={isSaved ? "fill-current w-5 h-5 mr-2" : "w-5 h-5 mr-2"} />
+                 <Bookmark className={cn("w-5 h-5 mr-2", isSaved && "fill-current")} />
                  {isSaved ? "Saved" : "Save"}
              </Button>
              <Button 

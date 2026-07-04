@@ -20,6 +20,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   const db = useFirestore();
   const { toast } = useToast();
   
+  // Save logic (Bookmark) - Profile Collection
   const saveDocRef = useMemo(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid, "likedWebsites", website.id);
@@ -27,6 +28,15 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
 
   const { data: saveData } = useDoc(saveDocRef);
   const isSaved = !!saveData;
+
+  // Like logic (Heart) - Global Popularity Toggle
+  const likeDocRef = useMemo(() => {
+    if (!user || !db) return null;
+    return doc(db, "users", user.uid, "userLikes", website.id);
+  }, [user, db, website.id]);
+
+  const { data: likeData } = useDoc(likeDocRef);
+  const isLiked = !!likeData;
 
   const statsRef = useMemo(() => {
     if (!db) return null;
@@ -37,15 +47,31 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
 
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!db) return;
+    if (!user || !db) {
+      toast({ title: "Bessites Access", description: "Please sign in to like projects." });
+      return;
+    }
+    
     const globalStatsRef = doc(db, "websiteStats", website.id);
-    setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
-    toast({ title: "Liked!", description: "Popularity increased." });
+    const userLikeRef = doc(db, "users", user.uid, "userLikes", website.id);
+
+    if (isLiked) {
+      deleteDoc(userLikeRef);
+      setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
+      toast({ title: "Unliked", description: "Vote removed." });
+    } else {
+      setDoc(userLikeRef, { likedAt: new Date().toISOString() });
+      setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
+      toast({ title: "Liked!", description: "Community popularity increased." });
+    }
   };
 
   const handleSave = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!user || !db) return;
+    if (!user || !db) {
+      toast({ title: "Bessites Access", description: "Please sign in to save projects." });
+      return;
+    }
     
     const saveRef = doc(db, "users", user.uid, "likedWebsites", website.id);
     if (isSaved) {
@@ -64,7 +90,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
     setDoc(globalStatsRef, { shareCount: increment(1) }, { merge: true });
     
     navigator.clipboard.writeText(`${window.location.origin}/website/${website.id}`);
-    toast({ title: "Copied!", description: "Link copied to clipboard." });
+    toast({ title: "Copied!", description: "Share link ready." });
   };
 
   const getPricingStyle = (pricing: string) => {
@@ -88,7 +114,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
 
   return (
     <div className="block break-inside-avoid mb-4 sm:mb-6 group">
-      <div className="relative rounded-2xl sm:rounded-[2.5rem] overflow-hidden bg-card/40 border border-white/5 transition-all duration-500 group-hover:border-primary/40 group-hover:bg-card/60">
+      <div className="relative rounded-2xl sm:rounded-[2.5rem] overflow-hidden bg-card/40 border border-white/5 transition-all duration-500 group-hover:border-primary/40 group-hover:bg-card/60 shadow-xl">
         
         <Link href={`/website/${website.id}`} className="relative aspect-square overflow-hidden flex items-center justify-center bg-[#1A1A1A]">
           <WebsitePreview 
@@ -161,7 +187,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
              <button onClick={handleLike} className="flex flex-col items-center gap-0.5 min-w-[35px] hover:scale-110 transition-transform">
                 <div className="flex items-center gap-0.5 text-white font-black text-[10px]">
                   {totalLikes}
-                  <Heart className="w-2.5 h-2.5 text-pink-500" />
+                  <Heart className={cn("w-2.5 h-2.5 text-pink-500", isLiked && "fill-current")} />
                 </div>
                 <span className="text-[7px] text-muted-foreground uppercase font-black tracking-widest">Likes</span>
              </button>

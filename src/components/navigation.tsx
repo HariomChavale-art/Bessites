@@ -12,7 +12,7 @@ const SUGGESTIONS = [
   "Check the 'Trending' tab for what's hot.",
   "Submit your own web app via Profile.",
   "Use 'Magic Categorize' for fast uploads.",
-  "Icantfindawebsite: Discover 100+ unique web apps.",
+  "Bessites: Discover 100+ unique web apps.",
 ];
 
 export function Navigation() {

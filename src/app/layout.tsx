@@ -6,8 +6,8 @@ import { FirebaseClientProvider } from '@/firebase';
 import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
-  title: 'Icantfindawebsite | Discover Web Apps',
-  description: 'A Pinterest-inspired directory for modern web applications.',
+  title: 'Bessites | Discover Web Apps',
+  description: 'A professional directory for modern webs and digital tools.',
 };
 
 export default function RootLayout({

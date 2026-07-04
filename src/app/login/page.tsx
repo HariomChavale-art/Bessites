@@ -102,7 +102,7 @@ export default function LoginPage() {
       case 'auth/invalid-credential':
         return "Incorrect email or password. Please verify and try again.";
       default:
-        return "Icantfindawebsite Access: An authentication glitch occurred. Please verify your details.";
+        return "Bessites Access: An authentication glitch occurred. Please verify your details.";
     }
   };
 
@@ -148,7 +148,7 @@ export default function LoginPage() {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Icantfindawebsite Access",
+        title: "Bessites Access",
         description: formatAuthError(error),
       });
     } finally {
@@ -160,7 +160,7 @@ export default function LoginPage() {
     if (!auth || !email) {
       toast({
         variant: "destructive",
-        title: "Icantfindawebsite Support",
+        title: "Bessites Support",
         description: "Please enter your email address to receive a recovery link.",
       });
       return;
@@ -260,7 +260,7 @@ export default function LoginPage() {
         <div className="space-y-4 text-center">
           <h1 className="text-5xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-tight">
             Welcome to <br />
-            <span className="text-primary">Icantfindawebsite!</span>
+            <span className="text-primary">Bessites!</span>
           </h1>
           <p className="text-muted-foreground font-medium text-xl max-w-md mx-auto">
             The world's most curated directory for web tools, games, and modern webs.

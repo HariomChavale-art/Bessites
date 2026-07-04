@@ -44,7 +44,7 @@ export default function Home() {
       name: s.name || s.url?.split('//')[1]?.split('.')[0] || "New Project",
       developer: s.userEmail || "Community",
       description: s.description || "User submitted project",
-      longDescription: s.longDescription || "A new project shared via Icantfindawebsite.",
+      longDescription: s.longDescription || "A new project shared via Bessites.",
       rating: 0,
       reviewCount: 0,
       categories: s.categories || ["Web App"],
@@ -82,7 +82,6 @@ export default function Home() {
     
     switch (activeTab) {
       case "trending":
-        // Sort by actual rating count if available, or just name
         results.sort((a, b) => b.name.localeCompare(a.name));
         break;
       case "new":
@@ -174,7 +173,7 @@ export default function Home() {
       <footer className="bg-card/50 border-t border-white/5 py-12">
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-muted-foreground">
-            © 2024 Icantfindawebsite. Zero Duplication. Zero Padding.
+            © 2024 Bessites. Zero Duplication. Zero Padding.
           </p>
         </div>
       </footer>

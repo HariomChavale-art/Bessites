@@ -17,7 +17,7 @@ export function Logo({ className, showText = false }: LogoProps) {
           xmlns="http://www.w3.org/2000/svg"
           className="w-7 h-7 transition-transform group-hover:scale-110 duration-500"
         >
-          {/* Main W Shape */}
+          {/* Main distinctive shape */}
           <path
             d="M10 30L35 85L50 55L65 85L90 30"
             stroke="url(#logo-gradient)"
@@ -25,7 +25,7 @@ export function Logo({ className, showText = false }: LogoProps) {
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          {/* The House/Dock Shape at the base */}
+          {/* The Home/Dock Shape at the base */}
           <path
             d="M40 85L40 65L50 55L60 65L60 85H40Z"
             fill="white"
@@ -40,7 +40,7 @@ export function Logo({ className, showText = false }: LogoProps) {
       </div>
       {showText && (
         <span className="text-xl font-black text-white tracking-tighter uppercase italic">
-          Icantfindawebsite
+          Bessites
         </span>
       )}
     </div>

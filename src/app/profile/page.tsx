@@ -40,7 +40,6 @@ export default function ProfilePage() {
 
   const { data: likedDocs, loading: likedLoading } = useCollection(likedCollectionRef);
 
-  // Simplified query to avoid composite index requirement
   const submissionsQuery = useMemo(() => {
     if (!user || !db) return null;
     return query(
@@ -51,7 +50,6 @@ export default function ProfilePage() {
 
   const { data: rawSubmissions, loading: submissionsLoading } = useCollection(submissionsQuery);
 
-  // Client-side sorting for submissions
   const userSubmissions = useMemo(() => {
     if (!rawSubmissions) return [];
     return [...rawSubmissions].sort((a: any, b: any) => {
@@ -71,7 +69,7 @@ export default function ProfilePage() {
     if (auth) {
       await signOut(auth);
       toast({
-        title: "Icantfindawebsite Access",
+        title: "Bessites Access",
         description: "You have been successfully signed out of your account.",
       });
       router.push("/");
@@ -240,10 +238,6 @@ export default function ProfilePage() {
                       </div>
                     </Card>
                   ))}
-                  <Link href="/submit" className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.01] hover:bg-white/[0.03] hover:border-primary/20 transition-all text-center">
-                    <Plus className="w-8 h-8 text-primary mb-3" />
-                    <span className="text-white font-bold">Submit Another</span>
-                  </Link>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/5 rounded-[3.5rem] bg-white/[0.02] text-center px-4">

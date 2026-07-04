@@ -155,7 +155,7 @@ export const MOCK_WEBSITES: Website[] = Array.from(new Set(RAW_SITES.map(s => s.
     return {
       id: `site-${index}`,
       name: site.name,
-      developer: "Icantfindawebsite Curator",
+      developer: "Bessites Curator",
       description: site.desc,
       longDescription: `${site.name} is a leading digital platform for ${site.cat.join(" and ")}. It provides high-quality resources and tools for the modern web community.`,
       rating: 0,

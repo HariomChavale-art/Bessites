@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Heart, Grid, LogOut, Loader2, ExternalLink, Clock, Settings, Shield, Bell, User as UserIcon, Palette, Eye } from "lucide-react";
+import { Plus, Heart, Bookmark, Grid, LogOut, Loader2, ExternalLink, Clock, Settings, Shield, Bell, User as UserIcon, Palette, Eye } from "lucide-react";
 import Link from "next/link";
 import { signOut } from "firebase/auth";
 import { doc, collection, query, where } from "firebase/firestore";
@@ -33,13 +33,23 @@ export default function ProfilePage() {
 
   const { data: profileData } = useDoc(userDocRef);
 
-  const likedCollectionRef = useMemo(() => {
+  // SAVED WEBSITES (Bookmark)
+  const savedCollectionRef = useMemo(() => {
     if (!user || !db) return null;
     return collection(db, "users", user.uid, "likedWebsites");
   }, [user, db]);
 
+  const { data: savedDocs, loading: savedLoading } = useCollection(savedCollectionRef);
+
+  // LIKED WEBSITES (Heart)
+  const likedCollectionRef = useMemo(() => {
+    if (!user || !db) return null;
+    return collection(db, "users", user.uid, "userLikes");
+  }, [user, db]);
+
   const { data: likedDocs, loading: likedLoading } = useCollection(likedCollectionRef);
 
+  // SUBMISSIONS
   const submissionsQuery = useMemo(() => {
     if (!user || !db) return null;
     return query(
@@ -59,7 +69,13 @@ export default function ProfilePage() {
     });
   }, [rawSubmissions]);
 
-  const likedWebsites = useMemo(() => {
+  const savedWebsitesList = useMemo(() => {
+    if (!savedDocs) return [];
+    const savedIds = savedDocs.map(doc => doc.id);
+    return MOCK_WEBSITES.filter(w => savedIds.includes(w.id));
+  }, [savedDocs]);
+
+  const likedWebsitesList = useMemo(() => {
     if (!likedDocs) return [];
     const likedIds = likedDocs.map(doc => doc.id);
     return MOCK_WEBSITES.filter(w => likedIds.includes(w.id));
@@ -178,29 +194,47 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <Tabs defaultValue="liked" className="w-full">
+        <Tabs defaultValue="saved" className="w-full">
           <div className="flex justify-center mb-12">
-            <TabsList className="bg-white/5 border border-white/5 rounded-2xl p-1.5 h-auto">
-              <TabsTrigger value="liked" className="rounded-xl px-8 sm:px-12 py-3.5 data-[state=active]:bg-white data-[state=active]:text-background font-bold transition-all">
+            <TabsList className="bg-white/5 border border-white/5 rounded-2xl p-1.5 h-auto overflow-x-auto no-scrollbar max-w-full">
+              <TabsTrigger value="saved" className="rounded-xl px-6 sm:px-8 py-3.5 data-[state=active]:bg-white data-[state=active]:text-background font-bold transition-all shrink-0">
+                <Bookmark className="w-4 h-4 mr-2" /> Saved
+              </TabsTrigger>
+              <TabsTrigger value="liked" className="rounded-xl px-6 sm:px-8 py-3.5 data-[state=active]:bg-white data-[state=active]:text-background font-bold transition-all shrink-0">
                 <Heart className="w-4 h-4 mr-2" /> Liked
               </TabsTrigger>
-              <TabsTrigger value="uploads" className="rounded-xl px-8 sm:px-12 py-3.5 data-[state=active]:bg-white data-[state=active]:text-background font-bold transition-all">
+              <TabsTrigger value="uploads" className="rounded-xl px-6 sm:px-8 py-3.5 data-[state=active]:bg-white data-[state=active]:text-background font-bold transition-all shrink-0">
                 <Grid className="w-4 h-4 mr-2" /> Submissions
               </TabsTrigger>
             </TabsList>
           </div>
 
+          <TabsContent value="saved">
+            {savedLoading ? (
+              <div className="flex justify-center py-20"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>
+            ) : savedWebsitesList.length > 0 ? (
+              <div className="columns-2 md:columns-3 lg:columns-4 gap-6 px-2">
+                {savedWebsitesList.map((app) => <WebsiteCard key={app.id} website={app} />)}
+              </div>
+            ) : (
+              <div className="text-center py-20 opacity-40">
+                <Bookmark className="w-12 h-12 mx-auto mb-4" />
+                <p className="text-lg">No saved tools in your collection yet.</p>
+              </div>
+            )}
+          </TabsContent>
+
           <TabsContent value="liked">
             {likedLoading ? (
               <div className="flex justify-center py-20"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>
-            ) : likedWebsites.length > 0 ? (
+            ) : likedWebsitesList.length > 0 ? (
               <div className="columns-2 md:columns-3 lg:columns-4 gap-6 px-2">
-                {likedWebsites.map((app) => <WebsiteCard key={app.id} website={app} />)}
+                {likedWebsitesList.map((app) => <WebsiteCard key={app.id} website={app} />)}
               </div>
             ) : (
               <div className="text-center py-20 opacity-40">
                 <Heart className="w-12 h-12 mx-auto mb-4" />
-                <p className="text-lg">No saved tools in your collection yet.</p>
+                <p className="text-lg">You haven't liked any websites yet.</p>
               </div>
             )}
           </TabsContent>

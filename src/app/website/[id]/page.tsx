@@ -62,7 +62,7 @@ export default function WebsiteDetail() {
   }, [user, db, id]);
 
   const { data: likeData } = useDoc(likeDocRef);
-  const liked = !!likeData;
+  const isSaved = !!likeData;
 
   const ratingsQuery = useMemo(() => {
     if (!db || !id) return null;
@@ -101,16 +101,21 @@ export default function WebsiteDetail() {
 
   const handleLike = async () => {
     if (!user || !db || !id) return;
-    
-    const likeRef = doc(db, "users", user.uid, "likedWebsites", id as string);
     const globalStatsRef = doc(db, "websiteStats", id as string);
+    setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
+    toast({
+      title: "Liked!",
+      description: "You've liked this project.",
+    });
+  };
 
-    if (liked) {
-      deleteDoc(likeRef);
-      setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
+  const handleSave = async () => {
+    if (!user || !db || !id) return;
+    const likeRef = doc(db, "users", user.uid, "likedWebsites", id as string);
+    if (isSaved) {
+      await deleteDoc(likeRef);
     } else {
-      setDoc(likeRef, { id, timestamp: new Date().toISOString() });
-      setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
+      await setDoc(likeRef, { id, timestamp: new Date().toISOString() });
     }
   };
 
@@ -168,12 +173,28 @@ export default function WebsiteDetail() {
     }
   };
 
+  const TopAchievement = () => {
+    const metrics = [
+      { label: "Most Liked", val: likeCount, icon: Heart, color: "bg-pink-500" },
+      { label: "Trending", val: visitCount, icon: TrendingUp, color: "bg-primary" },
+      { label: "Viral", val: shareCount, icon: Share2, color: "bg-green-500" },
+      { label: "Community Pick", val: parseFloat(currentRating) > 4 ? 100 : 0, icon: Sparkles, color: "bg-amber-500" }
+    ];
+    const top = metrics.sort((a, b) => b.val - a.val)[0];
+    if (top.val === 0) return null;
+    return (
+      <Badge className={cn("border-none uppercase text-[9px] font-black tracking-widest px-3 py-1", top.color)}>
+        <top.icon className="w-3 h-3 mr-1" /> {top.label}
+      </Badge>
+    );
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-4xl px-4 py-8">
-        <div className="flex gap-6 items-start mb-10">
+        <div className="flex gap-6 items-start mb-8">
           <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden bg-card border border-white/10 shrink-0">
             <WebsitePreview 
               websiteId={website.id}
@@ -187,25 +208,16 @@ export default function WebsiteDetail() {
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight truncate">{website.name}</h1>
-            <p className="text-primary font-bold text-lg truncate">{website.url.replace('https://', '')}</p>
-            <div className="flex flex-wrap gap-2 mt-2">
+            <p className="text-primary font-bold text-lg truncate mb-2">{website.url.replace('https://', '')}</p>
+            <div className="flex flex-wrap gap-2">
               {website.categories.map((cat) => (
-                <Badge key={cat} variant="secondary" className="bg-white/5 text-white border-none uppercase text-[9px] font-black tracking-widest px-3 py-1">
+                <Badge key={cat} variant="secondary" className="bg-white/5 text-white border-none uppercase text-[8px] font-black tracking-widest px-2 py-0.5">
                   {cat}
                 </Badge>
               ))}
             </div>
             <div className="flex flex-wrap gap-2 mt-3">
-               {likeCount > 50 && (
-                <Badge className="bg-amber-500 text-black border-none uppercase text-[9px] font-black tracking-widest px-3 py-1">
-                  <Trophy className="w-3 h-3 mr-1" /> Most Liked
-                </Badge>
-              )}
-              {visitCount > 500 && (
-                <Badge className="bg-primary text-white border-none uppercase text-[9px] font-black tracking-widest px-3 py-1">
-                  <TrendingUp className="w-3 h-3 mr-1" /> Trending
-                </Badge>
-              )}
+               <TopAchievement />
             </div>
           </div>
           <button className="p-2 text-muted-foreground hover:text-white shrink-0">
@@ -213,11 +225,52 @@ export default function WebsiteDetail() {
           </button>
         </div>
 
+        <div className="space-y-4 mb-8">
+          <p className="text-lg text-muted-foreground font-medium leading-relaxed">
+            {website.longDescription}
+          </p>
+        </div>
+
+        {/* Compact Play Store Style Insights Bar */}
+        <div className="flex items-center justify-around py-6 border-y border-white/5 mb-8">
+           <div className="text-center flex-1">
+              <div className="flex items-center justify-center gap-1 text-white font-black text-xl">
+                {currentRating}
+                <Star className={cn("w-4 h-4", currentRating !== "0.0" ? "text-amber-500 fill-amber-500" : "text-white/20")} />
+              </div>
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">Rating</p>
+           </div>
+           <div className="h-10 w-[1px] bg-white/10" />
+           <div className="text-center flex-1">
+              <div className="flex items-center justify-center gap-1 text-white font-black text-xl">
+                {likeCount.toLocaleString()}
+                <Heart className="w-4 h-4 text-pink-500" />
+              </div>
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">Likes</p>
+           </div>
+           <div className="h-10 w-[1px] bg-white/10" />
+           <div className="text-center flex-1">
+              <div className="flex items-center justify-center gap-1 text-white font-black text-xl">
+                {visitCount > 1000 ? `${(visitCount/1000).toFixed(1)}k` : visitCount}
+                <Eye className="w-4 h-4 text-blue-400" />
+              </div>
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">Visits</p>
+           </div>
+           <div className="h-10 w-[1px] bg-white/10" />
+           <div className="text-center flex-1">
+              <div className="flex items-center justify-center gap-1 text-white font-black text-xl">
+                {shareCount}
+                <Share2 className="w-4 h-4 text-green-400" />
+              </div>
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">Shares</p>
+           </div>
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
           <Button 
             onClick={handleVisitClick} 
             asChild 
-            className="flex-[3] bg-primary hover:bg-primary/90 text-white rounded-2xl h-16 text-xl font-black gap-3 shadow-xl glow-primary"
+            className="flex-[3] bg-white text-black hover:bg-white/90 rounded-2xl h-16 text-xl font-black gap-3 shadow-xl"
           >
             <a href={website.url} target="_blank" rel="noopener noreferrer">
               <Globe className="w-6 h-6" /> Visit Website
@@ -226,65 +279,24 @@ export default function WebsiteDetail() {
           <Button 
             variant="outline" 
             onClick={handleLike}
-            className={cn(
-              "flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black gap-3 text-lg transition-all",
-              liked && "text-primary border-primary/20 bg-primary/5"
-            )}
+            className="flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black gap-3 text-lg"
           >
-            <Bookmark className={cn("w-6 h-6", liked && "fill-current")} /> {liked ? "Saved" : "Save"}
+            <Heart className="w-6 h-6" /> Like
           </Button>
           <Button 
             variant="outline" 
-            onClick={handleShare}
-            className="flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black gap-3 text-lg"
+            onClick={handleSave}
+            className={cn(
+              "flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black gap-3 text-lg transition-all",
+              isSaved && "text-primary border-primary/20 bg-primary/5"
+            )}
           >
-            <Share2 className="w-6 h-6" /> Share
+            <Bookmark className={cn("w-6 h-6", isSaved && "fill-current")} /> {isSaved ? "Saved" : "Save"}
           </Button>
         </div>
 
         <section className="space-y-8 mb-12">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-black text-white tracking-tight italic uppercase">Community Insights</h2>
-            <Badge className="bg-primary/10 text-primary border-none text-[10px] font-black uppercase tracking-widest px-3 py-1">
-              Real-time Analytics
-            </Badge>
-          </div>
-          
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl text-center space-y-2 group hover:bg-white/5 transition-colors">
-              <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-2 text-blue-500 group-hover:scale-110 transition-transform">
-                <Eye className="w-6 h-6" />
-              </div>
-              <div className="text-3xl font-black text-white">{visitCount.toLocaleString()}</div>
-              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Total Visits</p>
-            </div>
-            
-            <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl text-center space-y-2 group hover:bg-white/5 transition-colors">
-              <div className="w-12 h-12 bg-pink-500/10 rounded-2xl flex items-center justify-center mx-auto mb-2 text-pink-500 group-hover:scale-110 transition-transform">
-                <Heart className="w-6 h-6" />
-              </div>
-              <div className="text-3xl font-black text-white">{likeCount.toLocaleString()}</div>
-              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Global Likes</p>
-            </div>
-
-            <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl text-center space-y-2 group hover:bg-white/5 transition-colors">
-              <div className="w-12 h-12 bg-yellow-500/10 rounded-2xl flex items-center justify-center mx-auto mb-2 text-yellow-500 group-hover:scale-110 transition-transform">
-                <Star className={cn("w-6 h-6", currentRating !== "0.0" && "fill-current")} />
-              </div>
-              <div className="text-3xl font-black text-white">{currentRating}</div>
-              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Avg. Rating</p>
-            </div>
-
-            <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl text-center space-y-2 group hover:bg-white/5 transition-colors">
-              <div className="w-12 h-12 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-2 text-green-500 group-hover:scale-110 transition-transform">
-                <Share2 className="w-6 h-6" />
-              </div>
-              <div className="text-3xl font-black text-white">{shareCount.toLocaleString()}</div>
-              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Global Shares</p>
-            </div>
-          </div>
-
-          <h2 className="text-2xl font-black text-white tracking-tight italic uppercase pt-8">Technical Benchmarks</h2>
+          <h2 className="text-2xl font-black text-white tracking-tight italic uppercase">Technical Benchmarks</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
             <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
               <div className="bg-green-500/10 p-2.5 rounded-xl">
@@ -292,45 +304,34 @@ export default function WebsiteDetail() {
               </div>
               <div>
                 <div className="text-xl font-black text-white">0.9s</div>
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
-                  Speed
-                </div>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Speed</div>
               </div>
             </div>
-            
             <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
               <div className="bg-green-500/10 p-2.5 rounded-xl">
                 <ShieldCheck className="w-6 h-6 text-green-500" />
               </div>
               <div>
                 <div className="text-xl font-black text-white">SSL</div>
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
-                  Secure
-                </div>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Secure</div>
               </div>
             </div>
-
             <div className="flex items-center gap-4 border-r border-white/5 pr-4 last:border-none">
               <div className="bg-blue-500/10 p-2.5 rounded-xl">
                 <Globe className="w-6 h-6 text-blue-500" />
               </div>
               <div>
                 <div className="text-xl font-black text-white">CDN</div>
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
-                  Global
-                </div>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Global</div>
               </div>
             </div>
-
             <div className="flex items-center gap-4">
               <div className="bg-yellow-500/10 p-2.5 rounded-xl">
                 <Smartphone className="w-6 h-6 text-yellow-500" />
               </div>
               <div>
                 <div className="text-xl font-black text-white">98/100</div>
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
-                  Mobile
-                </div>
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">Mobile</div>
               </div>
             </div>
           </div>
@@ -339,9 +340,7 @@ export default function WebsiteDetail() {
             <h2 className="text-3xl font-black text-white tracking-tight italic uppercase">Community reviews</h2>
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="ghost" className="text-primary font-bold hover:bg-primary/10">
-                  Write Review
-                </Button>
+                <Button variant="ghost" className="text-primary font-bold hover:bg-primary/10">Write Review</Button>
               </DialogTrigger>
               <DialogContent className="bg-background border-white/10 text-white rounded-[2rem] sm:max-w-md p-8">
                 <DialogHeader><DialogTitle className="text-2xl font-bold text-center">Share your experience</DialogTitle></DialogHeader>
@@ -361,11 +360,7 @@ export default function WebsiteDetail() {
                       className="bg-white/5 border-white/10 rounded-2xl min-h-[100px] text-white"
                     />
                   </div>
-                  <Button 
-                    onClick={submitRating} 
-                    disabled={ratingLoading || ratingValue === 0}
-                    className="w-full bg-primary hover:bg-primary/90 text-white h-14 rounded-2xl font-bold text-lg"
-                  >
+                  <Button onClick={submitRating} disabled={ratingLoading || ratingValue === 0} className="w-full bg-primary hover:bg-primary/90 text-white h-14 rounded-2xl font-bold text-lg">
                     {ratingLoading ? <Loader2 className="animate-spin" /> : "Post Review"}
                   </Button>
                 </div>
@@ -396,11 +391,7 @@ export default function WebsiteDetail() {
                       {rating.timestamp ? formatDistanceToNow(rating.timestamp.toDate(), { addSuffix: true }) : 'Just now'}
                     </span>
                   </div>
-                  {rating.comment && (
-                    <p className="text-muted-foreground italic leading-relaxed font-medium">
-                      "{rating.comment}"
-                    </p>
-                  )}
+                  {rating.comment && <p className="text-muted-foreground italic leading-relaxed font-medium">"{rating.comment}"</p>}
                 </div>
               ))
             ) : (
@@ -412,15 +403,8 @@ export default function WebsiteDetail() {
           </div>
         </section>
 
-        <div className="space-y-6 mb-12">
-          <h2 className="text-2xl font-black text-white tracking-tight italic uppercase">About {website.name}</h2>
-          <p className="text-lg text-muted-foreground font-medium leading-relaxed">
-            {website.longDescription}
-          </p>
-        </div>
-
         {similarWebsites.length > 0 && (
-          <section className="space-y-6 pt-24 pb-32">
+          <section className="space-y-6 pt-12 pb-32">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-black text-white tracking-tight italic uppercase">Similar to {website.name}</h2>
               <Link href="/explore" className="text-primary text-sm font-bold flex items-center gap-1 hover:underline">
@@ -432,15 +416,7 @@ export default function WebsiteDetail() {
                 <Link key={sub.id} href={`/website/${sub.id}`}>
                   <div className="flex items-center gap-4 p-0 overflow-hidden rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all group">
                     <div className="w-20 h-20 overflow-hidden bg-card border-r border-white/10 shrink-0">
-                      <WebsitePreview 
-                        websiteId={sub.id}
-                        websiteUrl={sub.url}
-                        fallbackUrl=""
-                        alt={sub.name}
-                        width={80}
-                        height={80}
-                        className="w-full h-full"
-                      />
+                      <WebsitePreview websiteId={sub.id} websiteUrl={sub.url} fallbackUrl="" alt={sub.name} width={80} height={80} className="w-full h-full" />
                     </div>
                     <div className="min-w-0 flex-1 px-4">
                       <h3 className="font-bold text-white truncate group-hover:text-primary transition-colors">{sub.name}</h3>

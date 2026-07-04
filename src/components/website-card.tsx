@@ -3,7 +3,7 @@
 
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
-import { Heart, Tag, Star, Eye, Trophy, TrendingUp, Sparkles, Share2 } from "lucide-react";
+import { Heart, Tag, Star, Eye, Trophy, TrendingUp, Sparkles, Share2, Bookmark } from "lucide-react";
 import { WebsitePreview } from "./website-preview";
 import { useMemo } from "react";
 import { useUser, useFirestore, useDoc } from "@/firebase";
@@ -25,7 +25,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   }, [user, db, website.id]);
 
   const { data: likeData } = useDoc(likeDocRef);
-  const isLiked = !!likeData;
+  const isSaved = !!likeData;
 
   const statsRef = useMemo(() => {
     if (!db) return null;
@@ -34,19 +34,15 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
 
   const { data: stats } = useDoc(statsRef);
 
-  const handleLike = (e: React.MouseEvent) => {
+  const handleSave = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!user || !db) return;
     
     const likeRef = doc(db, "users", user.uid, "likedWebsites", website.id);
-    const globalStatsRef = doc(db, "websiteStats", website.id);
-
-    if (isLiked) {
+    if (isSaved) {
       deleteDoc(likeRef);
-      setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
     } else {
       setDoc(likeRef, { id: website.id, timestamp: new Date().toISOString() });
-      setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
     }
   };
 
@@ -61,29 +57,25 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
 
   const currentRating = stats?.ratingCount > 0 
     ? (stats.ratingSum / stats.ratingCount).toFixed(1) 
-    : null;
+    : "0.0";
 
   const totalLikes = stats?.likeCount || 0;
   const totalVisits = stats?.visitCount || 0;
   const totalShares = stats?.shareCount || 0;
 
   const AchievementBadge = () => {
-    if (totalLikes > 50) return (
-      <div className="flex items-center gap-1 bg-amber-500/90 text-black px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter">
-        <Trophy className="w-2.5 h-2.5" /> Most Liked
+    const metrics = [
+      { label: "Most Liked", val: totalLikes, icon: Heart, color: "bg-pink-500" },
+      { label: "Trending", val: totalVisits, icon: TrendingUp, color: "bg-primary" },
+      { label: "Viral", val: totalShares, icon: Share2, color: "bg-green-500" }
+    ];
+    const top = metrics.sort((a, b) => b.val - a.val)[0];
+    if (!top || top.val === 0) return null;
+    return (
+      <div className={cn("flex items-center gap-1 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter", top.color)}>
+        <top.icon className="w-2.5 h-2.5" /> {top.label}
       </div>
     );
-    if (totalVisits > 500) return (
-      <div className="flex items-center gap-1 bg-primary/90 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter">
-        <TrendingUp className="w-2.5 h-2.5" /> Trending
-      </div>
-    );
-    if (currentRating && parseFloat(currentRating) >= 4.5) return (
-      <div className="flex items-center gap-1 bg-green-500/90 text-black px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter">
-        <Sparkles className="w-2.5 h-2.5" /> Community Pick
-      </div>
-    );
-    return null;
   };
 
   return (
@@ -116,13 +108,13 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
              <Button 
                 variant="ghost" 
                 size="icon" 
-                onClick={handleLike}
+                onClick={handleSave}
                 className={cn(
                   "w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 transition-all hover:bg-black/60",
-                  isLiked ? "text-primary border-primary/40" : "text-white"
+                  isSaved ? "text-primary border-primary/40" : "text-white"
                 )}
              >
-                <Heart className={cn("w-4 h-4 sm:w-5 sm:h-5", isLiked && "fill-current")} />
+                <Bookmark className={cn("w-4 h-4 sm:w-5 sm:h-5", isSaved && "fill-current")} />
              </Button>
           </div>
         </div>
@@ -136,29 +128,30 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
               {website.url.replace('https://', '').replace('www.', '').split('/')[0]}
             </p>
           </div>
-          <p className="text-[10px] sm:text-[13px] text-muted-foreground/80 line-clamp-2 leading-relaxed text-center font-medium px-1 sm:px-2">
-            {website.description}
-          </p>
           
-          <div className="flex items-center justify-center gap-2 sm:gap-3 py-2 mt-1 border-t border-white/5 overflow-x-auto no-scrollbar">
-             <div className="flex items-center gap-1 text-[9px] font-bold text-muted-foreground/80 shrink-0">
-                <Star className={cn("w-2.5 h-2.5", currentRating ? "text-amber-500 fill-amber-500" : "text-white/20")} />
-                <span>{currentRating || "0.0"}</span>
+          <div className="flex items-center justify-center gap-2 sm:gap-3 py-3 border-t border-white/5 mt-2 overflow-x-auto no-scrollbar">
+             <div className="flex flex-col items-center gap-0.5 min-w-[35px]">
+                <div className="flex items-center gap-0.5 text-white font-black text-[10px]">
+                  {currentRating}
+                  <Star className={cn("w-2.5 h-2.5", currentRating !== "0.0" ? "text-amber-500 fill-amber-500" : "text-white/20")} />
+                </div>
+                <span className="text-[7px] text-muted-foreground uppercase font-black tracking-widest">Rate</span>
              </div>
-             <div className="h-3 w-[1px] bg-white/10 shrink-0" />
-             <div className="flex items-center gap-1 text-[9px] font-bold text-muted-foreground/80 shrink-0">
-                <Heart className="w-2.5 h-2.5 text-primary" />
-                <span>{totalLikes}</span>
+             <div className="h-4 w-[1px] bg-white/10 shrink-0" />
+             <div className="flex flex-col items-center gap-0.5 min-w-[35px]">
+                <div className="flex items-center gap-0.5 text-white font-black text-[10px]">
+                  {totalLikes}
+                  <Heart className="w-2.5 h-2.5 text-pink-500" />
+                </div>
+                <span className="text-[7px] text-muted-foreground uppercase font-black tracking-widest">Likes</span>
              </div>
-             <div className="h-3 w-[1px] bg-white/10 shrink-0" />
-             <div className="flex items-center gap-1 text-[9px] font-bold text-muted-foreground/80 shrink-0">
-                <Eye className="w-2.5 h-2.5 text-blue-400" />
-                <span>{totalVisits}</span>
-             </div>
-             <div className="h-3 w-[1px] bg-white/10 shrink-0" />
-             <div className="flex items-center gap-1 text-[9px] font-bold text-muted-foreground/80 shrink-0">
-                <Share2 className="w-2.5 h-2.5 text-green-400" />
-                <span>{totalShares}</span>
+             <div className="h-4 w-[1px] bg-white/10 shrink-0" />
+             <div className="flex flex-col items-center gap-0.5 min-w-[35px]">
+                <div className="flex items-center gap-0.5 text-white font-black text-[10px]">
+                  {totalVisits > 1000 ? `${(totalVisits/1000).toFixed(1)}k` : totalVisits}
+                  <Eye className="w-2.5 h-2.5 text-blue-400" />
+                </div>
+                <span className="text-[7px] text-muted-foreground uppercase font-black tracking-widest">Views</span>
              </div>
           </div>
         </div>

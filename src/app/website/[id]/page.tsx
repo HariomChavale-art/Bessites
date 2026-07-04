@@ -87,7 +87,7 @@ export default function WebsiteDetail() {
     if (!user || !db || !id) return;
     const globalStatsRef = doc(db, "websiteStats", id as string);
     await setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
-    toast({ title: "Liked!", description: "Thanks for showing support." });
+    toast({ title: "Liked!", description: "Bessites community popularity increased." });
   };
 
   const handleSave = async () => {
@@ -99,7 +99,7 @@ export default function WebsiteDetail() {
       toast({ title: "Removed", description: "Project removed from your profile." });
     } else {
       await setDoc(saveRef, { id, timestamp: new Date().toISOString() });
-      toast({ title: "Saved!", description: "Added to your discovery collection." });
+      toast({ title: "Saved!", description: "Added to your collection." });
     }
   };
 
@@ -112,7 +112,7 @@ export default function WebsiteDetail() {
       await navigator.clipboard.writeText(window.location.href);
       toast({
         title: "Link Copied!",
-        description: "Bessites link copied to clipboard.",
+        description: "Bessites link ready to share.",
       });
     } catch (e) {
       toast({ title: "Shared!", description: "Interaction recorded." });
@@ -155,15 +155,7 @@ export default function WebsiteDetail() {
     }
   };
 
-  const AchievementBadge = () => {
-    const isTrending = visitCount > 50 || likeCount > 10;
-    if (!isTrending) return null;
-    return (
-      <Badge className="border-none bg-primary text-white uppercase text-[9px] font-black tracking-widest px-3 py-1 italic">
-        <TrendingUp className="w-3 h-3 mr-1" /> Community Pick
-      </Badge>
-    );
-  };
+  const isTrending = visitCount > 100 || likeCount > 20;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -191,7 +183,11 @@ export default function WebsiteDetail() {
                   {cat}
                 </Badge>
               ))}
-              <AchievementBadge />
+              {isTrending && (
+                <Badge className="border-none bg-primary text-white uppercase text-[9px] font-black tracking-widest px-3 py-1 italic">
+                  <TrendingUp className="w-3 h-3 mr-1" /> Community Pick
+                </Badge>
+              )}
             </div>
           </div>
         </div>
@@ -202,7 +198,6 @@ export default function WebsiteDetail() {
           </p>
         </div>
 
-        {/* Compact Play Store Style Insights Bar */}
         <div className="flex items-center justify-around py-6 border-y border-white/5 mb-8 bg-card/20 rounded-2xl">
            <div className="text-center flex-1">
               <div className="flex items-center justify-center gap-1 text-white font-black text-xl">

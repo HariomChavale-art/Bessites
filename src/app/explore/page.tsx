@@ -298,7 +298,6 @@ function ExploreItemRow({ app }: { app: any }) {
           </p>
 
           <div className="flex flex-col gap-4">
-            {/* Horizontal Play Store Style Stats Row */}
             <div className="flex items-center gap-6 py-3 border-t border-white/5 max-w-fit">
                <div className="flex flex-col items-center gap-0.5 min-w-[40px]">
                   <div className="flex items-center gap-1 text-white font-black text-sm">

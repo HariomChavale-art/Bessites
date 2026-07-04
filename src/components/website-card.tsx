@@ -53,7 +53,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
       toast({ title: "Removed", description: "Project removed from your profile." });
     } else {
       setDoc(saveRef, { id: website.id, timestamp: new Date().toISOString() });
-      toast({ title: "Saved!", description: "Added to your profile collection." });
+      toast({ title: "Saved!", description: "Added to your collection." });
     }
   };
 
@@ -84,15 +84,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   const totalVisits = stats?.visitCount || 0;
   const totalShares = stats?.shareCount || 0;
 
-  const AchievementBadge = () => {
-    const isTrending = totalVisits > 50 || totalLikes > 10;
-    if (!isTrending) return null;
-    return (
-      <div className="flex items-center gap-1 bg-primary text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter italic shadow-lg">
-        <TrendingUp className="w-2.5 h-2.5" /> Community Pick
-      </div>
-    );
-  };
+  const isTrending = totalVisits > 50 || totalLikes > 10;
 
   return (
     <div className="block break-inside-avoid mb-4 sm:mb-6 group">
@@ -117,7 +109,11 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
               <Tag className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
               <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider">{website.pricing}</span>
             </div>
-            <AchievementBadge />
+            {isTrending && (
+              <div className="flex items-center gap-1 bg-primary text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter italic shadow-lg">
+                <TrendingUp className="w-2.5 h-2.5" /> Community Pick
+              </div>
+            )}
           </div>
 
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 flex flex-col gap-2">

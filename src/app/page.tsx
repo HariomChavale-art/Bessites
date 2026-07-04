@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
@@ -90,7 +89,6 @@ export default function Home() {
     
     switch (activeTab) {
       case "trending":
-        // Sort by real engagement: (Visits + Likes * 2 + Shares * 1.5)
         results.sort((a, b) => {
           const statsA = globalStats?.find(s => s.id === a.id);
           const statsB = globalStats?.find(s => s.id === b.id);
@@ -98,7 +96,6 @@ export default function Home() {
           const scoreB = (statsB?.visitCount || 0) + (statsB?.likeCount || 0) * 2 + (statsB?.shareCount || 0) * 1.5;
           return scoreB - scoreA;
         });
-        // Limit to top 50 as requested
         results = results.slice(0, 50);
         break;
       case "new":

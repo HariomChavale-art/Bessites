@@ -102,20 +102,16 @@ export default function WebsiteDetail() {
   const handleLike = async () => {
     if (!user || !db || !id) return;
     const globalStatsRef = doc(db, "websiteStats", id as string);
-    setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
-    toast({
-      title: "Liked!",
-      description: "You've liked this project.",
-    });
-  };
-
-  const handleSave = async () => {
-    if (!user || !db || !id) return;
     const likeRef = doc(db, "users", user.uid, "likedWebsites", id as string);
+    
     if (isSaved) {
       await deleteDoc(likeRef);
+      await setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
+      toast({ title: "Removed from saves", description: "Project no longer in your flow." });
     } else {
       await setDoc(likeRef, { id, timestamp: new Date().toISOString() });
+      await setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
+      toast({ title: "Bessites Saved!", description: "Added to your discovery profile." });
     }
   };
 
@@ -166,6 +162,7 @@ export default function WebsiteDetail() {
       }
       setComment("");
       setRatingValue(0);
+      toast({ title: "Review Shared!", description: "Thanks for helping the community." });
     } catch (e) {
       console.error(e);
     } finally {
@@ -174,17 +171,11 @@ export default function WebsiteDetail() {
   };
 
   const TopAchievement = () => {
-    const metrics = [
-      { label: "Most Liked", val: likeCount, icon: Heart, color: "bg-pink-500" },
-      { label: "Trending", val: visitCount, icon: TrendingUp, color: "bg-primary" },
-      { label: "Viral", val: shareCount, icon: Share2, color: "bg-green-500" },
-      { label: "Community Pick", val: parseFloat(currentRating) > 4 ? 100 : 0, icon: Sparkles, color: "bg-amber-500" }
-    ];
-    const top = metrics.sort((a, b) => b.val - a.val)[0];
-    if (top.val === 0) return null;
+    const isTrending = visitCount > 50 || likeCount > 10;
+    if (!isTrending) return null;
     return (
-      <Badge className={cn("border-none uppercase text-[9px] font-black tracking-widest px-3 py-1", top.color)}>
-        <top.icon className="w-3 h-3 mr-1" /> {top.label}
+      <Badge className="border-none bg-primary text-white uppercase text-[9px] font-black tracking-widest px-3 py-1 italic">
+        <TrendingUp className="w-3 h-3 mr-1" /> Community Pick
       </Badge>
     );
   };
@@ -195,7 +186,7 @@ export default function WebsiteDetail() {
       
       <main className="flex-1 container mx-auto max-w-4xl px-4 py-8">
         <div className="flex gap-6 items-start mb-8">
-          <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden bg-card border border-white/10 shrink-0">
+          <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden bg-card border border-white/10 shrink-0 shadow-2xl">
             <WebsitePreview 
               websiteId={website.id}
               websiteUrl={website.url}
@@ -207,22 +198,17 @@ export default function WebsiteDetail() {
             />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight truncate">{website.name}</h1>
-            <p className="text-primary font-bold text-lg truncate mb-2">{website.url.replace('https://', '')}</p>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tighter truncate leading-none mb-2">{website.name}</h1>
+            <p className="text-primary font-bold text-lg truncate mb-3">{website.url.replace('https://', '')}</p>
             <div className="flex flex-wrap gap-2">
               {website.categories.map((cat) => (
                 <Badge key={cat} variant="secondary" className="bg-white/5 text-white border-none uppercase text-[8px] font-black tracking-widest px-2 py-0.5">
                   {cat}
                 </Badge>
               ))}
-            </div>
-            <div className="flex flex-wrap gap-2 mt-3">
-               <TopAchievement />
+              <TopAchievement />
             </div>
           </div>
-          <button className="p-2 text-muted-foreground hover:text-white shrink-0">
-            <MoreVertical className="w-6 h-6" />
-          </button>
         </div>
 
         <div className="space-y-4 mb-8">
@@ -279,19 +265,19 @@ export default function WebsiteDetail() {
           <Button 
             variant="outline" 
             onClick={handleLike}
-            className="flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black gap-3 text-lg"
-          >
-            <Heart className="w-6 h-6" /> Like
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={handleSave}
             className={cn(
               "flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black gap-3 text-lg transition-all",
               isSaved && "text-primary border-primary/20 bg-primary/5"
             )}
           >
-            <Bookmark className={cn("w-6 h-6", isSaved && "fill-current")} /> {isSaved ? "Saved" : "Save"}
+            <Heart className={cn("w-6 h-6", isSaved && "fill-current")} /> {isSaved ? "Saved" : "Save"}
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={handleShare}
+            className="flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black gap-3 text-lg"
+          >
+            <Share2 className="w-6 h-6" /> Share
           </Button>
         </div>
 
@@ -402,32 +388,6 @@ export default function WebsiteDetail() {
             )}
           </div>
         </section>
-
-        {similarWebsites.length > 0 && (
-          <section className="space-y-6 pt-12 pb-32">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-black text-white tracking-tight italic uppercase">Similar to {website.name}</h2>
-              <Link href="/explore" className="text-primary text-sm font-bold flex items-center gap-1 hover:underline">
-                Explore more <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {similarWebsites.map((sub) => (
-                <Link key={sub.id} href={`/website/${sub.id}`}>
-                  <div className="flex items-center gap-4 p-0 overflow-hidden rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all group">
-                    <div className="w-20 h-20 overflow-hidden bg-card border-r border-white/10 shrink-0">
-                      <WebsitePreview websiteId={sub.id} websiteUrl={sub.url} fallbackUrl="" alt={sub.name} width={80} height={80} className="w-full h-full" />
-                    </div>
-                    <div className="min-w-0 flex-1 px-4">
-                      <h3 className="font-bold text-white truncate group-hover:text-primary transition-colors">{sub.name}</h3>
-                      <p className="text-xs text-muted-foreground truncate">{sub.description}</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
       </main>
     </div>
   );

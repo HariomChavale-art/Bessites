@@ -3,7 +3,7 @@
 
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
-import { Heart, Tag, Star, Eye, Trophy, TrendingUp, Sparkles, Share2, Bookmark } from "lucide-react";
+import { Heart, Tag, Star, Eye, Trophy, TrendingUp, Share2, Bookmark } from "lucide-react";
 import { WebsitePreview } from "./website-preview";
 import { useMemo } from "react";
 import { useUser, useFirestore, useDoc } from "@/firebase";
@@ -39,10 +39,14 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
     if (!user || !db) return;
     
     const likeRef = doc(db, "users", user.uid, "likedWebsites", website.id);
+    const globalStatsRef = doc(db, "websiteStats", website.id);
+
     if (isSaved) {
       deleteDoc(likeRef);
+      setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
     } else {
       setDoc(likeRef, { id: website.id, timestamp: new Date().toISOString() });
+      setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
     }
   };
 
@@ -64,16 +68,12 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   const totalShares = stats?.shareCount || 0;
 
   const AchievementBadge = () => {
-    const metrics = [
-      { label: "Most Liked", val: totalLikes, icon: Heart, color: "bg-pink-500" },
-      { label: "Trending", val: totalVisits, icon: TrendingUp, color: "bg-primary" },
-      { label: "Viral", val: totalShares, icon: Share2, color: "bg-green-500" }
-    ];
-    const top = metrics.sort((a, b) => b.val - a.val)[0];
-    if (!top || top.val === 0) return null;
+    const isTrending = totalVisits > 50 || totalLikes > 10;
+    if (!isTrending) return null;
+    
     return (
-      <div className={cn("flex items-center gap-1 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter", top.color)}>
-        <top.icon className="w-2.5 h-2.5" /> {top.label}
+      <div className="flex items-center gap-1 bg-primary text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter italic shadow-lg">
+        <TrendingUp className="w-2.5 h-2.5" /> Community Pick
       </div>
     );
   };

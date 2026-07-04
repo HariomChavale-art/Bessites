@@ -46,7 +46,7 @@ export default function ExplorePage() {
       name: s.name || s.url?.split('//')[1]?.split('.')[0] || "New Project",
       developer: s.userEmail || "Community",
       description: s.description || "User submitted project",
-      longDescription: s.longDescription || "A project shared by the Icantfindawebsite community.",
+      longDescription: s.longDescription || "A project shared by the Bessites community.",
       categories: s.categories || ["Web App"],
       rating: 0,
       reviewCount: 0,
@@ -216,6 +216,13 @@ function ExploreItemRow({ app }: { app: any }) {
     setDoc(globalStatsRef, { visitCount: increment(1) }, { merge: true });
   };
 
+  const handleShare = () => {
+    if (!db || !app.id) return;
+    const globalStatsRef = doc(db, "websiteStats", app.id);
+    setDoc(globalStatsRef, { shareCount: increment(1) }, { merge: true });
+    navigator.clipboard.writeText(`${window.location.origin}/website/${app.id}`);
+  };
+
   const getPricingStyle = (pricing: string) => {
     switch (pricing) {
       case "Paid": return "bg-white text-black border-none";
@@ -232,6 +239,8 @@ function ExploreItemRow({ app }: { app: any }) {
   const totalLikes = stats?.likeCount || 0;
   const totalVisits = stats?.visitCount || 0;
   const totalShares = stats?.shareCount || 0;
+
+  const isTrending = totalVisits > 100 || totalLikes > 20;
 
   return (
     <div className="group relative">
@@ -260,9 +269,9 @@ function ExploreItemRow({ app }: { app: any }) {
                 <Tag className="w-3 h-3" />
                 {app.pricing}
               </div>
-              {totalLikes > 50 && (
-                <div className="flex items-center gap-1 bg-amber-500/90 text-black px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter">
-                  <Trophy className="w-2.5 h-2.5" /> Most Liked
+              {isTrending && (
+                <div className="flex items-center gap-1 bg-primary text-white px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter italic">
+                  <TrendingUp className="w-2.5 h-2.5" /> Community Pick
                 </div>
               )}
             </div>
@@ -281,22 +290,6 @@ function ExploreItemRow({ app }: { app: any }) {
           </p>
 
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-6 sm:gap-10">
-              <div className="flex flex-col">
-                <span className="text-white font-bold text-sm sm:text-lg flex items-center gap-2 italic">
-                  {app.updatedAt}
-                </span>
-                <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Last Updated</span>
-              </div>
-              <div className="h-4 sm:h-6 w-[1px] bg-white/10" />
-              <div className="flex flex-col">
-                <span className="text-white font-bold text-sm sm:text-lg">
-                  {app.categories[0]}
-                </span>
-                <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Category</span>
-              </div>
-            </div>
-
             {/* Horizontal Play Store Style Stats Row */}
             <div className="flex items-center gap-6 py-3 border-t border-white/5 max-w-fit">
                <div className="flex flex-col items-center gap-0.5 min-w-[40px]">
@@ -345,17 +338,24 @@ function ExploreItemRow({ app }: { app: any }) {
                 GET <ExternalLink className="w-5 h-5 ml-2" />
              </Button>
            </a>
-           <Button 
-            variant="ghost" 
-            onClick={(e) => {
-              e.preventDefault();
-              handleLike(e);
-            }}
-            className={liked ? "text-primary" : "text-muted-foreground"}
-          >
-             <Heart className={liked ? "fill-current w-5 h-5 mr-2" : "w-5 h-5 mr-2"} />
-             {liked ? "Liked" : "Like"}
-           </Button>
+           <div className="flex flex-col gap-2">
+             <Button 
+                variant="ghost" 
+                onClick={handleLike}
+                className={liked ? "text-primary" : "text-muted-foreground"}
+              >
+                 <Heart className={liked ? "fill-current w-5 h-5 mr-2" : "w-5 h-5 mr-2"} />
+                 {liked ? "Liked" : "Like"}
+             </Button>
+             <Button 
+                variant="ghost" 
+                onClick={handleShare}
+                className="text-muted-foreground"
+              >
+                 <Share2 className="w-5 h-5 mr-2" />
+                 Share
+             </Button>
+           </div>
         </div>
       </div>
     </div>

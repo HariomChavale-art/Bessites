@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
@@ -37,6 +38,13 @@ export default function Home() {
   }, [db]);
 
   const { data: submittedSites } = useCollection(submissionsRef);
+
+  const statsRef = useMemo(() => {
+    if (!db) return null;
+    return collection(db, "websiteStats");
+  }, [db]);
+
+  const { data: globalStats } = useCollection(statsRef);
 
   const allAvailableWebsites = useMemo(() => {
     const firestoreSites = (submittedSites || []).map(s => ({
@@ -82,7 +90,16 @@ export default function Home() {
     
     switch (activeTab) {
       case "trending":
-        results.sort((a, b) => b.name.localeCompare(a.name));
+        // Sort by real engagement: (Visits + Likes * 2 + Shares * 1.5)
+        results.sort((a, b) => {
+          const statsA = globalStats?.find(s => s.id === a.id);
+          const statsB = globalStats?.find(s => s.id === b.id);
+          const scoreA = (statsA?.visitCount || 0) + (statsA?.likeCount || 0) * 2 + (statsA?.shareCount || 0) * 1.5;
+          const scoreB = (statsB?.visitCount || 0) + (statsB?.likeCount || 0) * 2 + (statsB?.shareCount || 0) * 1.5;
+          return scoreB - scoreA;
+        });
+        // Limit to top 50 as requested
+        results = results.slice(0, 50);
         break;
       case "new":
         results.reverse();
@@ -102,7 +119,7 @@ export default function Home() {
     }
     
     return results;
-  }, [activeTab, userInterests, featuredWebsites, allAvailableWebsites]);
+  }, [activeTab, userInterests, featuredWebsites, allAvailableWebsites, globalStats]);
 
   if (authLoading) {
     return (
@@ -166,6 +183,14 @@ export default function Home() {
         </section>
 
         <section className="container mx-auto px-2">
+          {activeTab === 'trending' && (
+            <div className="container mx-auto px-4 mb-6">
+               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+                  <TrendingUp className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-black text-white uppercase tracking-widest italic">Top 50 Community Picks</span>
+               </div>
+            </div>
+          )}
           <MasonryFeed key={activeTab + userInterests.join(',') + filteredWebsites.length} initialWebsites={filteredWebsites} />
         </section>
       </main>

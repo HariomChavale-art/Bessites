@@ -3,33 +3,54 @@
 import { Navigation } from "@/components/navigation";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
-import { Search, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, X, Briefcase, Zap, Layout, TrendingUp, Tag } from "lucide-react";
+import { Search, LayoutGrid, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, X, Briefcase, Zap, Layout, TrendingUp, Tag, Globe, MoreHorizontal, ShoppingCart, Briefcase as BizIcon, Laptop, BookOpen, Music, Camera, Activity, Plane } from "lucide-react";
 import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
 import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
-import { useFirestore, useCollection, useDoc } from "@/firebase";
+import { useFirestore, useCollection, useDoc, useUser } from "@/firebase";
 import { doc, collection } from "firebase/firestore";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const CATEGORIES = [
+  { name: "AI Startup", icon: Sparkles, color: "text-purple-400" },
   { name: "Gaming", icon: Gamepad2, color: "text-red-400" },
-  { name: "AI", icon: Sparkles, color: "text-purple-400" },
   { name: "Tools", icon: Wrench, color: "text-blue-400" },
-  { name: "Productivity", icon: Briefcase, color: "text-indigo-400" },
+  { name: "Productivity", icon: BizIcon, color: "text-indigo-400" },
   { name: "Education", icon: GraduationCap, color: "text-green-400" },
   { name: "Design", icon: Palette, color: "text-pink-400" },
-  { name: "Dev", icon: Cpu, color: "text-orange-400" },
+  { name: "Developer", icon: Cpu, color: "text-orange-400" },
   { name: "3D", icon: Layout, color: "text-violet-400" },
   { name: "Fun", icon: Zap, color: "text-blue-300" },
   { name: "Health", icon: HeartPulse, color: "text-rose-400" },
   { name: "Food", icon: Utensils, color: "text-amber-400" },
+  { name: "Online Store", icon: ShoppingCart, color: "text-emerald-400" },
+  { name: "Business", icon: Briefcase, color: "text-slate-400" },
+  { name: "Blog", icon: Laptop, color: "text-cyan-400" },
+  { name: "Portfolio", icon: Layout, color: "text-fuchsia-400" },
+  { name: "Creator", icon: Camera, color: "text-yellow-400" },
+  { name: "Finance", icon: Activity, color: "text-lime-400" },
+  { name: "Healthcare", icon: HeartPulse, color: "text-red-300" },
+  { name: "Automotive", icon: Activity, color: "text-gray-400" },
+  { name: "Travel", icon: Plane, color: "text-sky-400" },
 ];
+
+const TRENDING_CATEGORY_NAMES = ["AI Startup", "Gaming", "Tools", "Education", "Creator"];
 
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const { user } = useUser();
   const db = useFirestore();
+
+  const userDocRef = useMemo(() => {
+    if (!user || !db) return null;
+    return doc(db, "users", user.uid);
+  }, [user, db]);
+
+  const { data: profile } = useDoc(userDocRef);
+  const userInterests = profile?.interests || [];
 
   const submissionsRef = useMemo(() => {
     if (!db) return null;
@@ -86,6 +107,20 @@ export default function ExplorePage() {
     });
   }, [searchQuery, selectedCategory, allWebsites]);
 
+  // Determine which categories to show initially
+  const visibleCategories = useMemo(() => {
+    const relevant = CATEGORIES.filter(c => 
+      TRENDING_CATEGORY_NAMES.includes(c.name) || userInterests.includes(c.name)
+    );
+    // Ensure uniqueness and limit to 8 for the grid
+    const seen = new Set();
+    return relevant.filter(c => {
+      if (seen.has(c.name)) return false;
+      seen.add(c.name);
+      return true;
+    }).slice(0, 9);
+  }, [userInterests]);
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
@@ -116,27 +151,57 @@ export default function ExplorePage() {
           <div className="flex items-center justify-between mb-8 sm:mb-10">
             <h2 className="text-xl sm:text-3xl font-bold text-white flex items-center gap-3 sm:gap-4 tracking-tighter">
               <LayoutGrid className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              Browse by Interest
+              Your Interests
             </h2>
-            {selectedCategory && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setSelectedCategory(null)}
-                className="text-primary font-bold hover:bg-white/5"
-              >
-                <X className="w-4 h-4 mr-2" /> Clear filter
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {selectedCategory && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setSelectedCategory(null)}
+                  className="text-primary font-bold hover:bg-white/5"
+                >
+                  <X className="w-4 h-4 mr-2" /> Clear
+                </Button>
+              )}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="rounded-full bg-white/5 border-white/10 hover:bg-white/10 font-bold">
+                    <MoreHorizontal className="w-4 h-4 mr-2" /> More Interests
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-background border-white/10 text-white rounded-[2.5rem] max-w-2xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader className="p-4">
+                    <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">All Discovery Tags</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-4">
+                    {CATEGORIES.map((cat) => (
+                      <Button 
+                        key={cat.name} 
+                        variant="outline" 
+                        onClick={() => setSelectedCategory(cat.name)}
+                        className={cn(
+                          "h-16 bg-white/5 border-white/5 hover:bg-white/10 rounded-2xl flex items-center gap-3 px-4 transition-all",
+                          selectedCategory === cat.name && "border-primary bg-primary/10"
+                        )}
+                      >
+                        <cat.icon className={cn(`w-5 h-5 shrink-0`, cat.color)} />
+                        <span className="text-xs font-bold text-white truncate">{cat.name}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6">
-            {CATEGORIES.map((cat) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6">
+            {visibleCategories.map((cat) => (
               <Button 
                 key={cat.name} 
                 variant="outline" 
                 onClick={() => setSelectedCategory(cat.name === selectedCategory ? null : cat.name)}
                 className={cn(
-                  "h-16 sm:h-24 bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 rounded-2xl sm:rounded-3xl flex items-center justify-start gap-3 sm:gap-6 px-4 sm:px-8 transition-all hover:scale-[1.02]",
+                  "h-16 sm:h-24 bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 rounded-2xl sm:rounded-3xl flex items-center justify-start gap-3 sm:gap-4 px-4 sm:px-6 transition-all hover:scale-[1.02]",
                   selectedCategory === cat.name && "border-primary bg-primary/10"
                 )}
               >
@@ -150,7 +215,7 @@ export default function ExplorePage() {
         <section className="space-y-8 sm:space-y-12">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tighter">
-              {selectedCategory || searchQuery ? "Matching Results" : "All Unique Projects"}
+              {selectedCategory || searchQuery ? "Matching Results" : "Niche Gems"}
               <span className="ml-4 text-sm font-medium text-muted-foreground">({filteredResults.length})</span>
             </h2>
           </div>
@@ -163,7 +228,7 @@ export default function ExplorePage() {
             ) : (
               <div className="py-20 text-center space-y-4">
                 <LayoutGrid className="w-16 h-16 text-muted-foreground mx-auto opacity-20" />
-                <p className="text-xl text-muted-foreground font-medium">No matches found. Try exploring by interest.</p>
+                <p className="text-xl text-muted-foreground font-medium">No niche gems found. Try a different interest.</p>
               </div>
             )}
           </div>
@@ -173,12 +238,6 @@ export default function ExplorePage() {
   );
 }
 
-/**
- * ExploreItemRow refined for Bessites.
- * - Displays full title + description without truncation.
- * - Removes engagement icons (moved to checkout/detail).
- * - Dynamic vertical expansion to prevent text clipping.
- */
 function ExploreItemRow({ app }: { app: any }) {
   const db = useFirestore();
   
@@ -193,14 +252,13 @@ function ExploreItemRow({ app }: { app: any }) {
     switch (pricing) {
       case "Paid": return "bg-white text-black border-none";
       case "Free": return "bg-black text-white border-white/20";
-      case "Freemium":
       default: return "bg-secondary text-secondary-foreground border-white/10";
     }
   };
 
   const totalLikes = stats?.likeCount || 0;
   const totalVisits = stats?.visitCount || 0;
-  const isTrending = totalVisits > 100 || totalLikes > 20;
+  const isTrending = totalVisits > 50 || totalLikes > 10;
 
   return (
     <div className="group relative">
@@ -237,7 +295,6 @@ function ExploreItemRow({ app }: { app: any }) {
 
         <div className="flex-1 min-w-0 py-2">
           <Link href={`/website/${app.id}`} className="block mb-4">
-            {/* Title formatted as Name • Description. Removed line-clamp to allow vertical growth. */}
             <h4 className="text-xl sm:text-3xl font-extrabold text-white leading-tight tracking-tighter group-hover:text-primary transition-colors whitespace-normal">
               {app.name} • <span className="text-muted-foreground font-normal">{app.description}</span>
             </h4>

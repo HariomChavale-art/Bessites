@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useParams } from "next/navigation";
@@ -57,7 +58,7 @@ export default function WebsiteDetail() {
   const { data: saveData } = useDoc(saveDocRef);
   const isSaved = !!saveData;
 
-  // Like logic (Heart) - Global Popularity Toggle (+1 / -1)
+  // Like logic (Heart) - Global Popularity Toggle
   const likeDocRef = useMemo(() => {
     if (!user || !db || !id) return null;
     return doc(db, "users", user.uid, "userLikes", id as string);
@@ -79,7 +80,8 @@ export default function WebsiteDetail() {
 
   if (!website) return <div className="p-8 text-center text-white font-bold">Website not found</div>;
 
-  const currentRating = stats?.ratingCount > 0 
+  // STRICT RATING LOGIC: If no ratings exist, it is 0.0. No ghost defaults.
+  const currentRating = stats?.ratingCount && stats?.ratingCount > 0 
     ? (stats.ratingSum / stats.ratingCount).toFixed(1) 
     : "0.0";
   
@@ -103,12 +105,14 @@ export default function WebsiteDetail() {
     const userLikeRef = doc(db, "users", user.uid, "userLikes", id as string);
 
     if (isLiked) {
-      deleteDoc(userLikeRef);
-      setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
+      // Toggle OFF: Remove the like and decrement global count
+      await deleteDoc(userLikeRef);
+      await setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
       toast({ title: "Liked Removed", description: "Global vote removed." });
     } else {
-      setDoc(userLikeRef, { likedAt: serverTimestamp() });
-      setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
+      // Toggle ON: Add the like and increment global count
+      await setDoc(userLikeRef, { likedAt: serverTimestamp() });
+      await setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
       toast({ title: "Liked!", description: "Community popularity increased." });
     }
   };
@@ -133,7 +137,7 @@ export default function WebsiteDetail() {
   const handleShare = async () => {
     if (!db || !id) return;
     const globalStatsRef = doc(db, "websiteStats", id as string);
-    setDoc(globalStatsRef, { shareCount: increment(1) }, { merge: true });
+    await setDoc(globalStatsRef, { shareCount: increment(1) }, { merge: true });
     
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -166,11 +170,14 @@ export default function WebsiteDetail() {
 
       if (existingDoc.exists()) {
         const oldRating = existingDoc.data().rating;
-        updateDoc(userRatingRef, ratingData);
-        updateDoc(globalStatsRef, { ratingSum: increment(ratingValue - oldRating) });
+        await updateDoc(userRatingRef, ratingData);
+        await updateDoc(globalStatsRef, { ratingSum: increment(ratingValue - oldRating) });
       } else {
-        setDoc(userRatingRef, ratingData);
-        setDoc(globalStatsRef, { ratingSum: increment(ratingValue), ratingCount: increment(1) }, { merge: true });
+        await setDoc(userRatingRef, ratingData);
+        await setDoc(globalStatsRef, { 
+          ratingSum: increment(ratingValue), 
+          ratingCount: increment(1) 
+        }, { merge: true });
       }
       setComment("");
       setRatingValue(0);
@@ -219,12 +226,14 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
+        {/* Description at the top of insights */}
         <div className="space-y-4 mb-6">
           <p className="text-lg text-white font-medium leading-relaxed bg-white/5 p-6 rounded-3xl border border-white/5">
             {website.longDescription}
           </p>
         </div>
 
+        {/* Compact Horizontal Play Store Stats */}
         <div className="flex items-center justify-around py-6 border-y border-white/5 mb-8 bg-card/20 rounded-2xl">
            <div className="text-center flex-1">
               <div className="flex items-center justify-center gap-1 text-white font-black text-xl">
@@ -259,6 +268,7 @@ export default function WebsiteDetail() {
            </div>
         </div>
 
+        {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
           <Button 
             onClick={handleVisitClick} 
@@ -273,6 +283,7 @@ export default function WebsiteDetail() {
             <Button 
               variant="outline" 
               onClick={handleLike}
+              title="Like project (Global)"
               className={cn(
                 "flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black transition-all",
                 isLiked ? "text-pink-500 border-pink-500/20 bg-pink-500/5" : "text-white"
@@ -283,6 +294,7 @@ export default function WebsiteDetail() {
             <Button 
               variant="outline" 
               onClick={handleSave}
+              title="Save to profile"
               className={cn(
                 "flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black transition-all",
                 isSaved ? "text-primary border-primary/20 bg-primary/5" : "text-white"
@@ -293,6 +305,7 @@ export default function WebsiteDetail() {
             <Button 
               variant="outline" 
               onClick={handleShare}
+              title="Share link"
               className="flex-1 rounded-2xl border-white/10 bg-white/5 h-16 font-black text-green-400"
             >
               <Share2 className="w-6 h-6" />

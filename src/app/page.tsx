@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
@@ -193,7 +194,13 @@ export default function Home() {
       </main>
 
       <footer className="bg-card/50 border-t border-white/5 py-12">
-        <div className="container mx-auto px-4 text-center">
+        <div className="container mx-auto px-4 text-center space-y-4">
+          <div className="flex flex-wrap justify-center gap-6 text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
+            <a href="/about" className="hover:text-primary transition-colors">About Us</a>
+            <a href="/contact" className="hover:text-primary transition-colors">Contact</a>
+            <a href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</a>
+            <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
+          </div>
           <p className="text-sm text-muted-foreground">
             © 2024 Bessites. Zero Duplication. Zero Padding.
           </p>

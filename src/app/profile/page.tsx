@@ -8,6 +8,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Plus, 
   Heart, 
@@ -27,17 +30,21 @@ import {
   Mail,
   FileText,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  Camera,
+  ChevronLeft,
+  Save
 } from "lucide-react";
 import Link from "next/link";
-import { signOut } from "firebase/auth";
-import { doc, collection, query, where } from "firebase/firestore";
-import { useMemo, useState } from "react";
+import { signOut, updateProfile } from "firebase/auth";
+import { doc, collection, query, where, updateDoc } from "firebase/firestore";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { supabase } from "@/lib/supabase";
 
 export default function ProfilePage() {
   const { user, loading: userLoading } = useUser();
@@ -45,6 +52,7 @@ export default function ProfilePage() {
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const userDocRef = useMemo(() => {
     if (!user || !db) return null;
@@ -53,40 +61,43 @@ export default function ProfilePage() {
 
   const { data: profileData } = useDoc(userDocRef);
 
-  // SAVED WEBSITES (Bookmark icon in detail) - stored in likedWebsites collection
+  // States for Settings Dialog
+  const [settingsView, setSettingsView] = useState<'menu' | 'account' | 'privacy'>('menu');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editBio, setEditBio] = useState("");
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (profileData) {
+      setEditName(profileData.displayName || "");
+      setEditBio(profileData.bio || "");
+    }
+  }, [profileData]);
+
+  // Data fetching
   const savedCollectionRef = useMemo(() => {
     if (!user || !db) return null;
     return collection(db, "users", user.uid, "likedWebsites");
   }, [user, db]);
-
   const { data: savedDocs, loading: savedLoading } = useCollection(savedCollectionRef);
 
-  // LIKED WEBSITES (Heart icon in detail) - stored in userLikes collection
   const likedCollectionRef = useMemo(() => {
     if (!user || !db) return null;
     return collection(db, "users", user.uid, "userLikes");
   }, [user, db]);
-
   const { data: likedDocs, loading: likedLoading } = useCollection(likedCollectionRef);
 
-  // SUBMISSIONS
   const submissionsQuery = useMemo(() => {
     if (!user || !db) return null;
-    return query(
-      collection(db, "submissions"),
-      where("userId", "==", user.uid)
-    );
+    return query(collection(db, "submissions"), where("userId", "==", user.uid));
   }, [user, db]);
-
   const { data: rawSubmissions, loading: submissionsLoading } = useCollection(submissionsQuery);
 
   const userSubmissions = useMemo(() => {
     if (!rawSubmissions) return [];
-    return [...rawSubmissions].sort((a: any, b: any) => {
-      const aTime = a.timestamp?.seconds || 0;
-      const bTime = b.timestamp?.seconds || 0;
-      return bTime - aTime;
-    });
+    return [...rawSubmissions].sort((a: any, b: any) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
   }, [rawSubmissions]);
 
   const savedWebsitesList = useMemo(() => {
@@ -104,11 +115,56 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     if (auth) {
       await signOut(auth);
-      toast({
-        title: "Bessites Access",
-        description: "You have been successfully signed out of your account.",
-      });
+      toast({ title: "Bessites Access", description: "Signed out successfully." });
       router.push("/");
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setPhotoPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUpdateAccount = async () => {
+    if (!user || !db) return;
+    setIsUpdating(true);
+    try {
+      let finalPhotoURL = profileData?.photoURL || user.photoURL;
+      
+      if (selectedFile) {
+        const fileExt = selectedFile.name.split('.').pop();
+        const fileName = `profiles/${user.uid}-${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('Website-images')
+          .upload(fileName, selectedFile);
+        if (uploadError) throw uploadError;
+        const { data } = supabase.storage.from('Website-images').getPublicUrl(fileName);
+        finalPhotoURL = data.publicUrl;
+      }
+
+      // Update Firebase Auth
+      await updateProfile(user, { displayName: editName, photoURL: finalPhotoURL });
+      
+      // Update Firestore
+      await updateDoc(doc(db, "users", user.uid), {
+        displayName: editName,
+        bio: editBio,
+        photoURL: finalPhotoURL
+      });
+
+      toast({ title: "Profile Updated", description: "Your account information has been saved." });
+      setSettingsView('menu');
+      setSelectedFile(null);
+      setPhotoPreview(null);
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Update Failed", description: error.message });
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -129,11 +185,9 @@ export default function ProfilePage() {
             <div className="bg-white/5 p-8 rounded-[3rem] border border-white/5">
               <LogOut className="w-16 h-16 text-muted-foreground mx-auto mb-6 opacity-20" />
               <h2 className="text-2xl font-black text-white mb-2">Login Required</h2>
-              <p className="text-muted-foreground font-medium mb-8">Sign in to view your profile, likes, and submissions.</p>
+              <p className="text-muted-foreground font-medium mb-8">Sign in to view your profile and collections.</p>
               <Link href="/login">
-                <Button className="w-full h-14 bg-primary hover:bg-primary/90 rounded-2xl font-bold text-lg">
-                  Go to Login
-                </Button>
+                <Button className="w-full h-14 bg-primary hover:bg-primary/90 rounded-2xl font-bold text-lg">Go to Login</Button>
               </Link>
             </div>
           </div>
@@ -143,9 +197,9 @@ export default function ProfilePage() {
   }
 
   const displayName = profileData?.displayName || user?.displayName || "Curator";
-  const email = user?.email || "Guest User";
+  const email = user?.email || "";
   const photoURL = profileData?.photoURL || user?.photoURL || `https://picsum.photos/seed/${user.uid}/200`;
-  const interests = profileData?.interests?.length > 0 ? profileData.interests : [];
+  const interests = profileData?.interests || [];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -159,70 +213,117 @@ export default function ProfilePage() {
               <AvatarFallback className="text-2xl bg-primary/20 text-primary">{displayName.charAt(0)}</AvatarFallback>
             </Avatar>
             
-            <Dialog>
+            <Dialog onOpenChange={(open) => !open && setSettingsView('menu')}>
               <DialogTrigger asChild>
                 <button className="absolute bottom-1 right-1 bg-white text-black p-2.5 rounded-full shadow-xl hover:scale-110 transition-transform active:scale-95 z-10 border border-black/5">
                   <Settings className="w-5 h-5" />
                 </button>
               </DialogTrigger>
               <DialogContent className="bg-background border-white/10 text-white rounded-[2.5rem] sm:max-w-md p-0 overflow-hidden">
-                <div className="p-8 pb-4">
-                  <DialogHeader>
-                    <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">Settings</DialogTitle>
-                  </DialogHeader>
-                </div>
-                <div className="p-4 space-y-2 max-h-[70vh] overflow-y-auto no-scrollbar">
-                  <div className="px-4 py-2">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 opacity-50">Account Management</p>
-                    <SettingsOption icon={UserIcon} label="Account Info" description="Display name, email, and bio." />
-                    <SettingsOption 
-                      icon={Palette} 
-                      label="Discovery Preferences" 
-                      description="Personalize your discovery feed tags." 
-                      onClick={() => router.push('/onboarding')} 
-                    />
-                    <SettingsOption icon={Shield} label="Privacy & Security" description="Password and authentication methods." />
-                    <SettingsOption icon={Eye} label="Display Mode" description="Theme and visual appearance settings." />
-                  </div>
+                {settingsView === 'menu' ? (
+                  <>
+                    <div className="p-8 pb-4">
+                      <DialogHeader>
+                        <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">Settings</DialogTitle>
+                      </DialogHeader>
+                    </div>
+                    <div className="p-4 space-y-2 max-h-[70vh] overflow-y-auto no-scrollbar">
+                      <div className="px-4 py-2">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 opacity-50">Account Management</p>
+                        <SettingsOption icon={UserIcon} label="Account Info" description="Display name and profile picture." onClick={() => setSettingsView('account')} />
+                        <SettingsOption 
+                          icon={Palette} 
+                          label="Discovery Preferences" 
+                          description="Update your discovery feed tags." 
+                          onClick={() => router.push('/onboarding')} 
+                        />
+                        <SettingsOption icon={Shield} label="Privacy & Security" description="Password and data controls." onClick={() => setSettingsView('privacy')} />
+                      </div>
 
-                  <div className="px-4 py-4 border-t border-white/5">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 opacity-50">Information & Support</p>
-                    <SettingsOption 
-                      icon={Info} 
-                      label="About Us" 
-                      description="Our mission and discovery curation." 
-                      onClick={() => router.push('/about')}
-                    />
-                    <SettingsOption 
-                      icon={Mail} 
-                      label="Contact Support" 
-                      description="Help, feedback, and partnerships." 
-                      onClick={() => router.push('/contact')}
-                    />
-                    <SettingsOption 
-                      icon={FileText} 
-                      label="Privacy Policy" 
-                      description="Data handling and AdSense policies." 
-                      onClick={() => router.push('/privacy')}
-                    />
-                    <SettingsOption 
-                      icon={ShieldCheck} 
-                      label="Terms of Service" 
-                      description="Usage terms and service agreements." 
-                      onClick={() => router.push('/terms')}
-                    />
-                  </div>
-                  
-                  <div className="pt-6 px-4 pb-8 border-t border-white/5">
+                      <div className="px-4 py-4 border-t border-white/5">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 opacity-50">Information & Legal</p>
+                        <SettingsOption icon={Info} label="About Us" description="Our mission and story." onClick={() => router.push('/about')} />
+                        <SettingsOption icon={Mail} label="Contact Support" description="Help and feedback." onClick={() => router.push('/contact')} />
+                        <SettingsOption icon={FileText} label="Privacy Policy" description="Data and AdSense policies." onClick={() => router.push('/privacy')} />
+                        <SettingsOption icon={ShieldCheck} label="Terms of Service" description="Usage terms." onClick={() => router.push('/terms')} />
+                      </div>
+                      
+                      <div className="pt-6 px-4 pb-8 border-t border-white/5">
+                        <Button variant="ghost" onClick={handleLogout} className="w-full h-16 rounded-[1.5rem] border border-white/5 hover:bg-destructive/10 hover:text-destructive font-black uppercase tracking-widest text-xs transition-all italic">
+                          <LogOut className="w-4 h-4 mr-3" /> Sign Out
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                ) : settingsView === 'account' ? (
+                  <div className="p-8 space-y-6">
+                    <div className="flex items-center gap-4 mb-2">
+                      <Button variant="ghost" size="icon" onClick={() => setSettingsView('menu')} className="rounded-full">
+                        <ChevronLeft className="w-6 h-6" />
+                      </Button>
+                      <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter">Account Info</DialogTitle>
+                    </div>
+
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="relative group">
+                        <Avatar className="w-24 h-24 border-2 border-white/10 ring-4 ring-primary/10">
+                          <AvatarImage src={photoPreview || photoURL} className="object-cover" />
+                          <AvatarFallback className="text-xl">{displayName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <button 
+                          onClick={() => fileInputRef.current?.click()}
+                          className="absolute bottom-0 right-0 bg-primary p-2 rounded-full text-white shadow-xl hover:scale-110 transition-all"
+                        >
+                          <Camera className="w-4 h-4" />
+                        </button>
+                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+                      </div>
+                      <p className="text-xs font-bold text-muted-foreground">Tap the camera to change picture</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-xs font-black uppercase tracking-widest opacity-50">Display Name</Label>
+                        <Input 
+                          value={editName} 
+                          onChange={(e) => setEditName(e.target.value)}
+                          className="bg-white/5 border-white/10 rounded-2xl h-12"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-black uppercase tracking-widest opacity-50">About Bio</Label>
+                        <Textarea 
+                          value={editBio} 
+                          onChange={(e) => setEditBio(e.target.value)}
+                          placeholder="Tell us about yourself..."
+                          className="bg-white/5 border-white/10 rounded-2xl min-h-[80px]"
+                        />
+                      </div>
+                    </div>
+
                     <Button 
-                      variant="ghost" 
-                      onClick={handleLogout} 
-                      className="w-full h-16 rounded-[1.5rem] border border-white/5 hover:bg-destructive/10 hover:text-destructive font-black uppercase tracking-widest text-xs transition-all italic"
+                      onClick={handleUpdateAccount} 
+                      disabled={isUpdating}
+                      className="w-full h-14 bg-primary hover:bg-primary/90 rounded-2xl font-black text-lg"
                     >
-                      <LogOut className="w-4 h-4 mr-3" /> Sign Out
+                      {isUpdating ? <Loader2 className="animate-spin" /> : <Save className="w-5 h-5 mr-2" />}
+                      SAVE CHANGES
                     </Button>
                   </div>
-                </div>
+                ) : (
+                  <div className="p-8 space-y-6">
+                    <div className="flex items-center gap-4 mb-2">
+                      <Button variant="ghost" size="icon" onClick={() => setSettingsView('menu')} className="rounded-full">
+                        <ChevronLeft className="w-6 h-6" />
+                      </Button>
+                      <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter">Security</DialogTitle>
+                    </div>
+                    <div className="p-12 text-center bg-white/5 rounded-[2rem] border border-white/5">
+                      <Shield className="w-12 h-12 text-primary mx-auto mb-4 opacity-20" />
+                      <p className="text-muted-foreground font-medium">Security settings are managed via your verified email at {email}.</p>
+                    </div>
+                  </div>
+                )}
               </DialogContent>
             </Dialog>
           </div>
@@ -303,13 +404,8 @@ export default function ProfilePage() {
                   {userSubmissions.map((sub: any) => (
                     <Card key={sub.id} className="bg-white/[0.03] border-white/5 p-6 rounded-3xl group hover:border-primary/20 transition-all">
                       <div className="flex items-start justify-between mb-4">
-                        <div className="bg-primary/10 p-3 rounded-2xl text-primary">
-                          <ExternalLink className="w-6 h-6" />
-                        </div>
-                        <Badge className={cn(
-                          "uppercase font-black tracking-widest text-[10px] px-3 py-1 rounded-full",
-                          sub.status === 'pending' ? "bg-amber-500/20 text-amber-500" : "bg-green-500/20 text-green-500"
-                        )}>
+                        <div className="bg-primary/10 p-3 rounded-2xl text-primary"><ExternalLink className="w-6 h-6" /></div>
+                        <Badge className={cn("uppercase font-black tracking-widest text-[10px] px-3 py-1 rounded-full", sub.status === 'pending' ? "bg-amber-500/20 text-amber-500" : "bg-green-500/20 text-green-500")}>
                           {sub.status}
                         </Badge>
                       </div>
@@ -318,13 +414,6 @@ export default function ProfilePage() {
                         <Clock className="w-3.5 h-3.5" />
                         {sub.timestamp ? new Date(sub.timestamp.toDate()).toLocaleDateString() : 'Just now'}
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        {sub.categories?.slice(0, 2).map((cat: string) => (
-                          <Badge key={cat} variant="secondary" className="bg-white/5 text-[9px] uppercase font-bold px-2 py-0.5 border-none">
-                            {cat}
-                          </Badge>
-                        ))}
-                      </div>
                     </Card>
                   ))}
                 </div>
@@ -332,7 +421,6 @@ export default function ProfilePage() {
                 <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/5 rounded-[3.5rem] bg-white/[0.02] text-center px-4">
                   <Plus className="w-14 h-14 text-primary mb-8" />
                   <h3 className="text-3xl font-extrabold text-white mb-3">Submit your project</h3>
-                  <p className="text-muted-foreground mb-10 text-lg">Got a cool web tool? Share it with the community.</p>
                   <Link href="/submit"><Button className="rounded-2xl px-16 py-8 bg-white text-background font-extrabold text-xl h-auto">Submit Now</Button></Link>
                 </div>
               )}

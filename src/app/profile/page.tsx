@@ -8,7 +8,27 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Heart, Bookmark, Grid, LogOut, Loader2, ExternalLink, Clock, Settings, Shield, Bell, User as UserIcon, Palette, Eye } from "lucide-react";
+import { 
+  Plus, 
+  Heart, 
+  Bookmark, 
+  Grid, 
+  LogOut, 
+  Loader2, 
+  ExternalLink, 
+  Clock, 
+  Settings, 
+  Shield, 
+  Bell, 
+  User as UserIcon, 
+  Palette, 
+  Eye,
+  Info,
+  Mail,
+  FileText,
+  ShieldCheck,
+  ChevronRight
+} from "lucide-react";
 import Link from "next/link";
 import { signOut } from "firebase/auth";
 import { doc, collection, query, where } from "firebase/firestore";
@@ -33,7 +53,7 @@ export default function ProfilePage() {
 
   const { data: profileData } = useDoc(userDocRef);
 
-  // SAVED WEBSITES (Bookmark)
+  // SAVED WEBSITES (Bookmark icon in detail) - stored in likedWebsites collection
   const savedCollectionRef = useMemo(() => {
     if (!user || !db) return null;
     return collection(db, "users", user.uid, "likedWebsites");
@@ -41,7 +61,7 @@ export default function ProfilePage() {
 
   const { data: savedDocs, loading: savedLoading } = useCollection(savedCollectionRef);
 
-  // LIKED WEBSITES (Heart)
+  // LIKED WEBSITES (Heart icon in detail) - stored in userLikes collection
   const likedCollectionRef = useMemo(() => {
     if (!user || !db) return null;
     return collection(db, "users", user.uid, "userLikes");
@@ -151,20 +171,55 @@ export default function ProfilePage() {
                     <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">Settings</DialogTitle>
                   </DialogHeader>
                 </div>
-                <div className="p-4 space-y-2">
-                  <SettingsOption icon={UserIcon} label="Account Info" description="Manage your display name and email." />
-                  <SettingsOption icon={Shield} label="Privacy & Security" description="Password and authentication methods." />
-                  <SettingsOption 
-                    icon={Palette} 
-                    label="Discovery Preferences" 
-                    description="Update your 3+ interest tags." 
-                    onClick={() => router.push('/onboarding')} 
-                  />
-                  <SettingsOption icon={Bell} label="Notifications" description="Manage app-wide staff pick alerts." />
-                  <SettingsOption icon={Eye} label="Display Mode" description="Theme and appearance settings." />
-                  <div className="pt-4 px-4 pb-6">
-                    <Button variant="ghost" onClick={handleLogout} className="w-full h-14 rounded-2xl border border-white/5 hover:bg-destructive/10 hover:text-destructive font-bold transition-all">
-                      <LogOut className="w-5 h-5 mr-3" /> Sign Out
+                <div className="p-4 space-y-2 max-h-[70vh] overflow-y-auto no-scrollbar">
+                  <div className="px-4 py-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 opacity-50">Account Management</p>
+                    <SettingsOption icon={UserIcon} label="Account Info" description="Display name, email, and bio." />
+                    <SettingsOption 
+                      icon={Palette} 
+                      label="Discovery Preferences" 
+                      description="Personalize your discovery feed tags." 
+                      onClick={() => router.push('/onboarding')} 
+                    />
+                    <SettingsOption icon={Shield} label="Privacy & Security" description="Password and authentication methods." />
+                    <SettingsOption icon={Eye} label="Display Mode" description="Theme and visual appearance settings." />
+                  </div>
+
+                  <div className="px-4 py-4 border-t border-white/5">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 opacity-50">Information & Support</p>
+                    <SettingsOption 
+                      icon={Info} 
+                      label="About Us" 
+                      description="Our mission and discovery curation." 
+                      onClick={() => router.push('/about')}
+                    />
+                    <SettingsOption 
+                      icon={Mail} 
+                      label="Contact Support" 
+                      description="Help, feedback, and partnerships." 
+                      onClick={() => router.push('/contact')}
+                    />
+                    <SettingsOption 
+                      icon={FileText} 
+                      label="Privacy Policy" 
+                      description="Data handling and AdSense policies." 
+                      onClick={() => router.push('/privacy')}
+                    />
+                    <SettingsOption 
+                      icon={ShieldCheck} 
+                      label="Terms of Service" 
+                      description="Usage terms and service agreements." 
+                      onClick={() => router.push('/terms')}
+                    />
+                  </div>
+                  
+                  <div className="pt-6 px-4 pb-8 border-t border-white/5">
+                    <Button 
+                      variant="ghost" 
+                      onClick={handleLogout} 
+                      className="w-full h-16 rounded-[1.5rem] border border-white/5 hover:bg-destructive/10 hover:text-destructive font-black uppercase tracking-widest text-xs transition-all italic"
+                    >
+                      <LogOut className="w-4 h-4 mr-3" /> Sign Out
                     </Button>
                   </div>
                 </div>
@@ -289,16 +344,30 @@ export default function ProfilePage() {
   );
 }
 
-function SettingsOption({ icon: Icon, label, description, onClick }: { icon: any, label: string, description: string, onClick?: () => void }) {
+function SettingsOption({ 
+  icon: Icon, 
+  label, 
+  description, 
+  onClick 
+}: { 
+  icon: any, 
+  label: string, 
+  description: string, 
+  onClick?: () => void 
+}) {
   return (
-    <button onClick={onClick} className="w-full flex items-center gap-5 p-5 rounded-[1.5rem] hover:bg-white/5 transition-all text-left group">
-      <div className="bg-white/5 p-3 rounded-2xl group-hover:bg-primary/20 group-hover:text-primary transition-colors">
-        <Icon className="w-6 h-6" />
+    <button 
+      onClick={onClick} 
+      className="w-full flex items-center gap-5 p-5 rounded-[1.5rem] hover:bg-white/5 transition-all text-left group"
+    >
+      <div className="bg-white/5 p-3.5 rounded-2xl group-hover:bg-primary/20 group-hover:text-primary transition-all group-hover:scale-105">
+        <Icon className="w-5 h-5" />
       </div>
-      <div>
-        <h4 className="font-bold text-white leading-none mb-1">{label}</h4>
-        <p className="text-xs text-muted-foreground font-medium">{description}</p>
+      <div className="flex-1 min-w-0">
+        <h4 className="font-bold text-white text-sm leading-none mb-1 group-hover:text-primary transition-colors">{label}</h4>
+        <p className="text-[10px] text-muted-foreground font-medium truncate opacity-70">{description}</p>
       </div>
+      <ChevronRight className="w-4 h-4 text-muted-foreground opacity-20 group-hover:opacity-100 group-hover:text-primary transition-all" />
     </button>
   );
 }

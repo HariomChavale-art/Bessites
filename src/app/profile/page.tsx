@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useUser, useAuth, useDoc, useFirestore, useCollection } from "@/firebase";
@@ -61,8 +62,7 @@ export default function ProfilePage() {
 
   const { data: profileData } = useDoc(userDocRef);
 
-  // States for Settings Dialog
-  const [settingsView, setSettingsView] = useState<'menu' | 'account' | 'privacy'>('menu');
+  const [settingsView, setSettingsView] = useState<'menu' | 'account' | 'privacy' | 'display'>('menu');
   const [isUpdating, setIsUpdating] = useState(false);
   const [editName, setEditName] = useState("");
   const [editBio, setEditBio] = useState("");
@@ -76,7 +76,6 @@ export default function ProfilePage() {
     }
   }, [profileData]);
 
-  // Data fetching
   const savedCollectionRef = useMemo(() => {
     if (!user || !db) return null;
     return collection(db, "users", user.uid, "likedWebsites");
@@ -147,10 +146,8 @@ export default function ProfilePage() {
         finalPhotoURL = data.publicUrl;
       }
 
-      // Update Firebase Auth
       await updateProfile(user, { displayName: editName, photoURL: finalPhotoURL });
       
-      // Update Firestore
       await updateDoc(doc(db, "users", user.uid), {
         displayName: editName,
         bio: editBio,
@@ -231,17 +228,13 @@ export default function ProfilePage() {
                       <div className="px-4 py-2">
                         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 opacity-50">Account Management</p>
                         <SettingsOption icon={UserIcon} label="Account Info" description="Display name and profile picture." onClick={() => setSettingsView('account')} />
-                        <SettingsOption 
-                          icon={Palette} 
-                          label="Discovery Preferences" 
-                          description="Update your discovery feed tags." 
-                          onClick={() => router.push('/onboarding')} 
-                        />
+                        <SettingsOption icon={Palette} label="Discovery Preferences" description="Update your discovery feed tags." onClick={() => router.push('/onboarding')} />
                         <SettingsOption icon={Shield} label="Privacy & Security" description="Password and data controls." onClick={() => setSettingsView('privacy')} />
+                        <SettingsOption icon={Eye} label="Display Mode" description="Customize your visual experience." onClick={() => setSettingsView('display')} />
                       </div>
 
                       <div className="px-4 py-4 border-t border-white/5">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 opacity-50">Information & Legal</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 opacity-50">Legal & Support</p>
                         <SettingsOption icon={Info} label="About Us" description="Our mission and story." onClick={() => router.push('/about')} />
                         <SettingsOption icon={Mail} label="Contact Support" description="Help and feedback." onClick={() => router.push('/contact')} />
                         <SettingsOption icon={FileText} label="Privacy Policy" description="Data and AdSense policies." onClick={() => router.push('/privacy')} />
@@ -270,42 +263,25 @@ export default function ProfilePage() {
                           <AvatarImage src={photoPreview || photoURL} className="object-cover" />
                           <AvatarFallback className="text-xl">{displayName.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <button 
-                          onClick={() => fileInputRef.current?.click()}
-                          className="absolute bottom-0 right-0 bg-primary p-2 rounded-full text-white shadow-xl hover:scale-110 transition-all"
-                        >
+                        <button onClick={() => fileInputRef.current?.click()} className="absolute bottom-0 right-0 bg-primary p-2 rounded-full text-white shadow-xl hover:scale-110 transition-all">
                           <Camera className="w-4 h-4" />
                         </button>
                         <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
                       </div>
-                      <p className="text-xs font-bold text-muted-foreground">Tap the camera to change picture</p>
                     </div>
 
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <Label className="text-xs font-black uppercase tracking-widest opacity-50">Display Name</Label>
-                        <Input 
-                          value={editName} 
-                          onChange={(e) => setEditName(e.target.value)}
-                          className="bg-white/5 border-white/10 rounded-2xl h-12"
-                        />
+                        <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="bg-white/5 border-white/10 rounded-2xl h-12" />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase tracking-widest opacity-50">About Bio</Label>
-                        <Textarea 
-                          value={editBio} 
-                          onChange={(e) => setEditBio(e.target.value)}
-                          placeholder="Tell us about yourself..."
-                          className="bg-white/5 border-white/10 rounded-2xl min-h-[80px]"
-                        />
+                        <Label className="text-xs font-black uppercase tracking-widest opacity-50">Bio</Label>
+                        <Textarea value={editBio} onChange={(e) => setEditBio(e.target.value)} placeholder="Curator of fine webs..." className="bg-white/5 border-white/10 rounded-2xl min-h-[100px]" />
                       </div>
                     </div>
 
-                    <Button 
-                      onClick={handleUpdateAccount} 
-                      disabled={isUpdating}
-                      className="w-full h-14 bg-primary hover:bg-primary/90 rounded-2xl font-black text-lg"
-                    >
+                    <Button onClick={handleUpdateAccount} disabled={isUpdating} className="w-full h-14 bg-primary hover:bg-primary/90 rounded-2xl font-black text-lg">
                       {isUpdating ? <Loader2 className="animate-spin" /> : <Save className="w-5 h-5 mr-2" />}
                       SAVE CHANGES
                     </Button>
@@ -316,11 +292,11 @@ export default function ProfilePage() {
                       <Button variant="ghost" size="icon" onClick={() => setSettingsView('menu')} className="rounded-full">
                         <ChevronLeft className="w-6 h-6" />
                       </Button>
-                      <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter">Security</DialogTitle>
+                      <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter">{settingsView.toUpperCase()}</DialogTitle>
                     </div>
                     <div className="p-12 text-center bg-white/5 rounded-[2rem] border border-white/5">
                       <Shield className="w-12 h-12 text-primary mx-auto mb-4 opacity-20" />
-                      <p className="text-muted-foreground font-medium">Security settings are managed via your verified email at {email}.</p>
+                      <p className="text-muted-foreground font-medium">This section is being synchronized with your profile details at {email}.</p>
                     </div>
                   </div>
                 )}
@@ -432,22 +408,9 @@ export default function ProfilePage() {
   );
 }
 
-function SettingsOption({ 
-  icon: Icon, 
-  label, 
-  description, 
-  onClick 
-}: { 
-  icon: any, 
-  label: string, 
-  description: string, 
-  onClick?: () => void 
-}) {
+function SettingsOption({ icon: Icon, label, description, onClick }: { icon: any, label: string, description: string, onClick?: () => void }) {
   return (
-    <button 
-      onClick={onClick} 
-      className="w-full flex items-center gap-5 p-5 rounded-[1.5rem] hover:bg-white/5 transition-all text-left group"
-    >
+    <button onClick={onClick} className="w-full flex items-center gap-5 p-5 rounded-[1.5rem] hover:bg-white/5 transition-all text-left group">
       <div className="bg-white/5 p-3.5 rounded-2xl group-hover:bg-primary/20 group-hover:text-primary transition-all group-hover:scale-105">
         <Icon className="w-5 h-5" />
       </div>

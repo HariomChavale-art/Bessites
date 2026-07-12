@@ -49,7 +49,6 @@ export default function WebsiteDetail() {
 
   const { data: stats } = useDoc(statsRef);
 
-  // Save logic (Bookmark) - Profile Collection
   const saveDocRef = useMemo(() => {
     if (!user || !db || !id) return null;
     return doc(db, "users", user.uid, "likedWebsites", id as string);
@@ -58,7 +57,6 @@ export default function WebsiteDetail() {
   const { data: saveData } = useDoc(saveDocRef);
   const isSaved = !!saveData;
 
-  // Like logic (Heart) - Global Popularity Toggle
   const likeDocRef = useMemo(() => {
     if (!user || !db || !id) return null;
     return doc(db, "users", user.uid, "userLikes", id as string);
@@ -80,7 +78,6 @@ export default function WebsiteDetail() {
 
   if (!website) return <div className="p-8 text-center text-white font-bold">Website not found</div>;
 
-  // STRICT RATING LOGIC: If no ratings exist, it is 0.0. No ghost defaults.
   const currentRating = stats?.ratingCount && stats?.ratingCount > 0 
     ? (stats.ratingSum / stats.ratingCount).toFixed(1) 
     : "0.0";
@@ -105,14 +102,12 @@ export default function WebsiteDetail() {
     const userLikeRef = doc(db, "users", user.uid, "userLikes", id as string);
 
     if (isLiked) {
-      // Toggle OFF: Remove the like and decrement global count
       await deleteDoc(userLikeRef);
-      await setDoc(globalStatsRef, { likeCount: increment(-1) }, { merge: true });
+      updateDoc(globalStatsRef, { likeCount: increment(-1) });
       toast({ title: "Liked Removed", description: "Global vote removed." });
     } else {
-      // Toggle ON: Add the like and increment global count
       await setDoc(userLikeRef, { likedAt: serverTimestamp() });
-      await setDoc(globalStatsRef, { likeCount: increment(1) }, { merge: true });
+      updateDoc(globalStatsRef, { likeCount: increment(1) });
       toast({ title: "Liked!", description: "Community popularity increased." });
     }
   };
@@ -136,17 +131,44 @@ export default function WebsiteDetail() {
 
   const handleShare = async () => {
     if (!db || !id) return;
-    const globalStatsRef = doc(db, "websiteStats", id as string);
-    await setDoc(globalStatsRef, { shareCount: increment(1) }, { merge: true });
-    
+
+    const shareData = {
+      title: `Bessites | ${website.name}`,
+      text: website.description,
+      url: window.location.href,
+    };
+
     try {
-      await navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Link Copied!",
-        description: "Bessites link ready to share.",
-      });
+      if (navigator.share) {
+        await navigator.share(shareData);
+        if (user) {
+          const shareRecordRef = doc(db, "users", user.uid, "userShares", id as string);
+          const shareSnap = await getDoc(shareRecordRef);
+          if (!shareSnap.exists()) {
+            const globalStatsRef = doc(db, "websiteStats", id as string);
+            updateDoc(globalStatsRef, { shareCount: increment(1) });
+            setDoc(shareRecordRef, { sharedAt: serverTimestamp() });
+          }
+        }
+        toast({ title: "Shared!", description: "Interaction recorded." });
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        if (user) {
+          const shareRecordRef = doc(db, "users", user.uid, "userShares", id as string);
+          const shareSnap = await getDoc(shareRecordRef);
+          if (!shareSnap.exists()) {
+            const globalStatsRef = doc(db, "websiteStats", id as string);
+            updateDoc(globalStatsRef, { shareCount: increment(1) });
+            setDoc(shareRecordRef, { sharedAt: serverTimestamp() });
+          }
+        }
+        toast({
+          title: "Link Copied!",
+          description: "Bessites link ready to share.",
+        });
+      }
     } catch (e) {
-      toast({ title: "Shared!", description: "Interaction recorded." });
+      console.log('Share action cancelled or failed');
     }
   };
 
@@ -226,14 +248,12 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Description at the top of insights */}
         <div className="space-y-4 mb-6">
           <p className="text-lg text-white font-medium leading-relaxed bg-white/5 p-6 rounded-3xl border border-white/5">
             {website.longDescription}
           </p>
         </div>
 
-        {/* Compact Horizontal Play Store Stats */}
         <div className="flex items-center justify-around py-6 border-y border-white/5 mb-8 bg-card/20 rounded-2xl">
            <div className="text-center flex-1">
               <div className="flex items-center justify-center gap-1 text-white font-black text-xl">
@@ -268,7 +288,6 @@ export default function WebsiteDetail() {
            </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
           <Button 
             onClick={handleVisitClick} 

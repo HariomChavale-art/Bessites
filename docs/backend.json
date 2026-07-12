@@ -50,7 +50,7 @@
       "properties": {
         "websiteId": {
           "type": "string",
-          "description": "The ID of the website from the mock data."
+          "description": "The ID of the website."
         },
         "savedAt": {
           "type": "string",
@@ -62,9 +62,20 @@
         "savedAt"
       ]
     },
+    "UserInteraction": {
+      "title": "User Interaction",
+      "description": "Tracks an individual user's specific interaction with a website to prevent duplicates.",
+      "type": "object",
+      "properties": {
+        "interactedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
     "WebsiteStats": {
       "title": "Website Stats",
-      "description": "Global statistics and metadata for a website tracked on Icantfindawebsite.",
+      "description": "Global statistics and metadata for a website.",
       "type": "object",
       "properties": {
         "visitCount": {
@@ -73,11 +84,11 @@
         },
         "likeCount": {
           "type": "number",
-          "description": "Total number of users who liked/saved the project."
+          "description": "Total number of users who liked the project."
         },
         "shareCount": {
           "type": "number",
-          "description": "Total times shared."
+          "description": "Total unique shares by authenticated users."
         },
         "ratingSum": {
           "type": "number",
@@ -110,8 +121,7 @@
           "type": "number"
         },
         "comment": {
-          "type": "string",
-          "description": "Optional short comment left by the user."
+          "type": "string"
         },
         "userId": {
           "type": "string"
@@ -145,7 +155,15 @@
     },
     "/users/{userId}/likedWebsites/{saveId}": {
       "schema": "SavedWebsite",
-      "description": "Collection of websites saved by the user."
+      "description": "Collection of websites bookmarked (saved) by the user."
+    },
+    "/users/{userId}/userLikes/{websiteId}": {
+      "schema": "UserInteraction",
+      "description": "Tracks if a user has liked a website to enable toggling."
+    },
+    "/users/{userId}/userShares/{websiteId}": {
+      "schema": "UserInteraction",
+      "description": "Tracks if a user has shared a website to prevent duplicate global increments."
     },
     "/websiteStats/{websiteId}": {
       "schema": "WebsiteStats",

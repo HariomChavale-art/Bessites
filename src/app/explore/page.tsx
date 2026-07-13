@@ -103,6 +103,7 @@ const TRENDING_CATEGORY_NAMES = ["AI", "Gaming", "Space", "Geography", "Fun", "S
 
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [categorySearchQuery, setCategorySearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const { user } = useUser();
   const db = useFirestore();
@@ -173,6 +174,13 @@ export default function ExplorePage() {
     }).slice(0, 10);
   }, [userInterests]);
 
+  const filteredModalCategories = useMemo(() => {
+    if (!categorySearchQuery.trim()) return CATEGORIES;
+    return CATEGORIES.filter(cat => 
+      cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase().trim())
+    );
+  }, [categorySearchQuery]);
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
@@ -216,31 +224,51 @@ export default function ExplorePage() {
                   <X className="w-4 h-4 mr-2" /> Clear
                 </Button>
               )}
-              <Dialog>
+              <Dialog onOpenChange={(open) => !open && setCategorySearchQuery("")}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="rounded-full bg-white/5 border-white/10 hover:bg-white/10 font-bold">
                     <MoreHorizontal className="w-4 h-4 mr-2" /> More Interests
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-background border-white/10 text-white rounded-[2.5rem] max-w-2xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader className="p-4">
+                <DialogContent className="bg-background border-white/10 text-white rounded-[2.5rem] max-w-2xl max-h-[80vh] flex flex-col p-0 overflow-hidden">
+                  <DialogHeader className="p-8 pb-4">
                     <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">All Discovery Tags</DialogTitle>
+                    <div className="relative mt-6">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input 
+                        placeholder="Filter categories..." 
+                        value={categorySearchQuery}
+                        onChange={(e) => setCategorySearchQuery(e.target.value)}
+                        className="pl-10 bg-white/5 border-white/10 rounded-xl h-12 text-sm font-bold focus:ring-primary"
+                      />
+                    </div>
                   </DialogHeader>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-4">
-                    {CATEGORIES.map((cat) => (
-                      <Button 
-                        key={cat.name} 
-                        variant="outline" 
-                        onClick={() => setSelectedCategory(cat.name)}
-                        className={cn(
-                          "h-16 bg-white/5 border-white/5 hover:bg-white/10 rounded-2xl flex items-center gap-3 px-4 transition-all",
-                          selectedCategory === cat.name && "border-primary bg-primary/10"
-                        )}
-                      >
-                        <cat.icon className={cn(`w-5 h-5 shrink-0`, cat.color)} />
-                        <span className="text-xs font-bold text-white truncate">{cat.name}</span>
-                      </Button>
-                    ))}
+                  <div className="flex-1 overflow-y-auto p-8 pt-4 no-scrollbar">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      {filteredModalCategories.length > 0 ? (
+                        filteredModalCategories.map((cat) => (
+                          <Button 
+                            key={cat.name} 
+                            variant="outline" 
+                            onClick={() => {
+                              setSelectedCategory(cat.name);
+                              setCategorySearchQuery("");
+                            }}
+                            className={cn(
+                              "h-16 bg-white/5 border-white/5 hover:bg-white/10 rounded-2xl flex items-center gap-3 px-4 transition-all text-left justify-start",
+                              selectedCategory === cat.name && "border-primary bg-primary/10"
+                            )}
+                          >
+                            <cat.icon className={cn(`w-5 h-5 shrink-0`, cat.color)} />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-white truncate">{cat.name}</span>
+                          </Button>
+                        ))
+                      ) : (
+                        <div className="col-span-full py-12 text-center text-muted-foreground font-medium italic">
+                          No categories match your search.
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </DialogContent>
               </Dialog>

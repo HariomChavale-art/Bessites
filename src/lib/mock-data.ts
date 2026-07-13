@@ -117,6 +117,11 @@ const RAW_SITES = [
 export const MOCK_WEBSITES: Website[] = Array.from(new Set(RAW_SITES.map(s => s.url)))
   .map((url, index) => {
     const site = RAW_SITES.find(s => s.url === url)!;
+    
+    // Assign deterministic pricing to avoid hydration mismatch
+    const pricingOptions: ("Paid" | "Freemium" | "Free")[] = ["Paid", "Freemium", "Free"];
+    const pricing = pricingOptions[index % pricingOptions.length];
+
     return {
       id: `site-${index}`,
       name: site.name,
@@ -132,6 +137,6 @@ export const MOCK_WEBSITES: Website[] = Array.from(new Set(RAW_SITES.map(s => s.
       size: "N/A",
       version: "1.0",
       updatedAt: "2024",
-      pricing: Math.random() > 0.8 ? "Paid" : (Math.random() > 0.4 ? "Freemium" : "Free")
+      pricing: pricing
     };
   });

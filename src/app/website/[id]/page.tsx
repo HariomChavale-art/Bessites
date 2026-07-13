@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useParams } from "next/navigation";
@@ -223,7 +222,7 @@ export default function WebsiteDetail() {
             <WebsitePreview 
               websiteId={website.id}
               websiteUrl={website.url}
-              fallbackUrl={stats?.logoUrl || ""}
+              fallbackUrl={stats?.logoUrl || website.imageUrl}
               alt={website.name}
               width={256}
               height={256}
@@ -298,7 +297,7 @@ export default function WebsiteDetail() {
               <Globe className="w-6 h-6" /> Visit Website
             </a>
           </Button>
-          <div className="flex flex-1 gap-2">
+          <div className="flex-1 flex gap-2">
             <Button 
               variant="outline" 
               onClick={handleLike}

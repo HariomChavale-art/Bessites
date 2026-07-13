@@ -34,74 +34,94 @@ const RAW_SITES = [
   { name: "ModDB", url: "https://moddb.com", cat: ["Gaming"], desc: "The definitive library for game mods." },
   { name: "My Abandonware", url: "https://myabandonware.com", cat: ["Gaming"], desc: "Old games for free download." },
   { name: "RAWG", url: "https://rawg.io", cat: ["Gaming"], desc: "Largest video game database and discovery." },
-  { name: "Backloggd", url: "https://backloggd.com", cat: ["Gaming"], desc: "Track and rank your game backlog." },
   { name: "Nexus Mods", url: "https://nexusmods.com", cat: ["Gaming"], desc: "Premier community for game modifications." },
   { name: "GameBanana", url: "https://gamebanana.com", cat: ["Gaming"], desc: "The game modding community site." },
-  { name: "RetroAchievements", url: "https://retroachievements.org", cat: ["Gaming"], desc: "Achievements for your favorite retro games." },
   { name: "Playhop", url: "https://playhop.com", cat: ["Gaming"], desc: "Play free browser games instantly." },
-  
+
   // Coding
   { name: "CodeSandbox", url: "https://codesandbox.io", cat: ["Coding"], desc: "Instant cloud development environment." },
   { name: "Glitch", url: "https://glitch.com", cat: ["Coding"], desc: "Build and deploy web apps together." },
   { name: "DevDocs", url: "https://devdocs.io", cat: ["Coding"], desc: "Fast, offline search for all documentation." },
   { name: "Hoppscotch", url: "https://hoppscotch.io", cat: ["Coding"], desc: "Open-source API development tool." },
-  { name: "Carbon", url: "https://carbon.now.sh", cat: ["Coding"], desc: "Create beautiful images of your code." },
-  { name: "Ray.so", url: "https://ray.so", cat: ["Coding"], desc: "Turn your code into beautiful screenshots." },
-  { name: "JSON Crack", url: "https://jsoncrack.com", cat: ["Coding"], desc: "Visualize JSON data in 2D/3D." },
-  { name: "Regex101", url: "https://regex101.com", cat: ["Coding"], desc: "Online regex tester and debugger." },
   { name: "Roadmap.sh", url: "https://roadmap.sh", cat: ["Coding"], desc: "Visual guides for developer paths." },
-  
-  // Design
-  { name: "Haikei", url: "https://haikei.app", cat: ["Design"], desc: "Generate unique SVG shapes and waves." },
-  { name: "SVG Repo", url: "https://svgrepo.com", cat: ["Design"], desc: "Free SVG vectors and icons library." },
-  { name: "PatternPad", url: "https://patternpad.com", cat: ["Design"], desc: "Create beautiful pattern designs." },
-  { name: "Blobmaker", url: "https://blobmaker.app", cat: ["Design"], desc: "Generate organic SVG shapes." },
-  { name: "ColorSpace", url: "https://mycolor.space", cat: ["Design"], desc: "Generate beautiful color palettes." },
-  { name: "Happy Hues", url: "https://happyhues.co", cat: ["Design"], desc: "Real-world color palette inspiration." },
-  { name: "Fontshare", url: "https://fontshare.com", cat: ["Design"], desc: "Free professional typography library." },
-  
-  // Image Tools
-  { name: "Cleanup.pictures", url: "https://cleanup.pictures", cat: ["Image Tools"], desc: "Remove unwanted objects from photos." },
-  { name: "Upscale.media", url: "https://upscale.media", cat: ["Image Tools"], desc: "Enhance image resolution with AI." },
-  { name: "TinyPNG", url: "https://tinypng.com", cat: ["Image Tools"], desc: "Smart PNG and JPEG compression." },
-  { name: "Pixelcut", url: "https://pixelcut.ai", cat: ["Image Tools"], desc: "AI-powered product photography tools." },
-  
-  // Learning
-  { name: "Class Central", url: "https://classcentral.com", cat: ["Learning"], desc: "Catalog of free online courses." },
-  { name: "OpenStax", url: "https://openstax.org", cat: ["Learning"], desc: "Free, peer-reviewed open textbooks." },
-  { name: "Saylor Academy", url: "https://saylor.org", cat: ["Learning"], desc: "Free college-level courses for credit." },
-  { name: "Ncase", url: "https://ncase.me", cat: ["Learning"], desc: "Explorable explanations through play." },
-  
-  // PDF
-  { name: "PDF24", url: "https://tools.pdf24.org", cat: ["PDF"], desc: "Free and easy PDF solutions." },
-  { name: "TinyWow", url: "https://tinywow.com", cat: ["PDF"], desc: "Free tools for PDF and files." },
-  { name: "Sejda", url: "https://sejda.com", cat: ["PDF"], desc: "Help with your PDF tasks." },
-  
-  // Writing
-  { name: "Hemingway Editor", url: "https://hemingwayapp.com", cat: ["Writing"], desc: "Make your writing bold and clear." },
-  { name: "DeepL Write", url: "https://deepl.com/write", cat: ["Writing"], desc: "AI writing assistant for clear text." },
-  { name: "Goblin Tools", url: "https://goblin.tools", cat: ["Writing"], desc: "AI tools for neurodivergent tasks." },
-  
-  // Cybersecurity
-  { name: "Have I Been Pwned", url: "https://haveibeenpwned.com", cat: ["Cybersecurity"], desc: "Check if your email is in a breach." },
-  { name: "VirusTotal", url: "https://virustotal.com", cat: ["Cybersecurity"], desc: "Analyze suspicious files and URLs." },
-  { name: "DNSChecker", url: "https://dnschecker.org", cat: ["Cybersecurity"], desc: "Global DNS propagation checker." },
-  
-  // Cool Websites
-  { name: "WindowSwap", url: "https://window-swap.com", cat: ["Cool Websites"], desc: "Look out of someone else's window." },
-  { name: "Radio Garden", url: "https://radio.garden", cat: ["Cool Websites"], desc: "Listen to live radio across the globe." },
-  { name: "Neal.fun", url: "https://neal.fun", cat: ["Cool Websites"], desc: "Collection of weird web experiments." },
-  { name: "FutureMe", url: "https://futureme.org", cat: ["Cool Websites"], desc: "Write letters to your future self." },
-  
-  // Developer
-  { name: "Railway", url: "https://railway.app", cat: ["Developer"], desc: "Easiest way to deploy your apps." },
-  { name: "Render", url: "https://render.com", cat: ["Developer"], desc: "Unified cloud to build and run apps." },
-  { name: "Supabase", url: "https://supabase.com", cat: ["Developer"], desc: "The open source Firebase alternative." },
-  
-  // Website Discovery
-  { name: "Product Hunt", url: "https://producthunt.com", cat: ["Website Discovery"], desc: "Discover the best new products daily." },
-  { name: "AlternativeTo", url: "https://alternativeto.net", cat: ["Website Discovery"], desc: "Find alternatives to any software." },
-  { name: "Futurepedia", url: "https://futurepedia.io", cat: ["Website Discovery"], desc: "Largest AI tools directory." }
+
+  // Space
+  { name: "Eyes on the Solar System", url: "https://eyes.nasa.gov", cat: ["Space"], desc: "NASA's 3D explorer for planets and spacecraft." },
+  { name: "Heavens Above", url: "https://heavens-above.com", cat: ["Space"], desc: "Track satellites and ISS passes in real-time." },
+  { name: "Satellite Map", url: "https://platform.leolabs.space/visualizations/leo", cat: ["Space"], desc: "Interactive visualization of objects in low Earth orbit." },
+  { name: "APOD", url: "https://apod.nasa.gov", cat: ["Space"], desc: "Astronomy Picture of the Day." },
+
+  // Earth & Weather
+  { name: "Earth Nullschool", url: "https://earth.nullschool.net", cat: ["Earth & Weather"], desc: "Global map of wind, weather, and ocean conditions." },
+  { name: "Ventusky", url: "https://ventusky.com", cat: ["Earth & Weather"], desc: "Live weather forecast and meteorological data maps." },
+  { name: "Zoom Earth", url: "https://zoom.earth", cat: ["Earth & Weather"], desc: "Real-time satellite images and storm tracker." },
+  { name: "Windy", url: "https://windy.com", cat: ["Earth & Weather"], desc: "Professional weather visualization for everyone." },
+
+  // OSINT
+  { name: "Have I Been Pwned", url: "https://haveibeenpwned.com", cat: ["OSINT", "Cybersecurity"], desc: "Check if your email or phone is in a data breach." },
+  { name: "Hunter.io", url: "https://hunter.io", cat: ["OSINT"], desc: "Find and verify professional email addresses." },
+  { name: "URLScan", url: "https://urlscan.io", cat: ["OSINT"], desc: "A sandbox for analyzing suspicious websites." },
+
+  // Fun & Interesting
+  { name: "Neal.fun", url: "https://neal.fun", cat: ["Fun", "Interesting"], desc: "Addictive and quirky web experiments." },
+  { name: "WindowSwap", url: "https://window-swap.com", cat: ["Fun", "Interesting"], desc: "Gaze out of someone else's window globally." },
+  { name: "Radio Garden", url: "https://radio.garden", cat: ["Fun", "Music"], desc: "Explore live radio by rotating the globe." },
+  { name: "Pointer Pointer", url: "https://pointerpointer.com", cat: ["Fun"], desc: "A website that finds where your cursor is pointing." },
+  { name: "The Useless Web", url: "https://theuselessweb.com", cat: ["Fun"], desc: "Takes you to a random useless website." },
+
+  // Creative
+  { name: "AutoDraw", url: "https://autodraw.com", cat: ["Creative", "AI"], desc: "AI-powered tool that pairs machine learning with art." },
+  { name: "Silk", url: "http://weavesilk.com", cat: ["Creative"], desc: "Create beautiful generative silk art." },
+  { name: "Pixilart", url: "https://pixilart.com", cat: ["Creative"], desc: "Online social platform for pixel artists." },
+
+  // Brain Games
+  { name: "Human Benchmark", url: "https://humanbenchmark.com", cat: ["Brain Games"], desc: "Test your cognitive abilities and reaction time." },
+  { name: "A Soft Murmur", url: "https://asoftmurmur.com", cat: ["Brain Games", "Utilities"], desc: "Ambient sounds to help you focus and relax." },
+  { name: "BrainBashers", url: "https://brainbashers.com", cat: ["Brain Games"], desc: "Puzzles, riddles, and daily brain games." },
+
+  // Geography
+  { name: "GeoGuessr", url: "https://geoguessr.com", cat: ["Geography", "Gaming"], desc: "The world-famous geography discovery game." },
+  { name: "Worldle", url: "https://worldle.teuteuf.fr", cat: ["Geography"], desc: "Guess the country based on its shape." },
+  { name: "Seterra", url: "https://seterra.com", cat: ["Geography", "Learning"], desc: "Comprehensive geography quiz platform." },
+
+  // Voice & Audio
+  { name: "ElevenLabs", url: "https://elevenlabs.io", cat: ["Voice", "AI"], desc: "The most realistic AI voice generator." },
+  { name: "TTSMaker", url: "https://ttsmaker.com", cat: ["Voice"], desc: "Free text-to-speech tool for high-quality audio." },
+  { name: "MyNoise", url: "https://mynoise.net", cat: ["Audio"], desc: "Professional background noise generators." },
+
+  // Reading & News
+  { name: "Open Library", url: "https://openlibrary.org", cat: ["Reading"], desc: "One page for every book ever published." },
+  { name: "Standard Ebooks", url: "https://standardebooks.org", cat: ["Reading"], desc: "Free, high-quality public domain ebooks." },
+  { name: "Ground News", url: "https://ground.news", cat: ["News"], desc: "Compare news coverage from across the political spectrum." },
+  { name: "Hacker News", url: "https://news.ycombinator.com", cat: ["News", "Coding"], desc: "The premier tech and startup news feed." },
+
+  // Utilities & Internet
+  { name: "TinyWow", url: "https://tinywow.com", cat: ["Utilities"], desc: "Comprehensive suite of free file conversion tools." },
+  { name: "10 Minute Mail", url: "https://10minutemail.com", cat: ["Utilities", "Internet"], desc: "Secure, temporary disposable email address." },
+  { name: "Internet Archive", url: "https://archive.org", cat: ["Internet"], desc: "Digital library of the internet and human history." },
+  { name: "Wayback Machine", url: "https://web.archive.org", cat: ["Internet"], desc: "Explore the web's past through saved snapshots." },
+
+  // SEO & Startups
+  { name: "Ubersuggest", url: "https://neilpatel.com/ubersuggest", cat: ["SEO"], desc: "Free keyword research and SEO audit tool." },
+  { name: "Product Hunt", url: "https://producthunt.com", cat: ["Startups", "Website Discovery"], desc: "Discover the next big thing in tech daily." },
+  { name: "BetaList", url: "https://betalist.com", cat: ["Startups"], desc: "Discover the newest startups before they launch." },
+
+  // Science & Math
+  { name: "Wolfram Demonstrations", url: "https://demonstrations.wolfram.com", cat: ["Science"], desc: "Interactive visualizations for science and math." },
+  { name: "PhET Simulations", url: "https://phet.colorado.edu", cat: ["Science"], desc: "Free interactive science and math simulations." },
+  { name: "Desmos", url: "https://desmos.com", cat: ["Math"], desc: "The most powerful online graphing calculator." },
+  { name: "Symbolab", url: "https://symbolab.com", cat: ["Math"], desc: "Step-by-step math solver for all levels." },
+
+  // Movies & TV
+  { name: "JustWatch", url: "https://justwatch.com", cat: ["Movies", "TV"], desc: "Find where to stream any movie or show." },
+  { name: "Letterboxd", url: "https://letterboxd.com", cat: ["Movies"], desc: "Social network for film lovers." },
+  { name: "TV Time", url: "https://tvtime.com", cat: ["TV"], desc: "Track your shows and discover what to watch next." },
+
+  // Travel, Food & Fitness
+  { name: "Atlas Obscura", url: "https://atlasobscura.com", cat: ["Travel", "Interesting"], desc: "Discover the world's most curious and hidden places." },
+  { name: "Rome2Rio", url: "https://rome2rio.com", cat: ["Travel"], desc: "Search any city or address to find travel options." },
+  { name: "SuperCook", url: "https://supercook.com", cat: ["Food"], desc: "Recipe search engine based on your ingredients." },
+  { name: "MuscleWiki", url: "https://musclewiki.com", cat: ["Fitness"], desc: "Simplify your workout with clear exercise guides." }
 ];
 
 export const MOCK_WEBSITES: Website[] = Array.from(new Set(RAW_SITES.map(s => s.url)))

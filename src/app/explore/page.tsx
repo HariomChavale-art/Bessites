@@ -24,13 +24,37 @@ import {
   FileText, 
   Globe,
   PenTool,
-  Code
+  Code,
+  Rocket,
+  Cloud,
+  Brain,
+  Map,
+  PartyPopper,
+  Paintbrush,
+  Mic,
+  Newspaper,
+  Hammer,
+  BarChart3,
+  Lightbulb,
+  Briefcase,
+  List,
+  Home,
+  FlaskConical,
+  Atom,
+  Calculator,
+  Film,
+  Tv,
+  Plane,
+  Utensils,
+  Dumbbell,
+  Leaf,
+  Info
 } from "lucide-react";
 import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
 import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
-import { useFirestore, useCollection, useDoc, useUser } from "@/firebase";
+import { useFirestore, useDoc, useUser, useCollection } from "@/firebase";
 import { doc, collection } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -40,20 +64,40 @@ const CATEGORIES = [
   { name: "Gaming", icon: Gamepad2, color: "text-red-400" },
   { name: "Coding", icon: Code, color: "text-blue-400" },
   { name: "Design", icon: Palette, color: "text-pink-400" },
-  { name: "Image Tools", icon: Camera, color: "text-orange-400" },
-  { name: "Video", icon: Zap, color: "text-violet-400" },
-  { name: "Audio", icon: Music, color: "text-blue-300" },
-  { name: "Learning", icon: BookOpen, color: "text-green-400" },
+  { name: "Space", icon: Rocket, color: "text-indigo-400" },
+  { name: "Earth & Weather", icon: Cloud, color: "text-cyan-400" },
+  { name: "Brain Games", icon: Brain, color: "text-amber-400" },
+  { name: "Geography", icon: Map, color: "text-green-400" },
+  { name: "Fun", icon: PartyPopper, color: "text-yellow-400" },
+  { name: "OSINT", icon: Search, color: "text-slate-400" },
+  { name: "Creative", icon: Paintbrush, color: "text-rose-400" },
+  { name: "Voice", icon: Mic, color: "text-violet-400" },
+  { name: "Music", icon: Music, color: "text-blue-300" },
+  { name: "Reading", icon: BookOpen, color: "text-emerald-400" },
+  { name: "News", icon: Newspaper, color: "text-orange-400" },
+  { name: "Utilities", icon: Hammer, color: "text-stone-400" },
+  { name: "Internet", icon: Globe, color: "text-sky-400" },
+  { name: "SEO", icon: BarChart3, color: "text-lime-400" },
+  { name: "Startups", icon: Rocket, color: "text-red-300" },
+  { name: "Ideas", icon: Lightbulb, color: "text-yellow-300" },
+  { name: "Freelancing", icon: Briefcase, color: "text-teal-400" },
+  { name: "AI Directories", icon: List, color: "text-fuchsia-400" },
+  { name: "Home", icon: Home, color: "text-orange-300" },
+  { name: "Science", icon: FlaskConical, color: "text-blue-500" },
+  { name: "Physics", icon: Atom, color: "text-purple-500" },
+  { name: "Math", icon: Calculator, color: "text-green-500" },
+  { name: "Movies", icon: Film, color: "text-red-500" },
+  { name: "TV", icon: Tv, color: "text-orange-500" },
+  { name: "Travel", icon: Plane, color: "text-cyan-500" },
+  { name: "Food", icon: Utensils, color: "text-yellow-500" },
+  { name: "Fitness", icon: Dumbbell, color: "text-rose-500" },
+  { name: "Nature", icon: Leaf, color: "text-emerald-500" },
+  { name: "Interesting", icon: Info, color: "text-zinc-400" },
   { name: "PDF", icon: FileText, color: "text-red-300" },
   { name: "Productivity", icon: Laptop, color: "text-indigo-400" },
-  { name: "Writing", icon: PenTool, color: "text-amber-400" },
-  { name: "Cybersecurity", icon: ShieldCheck, color: "text-emerald-400" },
-  { name: "Cool Websites", icon: Globe, color: "text-cyan-400" },
-  { name: "Developer", icon: Cpu, color: "text-fuchsia-400" },
-  { name: "Website Discovery", icon: Search, color: "text-slate-400" },
 ];
 
-const TRENDING_CATEGORY_NAMES = ["AI", "Gaming", "Coding", "Developer", "Cool Websites"];
+const TRENDING_CATEGORY_NAMES = ["AI", "Gaming", "Space", "Geography", "Fun", "Startups"];
 
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -82,15 +126,9 @@ export default function ExplorePage() {
       name: s.name || s.url?.split('//')[1]?.split('.')[0] || "New Project",
       developer: s.userEmail || "Community",
       description: s.description || "User submitted project",
-      longDescription: s.longDescription || "A project shared by the Bessites community.",
       categories: s.categories || ["Web App"],
-      rating: 0,
-      reviewCount: 0,
-      pricing: "Free",
-      imageUrl: s.logoUrl || "",
-      screenshots: [],
       url: s.url,
-      updatedAt: "2024",
+      pricing: "Free",
       ...s
     }));
     
@@ -110,16 +148,13 @@ export default function ExplorePage() {
   const filteredResults = useMemo(() => {
     return allWebsites.filter(app => {
       const queryText = searchQuery.toLowerCase().trim();
-      
       const matchesSearch = !searchQuery || 
         app.name.toLowerCase().includes(queryText) ||
         app.description.toLowerCase().includes(queryText) ||
         app.url.toLowerCase().includes(queryText) ||
         app.categories.some(cat => cat.toLowerCase().includes(queryText));
-      
       const matchesCategory = !selectedCategory || 
         app.categories.some(cat => cat.toLowerCase().includes(selectedCategory.toLowerCase()));
-      
       return matchesSearch && matchesCategory;
     });
   }, [searchQuery, selectedCategory, allWebsites]);
@@ -262,7 +297,6 @@ function ExploreItemRow({ app }: { app: any }) {
   }, [db, app.id]);
 
   const { data: stats } = useDoc(statsRef);
-
   const totalLikes = stats?.likeCount || 0;
   const totalVisits = stats?.visitCount || 0;
   const isTrending = totalVisits > 50 || totalLikes > 10;

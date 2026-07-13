@@ -48,7 +48,8 @@ import {
   Utensils,
   Dumbbell,
   Leaf,
-  Info
+  Info,
+  History
 } from "lucide-react";
 import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
@@ -95,9 +96,10 @@ const CATEGORIES = [
   { name: "Interesting", icon: Info, color: "text-zinc-400" },
   { name: "PDF", icon: FileText, color: "text-red-300" },
   { name: "Productivity", icon: Laptop, color: "text-indigo-400" },
+  { name: "History", icon: History, color: "text-amber-600" },
 ];
 
-const TRENDING_CATEGORY_NAMES = ["AI", "Gaming", "Space", "Geography", "Fun", "Startups"];
+const TRENDING_CATEGORY_NAMES = ["AI", "Gaming", "Space", "Geography", "Fun", "Startups", "History"];
 
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("");

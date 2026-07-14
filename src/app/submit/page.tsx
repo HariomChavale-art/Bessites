@@ -117,16 +117,21 @@ export default function SubmitWebsite() {
       if (logoFile) {
         const fileExt = logoFile.name.split('.').pop();
         const path = `logos/${user.uid}/${Date.now()}.${fileExt}`;
-        try {
-          const { error: uploadError } = await supabase.storage
-            .from('Website-images')
-            .upload(path, logoFile);
-          
-          if (!uploadError) {
-            publicLogoUrl = supabase.storage.from('Website-images').getPublicUrl(path).data.publicUrl;
-          }
-        } catch (e) {
-          console.warn("Storage upload failed, proceeding without logo");
+        
+        const { error: uploadError } = await supabase.storage
+          .from('Website-images')
+          .upload(path, logoFile);
+        
+        if (uploadError) {
+          console.warn("Supabase Storage Error:", uploadError.message);
+          toast({
+            variant: "destructive",
+            title: "Storage Error",
+            description: "Logo upload failed (Check Supabase RLS). Submission will proceed without logo.",
+          });
+        } else {
+          const { data } = supabase.storage.from('Website-images').getPublicUrl(path);
+          publicLogoUrl = data.publicUrl;
         }
       }
 

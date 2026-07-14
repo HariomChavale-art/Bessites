@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useUser, useAuth, useDoc, useFirestore, useCollection } from "@/firebase";
@@ -22,7 +23,6 @@ import {
   Clock, 
   Settings, 
   Shield, 
-  Bell, 
   User as UserIcon, 
   Palette, 
   Eye,
@@ -142,16 +142,12 @@ export default function ProfilePage() {
           .upload(fileName, selectedFile);
         
         if (uploadError) {
-          if (uploadError.message.includes('policy')) {
-            toast({
-              variant: "destructive",
-              title: "Storage Access Denied",
-              description: "Supabase Storage policies prevent this upload. Please enable public access or add RLS rules.",
-            });
-            // Proceed without changing image if storage fails
-          } else {
-            throw uploadError;
-          }
+          console.warn("Supabase Storage Error:", uploadError.message);
+          toast({
+            variant: "destructive",
+            title: "Storage Error",
+            description: "Profile picture upload failed (Check Supabase RLS). Update will proceed without new image.",
+          });
         } else {
           const { data } = supabase.storage.from('Website-images').getPublicUrl(fileName);
           finalPhotoURL = data.publicUrl;
@@ -160,10 +156,17 @@ export default function ProfilePage() {
 
       await updateProfile(user, { displayName: editName, photoURL: finalPhotoURL });
       
-      await updateDoc(doc(db, "users", user.uid), {
+      const userRef = doc(db, "users", user.uid);
+      updateDoc(userRef, {
         displayName: editName,
         bio: editBio,
         photoURL: finalPhotoURL
+      }).catch(async (e) => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'update',
+            requestResourceData: { displayName: editName }
+          }));
       });
 
       toast({ title: "Profile Updated", description: "Your account information has been saved." });

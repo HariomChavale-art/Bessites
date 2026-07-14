@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useParams } from "next/navigation";
@@ -29,6 +30,8 @@ import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { WebsitePreview } from "@/components/website-preview";
 import { useToast } from "@/hooks/use-toast";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function WebsiteDetail() {
   const { id } = useParams();
@@ -36,7 +39,7 @@ export default function WebsiteDetail() {
   const db = useFirestore();
   const { toast } = useToast();
   
-  const website = MOCK_WEBSITES.find(w => w.id === id);
+  const website = useMemo(() => MOCK_WEBSITES.find(w => w.id === id), [id]);
   const [ratingLoading, setRatingLoading] = useState(false);
   const [comment, setComment] = useState("");
   const [ratingValue, setRatingValue] = useState(0);
@@ -88,10 +91,16 @@ export default function WebsiteDetail() {
   const handleVisitClick = () => {
     if (!db || !id) return;
     const ref = doc(db, "websiteStats", id as string);
-    setDoc(ref, { visitCount: increment(1) }, { merge: true });
+    setDoc(ref, { visitCount: increment(1) }, { merge: true }).catch(async (e) => {
+       errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: ref.path,
+          operation: 'update',
+          requestResourceData: { visitCount: increment(1) }
+        }));
+    });
   };
 
-  const handleLike = async () => {
+  const handleLike = () => {
     if (!user || !db || !id) {
       toast({ title: "Bessites Access", description: "Please sign in to like projects." });
       return;
@@ -101,17 +110,40 @@ export default function WebsiteDetail() {
     const userLikeRef = doc(db, "users", user.uid, "userLikes", id as string);
 
     if (isLiked) {
-      await deleteDoc(userLikeRef);
-      updateDoc(globalStatsRef, { likeCount: increment(-1) });
+      deleteDoc(userLikeRef).catch(async (e) => {
+         errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: userLikeRef.path,
+            operation: 'delete'
+          }));
+      });
+      updateDoc(globalStatsRef, { likeCount: increment(-1) }).catch(async (e) => {
+         errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: globalStatsRef.path,
+            operation: 'update',
+            requestResourceData: { likeCount: increment(-1) }
+          }));
+      });
       toast({ title: "Liked Removed", description: "Global vote removed." });
     } else {
-      await setDoc(userLikeRef, { likedAt: serverTimestamp() });
-      updateDoc(globalStatsRef, { likeCount: increment(1) });
+      setDoc(userLikeRef, { likedAt: serverTimestamp() }).catch(async (e) => {
+         errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: userLikeRef.path,
+            operation: 'create',
+            requestResourceData: { likedAt: serverTimestamp() }
+          }));
+      });
+      updateDoc(globalStatsRef, { likeCount: increment(1) }).catch(async (e) => {
+         errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: globalStatsRef.path,
+            operation: 'update',
+            requestResourceData: { likeCount: increment(1) }
+          }));
+      });
       toast({ title: "Liked!", description: "Community popularity increased." });
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!user || !db || !id) {
       toast({ title: "Bessites Access", description: "Please sign in to save projects." });
       return;
@@ -120,10 +152,21 @@ export default function WebsiteDetail() {
     const saveRef = doc(db, "users", user.uid, "likedWebsites", id as string);
     
     if (isSaved) {
-      await deleteDoc(saveRef);
+      deleteDoc(saveRef).catch(async (e) => {
+         errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: saveRef.path,
+            operation: 'delete'
+          }));
+      });
       toast({ title: "Removed", description: "Project removed from your profile." });
     } else {
-      await setDoc(saveRef, { id, timestamp: new Date().toISOString() });
+      setDoc(saveRef, { id, timestamp: new Date().toISOString() }).catch(async (e) => {
+         errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: saveRef.path,
+            operation: 'create',
+            requestResourceData: { id }
+          }));
+      });
       toast({ title: "Saved!", description: "Added to your collection." });
     }
   };
@@ -140,35 +183,43 @@ export default function WebsiteDetail() {
     try {
       if (navigator.share) {
         await navigator.share(shareData);
-        if (user) {
-          const shareRecordRef = doc(db, "users", user.uid, "userShares", id as string);
-          const shareSnap = await getDoc(shareRecordRef);
-          if (!shareSnap.exists()) {
-            const globalStatsRef = doc(db, "websiteStats", id as string);
-            updateDoc(globalStatsRef, { shareCount: increment(1) });
-            setDoc(shareRecordRef, { sharedAt: serverTimestamp() });
-          }
-        }
+        recordShare(db, id as string, user?.uid);
         toast({ title: "Shared!", description: "Interaction recorded." });
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        if (user) {
-          const shareRecordRef = doc(db, "users", user.uid, "userShares", id as string);
-          const shareSnap = await getDoc(shareRecordRef);
-          if (!shareSnap.exists()) {
-            const globalStatsRef = doc(db, "websiteStats", id as string);
-            updateDoc(globalStatsRef, { shareCount: increment(1) });
-            setDoc(shareRecordRef, { sharedAt: serverTimestamp() });
-          }
-        }
+        recordShare(db, id as string, user?.uid);
         toast({
           title: "Link Copied!",
           description: "Bessites link ready to share.",
         });
       }
     } catch (e) {
-      console.log('Share action cancelled or failed');
+      // User cancelled share
     }
+  };
+
+  const recordShare = async (db: any, siteId: string, userId?: string) => {
+    if (!userId) return;
+    const shareRecordRef = doc(db, "users", userId, "userShares", siteId);
+    getDoc(shareRecordRef).then(snap => {
+      if (!snap.exists()) {
+        const globalStatsRef = doc(db, "websiteStats", siteId);
+        updateDoc(globalStatsRef, { shareCount: increment(1) }).catch(async (e) => {
+           errorEmitter.emit('permission-error', new FirestorePermissionError({
+              path: globalStatsRef.path,
+              operation: 'update',
+              requestResourceData: { shareCount: increment(1) }
+            }));
+        });
+        setDoc(shareRecordRef, { sharedAt: serverTimestamp() }).catch(async (e) => {
+           errorEmitter.emit('permission-error', new FirestorePermissionError({
+              path: shareRecordRef.path,
+              operation: 'create',
+              requestResourceData: { sharedAt: serverTimestamp() }
+            }));
+        });
+      }
+    });
   };
 
   const submitRating = async () => {
@@ -191,14 +242,38 @@ export default function WebsiteDetail() {
 
       if (existingDoc.exists()) {
         const oldRating = existingDoc.data().rating;
-        await updateDoc(userRatingRef, ratingData);
-        await updateDoc(globalStatsRef, { ratingSum: increment(ratingValue - oldRating) });
+        updateDoc(userRatingRef, ratingData).catch(async (e) => {
+           errorEmitter.emit('permission-error', new FirestorePermissionError({
+              path: userRatingRef.path,
+              operation: 'update',
+              requestResourceData: ratingData
+            }));
+        });
+        updateDoc(globalStatsRef, { ratingSum: increment(ratingValue - oldRating) }).catch(async (e) => {
+           errorEmitter.emit('permission-error', new FirestorePermissionError({
+              path: globalStatsRef.path,
+              operation: 'update',
+              requestResourceData: { ratingSum: increment(ratingValue - oldRating) }
+            }));
+        });
       } else {
-        await setDoc(userRatingRef, ratingData);
-        await setDoc(globalStatsRef, { 
+        setDoc(userRatingRef, ratingData).catch(async (e) => {
+           errorEmitter.emit('permission-error', new FirestorePermissionError({
+              path: userRatingRef.path,
+              operation: 'create',
+              requestResourceData: ratingData
+            }));
+        });
+        setDoc(globalStatsRef, { 
           ratingSum: increment(ratingValue), 
           ratingCount: increment(1) 
-        }, { merge: true });
+        }, { merge: true }).catch(async (e) => {
+           errorEmitter.emit('permission-error', new FirestorePermissionError({
+              path: globalStatsRef.path,
+              operation: 'write',
+              requestResourceData: { ratingCount: increment(1) }
+            }));
+        });
       }
       setComment("");
       setRatingValue(0);

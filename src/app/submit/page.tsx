@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,8 @@ import { collection, addDoc, serverTimestamp, doc, setDoc } from "firebase/fires
 import { useRouter } from "next/navigation";
 import { intelligentCategoryTagging } from "@/ai/flows/intelligent-category-tagging";
 import { supabase } from "@/lib/supabase";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function SubmitWebsite() {
   const { user, loading: authLoading } = useUser();
@@ -108,32 +111,26 @@ export default function SubmitWebsite() {
     }
     
     setSubmitting(true);
+    let publicLogoUrl = "";
+
     try {
-      let publicLogoUrl = "";
       if (logoFile) {
         const fileExt = logoFile.name.split('.').pop();
         const path = `logos/${user.uid}/${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from('Website-images')
-          .upload(path, logoFile);
-        
-        if (uploadError) {
-          if (uploadError.message.includes('policy')) {
-            toast({
-              variant: "destructive",
-              title: "Storage Policy Violation",
-              description: "Supabase RLS prevents this upload. Please enable 'Public' access for the 'Website-images' bucket.",
-            });
-            // Proceed without logo if storage fails due to permissions
-          } else {
-            throw uploadError;
+        try {
+          const { error: uploadError } = await supabase.storage
+            .from('Website-images')
+            .upload(path, logoFile);
+          
+          if (!uploadError) {
+            publicLogoUrl = supabase.storage.from('Website-images').getPublicUrl(path).data.publicUrl;
           }
-        } else {
-          publicLogoUrl = supabase.storage.from('Website-images').getPublicUrl(path).data.publicUrl;
+        } catch (e) {
+          console.warn("Storage upload failed, proceeding without logo");
         }
       }
 
-      const submissionRef = await addDoc(collection(db, "submissions"), {
+      const submissionData = {
         url,
         categories: tags,
         logoUrl: publicLogoUrl,
@@ -141,36 +138,50 @@ export default function SubmitWebsite() {
         userEmail: user.email,
         status: "pending",
         timestamp: serverTimestamp()
-      });
+      };
 
-      // Create initial stats entry
-      const statsRef = doc(db, "websiteStats", submissionRef.id);
-      setDoc(statsRef, {
-        logoUrl: publicLogoUrl,
-        visitCount: 0,
-        likeCount: 0,
-        shareCount: 0,
-        ratingSum: 0,
-        ratingCount: 0,
-        lastPreviewUpdate: serverTimestamp()
-      }, { merge: true });
-      
-      setSubmitted(true);
-      toast({
-        title: "Submission Received!",
-        description: "Our curators will review your site shortly.",
-      });
-      
-      setTimeout(() => router.push("/profile"), 2000);
+      addDoc(collection(db, "submissions"), submissionData)
+        .then((docRef) => {
+          const statsRef = doc(db, "websiteStats", docRef.id);
+          setDoc(statsRef, {
+            logoUrl: publicLogoUrl,
+            visitCount: 0,
+            likeCount: 0,
+            shareCount: 0,
+            ratingSum: 0,
+            ratingCount: 0,
+            lastPreviewUpdate: serverTimestamp()
+          }, { merge: true }).catch(async (e) => {
+             errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: statsRef.path,
+                operation: 'write',
+                requestResourceData: { visitCount: 0 }
+              }));
+          });
+
+          setSubmitted(true);
+          toast({
+            title: "Submission Received!",
+            description: "Our curators will review your site shortly.",
+          });
+          setTimeout(() => router.push("/profile"), 2000);
+        })
+        .catch(async (e) => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: 'submissions',
+            operation: 'create',
+            requestResourceData: submissionData
+          }));
+          setSubmitting(false);
+        });
+
     } catch (error: any) {
-      console.error("Submit Error:", error);
+      setSubmitting(false);
       toast({
         variant: "destructive",
         title: "Submission failed",
-        description: error.message || "An unexpected error occurred during submission.",
+        description: "An unexpected error occurred during submission.",
       });
-    } finally {
-      setSubmitting(false);
     }
   };
 

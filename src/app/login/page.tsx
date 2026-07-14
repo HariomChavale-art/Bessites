@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useAuth, useFirestore, useUser } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
@@ -17,6 +18,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, User, Eye, EyeOff, KeyRound } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { supabase } from "@/lib/supabase";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -36,22 +39,17 @@ export default function LoginPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
-    if (currentUser && !authLoading) {
-      const checkOnboarding = async () => {
-        if (!db) return;
-        try {
-          const docRef = doc(db, "users", currentUser.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists() && docSnap.data().onboardingComplete) {
-            router.push("/");
-          } else {
-            router.push("/onboarding");
-          }
-        } catch (error) {
-          console.warn("Auth redirect check deferred");
+    if (currentUser && !authLoading && db) {
+      const userRef = doc(db, "users", currentUser.uid);
+      getDoc(userRef).then(docSnap => {
+        if (docSnap.exists() && docSnap.data().onboardingComplete) {
+          router.push("/");
+        } else {
+          router.push("/onboarding");
         }
-      };
-      checkOnboarding();
+      }).catch(() => {
+        router.push("/onboarding");
+      });
     }
   }, [currentUser, db, router, authLoading]);
 
@@ -76,17 +74,7 @@ export default function LoginPage() {
         .from('Website-images')
         .upload(fileName, file);
 
-      if (uploadError) {
-        if (uploadError.message.includes('policy')) {
-          toast({
-            variant: "destructive",
-            title: "Storage Policy Error",
-            description: "Please check your Supabase Storage RLS policies for the 'Website-images' bucket.",
-          });
-          return null;
-        }
-        throw uploadError;
-      }
+      if (uploadError) return null;
 
       const { data } = supabase.storage
         .from('Website-images')
@@ -94,7 +82,6 @@ export default function LoginPage() {
 
       return data.publicUrl;
     } catch (err) {
-      console.error("Supabase upload error:", err);
       return null;
     }
   };
@@ -117,7 +104,7 @@ export default function LoginPage() {
       case 'auth/invalid-credential':
         return "Incorrect email or password. Please verify and try again.";
       default:
-        return "Bessites Access: An authentication glitch occurred. Please verify your details.";
+        return "Bessites Access: An authentication glitch occurred.";
     }
   };
 
@@ -129,32 +116,39 @@ export default function LoginPage() {
     try {
       if (mode === 'login') {
         const result = await signInWithEmailAndPassword(auth, email, password);
-        const docRef = doc(db, "users", result.user.uid);
-        const docSnap = await getDoc(docRef);
-        router.push(docSnap.exists() && docSnap.data()?.onboardingComplete ? "/" : "/onboarding");
+        const userRef = doc(db, "users", result.user.uid);
+        getDoc(userRef).then(docSnap => {
+          router.push(docSnap.exists() && docSnap.data()?.onboardingComplete ? "/" : "/onboarding");
+        }).catch(() => router.push("/onboarding"));
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         
-        let finalPhotoURL = null;
-        if (selectedFile) {
-          finalPhotoURL = await uploadToSupabase(selectedFile, user.uid);
-        }
+        const finalPhotoURL = selectedFile ? await uploadToSupabase(selectedFile, user.uid) : null;
         
         if (finalPhotoURL) {
           await updateProfile(user, { photoURL: finalPhotoURL });
         }
         
-        await setDoc(doc(db, "users", user.uid), {
+        const userData = {
           email: user.email,
           displayName: user.displayName || email.split('@')[0],
           photoURL: finalPhotoURL,
           createdAt: serverTimestamp(),
           onboardingComplete: false,
           interests: []
-        });
-        
-        router.push("/onboarding");
+        };
+
+        const userRef = doc(db, "users", user.uid);
+        setDoc(userRef, userData)
+          .then(() => router.push("/onboarding"))
+          .catch(async (e) => {
+             errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: userRef.path,
+                operation: 'create',
+                requestResourceData: userData
+              }));
+          });
       }
     } catch (error: any) {
       toast({
@@ -162,7 +156,6 @@ export default function LoginPage() {
         title: "Bessites Access",
         description: formatAuthError(error),
       });
-    } finally {
       setLoading(false);
     }
   };
@@ -182,7 +175,7 @@ export default function LoginPage() {
       await sendPasswordResetEmail(auth, email);
       toast({
         title: "Recovery Sent",
-        description: "A secure reset link has been sent to your inbox. Please check your mail.",
+        description: "A secure reset link has been sent to your inbox.",
       });
     } catch (error: any) {
       toast({

@@ -44,7 +44,10 @@ import {
   Users,
   MessageSquare,
   Bell,
-  HelpCircle
+  HelpCircle,
+  Flame,
+  Mic,
+  Award
 } from "lucide-react";
 import Link from "next/link";
 import { signOut, updateProfile } from "firebase/auth";
@@ -224,17 +227,15 @@ export default function ProfilePage() {
     { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard', active: true },
     { label: 'My Websites', icon: Globe, href: '/dashboard' },
     { label: 'Analytics', icon: BarChart3, href: '/dashboard' },
-    { label: 'Saved Websites', icon: Bookmark, href: '/profile' },
-    { label: 'Liked Websites', icon: Heart, href: '/profile' },
-    { label: 'Submit Website', icon: Plus, href: '/submit' },
-    { label: 'My Submissions', icon: Inbox, href: '/dashboard' },
-    { label: 'Sponsored Listings', icon: Zap, href: '/dashboard' },
-    { label: 'Billing & Payments', icon: CreditCard, href: '/dashboard' },
-    { label: 'Followers (future)', icon: Users, href: '/dashboard' },
-    { label: 'Messages (future)', icon: MessageSquare, href: '/dashboard' },
+    { label: 'Audience', icon: Users, href: '/dashboard' },
+    { label: 'Promotions', icon: Flame, href: '/dashboard' },
+    { label: 'Reviews', icon: Star, href: '/dashboard' },
+    { label: 'Earnings', icon: DollarSign, href: '/dashboard' },
     { label: 'Notifications', icon: Bell, href: '/dashboard' },
+    { label: 'AI Assistant', icon: Mic, href: '/dashboard' },
+    { label: 'API (future)', icon: Zap, href: '/dashboard' },
     { label: 'Settings', icon: Settings, href: '/profile' },
-    { label: 'Help Center', icon: HelpCircle, href: '/dashboard' },
+    { label: 'Support', icon: HelpCircle, href: '/dashboard' },
   ];
 
   return (

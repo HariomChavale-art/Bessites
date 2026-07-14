@@ -33,7 +33,8 @@ import {
   ChevronRight,
   Camera,
   ChevronLeft,
-  Save
+  Save,
+  LayoutDashboard
 } from "lucide-react";
 import Link from "next/link";
 import { signOut, updateProfile } from "firebase/auth";
@@ -45,6 +46,8 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function ProfilePage() {
   const { user, loading: userLoading } = useUser();
@@ -142,11 +145,10 @@ export default function ProfilePage() {
           .upload(fileName, selectedFile);
         
         if (uploadError) {
-          console.warn("Supabase Storage Error:", uploadError.message);
           toast({
             variant: "destructive",
             title: "Storage Error",
-            description: "Profile picture upload failed (Check Supabase RLS). Update will proceed without new image.",
+            description: "Profile picture upload failed. Update will proceed without new image.",
           });
         } else {
           const { data } = supabase.storage.from('Website-images').getPublicUrl(fileName);
@@ -388,6 +390,14 @@ export default function ProfilePage() {
 
           <TabsContent value="uploads">
             <div className="space-y-6 max-w-4xl mx-auto">
+              <div className="flex items-center justify-between mb-8">
+                <Link href="/admin">
+                  <Button variant="outline" className="rounded-2xl border-white/10 bg-white/5 hover:bg-primary/20 hover:text-primary transition-all font-black uppercase tracking-widest text-[10px] h-12 px-6 italic">
+                    <LayoutDashboard className="w-4 h-4 mr-2" /> Dashboard
+                  </Button>
+                </Link>
+              </div>
+              
               {submissionsLoading ? (
                 <div className="flex justify-center py-20"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>
               ) : userSubmissions && userSubmissions.length > 0 ? (
@@ -396,8 +406,8 @@ export default function ProfilePage() {
                     <Card key={sub.id} className="bg-white/[0.03] border-white/5 p-6 rounded-3xl group hover:border-primary/20 transition-all">
                       <div className="flex items-start justify-between mb-4">
                         <div className="bg-primary/10 p-3 rounded-2xl text-primary"><ExternalLink className="w-6 h-6" /></div>
-                        <Badge className={cn("uppercase font-black tracking-widest text-[10px] px-3 py-1 rounded-full", sub.status === 'pending' ? "bg-amber-500/20 text-amber-500" : "bg-green-500/20 text-green-500")}>
-                          {sub.status}
+                        <Badge className={cn("uppercase font-black tracking-widest text-[10px] px-3 py-1 rounded-full", sub.status === 'pending' ? "bg-amber-500/20 text-amber-500" : sub.status === 'rejected' ? "bg-red-500/20 text-red-500" : "bg-green-500/20 text-green-500")}>
+                          {sub.status || 'pending'}
                         </Badge>
                       </div>
                       <h3 className="text-xl font-bold text-white mb-1 truncate">{sub.url.replace('https://', '')}</h3>

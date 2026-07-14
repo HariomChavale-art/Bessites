@@ -3,7 +3,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useFirestore, useCollection, useUser, useDoc } from "@/firebase";
-import { collection, doc, updateDoc, deleteDoc, query, orderBy, limit, increment, serverTimestamp } from "firebase/firestore";
+import { collection, doc, updateDoc, deleteDoc, query, orderBy, limit, increment, serverTimestamp, where } from "firebase/firestore";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -92,29 +92,56 @@ export default function AdminDashboard() {
   // Gated Access Check
   useEffect(() => {
     if (!authLoading && !user) router.push("/login");
-    // Optional: if (profile && !profile.isAdmin) router.push("/");
-  }, [user, authLoading, profile, router]);
+  }, [user, authLoading, router]);
 
+  // Submissions for real stats
   const submissionsRef = useMemo(() => {
     if (!db) return null;
     return query(collection(db, "submissions"), orderBy("timestamp", "desc"));
   }, [db]);
+  const { data: submissions } = useCollection(submissionsRef);
 
-  const { data: submissions, loading: subLoading } = useCollection(submissionsRef);
-
+  // Users for real stats
   const usersRef = useMemo(() => {
     if (!db) return null;
-    return query(collection(db, "users"), orderBy("createdAt", "desc"), limit(100));
+    return query(collection(db, "users"), orderBy("createdAt", "desc"));
   }, [db]);
-
   const { data: appUsers } = useCollection(usersRef);
 
+  // Stats for click aggregations
   const websiteStatsRef = useMemo(() => {
     if (!db) return null;
     return collection(db, "websiteStats");
   }, [db]);
-
   const { data: globalStats } = useCollection(websiteStatsRef);
+
+  // Calculate Real-Time Aggregates
+  const stats = useMemo(() => {
+    if (!submissions || !appUsers || !globalStats) return {
+      totalWebsites: 0,
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+      totalUsers: 0,
+      verified: 0,
+      totalClicks: 0,
+      newUsersToday: 0
+    };
+
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+
+    return {
+      totalWebsites: submissions.length,
+      pending: submissions.filter(s => s.status === 'pending').length,
+      approved: submissions.filter(s => s.status === 'approved').length,
+      rejected: submissions.filter(s => s.status === 'rejected').length,
+      totalUsers: appUsers.length,
+      verified: appUsers.filter(u => u.interests && u.interests.length >= 3).length,
+      totalClicks: globalStats.reduce((acc, curr) => acc + (curr.visitCount || 0), 0),
+      newUsersToday: appUsers.filter(u => u.createdAt && new Date(u.createdAt.seconds * 1000) > oneDayAgo).length
+    };
+  }, [submissions, appUsers, globalStats]);
 
   const handleStatusUpdate = (subId: string, status: 'approved' | 'rejected') => {
     if (!db) return;
@@ -163,12 +190,6 @@ export default function AdminDashboard() {
     );
   }
 
-  const pendingSubmissions = submissions?.filter(s => s.status === 'pending') || [];
-  const approvedSubmissions = submissions?.filter(s => s.status === 'approved') || [];
-  const rejectedSubmissions = submissions?.filter(s => s.status === 'rejected') || [];
-  const totalClicks = globalStats?.reduce((acc, curr) => acc + (curr.visitCount || 0), 0) || 0;
-  const verifiedCreators = appUsers?.filter(u => u.interests?.length > 5).length || 0;
-
   return (
     <div className="min-h-screen flex flex-col bg-background text-white selection:bg-primary/30 antialiased">
       <div className="flex flex-1 overflow-hidden">
@@ -186,7 +207,7 @@ export default function AdminDashboard() {
             <nav className="space-y-1 overflow-y-auto max-h-[calc(100vh-200px)] no-scrollbar pr-2">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 px-3 mb-2">Platform</p>
               <SidebarLink icon={LayoutDashboard} label="Dashboard" active={activeSection === 'overview'} onClick={() => setActiveSection('overview')} />
-              <SidebarLink icon={Inbox} label="Submission Queue" active={activeSection === 'submissions'} onClick={() => setActiveSection('submissions')} badge={pendingSubmissions.length} />
+              <SidebarLink icon={Inbox} label="Submission Queue" active={activeSection === 'submissions'} onClick={() => setActiveSection('submissions')} badge={stats.pending} />
               <SidebarLink icon={Globe} label="Website Manager" active={activeSection === 'websites'} onClick={() => setActiveSection('websites')} />
               <SidebarLink icon={Users} label="Users" active={activeSection === 'users'} onClick={() => setActiveSection('users')} />
               
@@ -281,41 +302,30 @@ export default function AdminDashboard() {
                 
                 {/* Metric Grid - 12 Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 sm:gap-6">
-                  <StatCard label="Total Websites" value={submissions?.length || 0} icon={Globe} color="text-blue-500" />
-                  <StatCard label="Pending Queue" value={pendingSubmissions.length} icon={Inbox} color="text-amber-500" pulse />
-                  <StatCard label="Approved" value={approvedSubmissions.length} icon={Check} color="text-green-500" />
-                  <StatCard label="Rejected" value={rejectedSubmissions.length} icon={X} color="text-red-500" />
-                  <StatCard label="Total Users" value={appUsers?.length || 0} icon={Users} color="text-purple-500" />
-                  <StatCard label="Verified" value={verifiedCreators} icon={Shield} color="text-cyan-500" />
+                  <StatCard label="Total Websites" value={stats.totalWebsites} icon={Globe} color="text-blue-500" />
+                  <StatCard label="Pending Queue" value={stats.pending} icon={Inbox} color="text-amber-500" pulse={stats.pending > 0} />
+                  <StatCard label="Approved" value={stats.approved} icon={Check} color="text-green-500" />
+                  <StatCard label="Rejected" value={stats.rejected} icon={X} color="text-red-500" />
+                  <StatCard label="Total Users" value={stats.totalUsers} icon={Users} color="text-purple-500" />
+                  <StatCard label="Verified" value={stats.verified} icon={Shield} color="text-cyan-500" />
                   
                   <StatCard label="Categories" value={108} icon={Tags} color="text-pink-500" />
-                  <StatCard label="Clicks Today" value={totalClicks} icon={Zap} color="text-primary" />
-                  <StatCard label="Views Today" value="4.2k" icon={Eye} color="text-indigo-400" />
-                  <StatCard label="Sponsored" value="12" icon={Megaphone} color="text-yellow-500" />
-                  <StatCard label="Revenue" value="$421" icon={DollarSign} color="text-emerald-500" />
-                  <StatCard label="New Users" value="28" icon={ArrowUpRight} color="text-blue-400" />
+                  <StatCard label="Total Clicks" value={stats.totalClicks} icon={Zap} color="text-primary" />
+                  <StatCard label="Views Today" value="--" icon={Eye} color="text-indigo-400" />
+                  <StatCard label="Sponsored" value="0" icon={Megaphone} color="text-yellow-500" />
+                  <StatCard label="Revenue" value="$0" icon={DollarSign} color="text-emerald-500" />
+                  <StatCard label="New Users" value={stats.newUsersToday} icon={ArrowUpRight} color="text-blue-400" />
                 </div>
 
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                   <DashboardChart title="Discovery Traffic" subtitle="Visitors vs Clicks" className="xl:col-span-2" />
                   <DashboardList 
                     title="Live Activity Feed" 
-                    items={[
-                      { name: 'New Signup: josh.eth', value: '2m ago' },
-                      { name: 'Submission: Krea AI', value: '15m ago' },
-                      { name: 'Approval: Napkin AI', value: '1h ago' },
-                      { name: 'New Report: site-421', value: '3h ago' },
-                    ]} 
+                    items={submissions?.slice(0, 5).map(s => ({
+                      name: `Submission: ${s.url.replace('https://', '')}`,
+                      value: s.timestamp ? `${Math.floor((Date.now() - s.timestamp.seconds * 1000) / 60000)}m ago` : 'Just now'
+                    })) || []} 
                   />
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                   <DashboardList title="Fast-Growing Websites" items={approvedSubmissions.slice(0, 5).map(s => ({ name: s.url.replace('https://', ''), value: '+124 clicks' }))} />
-                   <DashboardList title="Popular Interests" items={[
-                     { name: 'AI & Tech', value: '4.2k clicks' },
-                     { name: 'Gaming', value: '2.8k clicks' },
-                     { name: 'Developer Tools', value: '1.9k clicks' },
-                   ]} />
                 </div>
               </div>
             )}
@@ -331,7 +341,7 @@ export default function AdminDashboard() {
                     <Button variant="outline" size="sm" className="rounded-xl border-white/10 bg-white/5 font-black uppercase tracking-widest text-[10px] h-10 px-4">
                        <Filter className="w-3 h-3 mr-2" /> Filter
                     </Button>
-                    <Badge className="bg-primary/10 text-primary border-primary/20 h-10 px-4 rounded-xl flex items-center">{pendingSubmissions.length} Pending</Badge>
+                    <Badge className="bg-primary/10 text-primary border-primary/20 h-10 px-4 rounded-xl flex items-center">{stats.pending} Pending</Badge>
                   </div>
                 </div>
                 
@@ -358,7 +368,7 @@ export default function AdminDashboard() {
                                   </div>
                                   <div className="min-w-0">
                                     <p className="text-sm font-black truncate group-hover:text-primary transition-colors">{sub.url.replace('https://', '')}</p>
-                                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest opacity-40">{new Date(sub.timestamp?.toDate()).toLocaleDateString()}</p>
+                                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest opacity-40">{sub.timestamp ? new Date(sub.timestamp.seconds * 1000).toLocaleDateString() : 'Just now'}</p>
                                   </div>
                                 </div>
                               </td>
@@ -512,6 +522,9 @@ function DashboardList({ title, items, onAction }: { title: string, items: any[]
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">{item.value}</span>
           </div>
         ))}
+        {items.length === 0 && (
+          <div className="py-10 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30">No Recent Activity</div>
+        )}
       </div>
     </div>
   );

@@ -35,90 +35,56 @@ const RAW_SITES = [
   { name: "My Abandonware", url: "https://myabandonware.com", cat: ["Gaming"], desc: "Old games for free download." },
   { name: "RAWG", url: "https://rawg.io", cat: ["Gaming"], desc: "Largest video game database and discovery." },
   { name: "Nexus Mods", url: "https://nexusmods.com", cat: ["Gaming"], desc: "Premier community for game modifications." },
+  { name: "GG.deals", url: "https://gg.deals", cat: ["Gaming", "Game Deals"], desc: "Track PC game prices across all stores." },
+  { name: "IsThereAnyDeal", url: "https://isthereanydeal.com", cat: ["Gaming", "Game Deals"], desc: "Comprehensive price comparison for digital games." },
+  { name: "CheapShark", url: "https://cheapshark.com", cat: ["Gaming", "Game Deals"], desc: "Find the best deals on digital game downloads." },
   
   // Entertainment
-  { name: "Reelgood", url: "https://reelgood.com", cat: ["Entertainment"], desc: "Unified streaming guide for all your services." },
-  { name: "Simkl", url: "https://simkl.com", cat: ["Entertainment"], desc: "Track all your movies, TV shows and anime." },
-  { name: "Trakt", url: "https://trakt.tv", cat: ["Entertainment"], desc: "Automatically track what you're watching." },
-  { name: "JustWatch", url: "https://justwatch.com", cat: ["Entertainment"], desc: "Find where to stream any movie or show." },
-  { name: "TV Time", url: "https://tvtime.com", cat: ["Entertainment"], desc: "The number one tool for TV show enthusiasts." },
+  { name: "Reelgood", url: "https://reelgood.com", cat: ["Entertainment", "TV Shows", "Movies"], desc: "Unified streaming guide for all your services." },
+  { name: "Simkl", url: "https://simkl.com", cat: ["Entertainment", "TV Shows", "Movies", "Anime"], desc: "Track all your movies, TV shows and anime." },
+  { name: "Trakt", url: "https://trakt.tv", cat: ["Entertainment", "TV Shows", "Movies"], desc: "Automatically track what you're watching." },
+  { name: "JustWatch", url: "https://justwatch.com", cat: ["Entertainment", "TV Shows", "Movies"], desc: "Find where to stream any movie or show." },
+  { name: "TV Time", url: "https://tvtime.com", cat: ["Entertainment", "TV Shows"], desc: "The number one tool for TV show enthusiasts." },
+  { name: "Know Your Meme", url: "https://knowyourmeme.com", cat: ["Entertainment", "Memes"], desc: "The encyclopedia of internet memes." },
   
-  // Anime
-  { name: "MyAnimeList", url: "https://myanimelist.net", cat: ["Anime"], desc: "The world's largest anime and manga database." },
-  { name: "AniList", url: "https://anilist.co", cat: ["Anime"], desc: "Modern way to track your anime and manga progress." },
-  { name: "Anime-Planet", url: "https://anime-planet.com", cat: ["Anime"], desc: "Create your anime list and get recommendations." },
-  { name: "LiveChart", url: "https://livechart.me", cat: ["Anime"], desc: "Real-time seasonal anime charts and schedules." },
+  // Tools & Productivity
+  { name: "TinyWow", url: "https://tinywow.com", cat: ["Utilities", "Online Tools", "PDF"], desc: "Comprehensive suite of free online PDF and media tools." },
+  { name: "Convertio", url: "https://convertio.co", cat: ["Utilities", "Online Tools"], desc: "Easy tool to convert files online." },
+  { name: "SwissTransfer", url: "https://swisstransfer.com", cat: ["Utilities", "File Sharing"], desc: "Secure and free file transfer up to 50GB." },
+  { name: "Bitwarden", url: "https://bitwarden.com", cat: ["Cybersecurity", "Password Managers"], desc: "Open-source password management for all devices." },
+  { name: "Obsidian", url: "https://obsidian.md", cat: ["Productivity", "Notes"], desc: "A powerful knowledge base on top of local Markdown files." },
   
-  // Shopping
-  { name: "Temu", url: "https://temu.com", cat: ["Shopping"], desc: "Global marketplace for affordable products." },
-  { name: "Etsy", url: "https://etsy.com", cat: ["Shopping"], desc: "Marketplace for unique and creative goods." },
-  { name: "CamelCamelCamel", url: "https://camelcamelcamel.com", cat: ["Shopping"], desc: "Amazon price tracker and price drop alerts." },
-  { name: "Slickdeals", url: "https://slickdeals.net", cat: ["Shopping", "Deals"], desc: "Community-driven deal sharing platform." },
-  { name: "Honey", url: "https://joinhoney.com", cat: ["Shopping", "Deals"], desc: "Automatically find and apply coupon codes." },
-
-  // Coding / Developer Tools
-  { name: "CodeSandbox", url: "https://codesandbox.io", cat: ["Coding"], desc: "Instant cloud development environment." },
-  { name: "Glitch", url: "https://glitch.com", cat: ["Coding"], desc: "Build and deploy web apps together." },
-  { name: "DevDocs", url: "https://devdocs.io", cat: ["Coding"], desc: "Fast, offline search for all documentation." },
-  { name: "Hoppscotch", url: "https://hoppscotch.io", cat: ["Coding"], desc: "Open-source API development tool." },
-  { name: "Ray.so", url: "https://ray.so", cat: ["Coding"], desc: "Create beautiful images of your code." },
-
-  // Sports
-  { name: "SofaScore", url: "https://sofascore.com", cat: ["Sports"], desc: "Live scores, results and stats for all sports." },
-  { name: "Flashscore", url: "https://flashscore.com", cat: ["Sports"], desc: "Fast and accurate live sports results." },
-  { name: "FotMob", url: "https://fotmob.com", cat: ["Sports"], desc: "Complete football coverage with live scores." },
-  { name: "Transfermarkt", url: "https://transfermarkt.com", cat: ["Sports"], desc: "Football transfer news, values and statistics." },
-
-  // Jobs
-  { name: "Wellfound", url: "https://wellfound.com", cat: ["Jobs"], desc: "The place where startups and job seekers connect." },
-  { name: "We Work Remotely", url: "https://weworkremotely.com", cat: ["Jobs"], desc: "The largest remote work community in the world." },
-  { name: "Remote OK", url: "https://remoteok.com", cat: ["Jobs"], desc: "Find the best remote jobs in tech." },
-  { name: "FlexJobs", url: "https://flexjobs.com", cat: ["Jobs"], desc: "Hand-screened flexible and remote job listings." },
-
-  // Health
-  { name: "Healthline", url: "https://healthline.com", cat: ["Health"], desc: "Medical information and health advice you can trust." },
-  { name: "WebMD", url: "https://webmd.com", cat: ["Health"], desc: "Better information for better health." },
-  { name: "Drugs.com", url: "https://drugs.com", cat: ["Health"], desc: "The most popular, comprehensive drug information online." },
-
-  // Space
-  { name: "Eyes on the Solar System", url: "https://eyes.nasa.gov", cat: ["Space"], desc: "NASA's 3D explorer for planets and spacecraft." },
-  { name: "Heavens Above", url: "https://heavens-above.com", cat: ["Space"], desc: "Track satellites and ISS passes in real-time." },
-  { name: "Stellarium Web", url: "https://stellarium-web.org", cat: ["Space"], desc: "A planetarium in your browser." },
-
-  // Fashion
-  { name: "Grailed", url: "https://grailed.com", cat: ["Fashion"], desc: "Curated community marketplace for men's clothing." },
-  { name: "StockX", url: "https://stockx.com", cat: ["Fashion"], desc: "The current culture marketplace for sneakers and more." },
-  { name: "Farfetch", url: "https://farfetch.com", cat: ["Fashion"], desc: "The global destination for modern luxury." },
-
-  // Android
-  { name: "APKMirror", url: "https://apkmirror.com", cat: ["Android"], desc: "Safe and secure Android APK downloads." },
-  { name: "F-Droid", url: "https://f-droid.org", cat: ["Android"], desc: "Catalogue of FOSS applications for Android." },
-  { name: "Aurora Store", url: "https://auroraoss.com", cat: ["Android"], desc: "Private Google Play Store client." },
-
-  // Photography
-  { name: "500px", url: "https://500px.com", cat: ["Photography"], desc: "The premier network for high-quality photography." },
-  { name: "Unsplash", url: "https://unsplash.com", cat: ["Photography"], desc: "Beautiful, free images and photos." },
-  { name: "Pexels", url: "https://pexels.com", cat: ["Photography"], desc: "Free stock photos shared by talented creators." },
-
-  // Home & DIY
-  { name: "Instructables", url: "https://instructables.com", cat: ["Home & DIY"], desc: "Step-by-step user-created DIY projects." },
-  { name: "Family Handyman", url: "https://familyhandyman.com", cat: ["Home & DIY"], desc: "Expert tips for home improvement and repair." },
-  { name: "Planner5D", url: "https://planner5d.com", cat: ["Home & DIY"], desc: "Advanced and easy to use 2D/3D home design tool." },
-
-  // Languages
-  { name: "LingQ", url: "https://lingq.com", cat: ["Languages"], desc: "Learn languages from content you love." },
-  { name: "Forvo", url: "https://forvo.com", cat: ["Languages"], desc: "The largest pronunciation guide in the world." },
-  { name: "Tatoeba", url: "https://tatoeba.org", cat: ["Languages"], desc: "Large database of sentences and translations." },
-
-  // Finance
-  { name: "Rocket Money", url: "https://rocketmoney.com", cat: ["Finance"], desc: "Manage subscriptions and lower your bills." },
+  // Finance & Investing
+  { name: "TradingView", url: "https://tradingview.com", cat: ["Finance", "Investing"], desc: "Advanced charts and social network for traders." },
+  { name: "NerdWallet", url: "https://nerdwallet.com", cat: ["Finance", "Banking"], desc: "Compare credit cards, loans, and more." },
+  { name: "CoinGecko", url: "https://coingecko.com", cat: ["Finance", "Cryptocurrency"], desc: "Largest independent crypto data aggregator." },
   { name: "YNAB", url: "https://ynab.com", cat: ["Finance"], desc: "Personal budgeting software for better money habits." },
-  { name: "Acquire.com", url: "https://acquire.com", cat: ["Finance"], desc: "The best marketplace to buy and sell startups." },
 
-  // Cybersecurity
-  { name: "Have I Been Pwned", url: "https://haveibeenpwned.com", cat: ["Cybersecurity"], desc: "Check if your email has been compromised in a data breach." },
-  { name: "VirusTotal", url: "https://virustotal.com", cat: ["Cybersecurity"], desc: "Analyze suspicious files and URLs to detect malware." },
-  { name: "DNSChecker", url: "https://dnschecker.org", cat: ["Cybersecurity"], desc: "Check propagation of your DNS records globally." },
+  // Health & Wellness
+  { name: "MuscleWiki", url: "https://musclewiki.com", cat: ["Health", "Gym"], desc: "Simplified exercise database for every muscle." },
+  { name: "Medito", url: "https://meditofoundation.org", cat: ["Health", "Meditation"], desc: "Free-forever meditation app for a better mind." },
+  { name: "Insight Timer", url: "https://insighttimer.com", cat: ["Health", "Meditation"], desc: "Largest library of free guided meditations." },
+  { name: "Sleep Cycle", url: "https://sleepcycle.com", cat: ["Health", "Sleep"], desc: "Intelligent alarm clock that tracks your sleep." },
+
+  // Learning & Education
+  { name: "Class Central", url: "https://classcentral.com", cat: ["Education", "Learning"], desc: "Search thousands of free online courses." },
+  { name: "OpenStax", url: "https://openstax.org", cat: ["Education", "Learning"], desc: "Free, peer-reviewed, openly licensed textbooks." },
+  { name: "Wolfram Demonstrations", url: "https://demonstrations.wolfram.com", cat: ["Education", "Science", "Math"], desc: "Interactive visualizations for science and math." },
+  
+  // Science & Space
+  { name: "NASA Eyes", url: "https://eyes.nasa.gov", cat: ["Space", "Science"], desc: "NASA's 3D explorer for planets and spacecraft." },
+  { name: "Heavens Above", url: "https://heavens-above.com", cat: ["Space", "Astronomy"], desc: "Track satellites and ISS passes in real-time." },
+  { name: "BioNumbers", url: "https://bionumbers.hms.harvard.edu", cat: ["Science", "Biology"], desc: "Database of key numbers in molecular biology." },
+  
+  // Cool & Fun
+  { name: "Neal.fun", url: "https://neal.fun", cat: ["Fun", "Cool Websites"], desc: "A collection of quirky and fun web experiments." },
+  { name: "Radio Garden", url: "https://radio.garden", cat: ["Fun", "Music", "Internet"], desc: "Listen to live radio stations across the globe." },
+  { name: "WindowSwap", url: "https://window-swap.com", cat: ["Fun", "Travel", "Cool Websites"], desc: "Look out of someone else's window somewhere in the world." },
+  
+  // Specialized Tools
+  { name: "Monkeytype", url: "https://monkeytype.com", cat: ["Keyboard", "Utilities"], desc: "A customizable typing test with many modes." },
+  { name: "Reactive Resume", url: "https://rxresume.com", cat: ["Utilities", "Resume Builders"], desc: "A free and open-source resume builder." },
+  { name: "Wormhole", url: "https://wormhole.app", cat: ["Utilities", "File Sharing"], desc: "Simple, private file sharing with end-to-end encryption." }
 ];
 
 export const MOCK_WEBSITES: Website[] = Array.from(new Set(RAW_SITES.map(s => s.url)))

@@ -85,7 +85,20 @@ import {
   Download,
   Terminal,
   MessagesSquare,
-  Sparkle
+  Sparkle,
+  Moon,
+  Trophy,
+  KeyRound,
+  Share2,
+  Orbit,
+  School,
+  Hotel,
+  Train,
+  Pen,
+  FileUser,
+  Layout,
+  GraduationCap,
+  Heart
 } from "lucide-react";
 import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
@@ -138,7 +151,7 @@ const CATEGORIES = [
   { name: "Physics", icon: Atom, color: "text-purple-500" },
   { name: "Math", icon: Calculator, color: "text-green-500" },
   { name: "Movies", icon: Film, color: "text-red-500" },
-  { name: "TV", icon: Tv, color: "text-orange-500" },
+  { name: "TV Shows", icon: Tv, color: "text-orange-500" },
   { name: "Fitness", icon: Dumbbell, color: "text-rose-500" },
   { name: "Nature", icon: Leaf, color: "text-emerald-500" },
   { name: "Interesting", icon: Info, color: "text-zinc-400" },
@@ -182,13 +195,30 @@ const CATEGORIES = [
   { name: "PC Software", icon: Laptop, color: "text-slate-400" },
   { name: "Downloads", icon: Download, color: "text-blue-500" },
   { name: "Chat & Community", icon: MessagesSquare, color: "text-emerald-400" },
+  { name: "Sleep", icon: Moon, color: "text-indigo-300" },
+  { name: "Meditation", icon: HeartPulse, color: "text-rose-400" },
+  { name: "Investing", icon: TrendingUp, color: "text-green-500" },
+  { name: "Competitions", icon: Trophy, color: "text-yellow-500" },
+  { name: "Password Managers", icon: KeyRound, color: "text-slate-400" },
+  { name: "File Sharing", icon: Share2, color: "text-blue-500" },
+  { name: "Astronomy", icon: Orbit, color: "text-purple-400" },
+  { name: "School", icon: School, color: "text-emerald-500" },
+  { name: "Hotels", icon: Hotel, color: "text-blue-400" },
+  { name: "Trains", icon: Train, color: "text-orange-500" },
+  { name: "Blogging", icon: Pen, color: "text-teal-400" },
+  { name: "Resume Builders", icon: FileUser, color: "text-blue-500" },
+  { name: "Mockups", icon: Layout, color: "text-pink-500" },
+  { name: "Scholarships", icon: GraduationCap, color: "text-yellow-600" },
+  { name: "Memes", icon: PartyPopper, color: "text-yellow-400" },
+  { name: "Keyboard", icon: LayoutGrid, color: "text-slate-400" },
 ];
 
 const TRENDING_CATEGORY_NAMES = [
   "AI", "Gaming", "Entertainment", "Anime", "Android", 
   "Coding", "Design", "Shopping", "Photography", "Video",
   "Music", "Utilities", "Education", "Jobs", "Finance",
-  "Travel", "Food", "Health", "Sports", "Cybersecurity"
+  "Travel", "Food", "Health", "Sports", "Cybersecurity",
+  "Investing", "Meditation", "Sleep", "Notes", "PC Software"
 ];
 
 export default function ExplorePage() {

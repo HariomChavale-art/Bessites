@@ -47,7 +47,9 @@ import {
   HelpCircle,
   Flame,
   Mic,
-  Award
+  Award,
+  Star,
+  DollarSign
 } from "lucide-react";
 import Link from "next/link";
 import { signOut, updateProfile } from "firebase/auth";
@@ -230,6 +232,9 @@ export default function ProfilePage() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="bg-[#0B0A0F] border-r border-white/5 p-0 w-80 overflow-hidden shadow-[20px_0_50px_rgba(123,51,255,0.1)]">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Navigation Menu</SheetTitle>
+            </SheetHeader>
             <div className="flex flex-col h-full">
               <div className="p-8">
                  <Link href="/" className="flex items-center gap-3 mb-10 group">

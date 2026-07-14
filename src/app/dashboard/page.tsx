@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useEffect } from "react";
@@ -58,7 +57,8 @@ import {
   Activity,
   Target,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -80,7 +80,6 @@ import { useToast } from "@/hooks/use-toast";
 import { WebsitePreview } from "@/components/website-preview";
 
 type DashboardView = 
-  | 'overview' 
   | 'my-websites' 
   | 'analytics' 
   | 'audience' 
@@ -98,7 +97,7 @@ export default function UserDashboard() {
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
-  const [activeView, setActiveView] = useState<DashboardView>('overview');
+  const [activeView, setActiveView] = useState<DashboardView>('my-websites');
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   
@@ -209,7 +208,7 @@ export default function UserDashboard() {
         </div>
 
         <nav className="flex-1 space-y-1.5 overflow-y-auto no-scrollbar pb-10">
-          <SidebarItem icon={LayoutDashboard} label="Dashboard" active={activeView === 'overview'} onClick={() => setActiveView('overview')} />
+          <SidebarItem icon={LayoutDashboard} label="Dashboard" active={false} onClick={() => setActiveView('my-websites')} />
           <SidebarItem icon={Globe} label="My Websites" active={activeView === 'my-websites'} onClick={() => setActiveView('my-websites')} />
           <SidebarItem icon={BarChart3} label="Analytics" active={activeView === 'analytics'} onClick={() => setActiveView('analytics')} />
           <SidebarItem icon={Users} label="Audience" active={activeView === 'audience'} onClick={() => setActiveView('audience')} />
@@ -265,52 +264,6 @@ export default function UserDashboard() {
              </div>
           </div>
         </header>
-
-        {activeView === 'overview' && (
-          <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {/* ... keeping original overview ... */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-               <div className="xl:col-span-2 relative h-[380px] sm:h-[450px] rounded-[3rem] overflow-hidden bg-gradient-to-br from-primary/20 to-purple-900/10 border border-white/10 group shadow-2xl">
-                  <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/creators/1200/800')] bg-cover bg-center opacity-30 mix-blend-overlay group-hover:scale-110 transition-transform duration-1000" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0B0A0F] via-transparent to-transparent" />
-                  
-                  <div className="absolute bottom-10 left-10 right-10 flex flex-col sm:flex-row justify-between items-end gap-6">
-                     <div className="space-y-3">
-                        <h2 className="text-4xl sm:text-6xl font-black italic uppercase tracking-tighter text-white drop-shadow-2xl">Optimize<br /><span className="text-primary">Your Flow</span></h2>
-                        <Button className="h-14 px-10 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-xs italic shadow-2xl hover:bg-primary hover:text-white transition-all">Start Promotion Now</Button>
-                     </div>
-                     <div className="flex bg-white/5 backdrop-blur-2xl p-6 rounded-[2rem] border border-white/10 gap-8">
-                        <HeroStat label="Active Reach" value={stats.views} />
-                        <HeroStat label="Engagement" value={stats.clicks} />
-                        <HeroStat label="Earnings" value={stats.earnings} />
-                        <HeroStat label="Saves" value={stats.saves} />
-                     </div>
-                  </div>
-               </div>
-               <div className="space-y-8">
-                  <Card className="bg-[#121117] border-white/5 p-8 rounded-[2.5rem] relative overflow-hidden shadow-xl min-h-[200px] flex flex-col justify-between">
-                     <div className="flex justify-between items-start">
-                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Discovery Momentum</p>
-                          <h3 className="text-xl font-black italic uppercase tracking-tighter text-white mt-1">Active Visitors</h3>
-                        </div>
-                        <div className="p-3 bg-primary/10 rounded-xl text-primary animate-pulse"><TrendingUp className="w-5 h-5" /></div>
-                     </div>
-                     <div className="flex-1 flex items-end justify-center py-6">
-                        <svg className="w-full h-24" viewBox="0 0 100 40">
-                          <path d="M0,35 Q10,10 20,30 T40,20 T60,35 T80,10 T100,25" fill="none" stroke="#7B33FF" strokeWidth="2" strokeLinecap="round" />
-                          <circle cx="100" cy="25" r="3" fill="#7B33FF" />
-                        </svg>
-                     </div>
-                     <div className="flex justify-between items-center pt-4 border-t border-white/5">
-                        <span className="text-2xl font-black text-white italic">59</span>
-                        <span className="text-[8px] font-black uppercase text-muted-foreground tracking-widest opacity-40">Live right now</span>
-                     </div>
-                  </Card>
-               </div>
-            </div>
-          </div>
-        )}
 
         {activeView === 'analytics' && (
           <div className="space-y-8 animate-in fade-in duration-500 pb-24">
@@ -377,7 +330,6 @@ export default function UserDashboard() {
 
         {activeView === 'my-websites' && (
           <div className="space-y-12 animate-in fade-in duration-500 pb-20">
-            {/* My Websites simplified original */}
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8">
                <div className="space-y-1">
                   <h2 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-white">Your Projects</h2>
@@ -742,14 +694,5 @@ function SidebarItem({ icon: Icon, label, active = false, onClick, badge }: { ic
         <span className="ml-auto bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-md shadow-lg">{badge}</span>
       )}
     </button>
-  );
-}
-
-function HeroStat({ label, value }: { label: string, value: string }) {
-  return (
-    <div className="flex flex-col">
-       <span className="text-xl sm:text-2xl font-black text-white italic tabular-nums leading-none">{value}</span>
-       <span className="text-[8px] font-black uppercase text-muted-foreground/40 tracking-[0.2em] mt-1">{label}</span>
-    </div>
   );
 }

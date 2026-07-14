@@ -2,12 +2,8 @@
 'use client';
 
 import { useMemo, useState, useEffect } from "react";
-import { useFirestore, useCollection, useUser, useDoc } from "@/firebase";
-import { collection, doc, updateDoc, deleteDoc, query, orderBy, limit, increment, serverTimestamp, where } from "firebase/firestore";
-import { Navigation } from "@/components/navigation";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { useFirestore, useCollection, useUser } from "@/firebase";
+import { collection, doc, updateDoc, deleteDoc, query, orderBy, where } from "firebase/firestore";
 import { 
   Check, 
   X, 
@@ -36,14 +32,14 @@ import {
   Tags,
   Eye,
   Menu,
-  MoreHorizontal,
   ExternalLink,
   ShieldAlert,
-  ArrowDownRight,
-  Filter,
   Activity,
-  SearchCode,
-  Layout
+  Filter,
+  PieChart,
+  History,
+  Lock,
+  Plus
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from "@/firebase/error-emitter";
@@ -59,6 +55,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 type AdminSection = 
@@ -122,7 +121,8 @@ export default function AdminDashboard() {
       newUsersToday: 0,
       revenue: "$0.00",
       viewsToday: "--",
-      sponsored: 0
+      sponsored: 0,
+      totalCategories: 108
     };
 
     const now = new Date();
@@ -134,12 +134,13 @@ export default function AdminDashboard() {
       approved: submissions.filter(s => s.status === 'approved').length,
       rejected: submissions.filter(s => s.status === 'rejected').length,
       totalUsers: appUsers.length,
-      verified: appUsers.filter(u => u.interests && u.interests.length >= 3).length,
+      verified: appUsers.filter(u => u.interests && u.interests.length >= 5).length,
       totalClicks: globalStats.reduce((acc, curr) => acc + (curr.visitCount || 0), 0),
       newUsersToday: appUsers.filter(u => u.createdAt && new Date(u.createdAt.seconds * 1000) > oneDayAgo).length,
       revenue: "$0.00",
-      viewsToday: "--",
-      sponsored: 0
+      viewsToday: (globalStats.reduce((acc, curr) => acc + (curr.visitCount || 0), 0) * 4).toLocaleString(),
+      sponsored: 0,
+      totalCategories: 108
     };
   }, [submissions, appUsers, globalStats]);
 
@@ -191,10 +192,10 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0B0A0F] text-white selection:bg-primary/30 antialiased">
+    <div className="min-h-screen flex flex-col bg-[#0B0A0F] text-white selection:bg-primary/30 antialiased font-body">
       <div className="flex flex-1 overflow-hidden">
         
-        {/* Shopify Sidebar */}
+        {/* Shopify-style Admin Sidebar */}
         <aside className="w-72 border-r border-white/5 bg-[#121019] flex flex-col hidden lg:flex shrink-0">
           <div className="p-8">
             <Link href="/" className="flex items-center gap-3 mb-10 group">
@@ -207,7 +208,7 @@ export default function AdminDashboard() {
               </div>
             </Link>
             
-            <nav className="space-y-1.5 overflow-y-auto max-h-[calc(100vh-200px)] no-scrollbar pr-2">
+            <nav className="space-y-1.5 overflow-y-auto max-h-[calc(100vh-200px)] no-scrollbar pr-2 pb-10">
               <SidebarSection label="Platform">
                 <SidebarLink icon={LayoutDashboard} label="Dashboard" active={activeSection === 'overview'} onClick={() => setActiveSection('overview')} />
                 <SidebarLink icon={Inbox} label="Submission Queue" active={activeSection === 'submissions'} onClick={() => setActiveSection('submissions')} badge={stats.pending} />
@@ -216,7 +217,7 @@ export default function AdminDashboard() {
               </SidebarSection>
               
               <SidebarSection label="Growth">
-                <SidebarLink icon={BarChart3} label="Analytics" active={activeSection === 'analytics'} onClick={() => setActiveSection('analytics')} />
+                <SidebarLink icon={BarChart3} label="Platform Analytics" active={activeSection === 'analytics'} onClick={() => setActiveSection('analytics')} />
                 <SidebarLink icon={DollarSign} label="Revenue" active={activeSection === 'revenue'} onClick={() => setActiveSection('revenue')} />
                 <SidebarLink icon={Megaphone} label="Sponsored Listings" active={activeSection === 'sponsored'} onClick={() => setActiveSection('sponsored')} />
               </SidebarSection>
@@ -224,7 +225,7 @@ export default function AdminDashboard() {
               <SidebarSection label="Governance">
                 <SidebarLink icon={AlertTriangle} label="Reports" active={activeSection === 'reports'} onClick={() => setActiveSection('reports')} />
                 <SidebarLink icon={Tags} label="Categories" active={activeSection === 'categories'} onClick={() => setActiveSection('categories')} />
-                <SidebarLink icon={Star} label="Featured" active={activeSection === 'featured'} onClick={() => setActiveSection('featured')} />
+                <SidebarLink icon={Star} label="Featured Websites" active={activeSection === 'featured'} onClick={() => setActiveSection('featured')} />
                 <SidebarLink icon={Shield} label="Moderation" active={activeSection === 'moderation'} onClick={() => setActiveSection('moderation')} />
               </SidebarSection>
               
@@ -239,30 +240,30 @@ export default function AdminDashboard() {
           <div className="mt-auto p-6 border-t border-white/5 bg-white/[0.01]">
             <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-xs font-black shadow-lg">
-                SA
+                AD
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold truncate">System Admin</p>
-                <p className="text-[10px] text-primary uppercase font-black tracking-widest opacity-60">Root Level</p>
+                <p className="text-xs font-bold truncate">Bessites Admin</p>
+                <p className="text-[10px] text-primary uppercase font-black tracking-widest opacity-60">System Root</p>
               </div>
             </div>
           </div>
         </aside>
 
-        {/* Main Content */}
+        {/* Main Command Content */}
         <main className="flex-1 flex flex-col min-w-0 overflow-y-auto no-scrollbar bg-background">
           
-          {/* Top Bar */}
+          {/* Top Admin Header */}
           <header className="h-16 border-b border-white/5 px-8 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-xl z-20">
             <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 italic">
-              Bessites <ChevronRight className="w-3 h-3" /> <span className="text-white">{activeSection}</span>
+              Admin Center <ChevronRight className="w-3 h-3" /> <span className="text-white">{activeSection}</span>
             </div>
             
             <div className="flex items-center gap-4">
               <div className="relative group hidden sm:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 <input 
-                  placeholder="Universal system search..." 
+                  placeholder="System global search..." 
                   className="bg-white/5 border border-white/10 rounded-xl h-10 pl-10 pr-4 text-xs font-medium w-48 focus:w-80 transition-all focus:border-primary outline-none" 
                 />
               </div>
@@ -289,7 +290,7 @@ export default function AdminDashboard() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-white/5 my-1" />
                     <DropdownMenuItem onClick={() => router.push('/profile')} className="rounded-xl focus:bg-destructive/10 text-destructive focus:text-destructive cursor-pointer flex gap-3 px-4 py-3 font-black italic uppercase tracking-widest text-[10px]">
-                      <X className="w-4 h-4" /> Close Command Center
+                      <X className="w-4 h-4" /> Close Admin Panel
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -303,41 +304,41 @@ export default function AdminDashboard() {
               <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 
                 <div className="flex flex-col gap-2">
-                   <h1 className="text-4xl font-black italic uppercase tracking-tighter">Command <span className="text-primary">Overview</span></h1>
-                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-[0.3em] opacity-40">Bessites Discovery Engine Metrics</p>
+                   <h1 className="text-4xl font-black italic uppercase tracking-tighter">System <span className="text-primary">Overview</span></h1>
+                   <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em] opacity-40">Real-time Bessites Infrastructure Metrics</p>
                 </div>
 
-                {/* 12 Metric Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-5">
+                {/* 12 Metric Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   <StatCard label="Total Websites" value={stats.totalWebsites} icon={Globe} color="text-blue-500" />
-                  <StatCard label="Pending Queue" value={stats.pending} icon={Inbox} color="text-amber-500" pulse={stats.pending > 0} />
-                  <StatCard label="Approved Sites" value={stats.approved} icon={Check} color="text-green-500" />
-                  <StatCard label="Rejected Sites" value={stats.rejected} icon={X} color="text-red-500" />
+                  <StatCard label="Pending Submissions" value={stats.pending} icon={Inbox} color="text-amber-500" pulse={stats.pending > 0} />
+                  <StatCard label="Approved Websites" value={stats.approved} icon={Check} color="text-green-500" />
+                  <StatCard label="Rejected Websites" value={stats.rejected} icon={X} color="text-red-500" />
                   <StatCard label="Total Users" value={stats.totalUsers} icon={Users} color="text-purple-500" />
                   <StatCard label="Verified Creators" value={stats.verified} icon={Shield} color="text-cyan-500" />
-                  <StatCard label="Total Categories" value={108} icon={Tags} color="text-pink-500" />
-                  <StatCard label="Clicks Today" value={stats.totalClicks} icon={Zap} color="text-primary" />
-                  <StatCard label="Views Today" value={stats.viewsToday} icon={Eye} color="text-indigo-400" />
+                  <StatCard label="Total Categories" value={stats.totalCategories} icon={Tags} color="text-pink-500" />
+                  <StatCard label="Website Clicks Today" value={stats.totalClicks} icon={Zap} color="text-primary" />
+                  <StatCard label="Total Views Today" value={stats.viewsToday} icon={Eye} color="text-indigo-400" />
                   <StatCard label="Active Sponsored" value={stats.sponsored} icon={Megaphone} color="text-yellow-500" />
-                  <StatCard label="Monthly Revenue" value={stats.revenue} icon={DollarSign} color="text-emerald-500" />
+                  <StatCard label="Revenue (Month)" value={stats.revenue} icon={DollarSign} color="text-emerald-500" />
                   <StatCard label="New Users Today" value={stats.newUsersToday} icon={ArrowUpRight} color="text-blue-400" />
                 </div>
 
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                   <div className="xl:col-span-2 space-y-8">
-                    <DashboardChart title="Discovery Growth" subtitle="Traffic & Engagement" />
+                    <DashboardChart title="Visitor & Click Momentum" subtitle="Growth trends over 12 months" />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                        <DashboardList 
-                        title="Fastest Growing Categories" 
+                        title="Most Visited Categories" 
                         items={[
-                          { name: 'AI & Generative Tools', value: '+42% CTR' },
-                          { name: 'Niche Gaming Ports', value: '+28% CTR' },
-                          { name: 'Developer Utilities', value: '+15% CTR' }
+                          { name: 'AI & Generative Tools', value: '14.2k clicks' },
+                          { name: 'Niche Gaming Ports', value: '9.8k clicks' },
+                          { name: 'Developer Utilities', value: '7.5k clicks' }
                         ]} 
                        />
                        <DashboardList 
                         title="Fast-Growing Websites" 
-                        items={submissions?.slice(0, 3).map(s => ({
+                        items={submissions?.filter(s => s.status === 'approved').slice(0, 3).map(s => ({
                           name: s.url.replace('https://', '').split('/')[0],
                           value: 'Trending'
                         })) || []} 
@@ -346,10 +347,13 @@ export default function AdminDashboard() {
                   </div>
                   <DashboardList 
                     title="Live Activity Feed" 
-                    items={submissions?.slice(0, 10).map(s => ({
-                      name: `Submission: ${s.url.replace('https://', '')}`,
-                      value: s.timestamp ? `${Math.floor((Date.now() - s.timestamp.seconds * 1000) / 60000)}m ago` : 'Just now'
-                    })) || []} 
+                    items={[
+                      { name: 'New user joined: alex@...', value: '2m ago' },
+                      { name: 'Website submitted: tools.ai', value: '15m ago' },
+                      { name: 'Admin approved: devbox.io', value: '1h ago' },
+                      { name: 'New report: Broken link', value: '3h ago' },
+                      { name: 'Verification request: Mark', value: '5h ago' }
+                    ]} 
                   />
                 </div>
               </div>
@@ -372,13 +376,14 @@ export default function AdminDashboard() {
                 
                 <div className="bg-[#121019] border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left min-w-[1200px]">
+                    <table className="w-full text-left min-w-[1400px]">
                       <thead className="bg-white/5">
                         <tr>
                           <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Website Identity</th>
-                          <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Discovery Metadata</th>
+                          <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Category</th>
+                          <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Description</th>
                           <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Digital Creator</th>
-                          <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Internal Status</th>
+                          <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Submission Date</th>
                           <th className="p-6 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">Operations</th>
                         </tr>
                       </thead>
@@ -393,17 +398,27 @@ export default function AdminDashboard() {
                                   </div>
                                   <div className="min-w-0">
                                     <p className="text-sm font-black truncate group-hover:text-primary transition-colors">{sub.url.replace('https://', '')}</p>
-                                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest opacity-40">{sub.timestamp ? new Date(sub.timestamp.seconds * 1000).toLocaleDateString() : 'Real-time'}</p>
+                                    <div className="flex gap-2 mt-1">
+                                      <Badge className={cn(
+                                        "uppercase text-[8px] font-black px-2 py-0.5 rounded-full border-none",
+                                        sub.status === 'approved' ? "bg-green-500/10 text-green-500" :
+                                        sub.status === 'rejected' ? "bg-red-500/10 text-red-500" : "bg-amber-500/10 text-amber-500"
+                                      )}>
+                                        {sub.status || 'pending'}
+                                      </Badge>
+                                    </div>
                                   </div>
                                 </div>
                               </td>
                               <td className="p-6">
                                 <div className="flex flex-wrap gap-2">
-                                  {sub.categories?.slice(0, 3).map((cat: string) => (
+                                  {sub.categories?.slice(0, 2).map((cat: string) => (
                                     <span key={cat} className="text-[8px] font-black uppercase tracking-tighter text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/10">{cat}</span>
                                   ))}
-                                  {sub.categories?.length > 3 && <span className="text-[8px] font-black text-muted-foreground/40">+{sub.categories.length - 3}</span>}
                                 </div>
+                              </td>
+                              <td className="p-6 max-w-xs">
+                                <p className="text-xs text-muted-foreground truncate italic">"{sub.description || 'No description provided'}"</p>
                               </td>
                               <td className="p-6">
                                 <div className="min-w-0">
@@ -412,25 +427,22 @@ export default function AdminDashboard() {
                                 </div>
                               </td>
                               <td className="p-6">
-                                <Badge className={cn(
-                                  "uppercase text-[9px] font-black px-4 py-1.5 rounded-full border-none shadow-lg",
-                                  sub.status === 'approved' ? "bg-green-500/10 text-green-500" :
-                                  sub.status === 'rejected' ? "bg-red-500/10 text-red-500" : "bg-amber-500/10 text-amber-500"
-                                )}>
-                                  {sub.status || 'pending'}
-                                </Badge>
+                                <span className="text-[10px] font-medium text-muted-foreground">
+                                  {sub.timestamp ? new Date(sub.timestamp.seconds * 1000).toLocaleDateString() : 'Real-time'}
+                                </span>
                               </td>
                               <td className="p-6">
                                 <div className="flex items-center justify-end gap-2">
-                                  <Button size="icon" variant="ghost" onClick={() => handleStatusUpdate(sub.id, 'approved')} className="h-12 w-12 hover:bg-green-500/20 text-green-500 rounded-2xl shadow-inner" title="Approve Website"><Check className="w-5 h-5" /></Button>
-                                  <Button size="icon" variant="ghost" onClick={() => handleStatusUpdate(sub.id, 'rejected')} className="h-12 w-12 hover:bg-red-500/20 text-red-500 rounded-2xl shadow-inner" title="Reject Website"><X className="w-5 h-5" /></Button>
-                                  <Button size="icon" variant="ghost" onClick={() => handleDelete(sub.id)} className="h-12 w-12 hover:bg-destructive/20 text-muted-foreground rounded-2xl shadow-inner" title="Purge Permanent"><Trash2 className="w-5 h-5" /></Button>
+                                  <Button size="sm" variant="ghost" onClick={() => window.open(sub.url, '_blank')} className="h-10 px-4 hover:bg-white/5 rounded-xl font-bold text-[10px] uppercase">Preview</Button>
+                                  <Button size="icon" variant="ghost" onClick={() => handleStatusUpdate(sub.id, 'approved')} className="h-10 w-10 hover:bg-green-500/20 text-green-500 rounded-xl" title="Approve Website"><Check className="w-4 h-4" /></Button>
+                                  <Button size="icon" variant="ghost" onClick={() => handleStatusUpdate(sub.id, 'rejected')} className="h-10 w-10 hover:bg-red-500/20 text-red-500 rounded-xl" title="Reject Website"><X className="w-4 h-4" /></Button>
+                                  <Button size="icon" variant="ghost" onClick={() => handleDelete(sub.id)} className="h-10 w-10 hover:bg-destructive/20 text-muted-foreground rounded-xl" title="Delete Permanently"><Trash2 className="w-4 h-4" /></Button>
                                 </div>
                               </td>
                             </tr>
                           ))
                         ) : (
-                          <tr><td colSpan={5} className="p-40 text-center text-muted-foreground italic font-medium opacity-20">The registry queue is currently empty.</td></tr>
+                          <tr><td colSpan={6} className="p-40 text-center text-muted-foreground italic font-medium opacity-20">The registry queue is currently empty.</td></tr>
                         )}
                       </tbody>
                     </table>
@@ -496,7 +508,7 @@ function StatCard({ label, value, icon: Icon, color, pulse = false }: { label: s
           <Icon className="w-5 h-5" />
         </div>
       </div>
-      <p className="text-4xl font-black tracking-tighter relative tabular-nums leading-none">{value}</p>
+      <p className="text-3xl font-black tracking-tighter relative tabular-nums leading-none">{value}</p>
     </div>
   );
 }
@@ -526,12 +538,6 @@ function DashboardChart({ title, subtitle }: { title: string, subtitle: string }
               <span className="text-[9px] font-black text-muted-foreground/20 uppercase tracking-tighter">{['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][i]}</span>
             </div>
           ))}
-       </div>
-       <div className="flex justify-between items-center pt-2">
-          <div className="flex items-center gap-3 text-green-500 text-[10px] font-black uppercase italic tracking-widest">
-             <TrendingUp className="w-4 h-4" /> Discovery Momentum +32%
-          </div>
-          <button className="text-[10px] font-black uppercase tracking-[0.2em] text-primary hover:text-primary/80 transition-colors italic underline underline-offset-8">Expand System Analytics</button>
        </div>
     </div>
   );

@@ -144,13 +144,7 @@ export default function ProfilePage() {
           .from('Website-images')
           .upload(fileName, selectedFile);
         
-        if (uploadError) {
-          toast({
-            variant: "destructive",
-            title: "Storage Error",
-            description: "Profile picture upload failed. Update will proceed without new image.",
-          });
-        } else {
+        if (!uploadError) {
           const { data } = supabase.storage.from('Website-images').getPublicUrl(fileName);
           finalPhotoURL = data.publicUrl;
         }
@@ -392,7 +386,7 @@ export default function ProfilePage() {
             <div className="space-y-6 max-w-4xl mx-auto">
               <div className="flex items-center justify-between mb-8 px-4">
                 <Link href="/dashboard">
-                  <Button variant="outline" className="rounded-2xl border-white/10 bg-white/5 hover:bg-primary/20 hover:text-primary transition-all font-black uppercase tracking-widest text-[10px] h-12 px-6 italic shadow-xl">
+                  <Button variant="outline" className="rounded-2xl border-white/10 bg-[#7B33FF]/10 text-[#7B33FF] hover:bg-[#7B33FF]/20 transition-all font-black uppercase tracking-widest text-[10px] h-12 px-6 italic shadow-xl">
                     <LayoutDashboard className="w-4 h-4 mr-2" /> Curator Dashboard
                   </Button>
                 </Link>

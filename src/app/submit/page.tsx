@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,7 @@ import { intelligentCategoryTagging } from "@/ai/flows/intelligent-category-tagg
 import { supabase } from "@/lib/supabase";
 
 export default function SubmitWebsite() {
-  const { user } = useUser();
+  const { user, loading: authLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
@@ -31,6 +32,16 @@ export default function SubmitWebsite() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast({
+        title: "Login Required",
+        description: "Please sign in to submit projects to the community.",
+      });
+      router.push("/login");
+    }
+  }, [user, authLoading, router, toast]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -44,11 +55,12 @@ export default function SubmitWebsite() {
   const handleAddTag = (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!tagInput.trim()) return;
-    if (tags.includes(tagInput.trim())) {
+    const cleanTag = tagInput.trim();
+    if (tags.includes(cleanTag)) {
       setTagInput("");
       return;
     }
-    setTags([...tags, tagInput.trim()]);
+    setTags([...tags, cleanTag]);
     setTagInput("");
   };
 
@@ -87,11 +99,11 @@ export default function SubmitWebsite() {
   };
 
   const handleFinalSubmit = async () => {
-    if (!db || !url || tags.length === 0) {
+    if (!db || !url || tags.length === 0 || !user) {
       toast({
         variant: "destructive",
         title: "Missing Information",
-        description: "Please provide a URL and at least one category tag.",
+        description: "Please provide a URL, at least one category tag, and ensure you are logged in.",
       });
       return;
     }
@@ -101,7 +113,7 @@ export default function SubmitWebsite() {
       let publicLogoUrl = "";
       if (logoFile) {
         const fileExt = logoFile.name.split('.').pop();
-        const path = `logos/${Date.now()}.${fileExt}`;
+        const path = `logos/${user.uid}/${Date.now()}.${fileExt}`;
         const { error: uploadError } = await supabase.storage
           .from('Website-images')
           .upload(path, logoFile);
@@ -114,16 +126,19 @@ export default function SubmitWebsite() {
         url,
         categories: tags,
         logoUrl: publicLogoUrl,
-        userId: user?.uid || "guest",
-        userEmail: user?.email || "anonymous",
+        userId: user.uid,
+        userEmail: user.email,
         status: "pending",
         timestamp: serverTimestamp()
       });
 
+      // Create initial stats entry
       const statsRef = doc(db, "websiteStats", submissionRef.id);
       await setDoc(statsRef, {
         logoUrl: publicLogoUrl,
         visitCount: 0,
+        likeCount: 0,
+        shareCount: 0,
         ratingSum: 0,
         ratingCount: 0,
         lastPreviewUpdate: serverTimestamp()
@@ -137,15 +152,24 @@ export default function SubmitWebsite() {
       
       setTimeout(() => router.push("/profile"), 2000);
     } catch (error: any) {
+      console.error("Submit Error:", error);
       toast({
         variant: "destructive",
         title: "Submission failed",
-        description: error.message,
+        description: error.message || "An unexpected error occurred during submission.",
       });
     } finally {
       setSubmitting(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-12 h-12 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (submitted) {
     return (
@@ -176,7 +200,7 @@ export default function SubmitWebsite() {
                 Add to the <span className="text-primary italic">Flow</span>
               </CardTitle>
               <CardDescription className="text-lg">
-                Submit a website and categorize it for the Icantfindawebsite community.
+                Submit a website and categorize it for the community.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-8 pt-4 space-y-8">

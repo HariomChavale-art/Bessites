@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview This file defines a Genkit flow for intelligent category tagging of websites.
@@ -17,9 +18,7 @@ const IntelligentCategoryTaggingOutputSchema = z.object({
 const intelligentCategoryTaggingPrompt = ai.definePrompt({
   name: 'intelligentCategoryTaggingPrompt',
   input: {
-    schema: z.object({
-      url: z.string(),
-    }),
+    schema: IntelligentCategoryTaggingInputSchema,
   },
   output: { schema: IntelligentCategoryTaggingOutputSchema },
   prompt: `Analyze the following website URL and generate a list of 3-5 relevant Pinterest-style interest tags.
@@ -29,11 +28,23 @@ const intelligentCategoryTaggingPrompt = ai.definePrompt({
   Please output the categories in a JSON array format.`,
 });
 
+const intelligentCategoryTaggingFlow = ai.defineFlow(
+  {
+    name: 'intelligentCategoryTaggingFlow',
+    inputSchema: IntelligentCategoryTaggingInputSchema,
+    outputSchema: IntelligentCategoryTaggingOutputSchema,
+  },
+  async (input) => {
+    const { output } = await intelligentCategoryTaggingPrompt(input);
+    return output!;
+  }
+);
+
 export async function intelligentCategoryTagging(input: { url: string }) {
   try {
-    const { output } = await intelligentCategoryTaggingPrompt(input);
-    return output || { categories: ["General", "Web App"] };
+    return await intelligentCategoryTaggingFlow(input);
   } catch (error) {
+    console.error("AI Tagging Error:", error);
     return { categories: ["Web App", "Tools", "General"] };
   }
 }

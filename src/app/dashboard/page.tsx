@@ -2,8 +2,9 @@
 'use client';
 
 import { useMemo, useState } from "react";
-import { useFirestore, useCollection, useUser, useDoc } from "@/firebase";
+import { useFirestore, useCollection, useUser, useDoc, useAuth } from "@/firebase";
 import { collection, doc, query, where, orderBy, limit } from "firebase/firestore";
+import { signOut } from "firebase/auth";
 import { 
   Check, 
   X, 
@@ -23,16 +24,37 @@ import {
   ArrowUpRight,
   Search,
   Zap,
-  Menu
+  Menu,
+  Star,
+  ExternalLink,
+  ShieldCheck,
+  CreditCard,
+  History,
+  Eye,
+  LogOut,
+  Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 type DashboardSection = 'overview' | 'submissions' | 'users' | 'websites' | 'monetization' | 'analytics' | 'settings';
 
 export default function UserDashboard() {
   const { user, loading: authLoading } = useUser();
+  const auth = useAuth();
   const db = useFirestore();
+  const router = useRouter();
   const [activeSection, setActiveSection] = useState<DashboardSection>('overview');
 
   const userDocRef = useMemo(() => {
@@ -60,6 +82,13 @@ export default function UserDashboard() {
 
   const { data: globalStats } = useCollection(websiteStatsRef);
 
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+      router.push("/");
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -70,8 +99,8 @@ export default function UserDashboard() {
 
   const approvedSites = mySubmissions?.filter(s => s.status === 'approved') || [];
   const pendingSites = mySubmissions?.filter(s => s.status === 'pending') || [];
+  const rejectedSites = mySubmissions?.filter(s => s.status === 'rejected') || [];
   
-  // Calculate total clicks for user's own approved sites
   const totalMyClicks = approvedSites.reduce((acc, site) => {
     const stats = globalStats?.find(gs => gs.id === site.id);
     return acc + (stats?.visitCount || 0);
@@ -94,7 +123,7 @@ export default function UserDashboard() {
             <nav className="space-y-1">
               <SidebarLink icon={LayoutDashboard} label="Overview" active={activeSection === 'overview'} onClick={() => setActiveSection('overview')} />
               <SidebarLink icon={Inbox} label="Submissions" active={activeSection === 'submissions'} onClick={() => setActiveSection('submissions')} badge={pendingSites.length} />
-              <SidebarLink icon={Users} label="Users" active={activeSection === 'users'} onClick={() => setActiveSection('users')} />
+              <SidebarLink icon={Users} label="Community" active={activeSection === 'users'} onClick={() => setActiveSection('users')} />
               <SidebarLink icon={Globe} label="My Websites" active={activeSection === 'websites'} onClick={() => setActiveSection('websites')} />
               <SidebarLink icon={DollarSign} label="Monetization" active={activeSection === 'monetization'} onClick={() => setActiveSection('monetization')} />
               <SidebarLink icon={BarChart3} label="Analytics" active={activeSection === 'analytics'} onClick={() => setActiveSection('analytics')} />
@@ -118,7 +147,7 @@ export default function UserDashboard() {
         {/* Main Content */}
         <main className="flex-1 flex flex-col min-w-0 overflow-y-auto no-scrollbar">
           
-          {/* Top Bar with 3 Vertical Lines Menu */}
+          {/* Top Bar with Dropdown Menu */}
           <header className="h-16 border-b border-white/5 px-8 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-xl z-20">
             <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">
               Curator <ChevronRight className="w-3 h-3" /> <span className="text-white">{activeSection}</span>
@@ -131,9 +160,27 @@ export default function UserDashboard() {
               </div>
               
               <div className="flex items-center gap-1 border-l border-white/10 ml-2 pl-4">
-                <button className="p-2 hover:bg-white/5 rounded-lg transition-colors text-muted-foreground hover:text-white" title="Dashboard Menu">
-                  <MoreVertical className="w-5 h-5" />
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="p-2 hover:bg-white/5 rounded-lg transition-colors text-muted-foreground hover:text-white" title="Dashboard Menu">
+                      <MoreVertical className="w-5 h-5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-background border-white/10 text-white w-56 rounded-2xl p-2 shadow-2xl">
+                    <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-4 py-2">Quick Commands</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => router.push('/profile')} className="rounded-xl focus:bg-white/5 cursor-pointer flex gap-3 px-4 py-3">
+                      <UserIcon className="w-4 h-4 text-primary" /> <span className="text-sm font-bold">My Profile</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setActiveSection('settings')} className="rounded-xl focus:bg-white/5 cursor-pointer flex gap-3 px-4 py-3">
+                      <Settings className="w-4 h-4 text-primary" /> <span className="text-sm font-bold">Dashboard Settings</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-white/5 my-1" />
+                    <DropdownMenuItem onClick={handleLogout} className="rounded-xl focus:bg-destructive/10 text-destructive focus:text-destructive cursor-pointer flex gap-3 px-4 py-3 font-black italic uppercase tracking-widest text-[10px]">
+                      <LogOut className="w-4 h-4" /> Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 <button className="lg:hidden p-2 hover:bg-white/5 rounded-lg transition-colors text-muted-foreground hover:text-white">
                   <Menu className="w-5 h-5" />
                 </button>
@@ -144,30 +191,33 @@ export default function UserDashboard() {
           <div className="p-8 space-y-8 max-w-7xl mx-auto w-full">
             
             {activeSection === 'overview' && (
-              <div className="space-y-8">
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   <StatCard label="My Submissions" value={mySubmissions?.length || 0} icon={Inbox} color="text-amber-500" />
                   <StatCard label="Approved Sites" value={approvedSites.length} icon={Check} color="text-green-500" />
                   <StatCard label="Total Impact" value={totalMyClicks.toLocaleString()} icon={TrendingUp} color="text-primary" />
-                  <StatCard label="Rank" value="#124" icon={Zap} color="text-blue-500" />
+                  <StatCard label="Curator Rank" value="#124" icon={Zap} color="text-blue-500" />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <DashboardList title="Recent Activity" items={mySubmissions?.slice(0, 5) || []} />
-                  <DashboardList title="Interest Match" items={[
-                    { name: 'AI', value: 'High' },
-                    { name: 'Productivity', value: 'Medium' },
-                    { name: 'Tools', value: 'High' },
+                  <DashboardList title="Top Categories" items={[
+                    { name: 'AI & Machine Learning', value: 'High Engagement' },
+                    { name: 'Productivity Tools', value: 'Trending' },
+                    { name: 'Developer Utilities', value: 'High Impact' },
                   ]} />
                 </div>
               </div>
             )}
 
             {activeSection === 'submissions' && (
-              <div className="space-y-6">
+              <div className="space-y-6 animate-in fade-in duration-500">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-3xl font-black italic uppercase tracking-tighter">Status Tracker</h2>
-                  <div className="bg-primary/10 text-primary border border-primary/20 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">{pendingSites.length} Pending</div>
+                  <h2 className="text-3xl font-black italic uppercase tracking-tighter">Project Status Tracker</h2>
+                  <div className="flex gap-2">
+                    <Badge className="bg-amber-500/10 text-amber-500 border-none">{pendingSites.length} Pending</Badge>
+                    <Badge className="bg-green-500/10 text-green-500 border-none">{approvedSites.length} Approved</Badge>
+                  </div>
                 </div>
                 
                 <div className="bg-white/[0.02] border border-white/5 rounded-[2rem] overflow-hidden shadow-2xl">
@@ -227,16 +277,121 @@ export default function UserDashboard() {
               </div>
             )}
 
-            {activeSection !== 'overview' && activeSection !== 'submissions' && (
-              <div className="py-24 flex flex-col items-center justify-center text-center space-y-6">
-                <div className="w-24 h-24 bg-white/5 rounded-[2.5rem] flex items-center justify-center text-primary relative shadow-2xl border border-white/5 group">
-                   <div className="absolute inset-0 bg-primary/10 rounded-[2.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                   <SettingsIcon className="w-12 h-12 relative group-hover:rotate-90 transition-transform duration-500" />
+            {activeSection === 'users' && (
+              <div className="space-y-6 animate-in fade-in duration-500">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-3xl font-black italic uppercase tracking-tighter">Community Discovery</h2>
+                  <Badge variant="outline" className="border-white/10 text-muted-foreground">Top Curators</Badge>
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-3xl font-black italic uppercase tracking-tighter">Syncing {activeSection}...</h3>
-                  <p className="text-muted-foreground font-medium max-w-sm mx-auto">This control panel is being synchronized with the Bessites master database.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="bg-white/[0.02] border border-white/5 p-6 rounded-[2.5rem] flex items-center gap-4 hover:bg-white/[0.04] transition-all">
+                      <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center font-black">C{i}</div>
+                      <div>
+                        <p className="font-bold">Curator #{i}34</p>
+                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">{Math.floor(Math.random() * 50)} Submissions</p>
+                      </div>
+                      <Button variant="ghost" size="sm" className="ml-auto text-primary hover:bg-primary/10">Follow</Button>
+                    </div>
+                  ))}
                 </div>
+              </div>
+            )}
+
+            {activeSection === 'websites' && (
+              <div className="space-y-6 animate-in fade-in duration-500">
+                <h2 className="text-3xl font-black italic uppercase tracking-tighter">Live Management</h2>
+                <div className="grid grid-cols-1 gap-4">
+                  {approvedSites.length > 0 ? approvedSites.map((site: any) => (
+                    <div key={site.id} className="bg-white/[0.02] border border-white/5 p-6 rounded-[2rem] flex items-center justify-between group">
+                      <div className="flex items-center gap-4">
+                        <Globe className="w-8 h-8 text-primary/40" />
+                        <div>
+                          <p className="font-bold text-lg">{site.url.replace('https://', '')}</p>
+                          <p className="text-xs text-muted-foreground">Manage metadata and verify authorship</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="icon" className="hover:bg-primary/20 text-primary"><SettingsIcon className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" className="hover:bg-red-500/20 text-red-500"><Trash2 className="w-4 h-4" /></Button>
+                      </div>
+                    </div>
+                  )) : (
+                    <div className="py-20 text-center opacity-40">No approved websites yet.</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeSection === 'monetization' && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-3xl font-black italic uppercase tracking-tighter">Revenue Lab</h2>
+                  <Badge className="bg-primary/10 text-primary border-primary/20">Beta</Badge>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="bg-gradient-to-br from-primary/20 to-transparent border border-white/5 p-8 rounded-[3rem] space-y-6">
+                    <CreditCard className="w-12 h-12 text-primary" />
+                    <div>
+                      <p className="text-4xl font-black">$0.00</p>
+                      <p className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-60">Pending Balance</p>
+                    </div>
+                    <Button className="w-full bg-white text-black font-black uppercase tracking-widest h-14 rounded-2xl">Withdraw Earnings</Button>
+                  </div>
+                  <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[3rem] space-y-6">
+                    <History className="w-12 h-12 text-muted-foreground opacity-40" />
+                    <h3 className="text-xl font-bold italic uppercase tracking-tight">Recent Transactions</h3>
+                    <p className="text-sm text-muted-foreground italic">No transaction history found in this epoch.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeSection === 'analytics' && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <h2 className="text-3xl font-black italic uppercase tracking-tighter">Impact Analytics</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[2.5rem] space-y-4">
+                    <div className="flex justify-between items-center">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Profile Views</p>
+                      <Eye className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <p className="text-5xl font-black tabular-nums">421</p>
+                    <div className="flex items-center gap-2 text-green-500 text-[10px] font-bold">
+                       <ArrowUpRight className="w-3 h-3" /> +12% this week
+                    </div>
+                  </div>
+                  <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[2.5rem] space-y-4">
+                    <div className="flex justify-between items-center">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Click Retention</p>
+                      <Zap className="w-4 h-4 text-amber-400" />
+                    </div>
+                    <p className="text-5xl font-black tabular-nums">68%</p>
+                    <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                       <div className="bg-amber-400 h-full w-[68%]" />
+                    </div>
+                  </div>
+                  <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[2.5rem] space-y-4">
+                    <div className="flex justify-between items-center">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Saved Items</p>
+                      <Star className="w-4 h-4 text-primary" />
+                    </div>
+                    <p className="text-5xl font-black tabular-nums">14</p>
+                    <p className="text-[10px] text-muted-foreground">From 8 unique visitors</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeSection === 'settings' && (
+              <div className="max-w-2xl space-y-8 animate-in fade-in duration-500">
+                <h2 className="text-3xl font-black italic uppercase tracking-tighter">Preferences</h2>
+                <div className="space-y-4">
+                  <SettingRow label="Email Notifications" description="Receive alerts when your projects are approved." enabled />
+                  <SettingRow label="Public Profile" description="Show your curator stats on the public directory." enabled />
+                  <SettingRow label="High-Contrast Mode" description="Use maximum contrast for dashboard accessibility." />
+                </div>
+                <Button variant="outline" className="border-white/10 h-14 rounded-2xl px-8 font-black uppercase tracking-widest text-xs italic">Save Preferences</Button>
               </div>
             )}
 
@@ -305,6 +460,26 @@ function DashboardList({ title, items, onAction }: { title: string, items: any[]
         {items.length === 0 && (
           <div className="py-10 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30">No Data Points</div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function SettingRow({ label, description, enabled = false }: { label: string, description: string, enabled?: boolean }) {
+  return (
+    <div className="flex items-center justify-between p-6 rounded-[2rem] bg-white/[0.02] border border-white/5">
+      <div>
+        <p className="font-bold">{label}</p>
+        <p className="text-[10px] text-muted-foreground">{description}</p>
+      </div>
+      <div className={cn(
+        "w-12 h-6 rounded-full relative transition-colors cursor-pointer",
+        enabled ? "bg-primary" : "bg-white/10"
+      )}>
+        <div className={cn(
+          "absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-xl",
+          enabled ? "left-7" : "left-1"
+        )} />
       </div>
     </div>
   );

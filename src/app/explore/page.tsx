@@ -73,7 +73,19 @@ import {
   Wand2,
   Video,
   Watch,
-  Gift
+  Gift,
+  ShoppingBag,
+  Smartphone,
+  Play,
+  HeartPulse,
+  Languages,
+  DollarSign,
+  Shield,
+  Star,
+  Download,
+  Terminal,
+  MessagesSquare,
+  Sparkle
 } from "lucide-react";
 import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
@@ -87,8 +99,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 const CATEGORIES = [
   { name: "AI", icon: Sparkles, color: "text-purple-400" },
   { name: "Gaming", icon: Gamepad2, color: "text-red-400" },
+  { name: "Entertainment", icon: Play, color: "text-indigo-400" },
+  { name: "Anime", icon: Sparkle, color: "text-pink-400" },
+  { name: "Android", icon: Smartphone, color: "text-green-400" },
   { name: "Coding", icon: Code, color: "text-blue-400" },
   { name: "Design", icon: Palette, color: "text-pink-400" },
+  { name: "Shopping", icon: ShoppingBag, color: "text-amber-400" },
+  { name: "Photography", icon: Camera, color: "text-blue-300" },
+  { name: "Video", icon: Video, color: "text-red-400" },
+  { name: "Music", icon: Music, color: "text-blue-300" },
+  { name: "Utilities", icon: Hammer, color: "text-stone-400" },
+  { name: "Education", icon: BookOpen, color: "text-emerald-400" },
+  { name: "Jobs", icon: Briefcase, color: "text-teal-400" },
+  { name: "Finance", icon: DollarSign, color: "text-green-500" },
+  { name: "Travel", icon: Plane, color: "text-cyan-500" },
+  { name: "Food", icon: Utensils, color: "text-yellow-500" },
+  { name: "Health", icon: HeartPulse, color: "text-rose-500" },
+  { name: "Sports", icon: Star, color: "text-orange-500" },
+  { name: "Cybersecurity", icon: Shield, color: "text-red-500" },
   { name: "Space", icon: Rocket, color: "text-indigo-400" },
   { name: "Earth & Weather", icon: Cloud, color: "text-cyan-400" },
   { name: "Brain Games", icon: Brain, color: "text-amber-400" },
@@ -97,10 +125,8 @@ const CATEGORIES = [
   { name: "OSINT", icon: Search, color: "text-slate-400" },
   { name: "Creative", icon: Paintbrush, color: "text-rose-400" },
   { name: "Voice", icon: Mic, color: "text-violet-400" },
-  { name: "Music", icon: Music, color: "text-blue-300" },
   { name: "Reading", icon: BookOpen, color: "text-emerald-400" },
   { name: "News", icon: Newspaper, color: "text-orange-400" },
-  { name: "Utilities", icon: Hammer, color: "text-stone-400" },
   { name: "Internet", icon: Globe, color: "text-sky-400" },
   { name: "SEO", icon: BarChart3, color: "text-lime-400" },
   { name: "Startups", icon: Rocket, color: "text-red-300" },
@@ -113,8 +139,6 @@ const CATEGORIES = [
   { name: "Math", icon: Calculator, color: "text-green-500" },
   { name: "Movies", icon: Film, color: "text-red-500" },
   { name: "TV", icon: Tv, color: "text-orange-500" },
-  { name: "Travel", icon: Plane, color: "text-cyan-500" },
-  { name: "Food", icon: Utensils, color: "text-yellow-500" },
   { name: "Fitness", icon: Dumbbell, color: "text-rose-500" },
   { name: "Nature", icon: Leaf, color: "text-emerald-500" },
   { name: "Interesting", icon: Info, color: "text-zinc-400" },
@@ -151,9 +175,21 @@ const CATEGORIES = [
   { name: "Live Cameras", icon: Video, color: "text-rose-500" },
   { name: "Watches", icon: Watch, color: "text-slate-500" },
   { name: "Gifts", icon: Gift, color: "text-red-500" },
+  { name: "Deals", icon: Zap, color: "text-yellow-500" },
+  { name: "Languages", icon: Languages, color: "text-blue-400" },
+  { name: "Dating", icon: HeartPulse, color: "text-pink-500" },
+  { name: "Parenting", icon: Home, color: "text-indigo-400" },
+  { name: "PC Software", icon: Laptop, color: "text-slate-400" },
+  { name: "Downloads", icon: Download, color: "text-blue-500" },
+  { name: "Chat & Community", icon: MessagesSquare, color: "text-emerald-400" },
 ];
 
-const TRENDING_CATEGORY_NAMES = ["AI", "Gaming", "Space", "Geography", "Fun", "Startups", "History", "Rocketry", "Cooking"];
+const TRENDING_CATEGORY_NAMES = [
+  "AI", "Gaming", "Entertainment", "Anime", "Android", 
+  "Coding", "Design", "Shopping", "Photography", "Video",
+  "Music", "Utilities", "Education", "Jobs", "Finance",
+  "Travel", "Food", "Health", "Sports", "Cybersecurity"
+];
 
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -225,7 +261,7 @@ export default function ExplorePage() {
       if (seen.has(c.name)) return false;
       seen.add(c.name);
       return true;
-    }).slice(0, 10);
+    }).slice(0, 20); // Show top 20 visible categories
   }, [userInterests]);
 
   const filteredModalCategories = useMemo(() => {
@@ -265,7 +301,7 @@ export default function ExplorePage() {
           <div className="flex items-center justify-between mb-8 sm:mb-10">
             <h2 className="text-xl sm:text-3xl font-bold text-white flex items-center gap-3 sm:gap-4 tracking-tighter">
               <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              Top Interests
+              Popular Interests
             </h2>
             <div className="flex gap-2">
               {selectedCategory && (

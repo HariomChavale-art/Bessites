@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useMemo, useState } from "react";
 import { useFirestore, useCollection, useUser, useDoc, useAuth } from "@/firebase";
-import { collection, doc, query, where, orderBy, limit } from "firebase/firestore";
+import { collection, doc, query, where, limit } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { 
   Check, 
@@ -64,16 +63,26 @@ export default function UserDashboard() {
 
   const { data: profile } = useDoc(userDocRef);
 
+  // Simplified query to avoid composite index requirement
   const mySubmissionsRef = useMemo(() => {
     if (!user || !db) return null;
     return query(
       collection(db, "submissions"), 
-      where("userId", "==", user.uid),
-      orderBy("timestamp", "desc")
+      where("userId", "==", user.uid)
     );
   }, [user, db]);
 
-  const { data: mySubmissions, loading: subLoading } = useCollection(mySubmissionsRef);
+  const { data: rawSubmissions, loading: subLoading } = useCollection(mySubmissionsRef);
+
+  // Sort submissions locally to prevent index errors
+  const mySubmissions = useMemo(() => {
+    if (!rawSubmissions) return [];
+    return [...rawSubmissions].sort((a: any, b: any) => {
+      const timeA = a.timestamp?.seconds || 0;
+      const timeB = b.timestamp?.seconds || 0;
+      return timeB - timeA;
+    });
+  }, [rawSubmissions]);
 
   const websiteStatsRef = useMemo(() => {
     if (!db) return null;
@@ -97,9 +106,9 @@ export default function UserDashboard() {
     );
   }
 
-  const approvedSites = mySubmissions?.filter(s => s.status === 'approved') || [];
-  const pendingSites = mySubmissions?.filter(s => s.status === 'pending') || [];
-  const rejectedSites = mySubmissions?.filter(s => s.status === 'rejected') || [];
+  const approvedSites = mySubmissions?.filter((s: any) => s.status === 'approved') || [];
+  const pendingSites = mySubmissions?.filter((s: any) => s.status === 'pending') || [];
+  const rejectedSites = mySubmissions?.filter((s: any) => s.status === 'rejected') || [];
   
   const totalMyClicks = approvedSites.reduce((acc, site) => {
     const stats = globalStats?.find(gs => gs.id === site.id);
@@ -172,7 +181,7 @@ export default function UserDashboard() {
                       <UserIcon className="w-4 h-4 text-primary" /> <span className="text-sm font-bold">My Profile</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setActiveSection('settings')} className="rounded-xl focus:bg-white/5 cursor-pointer flex gap-3 px-4 py-3">
-                      <Settings className="w-4 h-4 text-primary" /> <span className="text-sm font-bold">Dashboard Settings</span>
+                      <SettingsIcon className="w-4 h-4 text-primary" /> <span className="text-sm font-bold">Dashboard Settings</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-white/5 my-1" />
                     <DropdownMenuItem onClick={handleLogout} className="rounded-xl focus:bg-destructive/10 text-destructive focus:text-destructive cursor-pointer flex gap-3 px-4 py-3 font-black italic uppercase tracking-widest text-[10px]">

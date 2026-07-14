@@ -198,26 +198,6 @@ export default function ProfilePage() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Navigation />
-        <main className="flex-1 flex flex-col items-center justify-center p-4">
-          <div className="text-center space-y-6 max-w-sm">
-            <div className="bg-white/5 p-8 rounded-[3rem] border border-white/5">
-              <LogOut className="w-16 h-16 text-muted-foreground mx-auto mb-6 opacity-20" />
-              <h2 className="text-2xl font-black text-white mb-2">Login Required</h2>
-              <p className="text-muted-foreground font-medium mb-8">Sign in to view your profile and collections.</p>
-              <Link href="/login">
-                <Button className="w-full h-14 bg-primary hover:bg-primary/90 rounded-2xl font-bold text-lg">Go to Login</Button>
-              </Link>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
   const displayName = profileData?.displayName || user?.displayName || "Curator";
   const email = user?.email || "";
   const photoURL = profileData?.photoURL || user?.photoURL || `https://picsum.photos/seed/${user.uid}/200`;
@@ -228,12 +208,11 @@ export default function ProfilePage() {
     { label: 'My Websites', icon: Globe, href: '/dashboard' },
     { label: 'Analytics', icon: BarChart3, href: '/dashboard' },
     { label: 'Audience', icon: Users, href: '/dashboard' },
-    { label: 'Promotions', icon: Flame, href: '/dashboard' },
     { label: 'Reviews', icon: Star, href: '/dashboard' },
+    { label: 'Promotions', icon: Flame, href: '/dashboard' },
     { label: 'Earnings', icon: DollarSign, href: '/dashboard' },
     { label: 'Notifications', icon: Bell, href: '/dashboard' },
     { label: 'AI Assistant', icon: Mic, href: '/dashboard' },
-    { label: 'API (future)', icon: Zap, href: '/dashboard' },
     { label: 'Settings', icon: Settings, href: '/profile' },
     { label: 'Support', icon: HelpCircle, href: '/dashboard' },
   ];
@@ -242,7 +221,7 @@ export default function ProfilePage() {
     <div className="min-h-screen flex flex-col bg-background relative">
       <Navigation />
       
-      {/* Top Left Menu Trigger */}
+      {/* Top Left Menu Trigger - Helios Design */}
       <div className="absolute top-4 left-4 z-50">
         <Sheet>
           <SheetTrigger asChild>
@@ -250,7 +229,7 @@ export default function ProfilePage() {
               <Menu className="w-6 h-6 text-white" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="bg-[#0B0A0F] border-r border-white/5 p-0 w-80 overflow-hidden">
+          <SheetContent side="left" className="bg-[#0B0A0F] border-r border-white/5 p-0 w-80 overflow-hidden shadow-[20px_0_50px_rgba(123,51,255,0.1)]">
             <div className="flex flex-col h-full">
               <div className="p-8">
                  <Link href="/" className="flex items-center gap-3 mb-10 group">
@@ -272,7 +251,7 @@ export default function ProfilePage() {
                             : "text-muted-foreground/60 hover:text-white hover:bg-white/5"
                         )}
                       >
-                        {link.active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-full" />}
+                        {link.active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(123,51,255,1)]" />}
                         <link.icon className={cn("w-5 h-5", link.active ? "text-primary" : "group-hover:scale-110 transition-transform")} />
                         <span className="text-sm font-bold tracking-tight">{link.label}</span>
                       </button>
@@ -281,7 +260,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="mt-auto p-6 border-t border-white/5 bg-white/[0.01]">
-                <button onClick={handleLogout} className="w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all text-sm font-bold group">
+                <button onClick={handleLogout} className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-muted-foreground/40 hover:bg-destructive/10 hover:text-destructive transition-all text-sm font-bold group">
                   <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
                   <span>Sign Out</span>
                 </button>
@@ -385,7 +364,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="p-12 text-center bg-white/5 rounded-[2rem] border border-white/5">
                       <Shield className="w-12 h-12 text-primary mx-auto mb-4 opacity-20" />
-                      <p className="text-muted-foreground font-medium">This section is being synchronized with your profile details at {email}.</p>
+                      <p className="text-muted-foreground font-medium italic">This section is being synchronized with your profile details at {email}.</p>
                     </div>
                   </div>
                 )}
@@ -399,7 +378,7 @@ export default function ProfilePage() {
           {interests.length > 0 && (
             <div className="flex flex-wrap justify-center gap-2 mb-10 max-w-md">
               {interests.map((interest: string) => (
-                <Badge key={interest} variant="secondary" className="bg-white/5 text-white border-white/10 px-4 py-1.5 rounded-full font-bold text-[10px] uppercase">
+                <Badge key={interest} variant="secondary" className="bg-white/5 text-white border-white/10 px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest">
                   {interest}
                 </Badge>
               ))}
@@ -440,7 +419,7 @@ export default function ProfilePage() {
             ) : (
               <div className="text-center py-20 opacity-40">
                 <Bookmark className="w-12 h-12 mx-auto mb-4" />
-                <p className="text-lg">No saved tools in your collection yet.</p>
+                <p className="text-lg italic">No saved tools in your collection yet.</p>
               </div>
             )}
           </TabsContent>
@@ -455,7 +434,7 @@ export default function ProfilePage() {
             ) : (
               <div className="text-center py-20 opacity-40">
                 <Heart className="w-12 h-12 mx-auto mb-4" />
-                <p className="text-lg">You haven't liked any websites yet.</p>
+                <p className="text-lg italic">You haven't liked any websites yet.</p>
               </div>
             )}
           </TabsContent>
@@ -486,7 +465,7 @@ export default function ProfilePage() {
                 <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/5 rounded-[3.5rem] bg-white/[0.02] text-center px-4 shadow-inner">
                   <Plus className="w-14 h-14 text-primary/40 mb-8" />
                   <h3 className="text-3xl font-extrabold text-white mb-3 tracking-tighter">Submit your project</h3>
-                  <p className="text-muted-foreground font-medium mb-8 max-w-xs mx-auto text-sm">Join the 100+ curated webs and track your discovery impact in real-time.</p>
+                  <p className="text-muted-foreground font-medium mb-8 max-w-xs mx-auto text-sm italic">Join the 100+ curated webs and track your discovery impact in real-time.</p>
                   <Link href="/submit"><Button className="rounded-full px-16 py-8 bg-white text-background font-black text-xl h-auto shadow-2xl hover:bg-white/90 uppercase tracking-widest italic transition-all hover:scale-105">Submit Now</Button></Link>
                 </div>
               )}

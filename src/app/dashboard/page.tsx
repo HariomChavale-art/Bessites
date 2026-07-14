@@ -3,7 +3,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useFirestore, useCollection, useUser, useDoc, useAuth } from "@/firebase";
-import { collection, doc, query, where, orderBy } from "firebase/firestore";
+import { collection, doc, query, where } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { 
   Check, 
@@ -43,7 +43,10 @@ import {
   PieChart,
   MousePointer2,
   Share2,
-  Calendar
+  Calendar,
+  Mic,
+  SearchIcon,
+  ArrowRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -62,32 +65,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
-type DashboardSection = 
-  | 'overview' 
-  | 'websites' 
-  | 'analytics' 
-  | 'saved' 
-  | 'liked' 
-  | 'submit' 
-  | 'submissions' 
-  | 'sponsored' 
-  | 'billing' 
-  | 'followers' 
-  | 'messages' 
-  | 'notifications' 
-  | 'settings' 
-  | 'help';
-
-type DateRange = 'today' | '7d' | '30d' | '90d' | 'all';
-
 export default function UserDashboard() {
   const { user, loading: authLoading } = useUser();
   const auth = useAuth();
   const db = useFirestore();
   const router = useRouter();
-  const [activeSection, setActiveSection] = useState<DashboardSection>('overview');
-  const [dateRange, setDateRange] = useState<DateRange>('30d');
-
+  
   const userDocRef = useMemo(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid);
@@ -108,49 +91,17 @@ export default function UserDashboard() {
   }, [db]);
   const { data: globalStats } = useCollection(websiteStatsRef);
 
-  const savedRef = useMemo(() => {
-    if (!user || !db) return null;
-    return collection(db, "users", user.uid, "likedWebsites");
-  }, [user, db]);
-  const { data: savedItems } = useCollection(savedRef);
-
-  const likedRef = useMemo(() => {
-    if (!user || !db) return null;
-    return collection(db, "users", user.uid, "userLikes");
-  }, [user, db]);
-  const { data: likedItems } = useCollection(likedRef);
-
-  // Computed Real-Time Stats
   const stats = useMemo(() => {
-    if (!rawSubmissions || !globalStats) return {
-      totalSubmitted: 0,
-      totalViews: 0,
-      totalClicks: 0,
-      totalSaves: savedItems?.length || 0,
-      totalLikes: likedItems?.length || 0,
-      avgCtr: "0.00%",
-      sponsoredViews: 0,
-      earnings: "$0.00"
-    };
-
+    if (!rawSubmissions || !globalStats) return { clicks: "0", views: "0", total: 0 };
     const myApprovedIds = rawSubmissions.filter(s => s.status === 'approved').map(s => s.id);
     const myStats = globalStats.filter(gs => myApprovedIds.includes(gs.id));
-    
     const clicks = myStats.reduce((acc, curr) => acc + (curr.visitCount || 0), 0);
-    const views = clicks * 4.2; // Mock views calculation based on clicks for MVP
-    const ctr = views > 0 ? ((clicks / views) * 100).toFixed(2) : "0.00";
-
     return {
-      totalSubmitted: rawSubmissions.length,
-      totalViews: Math.round(views).toLocaleString(),
-      totalClicks: clicks.toLocaleString(),
-      totalSaves: (savedItems?.length || 0).toLocaleString(),
-      totalLikes: (likedItems?.length || 0).toLocaleString(),
-      avgCtr: `${ctr}%`,
-      sponsoredViews: 0,
-      earnings: "$0.00"
+      clicks: clicks.toLocaleString(),
+      views: (clicks * 4).toLocaleString(),
+      total: clicks
     };
-  }, [rawSubmissions, globalStats, savedItems, likedItems]);
+  }, [rawSubmissions, globalStats]);
 
   const handleLogout = async () => {
     if (auth) {
@@ -161,410 +112,251 @@ export default function UserDashboard() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-[#0B0A0F]">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0B0A0F] text-white selection:bg-primary/30 antialiased">
-      <div className="flex flex-1 overflow-hidden">
+    <div className="min-h-screen bg-[#0B0A0F] text-white p-4 sm:p-8 font-body selection:bg-primary/30">
+      
+      {/* Helios Main Container */}
+      <div className="max-w-[1600px] mx-auto bg-[#121117] border border-white/5 rounded-[2.5rem] flex flex-col lg:flex-row overflow-hidden shadow-2xl min-h-[90vh]">
         
-        {/* SaaS Professional Sidebar */}
-        <aside className="w-72 border-r border-white/5 bg-[#121019] flex flex-col hidden lg:flex shrink-0">
-          <div className="p-8">
-            <Link href="/" className="flex items-center gap-3 mb-10 group">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-2xl shadow-primary/20 group-hover:scale-110 transition-transform">
-                <Zap className="w-6 h-6 text-white" fill="currentColor" />
-              </div>
-              <div className="min-w-0">
-                <span className="text-xl font-black italic uppercase tracking-tighter block leading-none">Bessites</span>
-                <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60">Curator Hub</span>
-              </div>
-            </Link>
-            
-            <nav className="space-y-1 overflow-y-auto max-h-[calc(100vh-180px)] no-scrollbar pr-2">
-              <SidebarSection label="Personal Lab">
-                <SidebarLink icon={LayoutDashboard} label="Dashboard" active={activeSection === 'overview'} onClick={() => setActiveSection('overview')} />
-                <SidebarLink icon={Globe} label="My Websites" active={activeSection === 'websites'} onClick={() => setActiveSection('websites')} />
-                <SidebarLink icon={BarChart3} label="Analytics" active={activeSection === 'analytics'} onClick={() => setActiveSection('analytics')} />
-                <SidebarLink icon={Star} label="Saved Websites" active={activeSection === 'saved'} onClick={() => setActiveSection('saved')} />
-                <SidebarLink icon={Heart} label="Liked Websites" active={activeSection === 'liked'} onClick={() => setActiveSection('liked')} />
-              </SidebarSection>
-              
-              <SidebarSection label="Publishing">
-                <SidebarLink icon={Plus} label="Submit Website" active={activeSection === 'submit'} onClick={() => router.push('/submit')} />
-                <SidebarLink icon={Inbox} label="My Submissions" active={activeSection === 'submissions'} onClick={() => setActiveSection('submissions')} badge={rawSubmissions?.filter(s => s.status === 'pending').length} />
-              </SidebarSection>
-              
-              <SidebarSection label="Business">
-                <SidebarLink icon={Zap} label="Sponsored Listings" active={activeSection === 'sponsored'} onClick={() => setActiveSection('sponsored')} />
-                <SidebarLink icon={CreditCard} label="Billing & Payments" active={activeSection === 'billing'} onClick={() => setActiveSection('billing')} />
-              </SidebarSection>
-
-              <SidebarSection label="Social (Future)">
-                <SidebarLink icon={Users} label="Followers" active={activeSection === 'followers'} onClick={() => setActiveSection('followers')} />
-                <SidebarLink icon={MessageSquare} label="Messages" active={activeSection === 'messages'} onClick={() => setActiveSection('messages')} />
-              </SidebarSection>
-
-              <SidebarSection label="Account">
-                <SidebarLink icon={Bell} label="Notifications" active={activeSection === 'notifications'} onClick={() => setActiveSection('notifications')} />
-                <SidebarLink icon={Settings} label="Settings" active={activeSection === 'settings'} onClick={() => setActiveSection('settings')} />
-                <SidebarLink icon={HelpCircle} label="Help Center" active={activeSection === 'help'} onClick={() => setActiveSection('help')} />
-              </SidebarSection>
-            </nav>
+        {/* Sidebar */}
+        <aside className="w-full lg:w-72 p-8 flex flex-col border-r border-white/5">
+          <div className="flex items-center gap-3 mb-12">
+             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                <Zap className="w-5 h-5 text-black" fill="currentColor" />
+             </div>
+             <span className="text-xl font-headline font-extrabold tracking-tight">Bessites.ai</span>
           </div>
-          
-          <div className="mt-auto p-6 border-t border-white/5 bg-white/[0.01]">
-            <button onClick={handleLogout} className="w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all text-sm font-bold group">
-              <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span>Sign Out</span>
-            </button>
+
+          <nav className="flex-1 space-y-2">
+            <SidebarItem icon={LayoutDashboard} label="Dashboard" active />
+            <SidebarItem icon={Globe} label="Portfolio" />
+            <SidebarItem icon={BarChart3} label="Analysis" />
+            <SidebarItem icon={Star} label="Market" />
+            <SidebarItem icon={Users} label="Community" />
+          </nav>
+
+          <div className="mt-auto pt-8 space-y-2">
+             <SidebarItem icon={Settings} label="Settings" />
+             <SidebarItem icon={HelpCircle} label="Support" />
           </div>
         </aside>
 
-        {/* Main Command Content */}
-        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto no-scrollbar bg-background">
+        {/* Content Area */}
+        <main className="flex-1 p-8 sm:p-12 overflow-y-auto no-scrollbar flex flex-col gap-10">
           
-          {/* Top SaaS Header */}
-          <header className="h-20 border-b border-white/5 px-8 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-xl z-20">
-            <div className="flex flex-col">
-              <h2 className="text-lg font-black italic uppercase tracking-tighter">Welcome back, {profile?.displayName?.split(' ')[0] || 'Curator'} 👋</h2>
-              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-40">Here is your discovery summary for today.</p>
+          {/* Header */}
+          <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+            <div>
+               <h1 className="text-3xl sm:text-4xl font-headline font-extrabold text-white tracking-tight mb-2">Welcome, {profile?.displayName?.split(' ')[0] || 'Curator'}</h1>
+               <p className="text-muted-foreground text-sm font-medium">Here's your discovery performance overview</p>
             </div>
             
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl p-1 shrink-0">
-                {(['today', '7d', '30d', '90d', 'all'] as DateRange[]).map((range) => (
-                  <button 
-                    key={range}
-                    onClick={() => setDateRange(range)}
-                    className={cn(
-                      "px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all",
-                      dateRange === range ? "bg-primary text-white shadow-lg" : "text-muted-foreground/60 hover:text-white"
-                    )}
-                  >
-                    {range}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-4 border-l border-white/10 pl-6 ml-2">
-                <button className="p-2.5 hover:bg-white/5 rounded-xl transition-colors text-muted-foreground relative group">
-                  <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full ring-4 ring-background" />
-                </button>
-                
-                <Avatar className="w-10 h-10 border-2 border-white/10 shadow-xl cursor-pointer hover:scale-105 transition-transform" onClick={() => setActiveSection('settings')}>
-                  <AvatarImage src={profile?.photoURL} />
-                  <AvatarFallback className="bg-primary/20 text-primary text-xs font-black">{profile?.displayName?.charAt(0)}</AvatarFallback>
-                </Avatar>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="p-2.5 hover:bg-white/5 rounded-xl transition-colors text-muted-foreground">
-                      <Menu className="w-6 h-6" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-[#121019] border-white/10 text-white w-64 rounded-2xl p-2 shadow-2xl">
-                    <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 px-4 py-2">Quick Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => router.push('/submit')} className="rounded-xl focus:bg-white/5 cursor-pointer flex gap-3 px-4 py-3">
-                      <Plus className="w-4 h-4 text-primary" /> <span className="text-sm font-bold">New Submission</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveSection('analytics')} className="rounded-xl focus:bg-white/5 cursor-pointer flex gap-3 px-4 py-3">
-                      <BarChart3 className="w-4 h-4 text-primary" /> <span className="text-sm font-bold">Deep Analytics</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-white/5 my-1" />
-                    <DropdownMenuItem onClick={handleLogout} className="rounded-xl focus:bg-destructive/10 text-destructive focus:text-destructive cursor-pointer flex gap-3 px-4 py-3 font-black italic uppercase tracking-widest text-[10px]">
-                      <LogOut className="w-4 h-4" /> Sign Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+            <div className="flex items-center gap-4">
+               <button className="p-3 bg-white/5 border border-white/5 rounded-2xl text-muted-foreground hover:text-white transition-all"><Bell className="w-5 h-5" /></button>
+               <button className="p-3 bg-white/5 border border-white/5 rounded-2xl text-muted-foreground hover:text-white transition-all"><SettingsIcon className="w-5 h-5" /></button>
+               <div className="flex items-center gap-3 pl-4 border-l border-white/10">
+                  <Avatar className="w-10 h-10 ring-2 ring-primary/20">
+                    <AvatarImage src={profile?.photoURL} />
+                    <AvatarFallback>{profile?.displayName?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="hidden sm:block">
+                     <p className="text-sm font-black tracking-tight">{profile?.displayName}</p>
+                     <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">{user?.email?.split('@')[0]}</p>
+                  </div>
+               </div>
             </div>
           </header>
 
-          <div className="p-8 sm:p-12 space-y-12 max-w-[1800px] mx-auto w-full">
-            
-            {activeSection === 'overview' && (
-              <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                
-                {/* 8 Statistic Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <StatCard label="Total Submitted" value={stats.totalSubmitted} icon={Globe} color="text-blue-500" />
-                  <StatCard label="Total Views" value={stats.totalViews} icon={Eye} color="text-indigo-400" />
-                  <StatCard label="Total Clicks" value={stats.totalClicks} icon={MousePointer2} color="text-primary" />
-                  <StatCard label="Total Saves" value={stats.totalSaves} icon={Bookmark} color="text-amber-500" />
-                  <StatCard label="Total Likes" value={stats.totalLikes} icon={Heart} color="text-pink-500" />
-                  <StatCard label="Average CTR" value={stats.avgCtr} icon={TrendingUp} color="text-green-500" />
-                  <StatCard label="Sponsored Views" value={stats.sponsoredViews} icon={Zap} color="text-yellow-500" />
-                  <StatCard label="Earnings (Future)" value={stats.earnings} icon={DollarSign} color="text-emerald-500" />
-                </div>
+          {/* Top Row: Quick Filters & Search */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
+             <div className="flex bg-white/5 p-1.5 rounded-2xl border border-white/5">
+                {['Impact', 'Discovery', 'Tools'].map((tab, i) => (
+                  <button key={tab} className={cn(
+                    "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+                    i === 1 ? "bg-[#1E1C26] text-white shadow-xl" : "text-muted-foreground hover:text-white"
+                  )}>{tab}</button>
+                ))}
+             </div>
 
-                {/* Growth Graphs Section */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                  <DashboardChart title="Website Clicks Over Time" subtitle="Daily interaction flow" data={[40, 65, 45, 90, 75, 55, 80, 100]} color="bg-primary" />
-                  <DashboardChart title="Website Views Over Time" subtitle="Traffic and impressions" data={[80, 50, 95, 40, 60, 85, 45, 70]} color="bg-indigo-500" />
-                </div>
+             <div className="relative group w-full sm:w-96">
+                <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <input 
+                  placeholder="Ask Bessites.ai anything" 
+                  className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-12 text-sm font-medium focus:ring-1 focus:ring-primary/50 outline-none transition-all" 
+                />
+                <button className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 bg-primary/20 rounded-lg"><Mic className="w-3.5 h-3.5 text-primary" /></button>
+             </div>
+          </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                  <div className="xl:col-span-2 space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <DashboardList 
-                        title="Top Performing Websites" 
-                        items={rawSubmissions?.filter(s => s.status === 'approved').slice(0, 3).map(s => ({
-                          name: s.url.replace('https://', '').split('/')[0],
-                          value: 'Top Ranked',
-                          icon: Globe
-                        })) || []} 
-                      />
-                      <DashboardList 
-                        title="Category Performance" 
-                        items={[
-                          { name: 'AI & Generative Tools', value: '34%' },
-                          { name: 'Developer Utilities', value: '28%' },
-                          { name: 'Design Inspiration', value: '15%' }
-                        ]} 
-                        icon={PieChart}
-                      />
-                    </div>
-                    
-                    <DashboardTable 
-                      title="Recent Submitted Websites" 
-                      subtitle="Status tracking for your projects"
-                      items={rawSubmissions?.slice(0, 5) || []}
-                    />
-                  </div>
-
-                  <div className="space-y-8">
-                    <ActivityFeed 
-                      title="Recent Activity" 
-                      items={[
-                        { user: 'Someone', action: 'liked your website', time: '2m ago' },
-                        { user: 'System', action: 'approved your submission', time: '1h ago' },
-                        { user: 'Someone', action: 'saved your project', time: '3h ago' },
-                        { user: 'System', action: 'new feature available', time: '1d ago' }
-                      ]} 
-                    />
-                    <AchievementCard 
-                      title="Achievements" 
-                      items={[
-                        { label: 'First Website Submitted', unlocked: true },
-                        { label: '100 Views Milestone', unlocked: true },
-                        { label: '1000 Views Milestone', unlocked: false },
-                        { label: 'Verified Creator', unlocked: false }
-                      ]} 
-                    />
-                    <QuickActions />
-                  </div>
+          {/* Metrics Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+             
+             {/* Total Discovery Impact */}
+             <Card className="bg-[#18161E] border-white/5 p-8 rounded-[2rem] relative overflow-hidden group shadow-xl">
+                <div className="flex justify-between items-center mb-10">
+                   <span className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/60">Total Discovery Impact</span>
+                   <div className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold flex items-center gap-1.5">6M <ChevronRight className="w-3 h-3 rotate-90" /></div>
                 </div>
-              </div>
-            )}
-
-            {activeSection !== 'overview' && (
-              <div className="py-40 flex flex-col items-center justify-center text-center space-y-8 animate-in zoom-in duration-500">
-                <div className="w-32 h-32 bg-primary/5 rounded-[3rem] flex items-center justify-center text-primary mb-4 shadow-2xl shadow-primary/10">
-                   <ShieldCheck className="w-16 h-16 opacity-40" />
+                <div className="flex items-baseline gap-2 mb-2">
+                   <span className="text-4xl font-headline font-black text-white">$</span>
+                   <span className="text-4xl font-headline font-black text-white">{stats.clicks}</span>
                 </div>
+                <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-primary/10 blur-[60px] rounded-full group-hover:bg-primary/20 transition-all duration-700" />
+             </Card>
+
+             {/* Decisions Powered by AI */}
+             <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/10 p-8 rounded-[2rem] relative overflow-hidden group shadow-xl flex flex-col justify-between">
                 <div className="space-y-3">
-                  <h3 className="text-5xl font-black italic uppercase tracking-tighter">Module <span className="text-primary">Operational</span></h3>
-                  <p className="text-muted-foreground font-medium max-w-lg mx-auto opacity-60">The <span className="text-white font-bold">{activeSection.toUpperCase()}</span> infrastructure is live. Detailed views for this module are synchronized with your profile data.</p>
+                  <h3 className="text-lg font-headline font-extrabold text-white leading-tight">Decisions Powered by Data</h3>
+                  <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-[180px]">Move beyond guesswork with AI-driven investment insights.</p>
                 </div>
-                <Button variant="outline" onClick={() => setActiveSection('overview')} className="rounded-full h-16 px-16 border-white/10 bg-white/5 font-black uppercase tracking-widest text-xs italic hover:bg-primary hover:text-white transition-all">Back to Command Center</Button>
-              </div>
-            )}
+                <Button className="w-full mt-6 bg-[#2A2732] hover:bg-[#34303D] text-white rounded-full h-12 text-xs font-black uppercase tracking-widest relative z-10 border border-white/5">
+                  Explore AI Insights
+                </Button>
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-primary/40 blur-xl shadow-[0_0_30px_rgba(123,51,255,1)]" />
+             </Card>
+
+             {/* Trending Categories */}
+             <Card className="bg-[#18161E] border-white/5 p-8 rounded-[2rem] relative shadow-xl xl:col-span-1">
+                <div className="flex justify-between items-center mb-6">
+                   <h3 className="text-sm font-black uppercase tracking-widest text-white">Trending Interests</h3>
+                </div>
+                <div className="flex gap-2 mb-6">
+                   {['Most Viewed', 'Gain', 'Loss'].map((t, i) => (
+                     <button key={t} className={cn(
+                       "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tighter border transition-all",
+                       i === 0 ? "bg-white/10 border-white/10 text-white" : "text-muted-foreground border-white/5 hover:border-white/20"
+                     )}>{t}</button>
+                   ))}
+                </div>
+                <div className="space-y-5">
+                   <TrendingRow name="AI & Generative" value="$11,770.3" change="+16.31%" />
+                   <TrendingRow name="Gaming Ports" value="$10,280.8" change="+8.11%" />
+                   <TrendingRow name="Web Utilities" value="$8,510.2" change="+4.89%" />
+                   <TrendingRow name="Creative Arts" value="$2,110.2" change="+2.12%" />
+                </div>
+             </Card>
+
+             {/* Top Projects */}
+             <Card className="bg-[#18161E] border-white/5 p-8 rounded-[2rem] relative shadow-xl">
+                <div className="flex justify-between items-center mb-8">
+                   <h3 className="text-sm font-black uppercase tracking-widest text-white">My Projects</h3>
+                   <Button variant="ghost" size="sm" className="h-8 px-4 bg-white/5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">See all <ArrowUpRight className="w-3 h-3" /></Button>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                   <PortfolioSmallCard name="AAPL" value="$ 1,721.3" units="104" color="bg-white/5" />
+                   <PortfolioSmallCard name="AMZN" value="$ 1,721.3" units="12" color="bg-white/5" />
+                   <PortfolioSmallCard name="MSFT" value="$ 1,721.3" units="41" color="bg-white/5" />
+                   <PortfolioSmallCard name="NVDA" value="$ 1,721.3" units="16" color="bg-white/5" />
+                </div>
+             </Card>
 
           </div>
+
+          {/* Performance Chart Section */}
+          <Card className="bg-[#18161E] border-white/5 p-8 rounded-[3rem] relative shadow-xl overflow-hidden">
+             <div className="flex justify-between items-center mb-10">
+                <h3 className="text-lg font-headline font-extrabold text-white">Portfolio Performance</h3>
+                <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
+                  {['1D', '1W', '1M', '6M', '1Y'].map((p, i) => (
+                    <button key={p} className={cn(
+                      "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all",
+                      i === 4 ? "bg-[#25222E] text-white shadow-xl" : "text-muted-foreground hover:text-white"
+                    )}>{p}</button>
+                  ))}
+                </div>
+             </div>
+             
+             <div className="h-64 relative">
+                {/* Simplified SVG Path Replicating Chart from image */}
+                <svg className="w-full h-full" viewBox="0 0 1000 200" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#7B33FF" stopOpacity="0.4" />
+                      <stop offset="100%" stopColor="#7B33FF" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <path 
+                    d="M0,100 C 50,80 100,120 150,90 C 200,60 250,140 300,110 C 350,80 400,120 450,95 C 500,70 550,130 600,100 C 650,70 700,150 750,120 C 800,90 850,140 900,110 C 950,80 1000,100 L 1000,200 L 0,200 Z" 
+                    fill="url(#chartGradient)" 
+                  />
+                  <path 
+                    d="M0,100 C 50,80 100,120 150,90 C 200,60 250,140 300,110 C 350,80 400,120 450,95 C 500,70 550,130 600,100 C 650,70 700,150 750,120 C 800,90 850,140 900,110 C 950,80 1000,100" 
+                    fill="none" stroke="#7B33FF" strokeWidth="3" 
+                  />
+                  {/* Tooltip dot */}
+                  <circle cx="600" cy="100" r="6" fill="#7B33FF" stroke="white" strokeWidth="2" />
+                  <line x1="600" y1="100" x2="600" y2="200" stroke="#7B33FF" strokeDasharray="5,5" opacity="0.4" />
+                </svg>
+
+                {/* Legend Overlay */}
+                <div className="absolute top-0 left-[60%] -translate-x-1/2 -mt-10">
+                   <div className="bg-[#2A2732] border border-white/10 p-3 rounded-2xl shadow-2xl flex flex-col items-center">
+                      <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest mb-1">1st Jun 2025</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-black">$ 16,500</span>
+                        <Badge className="bg-green-500/20 text-green-500 border-none text-[8px] font-black">+2.5%</Badge>
+                      </div>
+                   </div>
+                </div>
+             </div>
+
+             <div className="flex justify-between mt-6 px-2">
+                {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(m => (
+                  <span key={m} className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-tighter">{m}</span>
+                ))}
+             </div>
+          </Card>
+
         </main>
       </div>
     </div>
   );
 }
 
-function SidebarSection({ label, children }: { label: string, children: React.ReactNode }) {
+function SidebarItem({ icon: Icon, label, active = false }: { icon: any, label: string, active?: boolean }) {
   return (
-    <div className="space-y-1 mb-6">
-      <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/30 px-4 mb-3">{label}</p>
-      {children}
-    </div>
-  );
-}
-
-function SidebarLink({ icon: Icon, label, active, onClick, badge }: { icon: any, label: string, active: boolean, onClick: () => void, badge?: number }) {
-  return (
-    <button 
-      onClick={onClick}
-      className={cn(
-        "w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all text-sm font-bold group",
-        active ? "bg-primary text-white shadow-xl shadow-primary/20 scale-[1.02]" : "text-muted-foreground/60 hover:bg-white/5 hover:text-white"
-      )}
-    >
-      <Icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", active ? "text-white" : "")} />
-      <span className="flex-1 text-left truncate tracking-tight">{label}</span>
-      {badge !== undefined && badge > 0 && (
-        <span className="bg-primary text-white text-[10px] px-2.5 py-0.5 rounded-full font-black shadow-lg animate-pulse">{badge}</span>
-      )}
+    <button className={cn(
+      "w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all relative overflow-hidden group",
+      active ? "text-white bg-gradient-to-r from-primary/30 to-transparent" : "text-muted-foreground/60 hover:text-white hover:bg-white/5"
+    )}>
+      {active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-full shadow-[0_0_10px_rgba(123,51,255,1)]" />}
+      <Icon className={cn("w-5 h-5", active ? "text-white" : "group-hover:scale-110 transition-transform")} />
+      <span className="text-sm font-bold tracking-tight">{label}</span>
     </button>
   );
 }
 
-function StatCard({ label, value, icon: Icon, color }: { label: string, value: string | number, icon: any, color: string }) {
+function TrendingRow({ name, value, change }: { name: string, value: string, change: string }) {
   return (
-    <div className="bg-[#121019] border border-white/5 p-6 rounded-[2.25rem] flex flex-col justify-between group hover:border-white/10 transition-all cursor-default relative overflow-hidden shadow-xl">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[80px] -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
-      <div className="flex items-center justify-between mb-6 relative">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">{label}</p>
-        <div className={cn("p-3 rounded-xl bg-white/5 shadow-inner transition-transform group-hover:scale-110", color)}>
-          <Icon className="w-5 h-5" />
-        </div>
-      </div>
-      <p className="text-4xl font-black tracking-tighter relative tabular-nums leading-none">{value}</p>
-    </div>
-  );
-}
-
-function DashboardChart({ title, subtitle, data, color }: { title: string, subtitle: string, data: number[], color: string }) {
-  return (
-    <div className="bg-[#121019] border border-white/5 rounded-[3rem] p-10 space-y-8 shadow-2xl relative overflow-hidden group">
-       <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-2xl font-black italic uppercase tracking-tighter">{title}</h3>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.25em] opacity-40 mt-1">{subtitle}</p>
-          </div>
-          <Calendar className="w-5 h-5 text-muted-foreground/40" />
+    <div className="flex items-center justify-between group cursor-default">
+       <div className="flex items-center gap-4">
+          <div className="w-2 h-2 rounded-full bg-primary/40 group-hover:scale-150 transition-transform" />
+          <span className="text-xs font-bold text-white/80">{name}</span>
        </div>
-       <div className="h-64 w-full flex items-end justify-between gap-2 pb-6 border-b border-white/5">
-          {data.map((h, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-3 group/bar cursor-pointer">
-              <div 
-                className={cn("w-full opacity-20 hover:opacity-100 transition-all rounded-t-xl relative", color)} 
-                style={{ height: `${h}%` }}
-              >
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#1A1823] border border-white/5 text-white text-[10px] font-black px-3 py-1 rounded-xl opacity-0 group-hover/bar:opacity-100 transition-opacity shadow-2xl">{h}%</div>
-              </div>
-            </div>
-          ))}
+       <div className="text-right">
+          <p className="text-[10px] font-black text-white">{value}</p>
+          <p className="text-[9px] font-bold text-green-500 tracking-tighter">{change}</p>
        </div>
     </div>
   );
 }
 
-function DashboardList({ title, items, icon: Icon = Zap }: { title: string, items: any[], icon?: any }) {
+function PortfolioSmallCard({ name, value, units, color }: { name: string, value: string, units: string, color: string }) {
   return (
-    <div className="bg-[#121019] border border-white/5 rounded-[3rem] p-8 space-y-8 shadow-2xl">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-black italic uppercase tracking-tighter">{title}</h3>
-        <Icon className="w-5 h-5 text-primary" />
-      </div>
-      <div className="space-y-4">
-        {items.map((item, i) => (
-          <div key={i} className="flex items-center justify-between p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group">
-            <div className="flex items-center gap-4">
-              <div className="w-2 h-2 rounded-full bg-primary/40 glow-primary group-hover:scale-150 transition-transform" />
-              <span className="text-xs font-black text-white/80 truncate max-w-[200px]">{item.name}</span>
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{item.value}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function DashboardTable({ title, subtitle, items }: { title: string, subtitle: string, items: any[] }) {
-  return (
-    <div className="bg-[#121019] border border-white/5 rounded-[3rem] overflow-hidden shadow-2xl">
-      <div className="p-8 pb-4">
-        <h3 className="text-2xl font-black italic uppercase tracking-tighter">{title}</h3>
-        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.25em] opacity-40 mt-1">{subtitle}</p>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead className="bg-white/5 border-y border-white/5">
-            <tr>
-              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Website</th>
-              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Status</th>
-              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Clicks</th>
-              <th className="p-6 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">Submitted</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {items.map((sub: any) => (
-              <tr key={sub.id} className="hover:bg-white/[0.01] transition-colors group">
-                <td className="p-6">
-                  <p className="text-sm font-black truncate group-hover:text-primary transition-colors">{sub.url.replace('https://', '').split('/')[0]}</p>
-                </td>
-                <td className="p-6">
-                  <Badge className={cn(
-                    "uppercase text-[8px] font-black px-3 py-1 rounded-full border-none",
-                    sub.status === 'approved' ? "bg-green-500/10 text-green-500" :
-                    sub.status === 'rejected' ? "bg-red-500/10 text-red-500" : "bg-amber-500/10 text-amber-500"
-                  )}>
-                    {sub.status || 'pending'}
-                  </Badge>
-                </td>
-                <td className="p-6 font-mono text-xs opacity-60">--</td>
-                <td className="p-6 text-right text-[10px] text-muted-foreground opacity-40">
-                  {sub.timestamp ? new Date(sub.timestamp.seconds * 1000).toLocaleDateString() : 'Just now'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function ActivityFeed({ title, items }: { title: string, items: any[] }) {
-  return (
-    <div className="bg-[#121019] border border-white/5 rounded-[3rem] p-8 space-y-6 shadow-2xl">
-      <h3 className="text-xl font-black italic uppercase tracking-tighter">{title}</h3>
-      <div className="space-y-6">
-        {items.map((item, i) => (
-          <div key={i} className="flex gap-4 relative">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0 shadow-[0_0_10px_rgba(123,51,255,0.8)]" />
-            <div className="space-y-1">
-              <p className="text-xs font-bold leading-tight">
-                <span className="text-primary">{item.user}</span> {item.action}
-              </p>
-              <p className="text-[9px] text-muted-foreground/40 font-black uppercase tracking-widest">{item.time}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function AchievementCard({ title, items }: { title: string, items: any[] }) {
-  return (
-    <div className="bg-[#121019] border border-white/5 rounded-[3rem] p-8 space-y-6 shadow-2xl">
-      <h3 className="text-xl font-black italic uppercase tracking-tighter">{title}</h3>
-      <div className="grid grid-cols-1 gap-3">
-        {items.map((item, i) => (
-          <div key={i} className={cn(
-            "p-4 rounded-2xl border flex items-center gap-4 transition-all",
-            item.unlocked ? "bg-primary/10 border-primary/20" : "bg-white/[0.02] border-white/5 opacity-40 grayscale"
-          )}>
-            <Trophy className={cn("w-5 h-5", item.unlocked ? "text-primary" : "text-muted-foreground")} />
-            <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function QuickActions() {
-  return (
-    <div className="bg-gradient-to-br from-primary/20 to-transparent border border-white/5 rounded-[3rem] p-8 space-y-6 shadow-2xl">
-      <h3 className="text-xl font-black italic uppercase tracking-tighter">Quick Actions</h3>
-      <div className="grid grid-cols-1 gap-3">
-        <Button className="w-full bg-white text-black font-black uppercase tracking-widest h-14 rounded-2xl hover:bg-white/90">Submit Website</Button>
-        <Button variant="ghost" className="w-full font-black uppercase tracking-widest h-14 rounded-2xl hover:bg-white/5 border border-white/5">Manage Websites</Button>
-      </div>
+    <div className={cn("p-5 rounded-2xl border border-white/5 flex flex-col gap-1 transition-transform hover:scale-[1.02]", color)}>
+       <p className="text-[10px] font-black text-white mb-2">{value}</p>
+       <div className="flex items-center gap-2 text-[8px] font-black text-green-500 uppercase tracking-tighter mb-4"><ArrowUpRight className="w-3 h-3" /> 12.3% (0.7%)</div>
+       <div className="flex items-center justify-between mt-auto">
+          <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">{name}</span>
+          <span className="text-[8px] font-black text-white/60">Units <span className="text-white font-black">{units}</span></span>
+       </div>
     </div>
   );
 }

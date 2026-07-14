@@ -34,7 +34,17 @@ import {
   Camera,
   ChevronLeft,
   Save,
-  LayoutDashboard
+  Menu,
+  LayoutDashboard,
+  BarChart3,
+  Globe,
+  Inbox,
+  Zap,
+  CreditCard,
+  Users,
+  MessageSquare,
+  Bell,
+  HelpCircle
 } from "lucide-react";
 import Link from "next/link";
 import { signOut, updateProfile } from "firebase/auth";
@@ -45,6 +55,7 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { supabase } from "@/lib/supabase";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -209,11 +220,77 @@ export default function ProfilePage() {
   const photoURL = profileData?.photoURL || user?.photoURL || `https://picsum.photos/seed/${user.uid}/200`;
   const interests = profileData?.interests || [];
 
+  const sidebarLinks = [
+    { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard', active: true },
+    { label: 'My Websites', icon: Globe, href: '/dashboard' },
+    { label: 'Analytics', icon: BarChart3, href: '/dashboard' },
+    { label: 'Saved Websites', icon: Bookmark, href: '/profile' },
+    { label: 'Liked Websites', icon: Heart, href: '/profile' },
+    { label: 'Submit Website', icon: Plus, href: '/submit' },
+    { label: 'My Submissions', icon: Inbox, href: '/dashboard' },
+    { label: 'Sponsored Listings', icon: Zap, href: '/dashboard' },
+    { label: 'Billing & Payments', icon: CreditCard, href: '/dashboard' },
+    { label: 'Followers (future)', icon: Users, href: '/dashboard' },
+    { label: 'Messages (future)', icon: MessageSquare, href: '/dashboard' },
+    { label: 'Notifications', icon: Bell, href: '/dashboard' },
+    { label: 'Settings', icon: Settings, href: '/profile' },
+    { label: 'Help Center', icon: HelpCircle, href: '/dashboard' },
+  ];
+
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background relative">
       <Navigation />
       
-      <main className="flex-1 container mx-auto px-4 py-8 pb-32">
+      {/* Top Left Menu Trigger */}
+      <div className="absolute top-4 left-4 z-50">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="w-12 h-12 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
+              <Menu className="w-6 h-6 text-white" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="bg-[#0B0A0F] border-r border-white/5 p-0 w-80 overflow-hidden">
+            <div className="flex flex-col h-full">
+              <div className="p-8">
+                 <Link href="/" className="flex items-center gap-3 mb-10 group">
+                    <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-2xl shadow-primary/20 group-hover:scale-110 transition-transform">
+                      <Zap className="w-6 h-6 text-white" fill="currentColor" />
+                    </div>
+                    <span className="text-xl font-black italic uppercase tracking-tighter block leading-none text-white">Bessites</span>
+                 </Link>
+
+                 <nav className="space-y-1 overflow-y-auto no-scrollbar max-h-[calc(100vh-200px)]">
+                    {sidebarLinks.map((link, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => router.push(link.href)}
+                        className={cn(
+                          "w-full flex items-center gap-4 px-5 py-4 rounded-[1.5rem] transition-all group relative overflow-hidden",
+                          link.active 
+                            ? "text-white bg-gradient-to-r from-primary/40 to-transparent shadow-lg" 
+                            : "text-muted-foreground/60 hover:text-white hover:bg-white/5"
+                        )}
+                      >
+                        {link.active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-full" />}
+                        <link.icon className={cn("w-5 h-5", link.active ? "text-primary" : "group-hover:scale-110 transition-transform")} />
+                        <span className="text-sm font-bold tracking-tight">{link.label}</span>
+                      </button>
+                    ))}
+                 </nav>
+              </div>
+
+              <div className="mt-auto p-6 border-t border-white/5 bg-white/[0.01]">
+                <button onClick={handleLogout} className="w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all text-sm font-bold group">
+                  <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      <main className="flex-1 container mx-auto max-w-4xl px-4 py-8 pb-32">
         <div className="flex flex-col items-center text-center mb-12">
           <div className="relative mb-6 group">
             <Avatar className="w-32 h-32 border-4 border-background ring-4 ring-primary/20 shadow-2xl">
@@ -384,15 +461,6 @@ export default function ProfilePage() {
 
           <TabsContent value="uploads">
             <div className="space-y-6 max-w-4xl mx-auto">
-              <div className="flex items-center justify-between mb-8 px-4">
-                <Link href="/dashboard">
-                  <Button variant="outline" className="rounded-2xl border-white/10 bg-[#7B33FF]/10 text-[#7B33FF] hover:bg-[#7B33FF]/20 transition-all font-black uppercase tracking-widest text-[10px] h-12 px-6 italic shadow-xl">
-                    <LayoutDashboard className="w-4 h-4 mr-2" /> Curator Dashboard
-                  </Button>
-                </Link>
-                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Your Lab</div>
-              </div>
-              
               {submissionsLoading ? (
                 <div className="flex justify-center py-20"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>
               ) : userSubmissions && userSubmissions.length > 0 ? (

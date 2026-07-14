@@ -33,6 +33,10 @@
           "type": "boolean",
           "description": "Whether the user has finished the initial interest selection."
         },
+        "isAdmin": {
+          "type": "boolean",
+          "description": "Grants access to management features."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time"
@@ -42,6 +46,20 @@
         "email",
         "createdAt"
       ]
+    },
+    "Submission": {
+      "title": "Submission",
+      "description": "A website submitted by a user for curation.",
+      "type": "object",
+      "properties": {
+        "url": { "type": "string" },
+        "categories": { "type": "array", "items": { "type": "string" } },
+        "logoUrl": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
     },
     "SavedWebsite": {
       "title": "Saved Website",
@@ -152,6 +170,10 @@
     "/users/{userId}": {
       "schema": "UserProfile",
       "description": "Individual user profile documents."
+    },
+    "/submissions/{submissionId}": {
+      "schema": "Submission",
+      "description": "User submitted project requests."
     },
     "/users/{userId}/likedWebsites/{saveId}": {
       "schema": "SavedWebsite",

@@ -9,7 +9,7 @@ import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sparkles, TrendingUp, Clock, Loader2 } from "lucide-react";
 import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
-import { doc, collection } from "firebase/firestore";
+import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
@@ -34,7 +34,8 @@ export default function Home() {
 
   const submissionsRef = useMemo(() => {
     if (!db) return null;
-    return collection(db, "submissions");
+    // Only fetch approved submissions for the main feed
+    return query(collection(db, "submissions"), where("status", "==", "approved"));
   }, [db]);
 
   const { data: submittedSites } = useCollection(submissionsRef);

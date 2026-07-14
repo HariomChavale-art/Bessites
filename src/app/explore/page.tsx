@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Navigation } from "@/components/navigation";
@@ -105,7 +106,7 @@ import { WebsitePreview } from "@/components/website-preview";
 import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
 import { useFirestore, useDoc, useUser, useCollection } from "@/firebase";
-import { doc, collection } from "firebase/firestore";
+import { doc, collection, query, where } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -238,7 +239,8 @@ export default function ExplorePage() {
 
   const submissionsRef = useMemo(() => {
     if (!db) return null;
-    return collection(db, "submissions");
+    // Only approved submissions
+    return query(collection(db, "submissions"), where("status", "==", "approved"));
   }, [db]);
 
   const { data: submittedSites } = useCollection(submissionsRef);

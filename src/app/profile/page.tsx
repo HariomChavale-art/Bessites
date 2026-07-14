@@ -390,12 +390,13 @@ export default function ProfilePage() {
 
           <TabsContent value="uploads">
             <div className="space-y-6 max-w-4xl mx-auto">
-              <div className="flex items-center justify-between mb-8">
-                <Link href="/admin">
-                  <Button variant="outline" className="rounded-2xl border-white/10 bg-white/5 hover:bg-primary/20 hover:text-primary transition-all font-black uppercase tracking-widest text-[10px] h-12 px-6 italic">
-                    <LayoutDashboard className="w-4 h-4 mr-2" /> Dashboard
+              <div className="flex items-center justify-between mb-8 px-4">
+                <Link href="/dashboard">
+                  <Button variant="outline" className="rounded-2xl border-white/10 bg-white/5 hover:bg-primary/20 hover:text-primary transition-all font-black uppercase tracking-widest text-[10px] h-12 px-6 italic shadow-xl">
+                    <LayoutDashboard className="w-4 h-4 mr-2" /> Curator Dashboard
                   </Button>
                 </Link>
+                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Your Lab</div>
               </div>
               
               {submissionsLoading ? (
@@ -403,15 +404,15 @@ export default function ProfilePage() {
               ) : userSubmissions && userSubmissions.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {userSubmissions.map((sub: any) => (
-                    <Card key={sub.id} className="bg-white/[0.03] border-white/5 p-6 rounded-3xl group hover:border-primary/20 transition-all">
+                    <Card key={sub.id} className="bg-white/[0.03] border-white/5 p-6 rounded-3xl group hover:border-primary/20 transition-all shadow-xl">
                       <div className="flex items-start justify-between mb-4">
-                        <div className="bg-primary/10 p-3 rounded-2xl text-primary"><ExternalLink className="w-6 h-6" /></div>
-                        <Badge className={cn("uppercase font-black tracking-widest text-[10px] px-3 py-1 rounded-full", sub.status === 'pending' ? "bg-amber-500/20 text-amber-500" : sub.status === 'rejected' ? "bg-red-500/20 text-red-500" : "bg-green-500/20 text-green-500")}>
+                        <div className="bg-primary/10 p-3 rounded-2xl text-primary group-hover:scale-110 transition-transform"><ExternalLink className="w-6 h-6" /></div>
+                        <Badge className={cn("uppercase font-black tracking-widest text-[10px] px-3 py-1 rounded-full border-none", sub.status === 'pending' ? "bg-amber-500/10 text-amber-500" : sub.status === 'rejected' ? "bg-red-500/10 text-red-500" : "bg-green-500/10 text-green-500")}>
                           {sub.status || 'pending'}
                         </Badge>
                       </div>
-                      <h3 className="text-xl font-bold text-white mb-1 truncate">{sub.url.replace('https://', '')}</h3>
-                      <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium mb-4">
+                      <h3 className="text-xl font-bold text-white mb-1 truncate group-hover:text-primary transition-colors">{sub.url.replace('https://', '')}</h3>
+                      <div className="flex items-center gap-2 text-muted-foreground text-[10px] font-black uppercase tracking-widest opacity-40 mb-4">
                         <Clock className="w-3.5 h-3.5" />
                         {sub.timestamp ? new Date(sub.timestamp.toDate()).toLocaleDateString() : 'Just now'}
                       </div>
@@ -419,10 +420,11 @@ export default function ProfilePage() {
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/5 rounded-[3.5rem] bg-white/[0.02] text-center px-4">
-                  <Plus className="w-14 h-14 text-primary mb-8" />
-                  <h3 className="text-3xl font-extrabold text-white mb-3">Submit your project</h3>
-                  <Link href="/submit"><Button className="rounded-2xl px-16 py-8 bg-white text-background font-extrabold text-xl h-auto">Submit Now</Button></Link>
+                <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/5 rounded-[3.5rem] bg-white/[0.02] text-center px-4 shadow-inner">
+                  <Plus className="w-14 h-14 text-primary/40 mb-8" />
+                  <h3 className="text-3xl font-extrabold text-white mb-3 tracking-tighter">Submit your project</h3>
+                  <p className="text-muted-foreground font-medium mb-8 max-w-xs mx-auto text-sm">Join the 100+ curated webs and track your discovery impact in real-time.</p>
+                  <Link href="/submit"><Button className="rounded-full px-16 py-8 bg-white text-background font-black text-xl h-auto shadow-2xl hover:bg-white/90 uppercase tracking-widest italic transition-all hover:scale-105">Submit Now</Button></Link>
                 </div>
               )}
             </div>
@@ -436,12 +438,12 @@ export default function ProfilePage() {
 function SettingsOption({ icon: Icon, label, description, onClick }: { icon: any, label: string, description: string, onClick?: () => void }) {
   return (
     <button onClick={onClick} className="w-full flex items-center gap-5 p-5 rounded-[1.5rem] hover:bg-white/5 transition-all text-left group">
-      <div className="bg-white/5 p-3.5 rounded-2xl group-hover:bg-primary/20 group-hover:text-primary transition-all group-hover:scale-105">
+      <div className="bg-white/5 p-3.5 rounded-2xl group-hover:bg-primary/20 group-hover:text-primary transition-all group-hover:scale-105 shadow-inner">
         <Icon className="w-5 h-5" />
       </div>
       <div className="flex-1 min-w-0">
         <h4 className="font-bold text-white text-sm leading-none mb-1 group-hover:text-primary transition-colors">{label}</h4>
-        <p className="text-[10px] text-muted-foreground font-medium truncate opacity-70">{description}</p>
+        <p className="text-[10px] text-muted-foreground font-medium truncate opacity-70 italic">{description}</p>
       </div>
       <ChevronRight className="w-4 h-4 text-muted-foreground opacity-20 group-hover:opacity-100 group-hover:text-primary transition-all" />
     </button>

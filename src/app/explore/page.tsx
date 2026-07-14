@@ -49,7 +49,31 @@ import {
   Dumbbell,
   Leaf,
   Info,
-  History
+  History,
+  Layers,
+  Headphones,
+  Dna,
+  Binoculars,
+  Building2,
+  Car,
+  Bike,
+  Fish,
+  Footprints,
+  Mountain,
+  Waves,
+  Bird,
+  PawPrint,
+  Coffee,
+  Scissors,
+  Printer,
+  Satellite,
+  Gem,
+  Dices,
+  Sword,
+  Wand2,
+  Video,
+  Watch,
+  Gift
 } from "lucide-react";
 import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
@@ -97,9 +121,39 @@ const CATEGORIES = [
   { name: "PDF", icon: FileText, color: "text-red-300" },
   { name: "Productivity", icon: Laptop, color: "text-indigo-400" },
   { name: "History", icon: History, color: "text-amber-600" },
+  { name: "Browser Extensions", icon: Layers, color: "text-blue-400" },
+  { name: "Podcasts", icon: Headphones, color: "text-pink-400" },
+  { name: "Domain Names", icon: Globe, color: "text-green-400" },
+  { name: "Infographics", icon: BarChart3, color: "text-orange-400" },
+  { name: "DNA & Genetics", icon: Dna, color: "text-purple-400" },
+  { name: "Telescopes", icon: Binoculars, color: "text-slate-400" },
+  { name: "Rocketry", icon: Rocket, color: "text-red-400" },
+  { name: "Architecture", icon: Building2, color: "text-stone-400" },
+  { name: "Cars", icon: Car, color: "text-blue-500" },
+  { name: "Motorcycles", icon: Bike, color: "text-orange-500" },
+  { name: "Cycling", icon: Bike, color: "text-green-500" },
+  { name: "Fishing", icon: Fish, color: "text-blue-300" },
+  { name: "Hiking", icon: Footprints, color: "text-amber-600" },
+  { name: "Volcanoes", icon: Mountain, color: "text-red-600" },
+  { name: "Oceans", icon: Waves, color: "text-cyan-500" },
+  { name: "Birds", icon: Bird, color: "text-emerald-500" },
+  { name: "Pets", icon: PawPrint, color: "text-orange-400" },
+  { name: "Cooking", icon: Utensils, color: "text-amber-500" },
+  { name: "Coffee", icon: Coffee, color: "text-amber-800" },
+  { name: "Sewing", icon: Scissors, color: "text-pink-500" },
+  { name: "Woodworking", icon: Hammer, color: "text-stone-500" },
+  { name: "3D Printing", icon: Printer, color: "text-blue-600" },
+  { name: "Satellite Images", icon: Satellite, color: "text-indigo-500" },
+  { name: "Gemstones", icon: Gem, color: "text-emerald-400" },
+  { name: "Board Games", icon: Dices, color: "text-amber-400" },
+  { name: "Tabletop RPG", icon: Sword, color: "text-red-400" },
+  { name: "Magic Tricks", icon: Wand2, color: "text-purple-500" },
+  { name: "Live Cameras", icon: Video, color: "text-rose-500" },
+  { name: "Watches", icon: Watch, color: "text-slate-500" },
+  { name: "Gifts", icon: Gift, color: "text-red-500" },
 ];
 
-const TRENDING_CATEGORY_NAMES = ["AI", "Gaming", "Space", "Geography", "Fun", "Startups", "History"];
+const TRENDING_CATEGORY_NAMES = ["AI", "Gaming", "Space", "Geography", "Fun", "Startups", "History", "Rocketry", "Cooking"];
 
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -355,7 +409,7 @@ function ExploreItemRow({ app }: { app: any }) {
                 {app.pricing}
               </div>
               {isTrending && (
-                <div className="flex items-center gap-1 bg-primary text-white px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter italic">
+                <div className="flex items-center gap-1 bg-primary text-white px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter italic shadow-lg">
                   <TrendingUp className="w-2.5 h-2.5" /> Community Pick
                 </div>
               )}

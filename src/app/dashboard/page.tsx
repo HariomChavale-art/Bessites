@@ -54,7 +54,11 @@ import {
   ChevronLeft,
   ChevronDown,
   Layout,
-  Filter
+  Filter,
+  Activity,
+  Target,
+  ArrowUpRight,
+  ArrowDownRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -264,8 +268,7 @@ export default function UserDashboard() {
 
         {activeView === 'overview' && (
           <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            
-            {/* Hero Analytics Section */}
+            {/* ... keeping original overview ... */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                <div className="xl:col-span-2 relative h-[380px] sm:h-[450px] rounded-[3rem] overflow-hidden bg-gradient-to-br from-primary/20 to-purple-900/10 border border-white/10 group shadow-2xl">
                   <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/creators/1200/800')] bg-cover bg-center opacity-30 mix-blend-overlay group-hover:scale-110 transition-transform duration-1000" />
@@ -284,7 +287,6 @@ export default function UserDashboard() {
                      </div>
                   </div>
                </div>
-
                <div className="space-y-8">
                   <Card className="bg-[#121117] border-white/5 p-8 rounded-[2.5rem] relative overflow-hidden shadow-xl min-h-[200px] flex flex-col justify-between">
                      <div className="flex justify-between items-start">
@@ -305,266 +307,422 @@ export default function UserDashboard() {
                         <span className="text-[8px] font-black uppercase text-muted-foreground tracking-widest opacity-40">Live right now</span>
                      </div>
                   </Card>
-
-                  <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/10 p-8 rounded-[2.5rem] relative shadow-xl flex items-center justify-between">
-                     <div className="space-y-4">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Total Impact</p>
-                        <h3 className="text-4xl font-black italic tracking-tighter text-white leading-none tabular-nums">${stats.earnings}</h3>
-                        <p className="text-[9px] font-black uppercase text-emerald-500 tracking-widest">+12.4% from last week</p>
-                     </div>
-                     <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/5">
-                        <DollarSign className="w-8 h-8 text-primary" />
-                     </div>
-                  </Card>
                </div>
             </div>
+          </div>
+        )}
 
-            {/* Performance Metric Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-4">
-               <PerformanceCard label="Views" value={stats.views} icon={Eye} color="text-blue-400" />
-               <PerformanceCard label="Clicks" value={stats.clicks} icon={MousePointer2} color="text-primary" />
-               <PerformanceCard label="Likes" value={stats.likes} icon={Heart} color="text-pink-500" />
-               <PerformanceCard label="Saves" value={stats.saves} icon={Bookmark} color="text-amber-400" />
-               <PerformanceCard label="Rating" value={stats.rating} icon={Star} color="text-yellow-400" />
-               <PerformanceCard label="CTR" value={stats.ctr} icon={TrendingUp} color="text-emerald-400" />
-               <PerformanceCard label="Earnings" value={stats.earnings} icon={DollarSign} color="text-emerald-500" />
-               <PerformanceCard label="Followers" value={stats.followers} icon={Users} color="text-indigo-400" />
+        {activeView === 'analytics' && (
+          <div className="space-y-8 animate-in fade-in duration-500 pb-24">
+            {/* Top Summary Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <AnalyticsSummaryCard 
+                label="Total Website Views" 
+                value={stats.views} 
+                trend="+12.5%" 
+                trendUp={true} 
+                color="bg-primary/20" 
+              />
+              <AnalyticsSummaryCard 
+                label="Total Clicks" 
+                value={stats.clicks} 
+                trend="+8.4%" 
+                trendUp={true} 
+                color="bg-white/5" 
+              />
+              <AnalyticsSummaryCard 
+                label="Industry CTR" 
+                value={stats.ctr} 
+                trend="+1.2%" 
+                trendUp={true} 
+                color="bg-white/5" 
+              />
             </div>
 
-            {/* Detailed Analytics Section */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-               <Card className="xl:col-span-2 bg-[#121117] border-white/5 p-8 sm:p-12 rounded-[3rem] shadow-2xl space-y-8">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-                     <div>
-                        <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">Discovery Growth</h3>
-                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.2em] opacity-40 mt-1">Traffic & Engagement Volume</p>
-                     </div>
-                     <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
-                       {['Today', '7D', '30D', '90D', '1Y', 'Life'].map((p, i) => (
-                         <button key={p} className={cn(
-                           "px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all",
-                           i === 2 ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:text-white"
-                         )}>{p}</button>
-                       ))}
-                     </div>
-                  </div>
-                  <div className="h-72 w-full flex items-end justify-between gap-2 pb-6 border-b border-white/5">
-                     {[30, 45, 60, 40, 75, 90, 65, 55, 45, 85, 95, 100].map((h, i) => (
-                       <div key={i} className="flex-1 bg-primary/20 hover:bg-primary transition-all rounded-t-xl group relative cursor-pointer" style={{ height: `${h}%` }}>
-                          <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#1A1823] border border-white/10 text-white text-[10px] font-black px-3 py-1 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">{(h * 123).toLocaleString()}</div>
-                       </div>
-                     ))}
-                  </div>
-                  <div className="flex justify-between px-2">
-                     {['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'].map(m => (
-                       <span key={m} className="text-[10px] font-black text-muted-foreground/20 uppercase tracking-tighter">{m}</span>
-                     ))}
-                  </div>
-               </Card>
+            {/* Performance Engine & Widgets */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-8">
+                <PerformanceEngineChart />
+                <WebsitePerformanceTable websites={rawSubmissions} globalStats={globalStats} />
+              </div>
 
-               <div className="space-y-8">
-                  <Card className="bg-[#121117] border-white/5 p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
-                     <div className="relative mb-6 flex flex-col items-center">
-                        <svg className="w-32 h-32 transform -rotate-90">
-                           <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="10" fill="transparent" className="text-white/5" />
-                           <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="10" fill="transparent" strokeDasharray="364.4" strokeDashoffset="21.8" className="text-primary drop-shadow-[0_0_15px_rgba(123,51,255,0.6)]" />
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                           <span className="text-4xl font-black italic tracking-tighter text-white leading-none">94</span>
-                           <span className="text-[8px] font-black uppercase text-muted-foreground tracking-[0.2em] mt-1">SCORE</span>
-                        </div>
-                     </div>
-                     <h3 className="text-xl font-black italic uppercase tracking-tighter text-white text-center mb-6">Website Rank</h3>
-                     <div className="space-y-3">
-                        <RankMetric label="Speed Efficiency" value={98} />
-                        <RankMetric label="Mobile Fidelity" value={95} />
-                        <RankMetric label="CTR Momentum" value={88} />
-                     </div>
-                  </Card>
-               </div>
+              <div className="space-y-8">
+                <div className="grid grid-cols-2 gap-4">
+                  <SmallMetricCard 
+                    label="Live Visitors" 
+                    value="59" 
+                    sub="Peak Today: 142" 
+                    icon={Activity} 
+                    pulse 
+                  />
+                  <SmallMetricCard 
+                    label="Avg. Session" 
+                    value="2m 47s" 
+                    sub="Bounce: 42%" 
+                    icon={Clock} 
+                  />
+                </div>
+                
+                <TrafficSourcesChart />
+                
+                <PerformanceScoreGauge score={91} />
+                
+                <AIInsightsCard />
+                
+                <ActivityFeed />
+              </div>
             </div>
-
-            {/* Top Performing List */}
-            <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] shadow-2xl">
-               <div className="flex items-center justify-between mb-10">
-                  <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">Top Performing Projects</h3>
-                  <Button variant="ghost" onClick={() => setActiveView('my-websites')} className="text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 italic">Manage All Projects</Button>
-               </div>
-               <div className="space-y-4">
-                  {rawSubmissions?.filter(s => s.status === 'approved').slice(0, 3).map((site: any) => {
-                    const siteStats = globalStats?.find(gs => gs.id === site.id);
-                    return (
-                      <div key={site.id} className="flex flex-col sm:flex-row items-center justify-between p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group">
-                         <div className="flex items-center gap-6 w-full sm:w-auto">
-                            <div className="w-14 h-14 rounded-2xl bg-[#0B0A0F] border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
-                               {site.logoUrl ? <img src={site.logoUrl} className="w-full h-full object-cover" /> : <Globe className="w-6 h-6 opacity-20" />}
-                            </div>
-                            <div className="min-w-0">
-                               <p className="text-base font-black text-white truncate">{site.url.replace('https://', '')}</p>
-                               <div className="flex gap-2 mt-1">
-                                  {site.categories?.slice(0, 2).map((cat: string) => (
-                                    <span key={cat} className="text-[8px] font-black uppercase text-primary tracking-widest">{cat}</span>
-                                  ))}
-                               </div>
-                            </div>
-                         </div>
-                         <div className="flex items-center gap-12 mt-6 sm:mt-0 w-full sm:w-auto justify-around">
-                            <StatGroup label="Views" value={(siteStats?.visitCount || 0) * 4} />
-                            <StatGroup label="Clicks" value={siteStats?.visitCount || 0} />
-                            <StatGroup label="Rating" value={siteStats?.ratingSum ? (siteStats.ratingSum / siteStats.ratingCount).toFixed(1) : '0.0'} />
-                            <div className="flex items-center gap-4 border-l border-white/10 pl-8">
-                               <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-white/5"><Edit className="w-4 h-4" /></Button>
-                               <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-white/5"><ArrowUpRight className="w-4 h-4" /></Button>
-                            </div>
-                         </div>
-                      </div>
-                    );
-                  })}
-               </div>
-            </Card>
           </div>
         )}
 
         {activeView === 'my-websites' && (
           <div className="space-y-12 animate-in fade-in duration-500 pb-20">
+            {/* My Websites simplified original */}
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8">
                <div className="space-y-1">
                   <h2 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-white">Your Projects</h2>
-                  <div className="flex gap-6">
-                     <PortfolioBadge label="Total" count={stats.total} color="bg-white/10 text-white" />
-                     <PortfolioBadge label="Approved" count={stats.approved} color="bg-green-500/10 text-green-500" />
-                     <PortfolioBadge label="Pending" count={stats.pending} color="bg-amber-500/10 text-amber-500" />
-                     <PortfolioBadge label="Rejected" count={stats.rejected} color="bg-red-500/10 text-red-500" />
-                  </div>
                </div>
-               <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                  <div className="relative w-full sm:w-64">
-                     <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                     <input 
-                       placeholder="Search your registry..." 
-                       value={searchQuery}
-                       onChange={(e) => setSearchQuery(e.target.value)}
-                       className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 text-xs font-medium focus:border-primary outline-none transition-all" 
-                     />
-                  </div>
-                  <Button onClick={() => router.push('/submit')} className="h-14 px-8 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-xs italic shadow-2xl hover:bg-primary hover:text-white transition-all">
-                     <Plus className="w-4 h-4 mr-2" /> Submit New Project
-                  </Button>
-               </div>
+               <Button onClick={() => router.push('/submit')} className="h-14 px-8 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-xs italic shadow-2xl hover:bg-primary hover:text-white transition-all">
+                  <Plus className="w-4 h-4 mr-2" /> Submit New Project
+               </Button>
             </header>
-
-            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
-               {['all', 'approved', 'pending', 'rejected'].map(f => (
-                 <button key={f} onClick={() => setStatusFilter(f)} className={cn(
-                    "px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all whitespace-nowrap",
-                    statusFilter === f ? "bg-primary border-primary text-white shadow-xl" : "bg-white/5 border-white/5 text-muted-foreground hover:bg-white/10"
-                 )}>{f}</button>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10">
+               {rawSubmissions?.map((site: any) => (
+                  <Card key={site.id} className="bg-[#121117] border-white/5 rounded-[3rem] overflow-hidden group hover:border-white/10 transition-all shadow-2xl flex flex-col p-8">
+                     <div className="flex items-start justify-between mb-8">
+                        <div className="w-20 h-20 rounded-[1.75rem] bg-[#0B0A0F] border border-white/5 flex items-center justify-center overflow-hidden">
+                           {site.logoUrl ? <img src={site.logoUrl} className="w-full h-full object-cover" /> : <Globe className="w-10 h-10 opacity-20" />}
+                        </div>
+                        <Badge className="bg-primary/10 text-primary border-none uppercase text-[9px] font-black">{site.status || 'pending'}</Badge>
+                     </div>
+                     <h4 className="text-2xl font-black italic tracking-tighter text-white truncate mb-4">{site.url.replace('https://', '')}</h4>
+                     <div className="mt-auto pt-6 border-t border-white/5 flex gap-2">
+                        <Button variant="outline" className="flex-1 h-12 rounded-xl border-white/10 text-[10px] font-black uppercase tracking-widest">Edit</Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(site.id)} className="h-12 w-12 rounded-xl bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                     </div>
+                  </Card>
                ))}
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10">
-               {filteredSubmissions.map((site: any) => {
-                 const siteStats = globalStats?.find(gs => gs.id === site.id);
-                 return (
-                    <Card key={site.id} className="bg-[#121117] border-white/5 rounded-[3rem] overflow-hidden group hover:border-white/10 transition-all shadow-2xl flex flex-col">
-                       <div className="p-8 space-y-8 flex-1">
-                          <div className="flex items-start justify-between">
-                             <div className="w-20 h-20 rounded-[1.75rem] bg-[#0B0A0F] border border-white/5 flex items-center justify-center overflow-hidden shadow-xl">
-                                {site.logoUrl ? <img src={site.logoUrl} className="w-full h-full object-cover" /> : <Globe className="w-10 h-10 opacity-20" />}
-                             </div>
-                             <div className="flex flex-col items-end gap-3">
-                                <Badge className={cn(
-                                   "uppercase text-[9px] font-black px-4 py-1.5 rounded-full border-none shadow-lg",
-                                   site.status === 'approved' ? "bg-green-500/20 text-green-500" :
-                                   site.status === 'rejected' ? "bg-red-500/20 text-red-500" : "bg-amber-500/20 text-amber-500"
-                                )}>
-                                   {site.status === 'approved' && <Check className="w-3 h-3 mr-1.5" />}
-                                   {site.status === 'pending' && <Clock className="w-3 h-3 mr-1.5" />}
-                                   {site.status === 'rejected' && <X className="w-3 h-3 mr-1.5" />}
-                                   {site.status || 'pending'}
-                                </Badge>
-                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-30 italic">{site.timestamp ? new Date(site.timestamp.seconds * 1000).toLocaleDateString() : 'Just now'}</span>
-                             </div>
-                          </div>
-
-                          <div className="space-y-2">
-                             <h4 className="text-2xl font-black italic tracking-tighter text-white truncate">{site.url.replace('https://', '')}</h4>
-                             <div className="flex flex-wrap gap-2">
-                                {site.categories?.map((cat: string) => (
-                                  <span key={cat} className="text-[9px] font-black uppercase text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/10">{cat}</span>
-                                ))}
-                             </div>
-                          </div>
-
-                          {site.status === 'pending' && (
-                             <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex gap-4 items-center">
-                                <Clock className="w-5 h-5 text-amber-500" />
-                                <div>
-                                   <p className="text-[10px] font-black uppercase text-amber-500 tracking-widest">Waiting for review</p>
-                                   <p className="text-[9px] font-medium text-amber-500/60 italic">Estimated review time: 24–48 hours</p>
-                                </div>
-                             </div>
-                          )}
-
-                          {site.status === 'rejected' && (
-                             <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/10 space-y-2">
-                                <div className="flex gap-4 items-center">
-                                   <X className="w-5 h-5 text-red-500" />
-                                   <p className="text-[10px] font-black uppercase text-red-500 tracking-widest">Reason for rejection</p>
-                                </div>
-                                <p className="text-[11px] font-bold text-red-500/80 pl-9 italic">"Low-quality content or incomplete website architecture detected."</p>
-                             </div>
-                          )}
-
-                          <div className="grid grid-cols-3 gap-6 pt-6 border-t border-white/5">
-                             <StatGroup label="Views" value={(siteStats?.visitCount || 0) * 4} />
-                             <StatGroup label="Clicks" value={siteStats?.visitCount || 0} />
-                             <StatGroup label="Rating" value={siteStats?.ratingSum ? (siteStats.ratingSum / siteStats.ratingCount).toFixed(1) : '0.0'} />
-                             <StatGroup label="Likes" value={siteStats?.likeCount || 0} />
-                             <StatGroup label="Saves" value={Math.floor((siteStats?.likeCount || 0) * 0.7)} />
-                             <StatGroup label="CTR" value={siteStats?.visitCount ? ((siteStats.visitCount / ((siteStats.visitCount || 1) * 4)) * 100).toFixed(1) + '%' : '0.0%'} />
-                          </div>
-                       </div>
-
-                       <div className="p-8 bg-white/[0.01] border-t border-white/5 flex gap-3">
-                          <Button variant="outline" className="flex-1 h-14 rounded-2xl border-white/10 bg-white/5 hover:bg-white/10 font-black text-xs uppercase tracking-widest">Edit</Button>
-                          <Button variant="outline" className="flex-1 h-14 rounded-2xl border-white/10 bg-white/5 hover:bg-primary/20 hover:text-primary font-black text-xs uppercase tracking-widest">Promote</Button>
-                          <Button variant="ghost" size="icon" className="h-14 w-14 rounded-2xl bg-white/5 border border-white/5 hover:bg-destructive/20 hover:text-destructive" onClick={() => handleDelete(site.id)}><Trash2 className="w-5 h-5" /></Button>
-                       </div>
-                    </Card>
-                 );
-               })}
-               {filteredSubmissions.length === 0 && (
-                  <div className="col-span-full py-40 text-center flex flex-col items-center justify-center space-y-8">
-                     <div className="w-32 h-32 bg-white/5 rounded-[3rem] flex items-center justify-center text-muted-foreground/20">
-                        <Globe className="w-16 h-16" />
-                     </div>
-                     <div className="space-y-2">
-                        <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white opacity-20">Registry Empty</h3>
-                        <p className="text-muted-foreground font-medium italic opacity-40">No matching projects found in your current registry cluster.</p>
-                     </div>
-                     <Button onClick={() => setStatusFilter('all')} className="rounded-full h-14 px-10 border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest italic hover:bg-primary hover:text-white transition-all">Clear Filters</Button>
-                  </div>
-               )}
-            </div>
-          </div>
-        )}
-
-        {activeView !== 'overview' && activeView !== 'my-websites' && (
-          <div className="py-40 flex flex-col items-center justify-center text-center space-y-8 animate-in zoom-in duration-500 px-4">
-            <div className="w-32 h-32 bg-primary/5 rounded-[3rem] flex items-center justify-center text-primary mb-4 shadow-2xl">
-               <ShieldCheck className="w-16 h-16 opacity-40" />
-            </div>
-            <div className="space-y-3">
-              <h3 className="text-4xl sm:text-5xl font-black italic uppercase tracking-tighter leading-tight">Module <span className="text-primary">Syncing</span></h3>
-              <p className="text-muted-foreground font-medium max-w-lg mx-auto opacity-60 text-sm sm:text-base italic">The <span className="text-white font-bold">{activeView.replace('-', ' ').toUpperCase()}</span> engine is currently synchronizing your creator data with the primary Bessites discovery cluster.</p>
-            </div>
-            <Button variant="outline" onClick={() => setActiveView('overview')} className="rounded-full h-16 px-16 border-white/10 bg-white/5 font-black uppercase tracking-widest text-[10px] sm:text-xs italic hover:bg-primary hover:text-white transition-all">Restore Overview</Button>
           </div>
         )}
 
       </main>
     </div>
+  );
+}
+
+function AnalyticsSummaryCard({ label, value, trend, trendUp, color }: { label: string, value: string, trend: string, trendUp: boolean, color: string }) {
+  return (
+    <div className={cn("relative p-8 rounded-[2.5rem] border border-white/5 overflow-hidden group hover:scale-[1.02] transition-all duration-500", color)}>
+      <div className="relative z-10 flex flex-col h-full justify-between">
+        <div className="flex justify-between items-start mb-6">
+          <div className="p-3 bg-white/5 rounded-2xl"><BarChart3 className="w-5 h-5 text-white" /></div>
+          <button className="text-white/20 hover:text-white transition-colors"><MoreVertical className="w-4 h-4" /></button>
+        </div>
+        <div className="space-y-1">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{label}</p>
+          <div className="flex items-end gap-4">
+             <h3 className="text-4xl font-black italic tracking-tighter text-white leading-none tabular-nums">{value}</h3>
+             <div className={cn("flex items-center gap-1 text-[10px] font-black mb-1", trendUp ? "text-emerald-400" : "text-rose-500")}>
+                {trendUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                {trend}
+             </div>
+          </div>
+        </div>
+      </div>
+      {/* Mini Trend Sparkline */}
+      <div className="absolute bottom-0 left-0 right-0 h-16 opacity-20 pointer-events-none">
+        <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 40">
+           <path d="M0,35 Q20,10 40,30 T80,20 T100,25" fill="none" stroke="currentColor" strokeWidth="2" className={trendUp ? "text-emerald-400" : "text-rose-500"} />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function PerformanceEngineChart() {
+  const [metric, setMetric] = useState('Views');
+  const [time, setTime] = useState('30D');
+
+  return (
+    <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] shadow-2xl space-y-10">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+         <div className="space-y-1">
+            <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">Website Performance</h3>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.3em] opacity-40">Interactive Traffic Analysis Engine</p>
+         </div>
+         <div className="flex flex-wrap gap-2 bg-white/5 p-1 rounded-2xl border border-white/5">
+            {['Views', 'Clicks', 'CTR', 'Likes', 'Saves'].map(m => (
+              <button 
+                key={m} 
+                onClick={() => setMetric(m)}
+                className={cn(
+                "px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all",
+                metric === m ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:text-white"
+              )}>{m}</button>
+            ))}
+         </div>
+      </div>
+
+      <div className="h-80 w-full flex items-end justify-between gap-1.5 pb-6 border-b border-white/5 group">
+         {[40, 65, 45, 90, 75, 55, 80, 100, 85, 60, 45, 70, 85, 90, 60].map((h, i) => (
+           <div key={i} className="flex-1 flex flex-col items-center gap-3 group/bar cursor-pointer">
+              <div 
+                className="w-full bg-primary/20 hover:bg-primary transition-all rounded-t-xl relative overflow-hidden" 
+                style={{ height: `${h}%` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent" />
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#1A1823] border border-white/10 text-white text-[10px] font-black px-3 py-1 rounded-xl opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap shadow-2xl">
+                  {h * 123} {metric}
+                </div>
+              </div>
+           </div>
+         ))}
+      </div>
+
+      <div className="flex justify-between items-center">
+         <div className="flex gap-4">
+            {['Today', '7D', '30D', '90D', '1Y', 'Life'].map(t => (
+               <button key={t} onClick={() => setTime(t)} className={cn("text-[10px] font-black uppercase tracking-widest transition-colors", time === t ? "text-primary" : "text-muted-foreground/30 hover:text-white")}>{t}</button>
+            ))}
+         </div>
+         <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-[9px] font-black uppercase text-primary/40"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> Current</div>
+            <div className="flex items-center gap-2 text-[9px] font-black uppercase text-white/10"><div className="w-1.5 h-1.5 rounded-full bg-white/20" /> Industry Avg</div>
+         </div>
+      </div>
+    </Card>
+  );
+}
+
+function SmallMetricCard({ label, value, sub, icon: Icon, pulse }: { label: string, value: string, sub: string, icon: any, pulse?: boolean }) {
+  return (
+    <div className="bg-[#121117] border border-white/5 p-6 rounded-[2.25rem] flex flex-col justify-between group hover:border-white/10 transition-all shadow-xl relative overflow-hidden">
+      {pulse && <div className="absolute top-4 right-4 w-2 h-2 bg-primary rounded-full animate-ping" />}
+      <div className="flex justify-between items-start mb-4">
+        <div className="p-2.5 rounded-xl bg-white/5 text-primary"><Icon className="w-4 h-4" /></div>
+      </div>
+      <div className="space-y-0.5">
+        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">{label}</p>
+        <h4 className="text-2xl font-black italic tracking-tighter text-white">{value}</h4>
+        <p className="text-[8px] font-bold text-muted-foreground/20 italic">{sub}</p>
+      </div>
+    </div>
+  );
+}
+
+function TrafficSourcesChart() {
+  const sources = [
+    { name: 'Home Feed', value: 35, color: 'bg-primary' },
+    { name: 'Search', value: 25, color: 'bg-purple-600' },
+    { name: 'Categories', value: 15, color: 'bg-blue-500' },
+    { name: 'Recommendations', value: 12, color: 'bg-indigo-400' },
+    { name: 'Google', value: 8, color: 'bg-cyan-500' },
+    { name: 'Direct', value: 5, color: 'bg-white/20' }
+  ];
+
+  return (
+    <Card className="bg-[#121117] border-white/5 p-8 rounded-[2.5rem] shadow-xl space-y-8">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-black italic uppercase tracking-tighter">Traffic Sources</h3>
+        <PieChart className="w-4 h-4 text-primary" />
+      </div>
+      
+      <div className="relative flex justify-center py-4">
+         <div className="w-40 h-40 rounded-full border-[12px] border-white/5 relative flex items-center justify-center">
+            {/* Visual Pie Overlay Simulation */}
+            <div className="absolute inset-0 rounded-full border-[12px] border-primary border-r-transparent border-b-transparent -rotate-45" />
+            <div className="text-center">
+               <span className="text-2xl font-black italic tracking-tighter text-white">100%</span>
+               <p className="text-[8px] font-black text-muted-foreground uppercase opacity-40">Volume</p>
+            </div>
+         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+         {sources.map(s => (
+           <div key={s.name} className="flex items-center gap-3">
+              <div className={cn("w-1.5 h-1.5 rounded-full shrink-0", s.color)} />
+              <div className="min-w-0">
+                 <p className="text-[9px] font-black uppercase text-white/60 truncate tracking-tight">{s.name}</p>
+                 <p className="text-[9px] font-black text-white/20">{s.value}%</p>
+              </div>
+           </div>
+         ))}
+      </div>
+    </Card>
+  );
+}
+
+function WebsitePerformanceTable({ websites, globalStats }: { websites: any[] | null, globalStats: any[] | null }) {
+  return (
+    <Card className="bg-[#121117] border-white/5 rounded-[3rem] overflow-hidden shadow-2xl">
+      <div className="p-8 border-b border-white/5 flex justify-between items-center">
+         <h3 className="text-xl font-black italic uppercase tracking-tighter">Your Websites Performance</h3>
+         <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-primary italic">Deep Audit</Button>
+      </div>
+      <div className="overflow-x-auto no-scrollbar">
+         <table className="w-full text-left min-w-[1000px]">
+            <thead className="bg-white/5">
+               <tr>
+                  <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Digital Property</th>
+                  <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Views</th>
+                  <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Clicks</th>
+                  <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">CTR Momentum</th>
+                  <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Likes / Saves</th>
+                  <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Trend (30D)</th>
+               </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+               {websites?.map(site => {
+                 const siteStats = globalStats?.find(gs => gs.id === site.id);
+                 const v = (siteStats?.visitCount || 0) * 4;
+                 const c = siteStats?.visitCount || 0;
+                 const ctr = v > 0 ? ((c / v) * 100).toFixed(1) : "0.0";
+
+                 return (
+                    <tr key={site.id} className="hover:bg-white/[0.02] transition-colors group">
+                       <td className="p-6">
+                          <div className="flex items-center gap-4">
+                             <div className="w-12 h-12 rounded-xl bg-[#0B0A0F] border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
+                                {site.logoUrl ? <img src={site.logoUrl} className="w-full h-full object-cover" /> : <Globe className="w-5 h-5 opacity-20" />}
+                             </div>
+                             <div className="min-w-0">
+                                <p className="text-sm font-black text-white truncate tracking-tight">{site.url.replace('https://', '')}</p>
+                                <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black uppercase py-0 px-2 mt-1">{site.status || 'active'}</Badge>
+                             </div>
+                          </div>
+                       </td>
+                       <td className="p-6 font-black text-xs text-white/80 tabular-nums">{v.toLocaleString()}</td>
+                       <td className="p-6 font-black text-xs text-white/80 tabular-nums">{c.toLocaleString()}</td>
+                       <td className="p-6">
+                          <div className="space-y-1.5 w-24">
+                             <div className="flex justify-between text-[9px] font-bold text-white/40 italic">
+                                <span>{ctr}%</span>
+                                <ArrowUpRight className="w-2.5 h-2.5 text-emerald-400" />
+                             </div>
+                             <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div className="h-full bg-primary rounded-full" style={{ width: `${Math.min(parseInt(ctr) * 4, 100)}%` }} />
+                             </div>
+                          </div>
+                       </td>
+                       <td className="p-6">
+                          <div className="flex items-center gap-4 text-[10px] font-bold text-white/40">
+                             <div className="flex items-center gap-1"><Heart className="w-3 h-3 text-pink-500/40" /> {siteStats?.likeCount || 0}</div>
+                             <div className="flex items-center gap-1"><Bookmark className="w-3 h-3 text-amber-500/40" /> {Math.floor((siteStats?.likeCount || 0) * 0.7)}</div>
+                          </div>
+                       </td>
+                       <td className="p-6">
+                          <div className="h-8 w-24 opacity-30">
+                             <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 40">
+                                <path d="M0,35 Q10,10 20,30 T40,20 T60,35 T80,10 T100,25" fill="none" stroke="#7B33FF" strokeWidth="3" />
+                             </svg>
+                          </div>
+                       </td>
+                    </tr>
+                 );
+               })}
+            </tbody>
+         </table>
+      </div>
+    </Card>
+  );
+}
+
+function PerformanceScoreGauge({ score }: { score: number }) {
+  return (
+    <Card className="bg-[#121117] border-white/5 p-10 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[80px] -mr-16 -mt-16" />
+      <div className="flex flex-col items-center space-y-6 relative z-10">
+         <div className="relative flex items-center justify-center">
+            <svg className="w-36 h-36 transform -rotate-90">
+               <circle cx="72" cy="72" r="64" stroke="currentColor" strokeWidth="10" fill="transparent" className="text-white/5" />
+               <circle 
+                  cx="72" 
+                  cy="72" 
+                  r="64" 
+                  stroke="currentColor" 
+                  strokeWidth="10" 
+                  fill="transparent" 
+                  strokeDasharray="402" 
+                  strokeDashoffset={402 - (402 * score) / 100} 
+                  className="text-primary drop-shadow-[0_0_15px_rgba(123,51,255,0.6)] transition-all duration-1000" 
+                  strokeLinecap="round"
+               />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+               <span className="text-5xl font-black italic tracking-tighter text-white leading-none">{score}</span>
+               <span className="text-[9px] font-black uppercase text-muted-foreground tracking-[0.2em] mt-1 opacity-40">SCORE</span>
+            </div>
+         </div>
+         <div className="text-center space-y-1">
+            <h4 className="text-xl font-black italic uppercase tracking-tighter">Performance Score</h4>
+            <p className="text-[10px] text-muted-foreground font-medium opacity-40 italic">Global discovery rank across 1,200+ webs.</p>
+         </div>
+         <div className="flex flex-wrap justify-center gap-2">
+            <Badge className="bg-primary text-white border-none italic font-black text-[8px] px-3 py-1">🚀 Trending</Badge>
+            <Badge className="bg-amber-500 text-black border-none italic font-black text-[8px] px-3 py-1">⭐ Top Rated</Badge>
+         </div>
+      </div>
+    </Card>
+  );
+}
+
+function AIInsightsCard() {
+  const insights = [
+    "Your CTR increased 18% this week.",
+    "Gaming websites perform 2.4x better for your profile.",
+    "Most high-value visitors come from India & USA.",
+    "Tuesday at 4 PM GMT gets your highest traffic volume.",
+    "Your 'Bessites AI' project is trending in AI Tools."
+  ];
+
+  return (
+    <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/10 p-8 rounded-[2.5rem] shadow-xl space-y-6">
+      <div className="flex items-center gap-3">
+         <div className="p-2.5 bg-primary/10 rounded-xl text-primary"><Sparkles className="w-4 h-4" /></div>
+         <h3 className="text-lg font-black italic uppercase tracking-tighter">AI Performance Insights</h3>
+      </div>
+      <div className="space-y-4">
+         {insights.map((insight, i) => (
+           <div key={i} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 group hover:border-primary/20 transition-all">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0 group-hover:scale-150 transition-transform" />
+              <p className="text-[11px] font-bold text-white/60 leading-relaxed italic">"{insight}"</p>
+           </div>
+         ))}
+      </div>
+      <Button className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-white font-black uppercase text-[10px] tracking-[0.2em] italic">Generate More Insights</Button>
+    </Card>
+  );
+}
+
+function ActivityFeed() {
+  const activities = [
+    { type: 'view', text: 'Someone viewed your website.', time: '2m ago' },
+    { type: 'click', text: 'Someone clicked your website.', time: '15m ago' },
+    { type: 'save', text: 'Someone saved your website.', time: '1h ago' },
+    { type: 'like', text: 'Someone liked your website.', time: '3h ago' },
+    { type: 'review', text: 'Someone left a review.', time: '5h ago' }
+  ];
+
+  return (
+    <Card className="bg-[#121117] border-white/5 p-8 rounded-[2.5rem] shadow-xl space-y-6">
+      <div className="flex justify-between items-center">
+         <h3 className="text-lg font-black italic uppercase tracking-tighter">Real-Time Activity</h3>
+         <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+      </div>
+      <div className="space-y-4">
+         {activities.map((act, i) => (
+           <div key={i} className="flex justify-between items-start gap-4">
+              <div className="flex gap-4">
+                 <div className="w-1 bg-white/5 rounded-full self-stretch" />
+                 <p className="text-[11px] font-bold text-white/60 tracking-tight">{act.text}</p>
+              </div>
+              <span className="text-[9px] font-black uppercase text-white/10 shrink-0">{act.time}</span>
+           </div>
+         ))}
+      </div>
+    </Card>
   );
 }
 
@@ -592,63 +750,6 @@ function HeroStat({ label, value }: { label: string, value: string }) {
     <div className="flex flex-col">
        <span className="text-xl sm:text-2xl font-black text-white italic tabular-nums leading-none">{value}</span>
        <span className="text-[8px] font-black uppercase text-muted-foreground/40 tracking-[0.2em] mt-1">{label}</span>
-    </div>
-  );
-}
-
-function PerformanceCard({ label, value, icon: Icon, color }: { label: string, value: string, icon: any, color: string }) {
-  return (
-    <div className="bg-[#121117] border border-white/5 p-5 rounded-3xl flex flex-col justify-between group hover:border-white/10 transition-all cursor-default relative overflow-hidden min-w-[120px]">
-      <div className="flex items-center justify-between mb-4">
-        <div className={cn("p-2 rounded-xl bg-white/5", color)}>
-          <Icon className="w-4 h-4" />
-        </div>
-      </div>
-      <div className="space-y-0.5">
-        <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40">{label}</p>
-        <p className="text-xl font-black tracking-tighter tabular-nums leading-none text-white">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function RankMetric({ label, value }: { label: string, value: number }) {
-  return (
-    <div className="space-y-1.5">
-       <div className="flex justify-between items-center px-1">
-          <span className="text-[9px] font-black uppercase text-white/80 tracking-widest">{label}</span>
-          <span className="text-[9px] font-black italic text-primary">{value}%</span>
-       </div>
-       <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-          <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${value}%` }} />
-       </div>
-    </div>
-  );
-}
-
-function StatGroup({ label, value }: { label: string, value: string | number }) {
-  return (
-    <div className="flex flex-col items-center sm:items-start">
-       <span className="text-[11px] font-black text-white tabular-nums">{value}</span>
-       <span className="text-[8px] font-black uppercase text-muted-foreground/30 tracking-widest">{label}</span>
-    </div>
-  );
-}
-
-function PortfolioBadge({ label, count, color }: { label: string, count: number, color: string }) {
-  return (
-    <div className={cn("px-4 py-2 rounded-2xl flex items-center gap-2 border border-white/5", color)}>
-       <span className="text-base font-black italic leading-none">{count}</span>
-       <span className="text-[9px] font-black uppercase tracking-widest opacity-40">{label}</span>
-    </div>
-  );
-}
-
-function SidebarSection({ label, children }: { label: string, children: React.ReactNode }) {
-  return (
-    <div className="space-y-1 mb-6">
-      <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/30 px-4 mb-3">{label}</p>
-      {children}
     </div>
   );
 }

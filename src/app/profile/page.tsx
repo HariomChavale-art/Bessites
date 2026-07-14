@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useUser, useAuth, useDoc, useFirestore, useCollection } from "@/firebase";
@@ -232,7 +233,7 @@ export default function ProfilePage() {
           </SheetTrigger>
           <SheetContent side="left" className="bg-[#0B0A0F] border-r border-white/5 p-0 w-80 overflow-hidden shadow-[20px_0_50px_rgba(123,51,255,0.1)]">
             <SheetHeader className="p-8 pb-4">
-              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+              <SheetTitle className="text-white font-black uppercase tracking-widest text-xs italic">Bessites Creator Menu</SheetTitle>
               <Link href="/" className="flex items-center gap-3 mb-10 group">
                 <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-2xl shadow-primary/20 group-hover:scale-110 transition-transform">
                   <Zap className="w-6 h-6 text-white" fill="currentColor" />
@@ -288,6 +289,7 @@ export default function ProfilePage() {
                 </button>
               </DialogTrigger>
               <DialogContent className="bg-background border-white/10 text-white rounded-[2.5rem] sm:max-w-md p-0 overflow-hidden">
+                <SheetTitle className="sr-only">Settings Menu</SheetTitle>
                 {settingsView === 'menu' ? (
                   <>
                     <div className="p-8 pb-4">

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useEffect } from "react";
@@ -58,7 +59,14 @@ import {
   Target,
   ArrowUpRight,
   ArrowDownRight,
-  Sparkles
+  Sparkles,
+  Monitor,
+  Tablet,
+  MapPin,
+  Compass,
+  Languages,
+  Download,
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -123,7 +131,7 @@ export default function UserDashboard() {
 
   const stats = useMemo(() => {
     if (!rawSubmissions || !globalStats) return { 
-      views: "0", clicks: "0", saves: "0", likes: "0", rating: "0.0", ctr: "0.0%", earnings: "$0.00", followers: "0",
+      views: "0", clicks: "0", saves: "0", likes: "0", shares: "0", rating: "0.0", ctr: "0.0%", earnings: "$0.00", followers: "0",
       total: 0, approved: 0, pending: 0, rejected: 0
     };
     
@@ -133,6 +141,7 @@ export default function UserDashboard() {
     
     const totalClicks = myStats.reduce((acc, curr) => acc + (curr.visitCount || 0), 0);
     const totalLikes = myStats.reduce((acc, curr) => acc + (curr.likeCount || 0), 0);
+    const totalShares = myStats.reduce((acc, curr) => acc + (curr.shareCount || 0), 0);
     const ratingSum = myStats.reduce((acc, curr) => acc + (curr.ratingSum || 0), 0);
     const ratingCount = myStats.reduce((acc, curr) => acc + (curr.ratingCount || 0), 0);
     
@@ -145,6 +154,7 @@ export default function UserDashboard() {
       clicks: totalClicks.toLocaleString(),
       saves: Math.floor(totalLikes * 0.7).toLocaleString(),
       likes: totalLikes.toLocaleString(),
+      shares: totalShares.toLocaleString(),
       rating: avgRating,
       ctr: `${ctr}%`,
       earnings: "$0.00",
@@ -328,6 +338,134 @@ export default function UserDashboard() {
           </div>
         )}
 
+        {activeView === 'audience' && (
+          <div className="space-y-12 animate-in fade-in duration-500 pb-24">
+             {/* Audience Header Cards */}
+             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+                <AudienceStatCard label="Likes" value={stats.likes} growth="+18%" trendUp color="bg-rose-500" icon={Heart} />
+                <AudienceStatCard label="Saves" value={stats.saves} growth="+12%" trendUp color="bg-amber-500" icon={Bookmark} />
+                <AudienceStatCard label="Shares" value={stats.shares} growth="+24%" trendUp color="bg-emerald-500" icon={Share2} />
+                <AudienceStatCard label="Visitors" value={stats.views} growth="+8.5%" trendUp color="bg-sky-500" icon={Users} />
+             </div>
+
+             {/* Main Audience Activity */}
+             <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] shadow-2xl space-y-10">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                   <div className="space-y-1">
+                      <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">Audience Activity</h3>
+                      <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.3em] opacity-40">User engagement across all platforms</p>
+                   </div>
+                   <div className="flex flex-wrap gap-2 bg-white/5 p-1 rounded-2xl border border-white/5">
+                      {['Visitors', 'Likes', 'Saves', 'Shares', 'Clicks', 'Followers'].map(m => (
+                        <button key={m} className="px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all hover:bg-white/5 text-muted-foreground hover:text-white">{m}</button>
+                      ))}
+                   </div>
+                </div>
+                <div className="h-80 w-full flex items-end justify-between gap-1.5 pb-6 border-b border-white/5">
+                   {[30, 45, 60, 40, 80, 70, 90, 65, 85, 100, 75, 55].map((h, i) => (
+                      <div key={i} className="flex-1 bg-primary/20 hover:bg-primary transition-all rounded-t-xl h-[30%] shadow-lg" style={{ height: `${h}%` }} />
+                   ))}
+                </div>
+                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground/30">
+                   {['Today', '7D', '30D', '90D', '1Y', 'Life'].map(t => <button key={t} className="hover:text-primary transition-colors">{t}</button>)}
+                </div>
+             </Card>
+
+             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                {/* Top Interests Panel */}
+                <Card className="xl:col-span-1 bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-2xl flex flex-col h-fit">
+                   <div className="flex justify-between items-center mb-8">
+                      <h3 className="text-xl font-black italic uppercase tracking-tighter">Top Audience Interests</h3>
+                      <Activity className="w-4 h-4 text-primary" />
+                   </div>
+                   <div className="space-y-6">
+                      {[
+                        { icon: Sparkles, label: 'AI & Machine Learning', val: '42%', grow: '+12%', color: 'text-purple-400' },
+                        { icon: Gamepad2, label: 'Gaming & Ports', val: '28%', grow: '+5%', color: 'text-rose-400' },
+                        { icon: Monitor, label: 'Programming Tools', val: '15%', grow: '-2%', color: 'text-blue-400' },
+                        { icon: Palette, label: 'Digital Design', val: '10%', grow: '+8%', color: 'text-pink-400' },
+                        { icon: Star, label: 'Entertainment', val: '5%', grow: '+1%', color: 'text-amber-400' }
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-center justify-between group">
+                           <div className="flex items-center gap-4">
+                              <div className={cn("p-3 rounded-2xl bg-white/5", item.color)}><item.icon className="w-5 h-5" /></div>
+                              <div>
+                                 <p className="text-sm font-bold text-white/80">{item.label}</p>
+                                 <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest">{item.val} OF AUDIENCE</p>
+                              </div>
+                           </div>
+                           <span className={cn("text-[10px] font-black", item.grow.startsWith('+') ? 'text-emerald-400' : 'text-rose-500')}>{item.grow}</span>
+                        </div>
+                      ))}
+                   </div>
+                </Card>
+
+                {/* Audience Breakdown Hub */}
+                <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+                   <BreakdownGridCard title="Top Countries" items={[
+                      { label: 'India', value: '14.2k (42%)', icon: Globe },
+                      { label: 'United States', value: '8.4k (25%)', icon: Globe },
+                      { label: 'United Kingdom', value: '3.1k (9%)', icon: Globe },
+                      { label: 'Germany', value: '2.2k (6%)', icon: Globe },
+                   ]} />
+                   
+                   <BreakdownGridCard title="Devices & OS" items={[
+                      { label: 'Mobile (Android/iOS)', value: '68%', icon: Smartphone },
+                      { label: 'Desktop (Windows/Mac)', value: '24%', icon: Monitor },
+                      { label: 'Tablet', value: '8%', icon: Tablet },
+                      { label: 'Other', value: '2%', icon: Compass },
+                   ]} />
+
+                   <BreakdownGridCard title="Behavioral Pulse" items={[
+                      { label: 'Peak: 7 PM - 10 PM', value: 'Traffic Surge', icon: Clock },
+                      { label: 'Busiest Day: Tuesday', value: '18.4% share', icon: Calendar },
+                      { label: 'Returning Visitors', value: '32%', icon: Users },
+                      { label: 'Avg. Engagement', value: '92/100', icon: ZapIcon },
+                   ]} />
+
+                   <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/10 p-8 rounded-[3rem] shadow-xl space-y-6">
+                      <div className="flex items-center gap-3">
+                         <div className="p-2.5 bg-primary/10 rounded-xl text-primary"><Sparkles className="w-4 h-4" /></div>
+                         <h3 className="text-lg font-black italic uppercase tracking-tighter">AI Audience Insights</h3>
+                      </div>
+                      <div className="space-y-4">
+                         {[
+                           "Your Gaming audience grew by 18% this month.",
+                           "Most visitors use Android devices.",
+                           "Users from India have the highest click rate.",
+                           "Your audience is most active between 8 PM - 10 PM."
+                         ].map((insight, i) => (
+                           <div key={i} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/20 transition-all group">
+                              <div className="w-1 bg-primary rounded-full group-hover:scale-y-125 transition-transform" />
+                              <p className="text-[11px] font-bold text-white/60 leading-relaxed italic">"{insight}"</p>
+                           </div>
+                         ))}
+                      </div>
+                   </Card>
+                </div>
+             </div>
+
+             {/* Export & Reports Section */}
+             <div className="flex flex-col sm:flex-row items-center justify-between p-10 bg-[#121117] border border-white/5 rounded-[3rem] gap-8">
+                <div className="space-y-1 text-center sm:text-left">
+                   <h3 className="text-xl font-black italic uppercase tracking-tighter">Data Intelligence Export</h3>
+                   <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.25em] opacity-40">Download raw audience metrics for external audit</p>
+                </div>
+                <div className="flex flex-wrap gap-4">
+                   <Button variant="outline" className="rounded-2xl border-white/10 h-14 px-8 font-black uppercase text-[10px] tracking-widest italic hover:bg-white/5 transition-all">
+                      <Download className="w-4 h-4 mr-2" /> Download Report
+                   </Button>
+                   <Button variant="outline" className="rounded-2xl border-white/10 h-14 px-8 font-black uppercase text-[10px] tracking-widest italic hover:bg-white/5 transition-all">
+                      <FileText className="w-4 h-4 mr-2" /> Export CSV
+                   </Button>
+                   <Button className="rounded-2xl bg-primary text-white h-14 px-10 font-black uppercase text-[10px] tracking-widest italic shadow-xl shadow-primary/20 hover:scale-105 transition-all">
+                      <Share2 className="w-4 h-4 mr-2" /> Share Analytics
+                   </Button>
+                </div>
+             </div>
+          </div>
+        )}
+
         {activeView === 'my-websites' && (
           <div className="space-y-12 animate-in fade-in duration-500 pb-20">
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8">
@@ -382,7 +520,6 @@ function AnalyticsSummaryCard({ label, value, trend, trendUp, color }: { label: 
           </div>
         </div>
       </div>
-      {/* Mini Trend Sparkline */}
       <div className="absolute bottom-0 left-0 right-0 h-16 opacity-20 pointer-events-none">
         <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 40">
            <path d="M0,35 Q20,10 40,30 T80,20 T100,25" fill="none" stroke="currentColor" strokeWidth="2" className={trendUp ? "text-emerald-400" : "text-rose-500"} />
@@ -479,10 +616,8 @@ function TrafficSourcesChart() {
         <h3 className="text-lg font-black italic uppercase tracking-tighter">Traffic Sources</h3>
         <PieChart className="w-4 h-4 text-primary" />
       </div>
-      
       <div className="relative flex justify-center py-4">
          <div className="w-40 h-40 rounded-full border-[12px] border-white/5 relative flex items-center justify-center">
-            {/* Visual Pie Overlay Simulation */}
             <div className="absolute inset-0 rounded-full border-[12px] border-primary border-r-transparent border-b-transparent -rotate-45" />
             <div className="text-center">
                <span className="text-2xl font-black italic tracking-tighter text-white">100%</span>
@@ -490,7 +625,6 @@ function TrafficSourcesChart() {
             </div>
          </div>
       </div>
-
       <div className="grid grid-cols-2 gap-y-4 gap-x-6">
          {sources.map(s => (
            <div key={s.name} className="flex items-center gap-3">
@@ -531,7 +665,6 @@ function WebsitePerformanceTable({ websites, globalStats }: { websites: any[] | 
                  const v = (siteStats?.visitCount || 0) * 4;
                  const c = siteStats?.visitCount || 0;
                  const ctr = v > 0 ? ((c / v) * 100).toFixed(1) : "0.0";
-
                  return (
                     <tr key={site.id} className="hover:bg-white/[0.02] transition-colors group">
                        <td className="p-6">
@@ -611,10 +744,6 @@ function PerformanceScoreGauge({ score }: { score: number }) {
             <h4 className="text-xl font-black italic uppercase tracking-tighter">Performance Score</h4>
             <p className="text-[10px] text-muted-foreground font-medium opacity-40 italic">Global discovery rank across 1,200+ webs.</p>
          </div>
-         <div className="flex flex-wrap justify-center gap-2">
-            <Badge className="bg-primary text-white border-none italic font-black text-[8px] px-3 py-1">🚀 Trending</Badge>
-            <Badge className="bg-amber-500 text-black border-none italic font-black text-[8px] px-3 py-1">⭐ Top Rated</Badge>
-         </div>
       </div>
     </Card>
   );
@@ -676,6 +805,45 @@ function ActivityFeed() {
       </div>
     </Card>
   );
+}
+
+function AudienceStatCard({ label, value, growth, trendUp, color, icon: Icon }: { label: string, value: string, growth: string, trendUp: boolean, color: string, icon: any }) {
+   return (
+      <div className={cn("p-8 rounded-[2.5rem] border border-white/5 bg-[#121117] relative overflow-hidden group hover:scale-[1.02] transition-all")}>
+         <div className={cn("absolute top-0 right-0 w-32 h-32 blur-[80px] -mr-16 -mt-16 opacity-20", color)} />
+         <div className="relative z-10 flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+               <div className={cn("p-3 rounded-2xl bg-white/5", color.replace('bg-', 'text-'))}><Icon className="w-5 h-5" /></div>
+               <Badge className={cn("border-none text-[9px] font-black uppercase px-2 py-0.5", trendUp ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400")}>
+                  {trendUp ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />} {growth}
+               </Badge>
+            </div>
+            <div className="space-y-0.5">
+               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">{label}</p>
+               <h3 className="text-3xl font-black italic tracking-tighter leading-none">{value}</h3>
+            </div>
+         </div>
+      </div>
+   );
+}
+
+function BreakdownGridCard({ title, items }: { title: string, items: any[] }) {
+   return (
+      <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-2xl flex flex-col h-fit">
+         <h3 className="text-lg font-black italic uppercase tracking-tighter mb-8">{title}</h3>
+         <div className="grid grid-cols-1 gap-5">
+            {items.map((item, i) => (
+               <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group">
+                  <div className="flex items-center gap-3">
+                     <item.icon className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                     <span className="text-xs font-bold text-white/80">{item.label}</span>
+                  </div>
+                  <span className="text-[10px] font-black uppercase text-muted-foreground/20">{item.value}</span>
+               </div>
+            ))}
+         </div>
+      </Card>
+   );
 }
 
 function SidebarItem({ icon: Icon, label, active = false, onClick, badge }: { icon: any, label: string, active?: boolean, onClick: () => void, badge?: number }) {

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect } from "react";
@@ -118,8 +117,20 @@ export default function SubmitWebsite() {
           .from('Website-images')
           .upload(path, logoFile);
         
-        if (uploadError) throw uploadError;
-        publicLogoUrl = supabase.storage.from('Website-images').getPublicUrl(path).data.publicUrl;
+        if (uploadError) {
+          if (uploadError.message.includes('policy')) {
+            toast({
+              variant: "destructive",
+              title: "Storage Policy Violation",
+              description: "Supabase RLS prevents this upload. Please enable 'Public' access for the 'Website-images' bucket.",
+            });
+            // Proceed without logo if storage fails due to permissions
+          } else {
+            throw uploadError;
+          }
+        } else {
+          publicLogoUrl = supabase.storage.from('Website-images').getPublicUrl(path).data.publicUrl;
+        }
       }
 
       const submissionRef = await addDoc(collection(db, "submissions"), {
@@ -134,7 +145,7 @@ export default function SubmitWebsite() {
 
       // Create initial stats entry
       const statsRef = doc(db, "websiteStats", submissionRef.id);
-      await setDoc(statsRef, {
+      setDoc(statsRef, {
         logoUrl: publicLogoUrl,
         visitCount: 0,
         likeCount: 0,

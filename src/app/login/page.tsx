@@ -68,20 +68,35 @@ export default function LoginPage() {
   };
 
   const uploadToSupabase = async (file: File, userId: string) => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `profiles/${userId}-${Date.now()}.${fileExt}`;
-    
-    const { error: uploadError } = await supabase.storage
-      .from('Website-images')
-      .upload(fileName, file);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `profiles/${userId}-${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('Website-images')
+        .upload(fileName, file);
 
-    if (uploadError) throw uploadError;
+      if (uploadError) {
+        if (uploadError.message.includes('policy')) {
+          toast({
+            variant: "destructive",
+            title: "Storage Policy Error",
+            description: "Please check your Supabase Storage RLS policies for the 'Website-images' bucket.",
+          });
+          return null;
+        }
+        throw uploadError;
+      }
 
-    const { data } = supabase.storage
-      .from('Website-images')
-      .getPublicUrl(fileName);
+      const { data } = supabase.storage
+        .from('Website-images')
+        .getPublicUrl(fileName);
 
-    return data.publicUrl;
+      return data.publicUrl;
+    } catch (err) {
+      console.error("Supabase upload error:", err);
+      return null;
+    }
   };
 
   const formatAuthError = (error: any) => {
@@ -123,11 +138,7 @@ export default function LoginPage() {
         
         let finalPhotoURL = null;
         if (selectedFile) {
-          try {
-            finalPhotoURL = await uploadToSupabase(selectedFile, user.uid);
-          } catch (e) {
-            console.error("Supabase upload failed, falling back", e);
-          }
+          finalPhotoURL = await uploadToSupabase(selectedFile, user.uid);
         }
         
         if (finalPhotoURL) {

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useUser, useAuth, useDoc, useFirestore, useCollection } from "@/firebase";
@@ -141,9 +140,22 @@ export default function ProfilePage() {
         const { error: uploadError } = await supabase.storage
           .from('Website-images')
           .upload(fileName, selectedFile);
-        if (uploadError) throw uploadError;
-        const { data } = supabase.storage.from('Website-images').getPublicUrl(fileName);
-        finalPhotoURL = data.publicUrl;
+        
+        if (uploadError) {
+          if (uploadError.message.includes('policy')) {
+            toast({
+              variant: "destructive",
+              title: "Storage Access Denied",
+              description: "Supabase Storage policies prevent this upload. Please enable public access or add RLS rules.",
+            });
+            // Proceed without changing image if storage fails
+          } else {
+            throw uploadError;
+          }
+        } else {
+          const { data } = supabase.storage.from('Website-images').getPublicUrl(fileName);
+          finalPhotoURL = data.publicUrl;
+        }
       }
 
       await updateProfile(user, { displayName: editName, photoURL: finalPhotoURL });

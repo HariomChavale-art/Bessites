@@ -28,6 +28,7 @@ const RAW_SITES = [
   { name: "Mage Space", url: "https://mage.space", cat: ["AI"], desc: "Professional stable diffusion generation." },
   { name: "Playground AI", url: "https://playgroundai.com", cat: ["AI"], desc: "Easy to use AI art creator." },
   { name: "Ideogram", url: "https://ideogram.ai", cat: ["AI"], desc: "AI focused on typography and design." },
+  { name: "Emergent AI", url: "https://emergent.ai", cat: ["AI", "Tech"], desc: "Exploration and development of emergent artificial intelligence behaviors." },
   
   // Gaming
   { name: "Game Jolt", url: "https://gamejolt.com", cat: ["Gaming"], desc: "Social platform for gamers and creators." },

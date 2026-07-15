@@ -223,7 +223,7 @@ export default function ProfilePage() {
     <div className="min-h-screen flex flex-col bg-background relative">
       <Navigation />
       
-      {/* Top Left Menu Trigger - Helios Design */}
+      {/* Top Left Menu Trigger */}
       <div className="absolute top-4 left-4 z-50">
         <Sheet>
           <SheetTrigger asChild>
@@ -315,9 +315,9 @@ export default function ProfilePage() {
                       </div>
                       
                       <div className="pt-6 px-4 pb-8 border-t border-white/5">
-                        <Button variant="ghost" onClick={handleLogout} className="w-full h-16 rounded-[1.5rem] border border-white/5 hover:bg-destructive/10 hover:text-destructive font-black uppercase tracking-widest text-xs transition-all italic">
-                          <LogOut className="w-4 h-4 mr-3" /> Sign Out
-                        </Button>
+                        <button onClick={handleLogout} className="w-full flex items-center justify-center gap-4 h-16 rounded-[1.5rem] border border-white/5 hover:bg-destructive/10 hover:text-destructive font-black uppercase tracking-widest text-[10px] transition-all italic">
+                          <LogOut className="w-4 h-4" /> Sign Out
+                        </button>
                       </div>
                     </div>
                   </>

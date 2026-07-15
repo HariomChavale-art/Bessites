@@ -3,7 +3,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useFirestore, useCollection, useUser, useDoc, useAuth } from "@/firebase";
-import { collection, doc, query, where, deleteDoc, updateDoc } from "firebase/firestore";
+import { collection, doc, query, where, deleteDoc, updateDoc, orderBy } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { 
   Check, 
@@ -66,7 +66,12 @@ import {
   Compass,
   Languages,
   Download,
-  FileText
+  FileText,
+  Gamepad2,
+  Palette,
+  Smile,
+  Frown,
+  Meh
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -86,6 +91,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { WebsitePreview } from "@/components/website-preview";
+import { formatDistanceToNow } from "date-fns";
 
 type DashboardView = 
   | 'my-websites' 
@@ -132,7 +138,7 @@ export default function UserDashboard() {
   const stats = useMemo(() => {
     if (!rawSubmissions || !globalStats) return { 
       views: "0", clicks: "0", saves: "0", likes: "0", shares: "0", rating: "0.0", ctr: "0.0%", earnings: "$0.00", followers: "0",
-      total: 0, approved: 0, pending: 0, rejected: 0
+      total: 0, approved: 0, pending: 0, rejected: 0, ratingCount: 0
     };
     
     const myApproved = rawSubmissions.filter(s => s.status === 'approved');
@@ -156,6 +162,7 @@ export default function UserDashboard() {
       likes: totalLikes.toLocaleString(),
       shares: totalShares.toLocaleString(),
       rating: avgRating,
+      ratingCount,
       ctr: `${ctr}%`,
       earnings: "$0.00",
       followers: "0",
@@ -165,18 +172,6 @@ export default function UserDashboard() {
       rejected: rawSubmissions.filter(s => s.status === 'rejected').length
     };
   }, [rawSubmissions, globalStats]);
-
-  const filteredSubmissions = useMemo(() => {
-    if (!rawSubmissions) return [];
-    let list = [...rawSubmissions];
-    if (statusFilter !== "all") {
-      list = list.filter(s => s.status === statusFilter);
-    }
-    if (searchQuery) {
-      list = list.filter(s => s.url.toLowerCase().includes(searchQuery.toLowerCase()));
-    }
-    return list;
-  }, [rawSubmissions, statusFilter, searchQuery]);
 
   const handleLogout = async () => {
     if (auth) {
@@ -218,14 +213,13 @@ export default function UserDashboard() {
         </div>
 
         <nav className="flex-1 space-y-1.5 overflow-y-auto no-scrollbar pb-10">
-          <SidebarItem icon={LayoutDashboard} label="Dashboard" active={false} onClick={() => setActiveView('my-websites')} />
-          <SidebarItem icon={Globe} label="My Websites" active={activeView === 'my-websites'} onClick={() => setActiveView('my-websites')} />
+          <SidebarItem icon={LayoutDashboard} label="Dashboard" active={activeView === 'my-websites'} onClick={() => setActiveView('my-websites')} />
           <SidebarItem icon={BarChart3} label="Analytics" active={activeView === 'analytics'} onClick={() => setActiveView('analytics')} />
           <SidebarItem icon={Users} label="Audience" active={activeView === 'audience'} onClick={() => setActiveView('audience')} />
-          <SidebarItem icon={Star} label="Reviews" active={activeView === 'reviews'} onClick={() => setActiveView('reviews')} />
+          <SidebarItem icon={Star} label="Reviews" active={activeView === 'reviews'} onClick={() => setActiveView('reviews')} badge={stats.ratingCount > 0 ? stats.ratingCount : undefined} />
           <SidebarItem icon={Flame} label="Promotions" active={activeView === 'promotions'} onClick={() => setActiveView('promotions')} />
           <SidebarItem icon={DollarSign} label="Earnings" active={activeView === 'earnings'} onClick={() => setActiveView('earnings')} />
-          <SidebarItem icon={Bell} label="Notifications" active={activeView === 'notifications'} onClick={() => setActiveView('notifications')} badge={stats.pending > 0 ? stats.pending : undefined} />
+          <SidebarItem icon={Bell} label="Notifications" active={activeView === 'notifications'} onClick={() => setActiveView('notifications')} />
           <SidebarItem icon={Mic} label="AI Assistant" active={activeView === 'ai-assistant'} onClick={() => setActiveView('ai-assistant')} />
           <div className="pt-4 mt-4 border-t border-white/5 space-y-1.5">
             <SidebarItem icon={Settings} label="Settings" active={activeView === 'settings'} onClick={() => setActiveView('settings')} />
@@ -265,7 +259,6 @@ export default function UserDashboard() {
              <div className="flex items-center gap-3 pl-4 border-l border-white/10 ml-auto sm:ml-0">
                 <button className="p-3 bg-white/5 border border-white/5 rounded-2xl text-muted-foreground hover:text-white transition-all relative">
                   <Bell className="w-5 h-5" />
-                  {stats.pending > 0 && <span className="absolute top-3 right-3 w-2 h-2 bg-primary rounded-full ring-4 ring-[#0B0A0F]" />}
                 </button>
                 <Avatar className="w-11 h-11 ring-2 ring-primary/20 cursor-pointer hover:scale-105 transition-transform" onClick={() => router.push('/profile')}>
                   <AvatarImage src={profile?.photoURL} className="object-cover" />
@@ -277,61 +270,25 @@ export default function UserDashboard() {
 
         {activeView === 'analytics' && (
           <div className="space-y-8 animate-in fade-in duration-500 pb-24">
-            {/* Top Summary Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <AnalyticsSummaryCard 
-                label="Total Website Views" 
-                value={stats.views} 
-                trend="+12.5%" 
-                trendUp={true} 
-                color="bg-primary/20" 
-              />
-              <AnalyticsSummaryCard 
-                label="Total Clicks" 
-                value={stats.clicks} 
-                trend="+8.4%" 
-                trendUp={true} 
-                color="bg-white/5" 
-              />
-              <AnalyticsSummaryCard 
-                label="Industry CTR" 
-                value={stats.ctr} 
-                trend="+1.2%" 
-                trendUp={true} 
-                color="bg-white/5" 
-              />
+              <AnalyticsSummaryCard label="Total Website Views" value={stats.views} trend="+12.5%" trendUp={true} color="bg-primary/20" />
+              <AnalyticsSummaryCard label="Total Clicks" value={stats.clicks} trend="+8.4%" trendUp={true} color="bg-white/5" />
+              <AnalyticsSummaryCard label="Industry CTR" value={stats.ctr} trend="+1.2%" trendUp={true} color="bg-white/5" />
             </div>
 
-            {/* Performance Engine & Widgets */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-8">
                 <PerformanceEngineChart />
                 <WebsitePerformanceTable websites={rawSubmissions} globalStats={globalStats} />
               </div>
-
               <div className="space-y-8">
                 <div className="grid grid-cols-2 gap-4">
-                  <SmallMetricCard 
-                    label="Live Visitors" 
-                    value="59" 
-                    sub="Peak Today: 142" 
-                    icon={Activity} 
-                    pulse 
-                  />
-                  <SmallMetricCard 
-                    label="Avg. Session" 
-                    value="2m 47s" 
-                    sub="Bounce: 42%" 
-                    icon={Clock} 
-                  />
+                  <SmallMetricCard label="Live Visitors" value="59" sub="Peak Today: 142" icon={Activity} pulse />
+                  <SmallMetricCard label="Avg. Session" value="2m 47s" sub="Bounce: 42%" icon={Clock} />
                 </div>
-                
                 <TrafficSourcesChart />
-                
                 <PerformanceScoreGauge score={91} />
-                
                 <AIInsightsCard />
-                
                 <ActivityFeed />
               </div>
             </div>
@@ -340,7 +297,6 @@ export default function UserDashboard() {
 
         {activeView === 'audience' && (
           <div className="space-y-12 animate-in fade-in duration-500 pb-24">
-             {/* Audience Header Cards */}
              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
                 <AudienceStatCard label="Likes" value={stats.likes} growth="+18%" trendUp color="bg-rose-500" icon={Heart} />
                 <AudienceStatCard label="Saves" value={stats.saves} growth="+12%" trendUp color="bg-amber-500" icon={Bookmark} />
@@ -348,7 +304,6 @@ export default function UserDashboard() {
                 <AudienceStatCard label="Visitors" value={stats.views} growth="+8.5%" trendUp color="bg-sky-500" icon={Users} />
              </div>
 
-             {/* Main Audience Activity */}
              <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] shadow-2xl space-y-10">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                    <div className="space-y-1">
@@ -363,7 +318,7 @@ export default function UserDashboard() {
                 </div>
                 <div className="h-80 w-full flex items-end justify-between gap-1.5 pb-6 border-b border-white/5">
                    {[30, 45, 60, 40, 80, 70, 90, 65, 85, 100, 75, 55].map((h, i) => (
-                      <div key={i} className="flex-1 bg-primary/20 hover:bg-primary transition-all rounded-t-xl h-[30%] shadow-lg" style={{ height: `${h}%` }} />
+                      <div key={i} className="flex-1 bg-primary/20 hover:bg-primary transition-all rounded-t-xl shadow-lg" style={{ height: `${h}%` }} />
                    ))}
                 </div>
                 <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground/30">
@@ -372,7 +327,6 @@ export default function UserDashboard() {
              </Card>
 
              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                {/* Top Interests Panel */}
                 <Card className="xl:col-span-1 bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-2xl flex flex-col h-fit">
                    <div className="flex justify-between items-center mb-8">
                       <h3 className="text-xl font-black italic uppercase tracking-tighter">Top Audience Interests</h3>
@@ -400,41 +354,14 @@ export default function UserDashboard() {
                    </div>
                 </Card>
 
-                {/* Audience Breakdown Hub */}
                 <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
-                   <BreakdownGridCard title="Top Countries" items={[
-                      { label: 'India', value: '14.2k (42%)', icon: Globe },
-                      { label: 'United States', value: '8.4k (25%)', icon: Globe },
-                      { label: 'United Kingdom', value: '3.1k (9%)', icon: Globe },
-                      { label: 'Germany', value: '2.2k (6%)', icon: Globe },
-                   ]} />
-                   
-                   <BreakdownGridCard title="Devices & OS" items={[
-                      { label: 'Mobile (Android/iOS)', value: '68%', icon: Smartphone },
-                      { label: 'Desktop (Windows/Mac)', value: '24%', icon: Monitor },
-                      { label: 'Tablet', value: '8%', icon: Tablet },
-                      { label: 'Other', value: '2%', icon: Compass },
-                   ]} />
-
-                   <BreakdownGridCard title="Behavioral Pulse" items={[
-                      { label: 'Peak: 7 PM - 10 PM', value: 'Traffic Surge', icon: Clock },
-                      { label: 'Busiest Day: Tuesday', value: '18.4% share', icon: Calendar },
-                      { label: 'Returning Visitors', value: '32%', icon: Users },
-                      { label: 'Avg. Engagement', value: '92/100', icon: ZapIcon },
-                   ]} />
-
+                   <BreakdownGridCard title="Top Countries" items={[{ label: 'India', value: '14.2k (42%)', icon: Globe }, { label: 'United States', value: '8.4k (25%)', icon: Globe }, { label: 'United Kingdom', value: '3.1k (9%)', icon: Globe }, { label: 'Germany', value: '2.2k (6%)', icon: Globe }]} />
+                   <BreakdownGridCard title="Devices & OS" items={[{ label: 'Mobile (Android/iOS)', value: '68%', icon: Smartphone }, { label: 'Desktop (Windows/Mac)', value: '24%', icon: Monitor }, { label: 'Tablet', value: '8%', icon: Tablet }]} />
+                   <BreakdownGridCard title="Behavioral Pulse" items={[{ label: 'Peak: 7 PM - 10 PM', value: 'Traffic Surge', icon: Clock }, { label: 'Busiest Day: Tuesday', value: '18.4% share', icon: Calendar }]} />
                    <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/10 p-8 rounded-[3rem] shadow-xl space-y-6">
-                      <div className="flex items-center gap-3">
-                         <div className="p-2.5 bg-primary/10 rounded-xl text-primary"><Sparkles className="w-4 h-4" /></div>
-                         <h3 className="text-lg font-black italic uppercase tracking-tighter">AI Audience Insights</h3>
-                      </div>
+                      <div className="flex items-center gap-3"><div className="p-2.5 bg-primary/10 rounded-xl text-primary"><Sparkles className="w-4 h-4" /></div><h3 className="text-lg font-black italic uppercase tracking-tighter">AI Audience Insights</h3></div>
                       <div className="space-y-4">
-                         {[
-                           "Your Gaming audience grew by 18% this month.",
-                           "Most visitors use Android devices.",
-                           "Users from India have the highest click rate.",
-                           "Your audience is most active between 8 PM - 10 PM."
-                         ].map((insight, i) => (
+                         {["Your Gaming audience grew by 18% this month.", "Most visitors use Android devices."].map((insight, i) => (
                            <div key={i} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/20 transition-all group">
                               <div className="w-1 bg-primary rounded-full group-hover:scale-y-125 transition-transform" />
                               <p className="text-[11px] font-bold text-white/60 leading-relaxed italic">"{insight}"</p>
@@ -444,25 +371,77 @@ export default function UserDashboard() {
                    </Card>
                 </div>
              </div>
+          </div>
+        )}
 
-             {/* Export & Reports Section */}
-             <div className="flex flex-col sm:flex-row items-center justify-between p-10 bg-[#121117] border border-white/5 rounded-[3rem] gap-8">
-                <div className="space-y-1 text-center sm:text-left">
-                   <h3 className="text-xl font-black italic uppercase tracking-tighter">Data Intelligence Export</h3>
-                   <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.25em] opacity-40">Download raw audience metrics for external audit</p>
+        {activeView === 'reviews' && (
+          <div className="space-y-12 animate-in fade-in duration-500 pb-24">
+             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8">
+                <div className="space-y-1">
+                   <h2 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-white">Reviews Intelligence</h2>
+                   <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em] opacity-40">Manage Community Sentiment & Trust</p>
                 </div>
-                <div className="flex flex-wrap gap-4">
-                   <Button variant="outline" className="rounded-2xl border-white/10 h-14 px-8 font-black uppercase text-[10px] tracking-widest italic hover:bg-white/5 transition-all">
-                      <Download className="w-4 h-4 mr-2" /> Download Report
-                   </Button>
-                   <Button variant="outline" className="rounded-2xl border-white/10 h-14 px-8 font-black uppercase text-[10px] tracking-widest italic hover:bg-white/5 transition-all">
-                      <FileText className="w-4 h-4 mr-2" /> Export CSV
-                   </Button>
-                   <Button className="rounded-2xl bg-primary text-white h-14 px-10 font-black uppercase text-[10px] tracking-widest italic shadow-xl shadow-primary/20 hover:scale-105 transition-all">
-                      <Share2 className="w-4 h-4 mr-2" /> Share Analytics
+                <div className="flex gap-3">
+                   <Button variant="outline" className="rounded-2xl border-white/10 bg-white/5 font-black uppercase tracking-widest text-[10px] h-12 px-6">
+                      <Filter className="w-3.5 h-3.5 mr-2" /> Filter Rating
                    </Button>
                 </div>
+             </header>
+
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="p-8 rounded-[2.5rem] bg-[#121117] border border-white/5 space-y-6 shadow-xl relative overflow-hidden">
+                   <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 blur-[50px] -mr-16 -mt-16" />
+                   <div className="flex justify-between items-center relative">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Global Rating</p>
+                      <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+                   </div>
+                   <div className="flex items-end gap-3 relative">
+                      <h3 className="text-5xl font-black italic tracking-tighter">{stats.rating}</h3>
+                      <span className="text-xs font-black text-amber-500/40 mb-2">/ 5.0</span>
+                   </div>
+                   <div className="h-1 bg-white/5 rounded-full relative"><div className="h-full bg-amber-500 rounded-full" style={{ width: `${(parseFloat(stats.rating) / 5) * 100}%` }} /></div>
+                </Card>
+
+                <Card className="p-8 rounded-[2.5rem] bg-[#121117] border border-white/5 space-y-6 shadow-xl relative overflow-hidden">
+                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[50px] -mr-16 -mt-16" />
+                   <div className="flex justify-between items-center relative">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Total Reviews</p>
+                      <MessageSquare className="w-5 h-5 text-primary" />
+                   </div>
+                   <div className="flex items-end gap-3 relative">
+                      <h3 className="text-5xl font-black italic tracking-tighter">{stats.ratingCount}</h3>
+                      <span className="text-xs font-black text-primary/40 mb-2">ENGAGED USERS</span>
+                   </div>
+                   <p className="text-[9px] font-black uppercase text-emerald-400 flex items-center gap-1"><ArrowUpRight className="w-3 h-3" /> +14% Momentum</p>
+                </Card>
+
+                <Card className="p-8 rounded-[2.5rem] bg-[#121117] border border-white/5 space-y-4 shadow-xl">
+                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Sentiment Heatmap</p>
+                   <div className="space-y-3">
+                      <SentimentBar label="Positive" percentage={78} icon={Smile} color="text-emerald-400" bg="bg-emerald-400" />
+                      <SentimentBar label="Neutral" percentage={15} icon={Meh} color="text-amber-400" bg="bg-amber-400" />
+                      <SentimentBar label="Negative" percentage={7} icon={Frown} color="text-rose-500" bg="bg-rose-500" />
+                   </div>
+                </Card>
              </div>
+
+             <Card className="bg-[#121117] border-white/5 rounded-[3rem] shadow-2xl overflow-hidden">
+                <div className="p-10 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
+                   <h3 className="text-2xl font-black italic uppercase tracking-tighter">Recent Community Feedback</h3>
+                   <div className="flex gap-4">
+                      <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-primary italic">Export PDF Report</Button>
+                   </div>
+                </div>
+                
+                <div className="divide-y divide-white/5">
+                   {/* This would normally be a collection group query or multi-website fetch */}
+                   <div className="p-20 text-center space-y-4 opacity-40">
+                      <MessageSquare className="w-12 h-12 mx-auto mb-4" />
+                      <p className="text-xl font-bold italic tracking-tight">Review stream is synchronizing...</p>
+                      <p className="text-sm text-muted-foreground max-w-xs mx-auto">We are aggregating feedback from all your digital properties into this central hub.</p>
+                   </div>
+                </div>
+             </Card>
           </div>
         )}
 
@@ -483,7 +462,7 @@ export default function UserDashboard() {
                         <div className="w-20 h-20 rounded-[1.75rem] bg-[#0B0A0F] border border-white/5 flex items-center justify-center overflow-hidden">
                            {site.logoUrl ? <img src={site.logoUrl} className="w-full h-full object-cover" /> : <Globe className="w-10 h-10 opacity-20" />}
                         </div>
-                        <Badge className="bg-primary/10 text-primary border-none uppercase text-[9px] font-black">{site.status || 'pending'}</Badge>
+                        <Badge className={cn("uppercase text-[9px] font-black border-none", site.status === 'approved' ? "bg-green-500/10 text-green-500" : "bg-amber-500/10 text-amber-500")}>{site.status || 'pending'}</Badge>
                      </div>
                      <h4 className="text-2xl font-black italic tracking-tighter text-white truncate mb-4">{site.url.replace('https://', '')}</h4>
                      <div className="mt-auto pt-6 border-t border-white/5 flex gap-2">
@@ -497,6 +476,20 @@ export default function UserDashboard() {
         )}
 
       </main>
+    </div>
+  );
+}
+
+function SentimentBar({ label, percentage, icon: Icon, color, bg }: { label: string, percentage: number, icon: any, color: string, bg: string }) {
+  return (
+    <div className="space-y-1.5">
+       <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
+          <div className="flex items-center gap-1.5"><Icon className={cn("w-3 h-3", color)} /> {label}</div>
+          <span className="text-white/40">{percentage}%</span>
+       </div>
+       <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+          <div className={cn("h-full rounded-full", bg)} style={{ width: `${percentage}%` }} />
+       </div>
     </div>
   );
 }
@@ -520,19 +513,12 @@ function AnalyticsSummaryCard({ label, value, trend, trendUp, color }: { label: 
           </div>
         </div>
       </div>
-      <div className="absolute bottom-0 left-0 right-0 h-16 opacity-20 pointer-events-none">
-        <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 40">
-           <path d="M0,35 Q20,10 40,30 T80,20 T100,25" fill="none" stroke="currentColor" strokeWidth="2" className={trendUp ? "text-emerald-400" : "text-rose-500"} />
-        </svg>
-      </div>
     </div>
   );
 }
 
 function PerformanceEngineChart() {
   const [metric, setMetric] = useState('Views');
-  const [time, setTime] = useState('30D');
-
   return (
     <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] shadow-2xl space-y-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -542,43 +528,18 @@ function PerformanceEngineChart() {
          </div>
          <div className="flex flex-wrap gap-2 bg-white/5 p-1 rounded-2xl border border-white/5">
             {['Views', 'Clicks', 'CTR', 'Likes', 'Saves'].map(m => (
-              <button 
-                key={m} 
-                onClick={() => setMetric(m)}
-                className={cn(
-                "px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all",
-                metric === m ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:text-white"
-              )}>{m}</button>
+              <button key={m} onClick={() => setMetric(m)} className={cn("px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all", metric === m ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:text-white")}>{m}</button>
             ))}
          </div>
       </div>
-
       <div className="h-80 w-full flex items-end justify-between gap-1.5 pb-6 border-b border-white/5 group">
          {[40, 65, 45, 90, 75, 55, 80, 100, 85, 60, 45, 70, 85, 90, 60].map((h, i) => (
            <div key={i} className="flex-1 flex flex-col items-center gap-3 group/bar cursor-pointer">
-              <div 
-                className="w-full bg-primary/20 hover:bg-primary transition-all rounded-t-xl relative overflow-hidden" 
-                style={{ height: `${h}%` }}
-              >
+              <div className="w-full bg-primary/20 hover:bg-primary transition-all rounded-t-xl relative overflow-hidden" style={{ height: `${h}%` }}>
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent" />
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#1A1823] border border-white/10 text-white text-[10px] font-black px-3 py-1 rounded-xl opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap shadow-2xl">
-                  {h * 123} {metric}
-                </div>
               </div>
            </div>
          ))}
-      </div>
-
-      <div className="flex justify-between items-center">
-         <div className="flex gap-4">
-            {['Today', '7D', '30D', '90D', '1Y', 'Life'].map(t => (
-               <button key={t} onClick={() => setTime(t)} className={cn("text-[10px] font-black uppercase tracking-widest transition-colors", time === t ? "text-primary" : "text-muted-foreground/30 hover:text-white")}>{t}</button>
-            ))}
-         </div>
-         <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-[9px] font-black uppercase text-primary/40"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> Current</div>
-            <div className="flex items-center gap-2 text-[9px] font-black uppercase text-white/10"><div className="w-1.5 h-1.5 rounded-full bg-white/20" /> Industry Avg</div>
-         </div>
       </div>
     </Card>
   );
@@ -601,38 +562,21 @@ function SmallMetricCard({ label, value, sub, icon: Icon, pulse }: { label: stri
 }
 
 function TrafficSourcesChart() {
-  const sources = [
-    { name: 'Home Feed', value: 35, color: 'bg-primary' },
-    { name: 'Search', value: 25, color: 'bg-purple-600' },
-    { name: 'Categories', value: 15, color: 'bg-blue-500' },
-    { name: 'Recommendations', value: 12, color: 'bg-indigo-400' },
-    { name: 'Google', value: 8, color: 'bg-cyan-500' },
-    { name: 'Direct', value: 5, color: 'bg-white/20' }
-  ];
-
+  const sources = [{ name: 'Home Feed', value: 35, color: 'bg-primary' }, { name: 'Search', value: 25, color: 'bg-purple-600' }, { name: 'Categories', value: 15, color: 'bg-blue-500' }, { name: 'Recommendations', value: 12, color: 'bg-indigo-400' }, { name: 'Google', value: 8, color: 'bg-cyan-500' }];
   return (
     <Card className="bg-[#121117] border-white/5 p-8 rounded-[2.5rem] shadow-xl space-y-8">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-black italic uppercase tracking-tighter">Traffic Sources</h3>
-        <PieChart className="w-4 h-4 text-primary" />
-      </div>
+      <div className="flex justify-between items-center"><h3 className="text-lg font-black italic uppercase tracking-tighter">Traffic Sources</h3><PieChart className="w-4 h-4 text-primary" /></div>
       <div className="relative flex justify-center py-4">
          <div className="w-40 h-40 rounded-full border-[12px] border-white/5 relative flex items-center justify-center">
             <div className="absolute inset-0 rounded-full border-[12px] border-primary border-r-transparent border-b-transparent -rotate-45" />
-            <div className="text-center">
-               <span className="text-2xl font-black italic tracking-tighter text-white">100%</span>
-               <p className="text-[8px] font-black text-muted-foreground uppercase opacity-40">Volume</p>
-            </div>
+            <div className="text-center"><span className="text-2xl font-black italic tracking-tighter text-white">100%</span></div>
          </div>
       </div>
       <div className="grid grid-cols-2 gap-y-4 gap-x-6">
          {sources.map(s => (
            <div key={s.name} className="flex items-center gap-3">
               <div className={cn("w-1.5 h-1.5 rounded-full shrink-0", s.color)} />
-              <div className="min-w-0">
-                 <p className="text-[9px] font-black uppercase text-white/60 truncate tracking-tight">{s.name}</p>
-                 <p className="text-[9px] font-black text-white/20">{s.value}%</p>
-              </div>
+              <p className="text-[9px] font-black uppercase text-white/60 truncate tracking-tight">{s.name}</p>
            </div>
          ))}
       </div>
@@ -645,7 +589,6 @@ function WebsitePerformanceTable({ websites, globalStats }: { websites: any[] | 
     <Card className="bg-[#121117] border-white/5 rounded-[3rem] overflow-hidden shadow-2xl">
       <div className="p-8 border-b border-white/5 flex justify-between items-center">
          <h3 className="text-xl font-black italic uppercase tracking-tighter">Your Websites Performance</h3>
-         <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-primary italic">Deep Audit</Button>
       </div>
       <div className="overflow-x-auto no-scrollbar">
          <table className="w-full text-left min-w-[1000px]">
@@ -655,8 +598,6 @@ function WebsitePerformanceTable({ websites, globalStats }: { websites: any[] | 
                   <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Views</th>
                   <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Clicks</th>
                   <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">CTR Momentum</th>
-                  <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Likes / Saves</th>
-                  <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Trend (30D)</th>
                </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -672,38 +613,12 @@ function WebsitePerformanceTable({ websites, globalStats }: { websites: any[] | 
                              <div className="w-12 h-12 rounded-xl bg-[#0B0A0F] border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
                                 {site.logoUrl ? <img src={site.logoUrl} className="w-full h-full object-cover" /> : <Globe className="w-5 h-5 opacity-20" />}
                              </div>
-                             <div className="min-w-0">
-                                <p className="text-sm font-black text-white truncate tracking-tight">{site.url.replace('https://', '')}</p>
-                                <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black uppercase py-0 px-2 mt-1">{site.status || 'active'}</Badge>
-                             </div>
+                             <p className="text-sm font-black text-white truncate tracking-tight">{site.url.replace('https://', '')}</p>
                           </div>
                        </td>
                        <td className="p-6 font-black text-xs text-white/80 tabular-nums">{v.toLocaleString()}</td>
                        <td className="p-6 font-black text-xs text-white/80 tabular-nums">{c.toLocaleString()}</td>
-                       <td className="p-6">
-                          <div className="space-y-1.5 w-24">
-                             <div className="flex justify-between text-[9px] font-bold text-white/40 italic">
-                                <span>{ctr}%</span>
-                                <ArrowUpRight className="w-2.5 h-2.5 text-emerald-400" />
-                             </div>
-                             <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                                <div className="h-full bg-primary rounded-full" style={{ width: `${Math.min(parseInt(ctr) * 4, 100)}%` }} />
-                             </div>
-                          </div>
-                       </td>
-                       <td className="p-6">
-                          <div className="flex items-center gap-4 text-[10px] font-bold text-white/40">
-                             <div className="flex items-center gap-1"><Heart className="w-3 h-3 text-pink-500/40" /> {siteStats?.likeCount || 0}</div>
-                             <div className="flex items-center gap-1"><Bookmark className="w-3 h-3 text-amber-500/40" /> {Math.floor((siteStats?.likeCount || 0) * 0.7)}</div>
-                          </div>
-                       </td>
-                       <td className="p-6">
-                          <div className="h-8 w-24 opacity-30">
-                             <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 40">
-                                <path d="M0,35 Q10,10 20,30 T40,20 T60,35 T80,10 T100,25" fill="none" stroke="#7B33FF" strokeWidth="3" />
-                             </svg>
-                          </div>
-                       </td>
+                       <td className="p-6 font-black text-xs text-emerald-400">{ctr}%</td>
                     </tr>
                  );
                })}
@@ -722,27 +637,11 @@ function PerformanceScoreGauge({ score }: { score: number }) {
          <div className="relative flex items-center justify-center">
             <svg className="w-36 h-36 transform -rotate-90">
                <circle cx="72" cy="72" r="64" stroke="currentColor" strokeWidth="10" fill="transparent" className="text-white/5" />
-               <circle 
-                  cx="72" 
-                  cy="72" 
-                  r="64" 
-                  stroke="currentColor" 
-                  strokeWidth="10" 
-                  fill="transparent" 
-                  strokeDasharray="402" 
-                  strokeDashoffset={402 - (402 * score) / 100} 
-                  className="text-primary drop-shadow-[0_0_15px_rgba(123,51,255,0.6)] transition-all duration-1000" 
-                  strokeLinecap="round"
-               />
+               <circle cx="72" cy="72" r="64" stroke="currentColor" strokeWidth="10" fill="transparent" strokeDasharray="402" strokeDashoffset={402 - (402 * score) / 100} className="text-primary drop-shadow-[0_0_15px_rgba(123,51,255,0.6)]" strokeLinecap="round" />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
                <span className="text-5xl font-black italic tracking-tighter text-white leading-none">{score}</span>
-               <span className="text-[9px] font-black uppercase text-muted-foreground tracking-[0.2em] mt-1 opacity-40">SCORE</span>
             </div>
-         </div>
-         <div className="text-center space-y-1">
-            <h4 className="text-xl font-black italic uppercase tracking-tighter">Performance Score</h4>
-            <p className="text-[10px] text-muted-foreground font-medium opacity-40 italic">Global discovery rank across 1,200+ webs.</p>
          </div>
       </div>
     </Card>
@@ -750,59 +649,25 @@ function PerformanceScoreGauge({ score }: { score: number }) {
 }
 
 function AIInsightsCard() {
-  const insights = [
-    "Your CTR increased 18% this week.",
-    "Gaming websites perform 2.4x better for your profile.",
-    "Most high-value visitors come from India & USA.",
-    "Tuesday at 4 PM GMT gets your highest traffic volume.",
-    "Your 'Bessites AI' project is trending in AI Tools."
-  ];
-
+  const insights = ["Your CTR increased 18% this week.", "Gaming websites perform 2.4x better for your profile."];
   return (
     <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/10 p-8 rounded-[2.5rem] shadow-xl space-y-6">
-      <div className="flex items-center gap-3">
-         <div className="p-2.5 bg-primary/10 rounded-xl text-primary"><Sparkles className="w-4 h-4" /></div>
-         <h3 className="text-lg font-black italic uppercase tracking-tighter">AI Performance Insights</h3>
-      </div>
+      <div className="flex items-center gap-3"><div className="p-2.5 bg-primary/10 rounded-xl text-primary"><Sparkles className="w-4 h-4" /></div><h3 className="text-lg font-black italic uppercase tracking-tighter">AI Performance Insights</h3></div>
       <div className="space-y-4">
          {insights.map((insight, i) => (
-           <div key={i} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 group hover:border-primary/20 transition-all">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0 group-hover:scale-150 transition-transform" />
-              <p className="text-[11px] font-bold text-white/60 leading-relaxed italic">"{insight}"</p>
-           </div>
+           <div key={i} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 group hover:border-primary/20 transition-all"><p className="text-[11px] font-bold text-white/60 leading-relaxed italic">"{insight}"</p></div>
          ))}
       </div>
-      <Button className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-white font-black uppercase text-[10px] tracking-[0.2em] italic">Generate More Insights</Button>
     </Card>
   );
 }
 
 function ActivityFeed() {
-  const activities = [
-    { type: 'view', text: 'Someone viewed your website.', time: '2m ago' },
-    { type: 'click', text: 'Someone clicked your website.', time: '15m ago' },
-    { type: 'save', text: 'Someone saved your website.', time: '1h ago' },
-    { type: 'like', text: 'Someone liked your website.', time: '3h ago' },
-    { type: 'review', text: 'Someone left a review.', time: '5h ago' }
-  ];
-
+  const activities = [{ type: 'view', text: 'Someone viewed your website.', time: '2m ago' }, { type: 'click', text: 'Someone clicked your website.', time: '15m ago' }];
   return (
     <Card className="bg-[#121117] border-white/5 p-8 rounded-[2.5rem] shadow-xl space-y-6">
-      <div className="flex justify-between items-center">
-         <h3 className="text-lg font-black italic uppercase tracking-tighter">Real-Time Activity</h3>
-         <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-      </div>
-      <div className="space-y-4">
-         {activities.map((act, i) => (
-           <div key={i} className="flex justify-between items-start gap-4">
-              <div className="flex gap-4">
-                 <div className="w-1 bg-white/5 rounded-full self-stretch" />
-                 <p className="text-[11px] font-bold text-white/60 tracking-tight">{act.text}</p>
-              </div>
-              <span className="text-[9px] font-black uppercase text-white/10 shrink-0">{act.time}</span>
-           </div>
-         ))}
-      </div>
+      <div className="flex justify-between items-center"><h3 className="text-lg font-black italic uppercase tracking-tighter">Real-Time Activity</h3><div className="w-2 h-2 rounded-full bg-primary animate-pulse" /></div>
+      <div className="space-y-4">{activities.map((act, i) => (<div key={i} className="flex justify-between items-start gap-4"><p className="text-[11px] font-bold text-white/60 tracking-tight">{act.text}</p><span className="text-[9px] font-black uppercase text-white/10 shrink-0">{act.time}</span></div>))}</div>
     </Card>
   );
 }
@@ -814,9 +679,7 @@ function AudienceStatCard({ label, value, growth, trendUp, color, icon: Icon }: 
          <div className="relative z-10 flex flex-col gap-6">
             <div className="flex items-center justify-between">
                <div className={cn("p-3 rounded-2xl bg-white/5", color.replace('bg-', 'text-'))}><Icon className="w-5 h-5" /></div>
-               <Badge className={cn("border-none text-[9px] font-black uppercase px-2 py-0.5", trendUp ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400")}>
-                  {trendUp ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />} {growth}
-               </Badge>
+               <Badge className={cn("border-none text-[9px] font-black uppercase px-2 py-0.5", trendUp ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400")}>{growth}</Badge>
             </div>
             <div className="space-y-0.5">
                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">{label}</p>
@@ -848,19 +711,11 @@ function BreakdownGridCard({ title, items }: { title: string, items: any[] }) {
 
 function SidebarItem({ icon: Icon, label, active = false, onClick, badge }: { icon: any, label: string, active?: boolean, onClick: () => void, badge?: number }) {
   return (
-    <button 
-      onClick={onClick}
-      className={cn(
-        "w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all relative overflow-hidden group",
-        active ? "text-white bg-gradient-to-r from-primary/40 to-transparent shadow-lg" : "text-muted-foreground/60 hover:text-white hover:bg-white/5"
-      )}
-    >
+    <button onClick={onClick} className={cn("w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all relative overflow-hidden group", active ? "text-white bg-gradient-to-r from-primary/40 to-transparent shadow-lg" : "text-muted-foreground/60 hover:text-white hover:bg-white/5")}>
       {active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(123,51,255,1)]" />}
       <Icon className={cn("w-5 h-5", active ? "text-primary" : "group-hover:scale-110 transition-transform")} />
       <span className="text-sm font-bold tracking-tight">{label}</span>
-      {badge !== undefined && (
-        <span className="ml-auto bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-md shadow-lg">{badge}</span>
-      )}
+      {badge !== undefined && (<span className="ml-auto bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-md shadow-lg">{badge}</span>)}
     </button>
   );
 }

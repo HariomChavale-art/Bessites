@@ -1,4 +1,3 @@
-
 {
   "name": "nextn",
   "version": "0.1.0",
@@ -9,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "sync": "git add . && git commit -m 'Automatic sync: Update UI and discovery logic' && git push origin main"
+    "sync": "git remote set-url origin https://github.com/HariomChavale-art/studio-4878361012.git && git add . && git commit -m 'Automatic sync: Update UI and discovery logic' && git push origin main",
+    "fix-git": "git remote set-url origin https://github.com/HariomChavale-art/studio-4878361012.git && git branch -M main && git fetch origin && git branch --set-upstream-to=origin/main main"
   },
   "dependencies": {
     "@genkit-ai/google-genai": "^1.0.1",

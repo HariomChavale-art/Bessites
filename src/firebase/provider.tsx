@@ -23,7 +23,8 @@ export const FirebaseProvider: React.FC<{
 }> = ({ children, firebaseApp, firestore, auth }) => {
   return (
     <FirebaseContext.Provider value={{ firebaseApp, firestore, auth }}>
-      <FirebaseErrorListener />
+      {/* Only render the listener if Firebase is successfully initialized */}
+      {firebaseApp && <FirebaseErrorListener />}
       {children}
     </FirebaseContext.Provider>
   );

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect } from "react";
@@ -10,17 +9,18 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Send, Check, Plus, X, Sparkles, Image as ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useUser, useFirestore } from "@/firebase";
+import { useUser, useFirestore, useStorage } from "@/firebase";
 import { collection, addDoc, serverTimestamp, doc, setDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import { intelligentCategoryTagging } from "@/ai/flows/intelligent-category-tagging";
-import { supabase } from "@/lib/supabase";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function SubmitWebsite() {
   const { user, loading: authLoading } = useUser();
   const db = useFirestore();
+  const storage = useStorage();
   const router = useRouter();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -101,7 +101,7 @@ export default function SubmitWebsite() {
   };
 
   const handleFinalSubmit = async () => {
-    if (!db || !url || tags.length === 0 || !user) {
+    if (!db || !url || tags.length === 0 || !user || !storage) {
       toast({
         variant: "destructive",
         title: "Missing Information",
@@ -115,28 +115,12 @@ export default function SubmitWebsite() {
 
     try {
       if (logoFile) {
-        if (!supabase) {
-          console.warn("Supabase is not configured. Submission will proceed without logo.");
-        } else {
-          const fileExt = logoFile.name.split('.').pop();
-          const path = `logos/${user.uid}/${Date.now()}.${fileExt}`;
-          
-          const { error: uploadError } = await supabase.storage
-            .from('Website-images')
-            .upload(path, logoFile);
-          
-          if (uploadError) {
-            console.warn("Supabase Storage Error:", uploadError.message);
-            toast({
-              variant: "destructive",
-              title: "Storage Error",
-              description: "Logo upload failed. Submission will proceed without custom branding.",
-            });
-          } else {
-            const { data } = supabase.storage.from('Website-images').getPublicUrl(path);
-            publicLogoUrl = data.publicUrl;
-          }
-        }
+        const fileExt = logoFile.name.split('.').pop();
+        const path = `logos/${user.uid}/${Date.now()}.${fileExt}`;
+        const storageRef = ref(storage, path);
+        
+        await uploadBytes(storageRef, logoFile);
+        publicLogoUrl = await getDownloadURL(storageRef);
       }
 
       const submissionData = {

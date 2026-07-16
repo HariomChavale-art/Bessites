@@ -1,8 +1,7 @@
-
 "use client"
 
 import { useState, useRef, useEffect } from "react";
-import { useAuth, useFirestore, useUser } from "@/firebase";
+import { useAuth, useFirestore, useUser, useStorage } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
@@ -10,6 +9,7 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,13 +17,13 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, User, Eye, EyeOff, KeyRound } from "lucide-react";
 import { Logo } from "@/components/logo";
-import { supabase } from "@/lib/supabase";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function LoginPage() {
   const auth = useAuth();
   const db = useFirestore();
+  const storage = useStorage();
   const router = useRouter();
   const { toast } = useToast();
   const { user: currentUser, loading: authLoading } = useUser();
@@ -65,27 +65,18 @@ export default function LoginPage() {
     }
   };
 
-  const uploadToSupabase = async (file: File, userId: string) => {
-    if (!supabase) {
-      console.warn("Supabase is not configured. Profile picture upload skipped.");
-      return null;
-    }
+  const uploadToFirebase = async (file: File, userId: string) => {
+    if (!storage) return null;
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `profiles/${userId}-${Date.now()}.${fileExt}`;
+      const storageRef = ref(storage, fileName);
       
-      const { error: uploadError } = await supabase.storage
-        .from('Website-images')
-        .upload(fileName, file);
-
-      if (uploadError) return null;
-
-      const { data } = supabase.storage
-        .from('Website-images')
-        .getPublicUrl(fileName);
-
-      return data.publicUrl;
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      return url;
     } catch (err) {
+      console.error("Firebase Storage Error:", err);
       return null;
     }
   };
@@ -128,7 +119,7 @@ export default function LoginPage() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         
-        const finalPhotoURL = selectedFile ? await uploadToSupabase(selectedFile, user.uid) : null;
+        const finalPhotoURL = selectedFile ? await uploadToFirebase(selectedFile, user.uid) : null;
         
         if (finalPhotoURL) {
           await updateProfile(user, { photoURL: finalPhotoURL });

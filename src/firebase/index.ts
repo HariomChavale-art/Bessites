@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { initializeFirestore, getFirestore, Firestore } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
+import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { firebaseConfig } from './config';
 
 /**
@@ -12,11 +13,12 @@ export function initializeFirebase(): {
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
   auth: Auth | null;
+  storage: FirebaseStorage | null;
 } {
   // Guard against missing API key to prevent crashes during SSR or before env vars are synced
   if (!firebaseConfig.apiKey || firebaseConfig.apiKey === 'undefined') {
     console.warn("Firebase configuration is missing. Please ensure your environment variables are set.");
-    return { firebaseApp: null, firestore: null, auth: null };
+    return { firebaseApp: null, firestore: null, auth: null, storage: null };
   }
 
   try {
@@ -36,11 +38,12 @@ export function initializeFirebase(): {
     }
     
     const auth = getAuth(firebaseApp);
+    const storage = getStorage(firebaseApp);
 
-    return { firebaseApp, firestore, auth };
+    return { firebaseApp, firestore, auth, storage };
   } catch (error) {
     console.error("Firebase initialization failed:", error);
-    return { firebaseApp: null, firestore: null, auth: null };
+    return { firebaseApp: null, firestore: null, auth: null, storage: null };
   }
 }
 

@@ -1,7 +1,6 @@
-
 "use client"
 
-import { useUser, useAuth, useDoc, useFirestore, useCollection } from "@/firebase";
+import { useUser, useAuth, useDoc, useFirestore, useCollection, useStorage } from "@/firebase";
 import { Navigation } from "@/components/navigation";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { WebsiteCard } from "@/components/website-card";
@@ -54,6 +53,7 @@ import {
 import Link from "next/link";
 import { signOut, updateProfile } from "firebase/auth";
 import { doc, collection, query, where, updateDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useMemo, useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -61,7 +61,6 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { supabase } from "@/lib/supabase";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -69,6 +68,7 @@ export default function ProfilePage() {
   const { user, loading: userLoading } = useUser();
   const auth = useAuth();
   const db = useFirestore();
+  const storage = useStorage();
   const router = useRouter();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -148,34 +148,18 @@ export default function ProfilePage() {
   };
 
   const handleUpdateAccount = async () => {
-    if (!user || !db) return;
+    if (!user || !db || !storage) return;
     setIsUpdating(true);
     try {
       let finalPhotoURL = profileData?.photoURL || user.photoURL;
       
       if (selectedFile) {
-        if (!supabase) {
-          toast({ 
-            variant: "destructive", 
-            title: "Storage Error", 
-            description: "Image storage is not configured. Please contact support." 
-          });
-          setIsUpdating(false);
-          return;
-        }
-
         const fileExt = selectedFile.name.split('.').pop();
         const fileName = `profiles/${user.uid}-${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from('Website-images')
-          .upload(fileName, selectedFile);
+        const storageRef = ref(storage, fileName);
         
-        if (!uploadError) {
-          const { data } = supabase.storage.from('Website-images').getPublicUrl(fileName);
-          finalPhotoURL = data.publicUrl;
-        } else {
-          throw new Error("Failed to upload image to storage.");
-        }
+        await uploadBytes(storageRef, selectedFile);
+        finalPhotoURL = await getDownloadURL(storageRef);
       }
 
       await updateProfile(user, { displayName: editName, photoURL: finalPhotoURL });
@@ -235,7 +219,6 @@ export default function ProfilePage() {
     <div className="min-h-screen flex flex-col bg-background relative">
       <Navigation />
       
-      {/* Top Left Menu Trigger */}
       <div className="absolute top-4 left-4 z-50">
         <Sheet>
           <SheetTrigger asChild>

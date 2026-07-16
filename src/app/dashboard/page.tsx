@@ -71,7 +71,10 @@ import {
   Palette,
   Smile,
   Frown,
-  Meh
+  Meh,
+  Megaphone,
+  CreditCard,
+  AlertTriangle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -413,6 +416,217 @@ export default function UserDashboard() {
             </div>
           )}
 
+          {activeView === 'promotions' && (
+            <div className="space-y-12 animate-in fade-in duration-500 pb-24">
+              {/* Welcome Banner */}
+              <Card className="bg-gradient-to-r from-primary/20 to-purple-600/10 border-white/5 p-8 sm:p-12 rounded-[3rem] relative overflow-hidden group">
+                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] -mr-32 -mt-32 group-hover:bg-primary/30 transition-all duration-700" />
+                 <div className="relative z-10 space-y-4 max-w-2xl">
+                    <h2 className="text-4xl sm:text-5xl font-black italic uppercase tracking-tighter text-white">Boost Your <span className="text-primary">Reach</span></h2>
+                    <p className="text-lg text-muted-foreground font-medium leading-relaxed">
+                       Promotions help you reach 10x more users. Featured websites receive higher visibility, better placement, and premium credibility across the Bessites ecosystem.
+                    </p>
+                    <Button className="bg-white text-black hover:bg-primary hover:text-white rounded-2xl h-14 px-10 font-black uppercase tracking-widest text-xs italic transition-all">
+                       Start a Campaign
+                    </Button>
+                 </div>
+              </Card>
+
+              {/* Search & Stats Filter Row */}
+              <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
+                 <div className="relative group w-full md:w-96">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <input 
+                      placeholder="Search your promoted websites..." 
+                      className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 text-xs font-medium focus:ring-1 focus:ring-primary/50 outline-none transition-all" 
+                    />
+                 </div>
+                 <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 md:pb-0 w-full md:w-auto">
+                    <Button variant="outline" className="rounded-xl border-white/10 bg-white/5 h-12 px-6 font-bold text-[10px] uppercase shrink-0"><Filter className="w-3 h-3 mr-2" /> All Campaigns</Button>
+                    <Button variant="outline" className="rounded-xl border-white/10 bg-white/5 h-12 px-4 shrink-0 text-muted-foreground"><Megaphone className="w-4 h-4" /></Button>
+                    <Button variant="outline" className="rounded-xl border-white/10 bg-white/5 h-12 px-4 shrink-0 text-muted-foreground relative"><Bell className="w-4 h-4" /><span className="absolute top-3 right-3 w-1.5 h-1.5 bg-primary rounded-full" /></Button>
+                 </div>
+              </div>
+
+              {/* Promotion Metrics Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+                 <PromotionStatCard label="Active Promotions" value="3" trend="+1" trendUp color="text-primary" icon={Megaphone} />
+                 <PromotionStatCard label="Promotion Clicks" value="12.4k" trend="+18%" trendUp color="text-emerald-400" icon={Zap} />
+                 <PromotionStatCard label="Total Spend" value="$240.00" trend="-12%" trendUp={false} color="text-amber-400" icon={DollarSign} />
+                 <PromotionStatCard label="Reach Estimate" value="850k" trend="Rising" trendUp color="text-purple-400" icon={Target} />
+              </div>
+
+              {/* Large Performance Graph & Distribution */}
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                 <div className="xl:col-span-2">
+                    <Card className="bg-[#121117] border-white/5 p-8 sm:p-10 rounded-[3rem] shadow-2xl space-y-8">
+                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+                          <div className="space-y-1">
+                             <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">Campaign Performance</h3>
+                             <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.3em] opacity-40">Tracking impressions and click-through metrics</p>
+                          </div>
+                          <div className="bg-white/5 p-1 rounded-2xl border border-white/5 flex">
+                             {['7D', '30D', '90D', 'All'].map(t => (
+                               <button key={t} className={cn("px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all", t === '30D' ? "bg-primary text-white" : "text-muted-foreground hover:text-white")}>{t}</button>
+                             ))}
+                          </div>
+                       </div>
+                       <div className="h-80 w-full flex items-end justify-between gap-2 pb-6 border-b border-white/5 overflow-x-auto no-scrollbar">
+                          {[60, 45, 90, 75, 55, 80, 100, 85, 60, 45, 70, 85, 90, 60, 95, 110, 80, 70].map((h, i) => (
+                             <div key={i} className="flex-1 min-w-[12px] bg-primary/20 hover:bg-primary transition-all rounded-t-xl" style={{ height: `${h}%` }} />
+                          ))}
+                       </div>
+                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
+                          <SmallTrend label="Total Impressions" value="1.2M" trend="+8.4%" />
+                          <SmallTrend label="Website Clicks" value="48.5k" trend="+12.1%" />
+                          <SmallTrend label="Average CTR" value="4.2%" trend="+0.5%" />
+                          <SmallTrend label="Daily Reach" value="42k" trend="+5.2%" />
+                       </div>
+                    </Card>
+                 </div>
+
+                 <div className="space-y-8">
+                    <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-2xl space-y-8">
+                       <div className="flex justify-between items-center"><h3 className="text-lg font-black italic uppercase tracking-tighter">Campaign Distribution</h3><PieChart className="w-4 h-4 text-primary" /></div>
+                       <div className="relative flex justify-center py-4">
+                          <div className="w-40 h-40 rounded-full border-[12px] border-white/5 relative flex items-center justify-center">
+                             <div className="absolute inset-0 rounded-full border-[12px] border-primary border-r-transparent border-b-transparent -rotate-45" />
+                             <div className="text-center"><span className="text-2xl font-black italic tracking-tighter text-white">74%</span><p className="text-[8px] font-bold text-muted-foreground uppercase">Efficiency</p></div>
+                          </div>
+                       </div>
+                       <div className="space-y-4">
+                          <DistributionRow label="Homepage Featured" percentage={45} color="bg-primary" />
+                          <DistributionRow label="Trending Section" percentage={25} color="bg-purple-500" />
+                          <DistributionRow label="Search Results" percentage={18} color="bg-blue-400" />
+                          <DistributionRow label="Recommendations" percentage={12} color="bg-indigo-400" />
+                       </div>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-primary/10 to-purple-600/10 border-white/10 p-8 rounded-[3rem] shadow-xl relative overflow-hidden group h-fit">
+                       <div className="relative z-10 flex flex-col items-center text-center space-y-4">
+                          <div className="p-4 bg-white text-black rounded-full shadow-2xl group-hover:scale-110 transition-transform"><Plus className="w-8 h-8" strokeWidth={3} /></div>
+                          <h4 className="text-xl font-black italic uppercase tracking-tighter">Create New Promotion</h4>
+                          <p className="text-[10px] text-muted-foreground font-bold leading-relaxed px-4">Ready to double your traffic? Launch a premium placement campaign in seconds.</p>
+                          <Button className="w-full h-14 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-[10px] italic shadow-lg">Get Started</Button>
+                       </div>
+                    </Card>
+                 </div>
+              </div>
+
+              {/* Active Campaigns & AI assistant */}
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                 <div className="xl:col-span-2">
+                    <Card className="bg-[#121117] border-white/5 rounded-[3rem] overflow-hidden shadow-2xl">
+                       <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
+                          <h3 className="text-xl font-black italic uppercase tracking-tighter">Active Campaigns</h3>
+                          <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-primary italic">View All History</Button>
+                       </div>
+                       <div className="divide-y divide-white/5">
+                          {[1, 2].map((_, i) => (
+                            <div key={i} className="p-8 hover:bg-white/[0.02] transition-all flex flex-col sm:flex-row items-center gap-8">
+                               <div className="w-16 h-16 rounded-2xl bg-[#0B0A0F] border border-white/10 flex items-center justify-center overflow-hidden shadow-xl shrink-0">
+                                  <img src={`https://picsum.photos/seed/${i+42}/200`} className="w-full h-full object-cover" />
+                               </div>
+                               <div className="flex-1 min-w-0 text-center sm:text-left space-y-1">
+                                  <h4 className="text-lg font-black text-white italic tracking-tighter">Tools.ai Promotion</h4>
+                                  <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Placement: Homepage Featured</p>
+                                  <div className="flex items-center justify-center sm:justify-start gap-3 mt-2">
+                                     <Badge className="bg-emerald-500/10 text-emerald-400 border-none font-black text-[8px] italic uppercase tracking-widest px-2 py-0.5">Active</Badge>
+                                     <span className="text-[9px] font-bold text-muted-foreground/40 italic">Ends in 4 days</span>
+                                  </div>
+                               </div>
+                               <div className="grid grid-cols-3 gap-8 text-center px-4 sm:px-0">
+                                  <div><p className="text-lg font-black italic tracking-tighter text-white">4.2k</p><p className="text-[8px] font-bold text-muted-foreground uppercase">Clicks</p></div>
+                                  <div><p className="text-lg font-black italic tracking-tighter text-white">85k</p><p className="text-[8px] font-bold text-muted-foreground uppercase">Views</p></div>
+                                  <div><p className="text-lg font-black italic tracking-tighter text-white">4.9%</p><p className="text-[8px] font-bold text-muted-foreground uppercase">CTR</p></div>
+                               </div>
+                               <div className="flex gap-2 shrink-0">
+                                  <Button variant="outline" size="icon" className="w-12 h-12 rounded-xl border-white/5 bg-white/5 hover:bg-white/10"><Edit className="w-4 h-4" /></Button>
+                                  <Button variant="outline" size="icon" className="w-12 h-12 rounded-xl border-white/5 bg-white/5 hover:bg-destructive/10 hover:text-destructive"><X className="w-4 h-4" /></Button>
+                               </div>
+                            </div>
+                          ))}
+                       </div>
+                    </Card>
+                 </div>
+
+                 <div className="space-y-8">
+                    <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/10 p-8 rounded-[3rem] shadow-xl space-y-6">
+                       <div className="flex items-center gap-3">
+                          <div className="p-2.5 bg-primary/10 rounded-xl text-primary"><Sparkles className="w-4 h-4" /></div>
+                          <h3 className="text-lg font-black italic uppercase tracking-tighter">AI Promotion Assistant</h3>
+                       </div>
+                       <div className="space-y-4">
+                          {[
+                            "Your current campaign is outperforming category average by 24%.",
+                            "Suggesting higher budget for Weekend traffic spikes.",
+                            "Programming websites reach peak CTR between 6PM and 10PM."
+                          ].map((insight, i) => (
+                             <div key={i} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/20 transition-all group cursor-default">
+                                <div className="w-1 bg-primary rounded-full group-hover:scale-y-125 transition-transform" />
+                                <p className="text-[11px] font-bold text-white/60 leading-relaxed italic">"{insight}"</p>
+                             </div>
+                          ))}
+                       </div>
+                       <Button className="w-full h-12 rounded-xl bg-primary/10 border border-primary/20 text-primary font-black uppercase text-[9px] italic hover:bg-primary hover:text-white transition-all">Generate Strategy</Button>
+                    </Card>
+
+                    <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl space-y-6">
+                       <div className="flex justify-between items-center"><h3 className="text-lg font-black italic uppercase tracking-tighter">Recent Activity</h3><div className="w-2 h-2 rounded-full bg-primary animate-pulse" /></div>
+                       <div className="space-y-5">
+                          {[
+                            { label: "Campaign approved", time: "2m ago", icon: Check, color: "text-emerald-400" },
+                            { label: "Budget almost exhausted", time: "15m ago", icon: AlertTriangle, color: "text-amber-400" },
+                            { label: "Payment received", time: "1h ago", icon: CreditCard, color: "text-blue-400" },
+                            { label: "Editor's Choice awarded", time: "3h ago", icon: Award, color: "text-purple-400" }
+                          ].map((act, i) => (
+                             <div key={i} className="flex items-start justify-between gap-4">
+                                <div className="flex items-start gap-3">
+                                   <div className={cn("p-1.5 rounded-lg bg-white/5", act.color)}><act.icon className="w-3 h-3" /></div>
+                                   <p className="text-[11px] font-bold text-white/60 tracking-tight leading-none mt-1">{act.label}</p>
+                                </div>
+                                <span className="text-[9px] font-black uppercase text-white/10 shrink-0">{act.time}</span>
+                             </div>
+                          ))}
+                       </div>
+                    </Card>
+                 </div>
+              </div>
+
+              {/* Billing Summary */}
+              <Card className="bg-[#121117] border-white/5 rounded-[3rem] overflow-hidden shadow-2xl">
+                 <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
+                    <h3 className="text-xl font-black italic uppercase tracking-tighter">Billing & Invoices</h3>
+                    <Button variant="outline" className="rounded-xl border-white/5 bg-white/5 h-10 px-4 font-bold text-[9px] uppercase"><Download className="w-3 h-3 mr-2" /> Export PDF</Button>
+                 </div>
+                 <div className="overflow-x-auto no-scrollbar">
+                    <table className="w-full text-left min-w-[800px]">
+                       <thead className="bg-white/5">
+                          <tr>
+                             <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Payment Date</th>
+                             <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Campaign Name</th>
+                             <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Promotion Type</th>
+                             <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Amount</th>
+                             <th className="p-6 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Status</th>
+                          </tr>
+                       </thead>
+                       <tbody className="divide-y divide-white/5">
+                          {[1, 2].map((_, i) => (
+                             <tr key={i} className="hover:bg-white/[0.02] transition-colors group">
+                                <td className="p-6 text-xs font-bold text-white/40">Feb {24 - i}, 2024</td>
+                                <td className="p-6 text-sm font-black text-white italic">Tools.ai Spotlight</td>
+                                <td className="p-6"><Badge className="bg-white/5 text-white border-none font-black text-[8px] uppercase tracking-widest px-2 py-0.5">Homepage</Badge></td>
+                                <td className="p-6 font-black text-xs text-white/80 tabular-nums">$120.00</td>
+                                <td className="p-6 text-right"><Badge className="bg-emerald-500/10 text-emerald-400 border-none font-black text-[8px] uppercase tracking-widest px-2 py-0.5 italic">Paid</Badge></td>
+                             </tr>
+                          ))}
+                       </tbody>
+                    </table>
+                 </div>
+              </Card>
+            </div>
+          )}
+
           {activeView === 'reviews' && (
             <div className="space-y-12 animate-in fade-in duration-500 pb-24">
                <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8">
@@ -730,6 +944,50 @@ function AudienceStatCard({ label, value, growth, trendUp, color, icon: Icon }: 
                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">{label}</p>
                <h3 className="text-3xl font-black italic tracking-tighter leading-none">{value}</h3>
             </div>
+         </div>
+      </div>
+   );
+}
+
+function PromotionStatCard({ label, value, trend, trendUp, color, icon: Icon }: { label: string, value: string, trend: string, trendUp: boolean, color: string, icon: any }) {
+   return (
+      <div className="p-8 rounded-[2.5rem] border border-white/5 bg-[#121117] relative overflow-hidden group hover:scale-[1.02] transition-all">
+         <div className={cn("absolute top-0 right-0 w-32 h-32 blur-[80px] -mr-16 -mt-16 opacity-20", color.replace('text-', 'bg-'))} />
+         <div className="relative z-10 flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+               <div className={cn("p-3 rounded-2xl bg-white/5", color)}><Icon className="w-5 h-5" /></div>
+               <Badge className={cn("border-none text-[9px] font-black uppercase px-2 py-0.5", trendUp ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400")}>{trend}</Badge>
+            </div>
+            <div className="space-y-0.5">
+               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">{label}</p>
+               <h3 className="text-3xl font-black italic tracking-tighter leading-none">{value}</h3>
+            </div>
+         </div>
+      </div>
+   );
+}
+
+function DistributionRow({ label, percentage, color }: { label: string, percentage: number, color: string }) {
+   return (
+      <div className="space-y-1.5">
+         <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
+            <span className="text-white/60">{label}</span>
+            <span className="text-white/40">{percentage}%</span>
+         </div>
+         <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+            <div className={cn("h-full rounded-full", color)} style={{ width: `${percentage}%` }} />
+         </div>
+      </div>
+   );
+}
+
+function SmallTrend({ label, value, trend }: { label: string, value: string, trend: string }) {
+   return (
+      <div className="space-y-1">
+         <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40">{label}</p>
+         <div className="flex items-center gap-2">
+            <span className="text-lg font-black text-white italic tracking-tighter">{value}</span>
+            <span className="text-[8px] font-bold text-emerald-400">{trend}</span>
          </div>
       </div>
    );

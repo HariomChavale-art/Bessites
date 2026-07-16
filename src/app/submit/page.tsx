@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -115,23 +115,27 @@ export default function SubmitWebsite() {
 
     try {
       if (logoFile) {
-        const fileExt = logoFile.name.split('.').pop();
-        const path = `logos/${user.uid}/${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('Website-images')
-          .upload(path, logoFile);
-        
-        if (uploadError) {
-          console.warn("Supabase Storage Error:", uploadError.message);
-          toast({
-            variant: "destructive",
-            title: "Storage Error",
-            description: "Logo upload failed (Check Supabase RLS). Submission will proceed without logo.",
-          });
+        if (!supabase) {
+          console.warn("Supabase is not configured. Submission will proceed without logo.");
         } else {
-          const { data } = supabase.storage.from('Website-images').getPublicUrl(path);
-          publicLogoUrl = data.publicUrl;
+          const fileExt = logoFile.name.split('.').pop();
+          const path = `logos/${user.uid}/${Date.now()}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('Website-images')
+            .upload(path, logoFile);
+          
+          if (uploadError) {
+            console.warn("Supabase Storage Error:", uploadError.message);
+            toast({
+              variant: "destructive",
+              title: "Storage Error",
+              description: "Logo upload failed. Submission will proceed without custom branding.",
+            });
+          } else {
+            const { data } = supabase.storage.from('Website-images').getPublicUrl(path);
+            publicLogoUrl = data.publicUrl;
+          }
         }
       }
 

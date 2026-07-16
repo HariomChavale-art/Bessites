@@ -154,6 +154,16 @@ export default function ProfilePage() {
       let finalPhotoURL = profileData?.photoURL || user.photoURL;
       
       if (selectedFile) {
+        if (!supabase) {
+          toast({ 
+            variant: "destructive", 
+            title: "Storage Error", 
+            description: "Image storage is not configured. Please contact support." 
+          });
+          setIsUpdating(false);
+          return;
+        }
+
         const fileExt = selectedFile.name.split('.').pop();
         const fileName = `profiles/${user.uid}-${Date.now()}.${fileExt}`;
         const { error: uploadError } = await supabase.storage
@@ -163,13 +173,15 @@ export default function ProfilePage() {
         if (!uploadError) {
           const { data } = supabase.storage.from('Website-images').getPublicUrl(fileName);
           finalPhotoURL = data.publicUrl;
+        } else {
+          throw new Error("Failed to upload image to storage.");
         }
       }
 
       await updateProfile(user, { displayName: editName, photoURL: finalPhotoURL });
       
       const userRef = doc(db, "users", user.uid);
-      updateDoc(userRef, {
+      await updateDoc(userRef, {
         displayName: editName,
         bio: editBio,
         photoURL: finalPhotoURL
@@ -202,7 +214,7 @@ export default function ProfilePage() {
 
   const displayName = profileData?.displayName || user?.displayName || "Curator";
   const email = user?.email || "";
-  const photoURL = profileData?.photoURL || user?.photoURL || `https://picsum.photos/seed/${user.uid}/200`;
+  const photoURL = profileData?.photoURL || user?.photoURL || `https://picsum.photos/seed/${user?.uid}/200`;
   const interests = profileData?.interests || [];
 
   const sidebarLinks = [

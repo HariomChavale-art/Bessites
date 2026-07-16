@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth, useFirestore, useUser } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
@@ -66,6 +66,10 @@ export default function LoginPage() {
   };
 
   const uploadToSupabase = async (file: File, userId: string) => {
+    if (!supabase) {
+      console.warn("Supabase is not configured. Profile picture upload skipped.");
+      return null;
+    }
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `profiles/${userId}-${Date.now()}.${fileExt}`;

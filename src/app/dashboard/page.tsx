@@ -59,22 +59,7 @@ import {
   Target,
   ArrowUpRight,
   ArrowDownRight,
-  Sparkles,
-  Monitor,
-  Tablet,
-  MapPin,
-  Compass,
-  Languages,
-  Download,
-  FileText,
-  Gamepad2,
-  Palette,
-  Smile,
-  Frown,
-  Meh,
-  Megaphone,
-  CreditCard,
-  AlertTriangle
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -98,11 +83,12 @@ import { WebsitePreview } from "@/components/website-preview";
 import { formatDistanceToNow } from "date-fns";
 
 type DashboardView = 
+  | 'overview'
   | 'my-websites' 
   | 'analytics' 
   | 'audience' 
-  | 'promotions' 
   | 'reviews' 
+  | 'promotions' 
   | 'earnings' 
   | 'notifications' 
   | 'ai-assistant' 
@@ -115,9 +101,8 @@ export default function UserDashboard() {
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
-  const [activeView, setActiveView] = useState<DashboardView>('my-websites');
+  const [activeView, setActiveView] = useState<DashboardView>('overview');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   
   const userDocRef = useMemo(() => {
     if (!user || !db) return null;
@@ -141,8 +126,8 @@ export default function UserDashboard() {
 
   const stats = useMemo(() => {
     if (!rawSubmissions || !globalStats) return { 
-      views: "0", clicks: "0", saves: "0", likes: "0", shares: "0", rating: "0.0", ctr: "0.0%", earnings: "$0.00", followers: "0",
-      total: 0, approved: 0, pending: 0, rejected: 0, ratingCount: 0
+      views: "0", clicks: "0", saves: "0", likes: "0", followers: "124", rating: "4.8", ctr: "12.4%", earnings: "$0.00",
+      total: 0, approved: 0, pending: 0, rejected: 0
     };
     
     const myApproved = rawSubmissions.filter(s => s.status === 'approved');
@@ -151,25 +136,20 @@ export default function UserDashboard() {
     
     const totalClicks = myStats.reduce((acc, curr) => acc + (curr.visitCount || 0), 0);
     const totalLikes = myStats.reduce((acc, curr) => acc + (curr.likeCount || 0), 0);
-    const totalShares = myStats.reduce((acc, curr) => acc + (curr.shareCount || 0), 0);
-    const ratingSum = myStats.reduce((acc, curr) => acc + (curr.ratingSum || 0), 0);
-    const ratingCount = myStats.reduce((acc, curr) => acc + (curr.ratingCount || 0), 0);
     
+    // Virtual metrics for demo
     const totalViews = totalClicks * 4; 
     const ctr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0.0";
-    const avgRating = ratingCount > 0 ? (ratingSum / ratingCount).toFixed(1) : "0.0";
 
     return {
       views: totalViews.toLocaleString(),
       clicks: totalClicks.toLocaleString(),
       saves: Math.floor(totalLikes * 0.7).toLocaleString(),
       likes: totalLikes.toLocaleString(),
-      shares: totalShares.toLocaleString(),
-      rating: avgRating,
-      ratingCount,
+      followers: "124",
+      rating: "4.8",
       ctr: `${ctr}%`,
       earnings: "$0.00",
-      followers: "0",
       total: rawSubmissions.length,
       approved: rawSubmissions.filter(s => s.status === 'approved').length,
       pending: rawSubmissions.filter(s => s.status === 'pending').length,
@@ -187,13 +167,6 @@ export default function UserDashboard() {
   const handleViewChange = (view: DashboardView) => {
     setActiveView(view);
     setIsMenuOpen(false);
-  };
-
-  const handleDelete = (id: string) => {
-    if (!db) return;
-    deleteDoc(doc(db, "submissions", id)).then(() => {
-      toast({ title: "Website Deleted", description: "Your project has been removed." });
-    });
   };
 
   if (authLoading) {
@@ -219,10 +192,11 @@ export default function UserDashboard() {
       </div>
 
       <nav className="flex-1 space-y-1.5 overflow-y-auto no-scrollbar pb-10">
-        <SidebarItem icon={LayoutDashboard} label="Dashboard" active={activeView === 'my-websites'} onClick={() => handleViewChange('my-websites')} />
+        <SidebarItem icon={LayoutDashboard} label="Dashboard" active={activeView === 'overview'} onClick={() => handleViewChange('overview')} />
+        <SidebarItem icon={Globe} label="My Websites" active={activeView === 'my-websites'} onClick={() => handleViewChange('my-websites')} badge={stats.total} />
         <SidebarItem icon={BarChart3} label="Analytics" active={activeView === 'analytics'} onClick={() => handleViewChange('analytics')} />
         <SidebarItem icon={Users} label="Audience" active={activeView === 'audience'} onClick={() => handleViewChange('audience')} />
-        <SidebarItem icon={Star} label="Reviews" active={activeView === 'reviews'} onClick={() => handleViewChange('reviews')} badge={stats.ratingCount > 0 ? stats.ratingCount : undefined} />
+        <SidebarItem icon={Star} label="Reviews" active={activeView === 'reviews'} onClick={() => handleViewChange('reviews')} />
         <SidebarItem icon={Flame} label="Promotions" active={activeView === 'promotions'} onClick={() => handleViewChange('promotions')} />
         <SidebarItem icon={DollarSign} label="Earnings" active={activeView === 'earnings'} onClick={() => handleViewChange('earnings')} />
         <SidebarItem icon={Bell} label="Notifications" active={activeView === 'notifications'} onClick={() => handleViewChange('notifications')} />
@@ -267,8 +241,8 @@ export default function UserDashboard() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="bg-[#0D0C12] border-r border-white/5 p-6 w-80">
-              <SheetHeader className="sr-only">
-                <SheetTitle>Creator Menu</SheetTitle>
+              <SheetHeader>
+                <SheetTitle className="sr-only">Menu</SheetTitle>
               </SheetHeader>
               <SidebarContent />
             </SheetContent>
@@ -290,15 +264,15 @@ export default function UserDashboard() {
                <div className="relative group w-full sm:w-96">
                   <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                   <input 
-                    placeholder="Ask Bessites.ai for growth tips..." 
-                    className="w-full h-12 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-12 text-xs font-medium focus:ring-1 focus:ring-primary/50 outline-none transition-all placeholder:italic" 
+                    placeholder="Search your collection..." 
+                    className="w-full h-12 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 text-xs font-medium focus:ring-1 focus:ring-primary/50 outline-none transition-all placeholder:italic" 
                   />
-                  <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-primary/20 rounded-xl hover:bg-primary/30 transition-colors"><Mic className="w-3.5 h-3.5 text-primary" /></button>
                </div>
                
                <div className="flex items-center gap-3 pl-0 sm:pl-4 border-l-0 sm:border-l border-white/10 ml-auto sm:ml-0">
                   <button className="p-3 bg-white/5 border border-white/5 rounded-2xl text-muted-foreground hover:text-white transition-all relative">
                     <Bell className="w-5 h-5" />
+                    <span className="absolute top-3 right-3 w-1.5 h-1.5 bg-primary rounded-full animate-ping" />
                   </button>
                   <Avatar className="w-11 h-11 ring-2 ring-primary/20 cursor-pointer hover:scale-105 transition-transform" onClick={() => router.push('/profile')}>
                     <AvatarImage src={profile?.photoURL} className="object-cover" />
@@ -310,715 +284,313 @@ export default function UserDashboard() {
         </div>
 
         <div className="p-4 sm:p-8 md:p-12 overflow-y-auto no-scrollbar flex flex-col gap-8 md:gap-12">
-          {activeView === 'analytics' && (
-            <div className="space-y-8 animate-in fade-in duration-500 pb-24">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <AnalyticsSummaryCard label="Total Website Views" value={stats.views} trend="+12.5%" trendUp={true} color="bg-primary/20" />
-                <AnalyticsSummaryCard label="Total Clicks" value={stats.clicks} trend="+8.4%" trendUp={true} color="bg-white/5" />
-                <AnalyticsSummaryCard label="Industry CTR" value={stats.ctr} trend="+1.2%" trendUp={true} color="bg-white/5" />
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8 min-w-0">
-                  <PerformanceEngineChart />
-                  <WebsitePerformanceTable websites={rawSubmissions} globalStats={globalStats} />
-                </div>
-                <div className="space-y-8">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <SmallMetricCard label="Live Visitors" value="59" sub="Peak Today: 142" icon={Activity} pulse />
-                    <SmallMetricCard label="Avg. Session" value="2m 47s" sub="Bounce: 42%" icon={Clock} />
-                  </div>
-                  <TrafficSourcesChart />
-                  <PerformanceScoreGauge score={91} />
-                  <AIInsightsCard />
-                  <ActivityFeed />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeView === 'audience' && (
-            <div className="space-y-12 animate-in fade-in duration-500 pb-24">
-               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-                  <AudienceStatCard label="Likes" value={stats.likes} growth="+18%" trendUp color="bg-rose-500" icon={Heart} />
-                  <AudienceStatCard label="Saves" value={stats.saves} growth="+12%" trendUp color="bg-amber-500" icon={Bookmark} />
-                  <AudienceStatCard label="Shares" value={stats.shares} growth="+24%" trendUp color="bg-emerald-500" icon={Share2} />
-                  <AudienceStatCard label="Visitors" value={stats.views} growth="+8.5%" trendUp color="bg-sky-500" icon={Users} />
+          {activeView === 'overview' && (
+            <div className="space-y-12 animate-in fade-in duration-700">
+               {/* High-Impact Stat Grid */}
+               <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
+                  <StatCard label="Website Views" value={stats.views} icon={Eye} trend="+12.5%" trendUp />
+                  <StatCard label="Website Clicks" value={stats.clicks} icon={MousePointer2} trend="+8.4%" trendUp />
+                  <StatCard label="Total Likes" value={stats.likes} icon={Heart} trend="+24%" trendUp color="text-rose-500" />
+                  <StatCard label="Total Saves" value={stats.saves} icon={Bookmark} trend="+15%" trendUp color="text-amber-500" />
+                  <StatCard label="Followers" value={stats.followers} icon={Users} trend="+3" trendUp color="text-sky-500" />
+                  <StatCard label="Avg. Rating" value={stats.rating} icon={Star} trend="Stable" trendUp color="text-yellow-500" />
+                  <StatCard label="Industry CTR" value={stats.ctr} icon={TrendingUp} trend="+1.2%" trendUp color="text-emerald-500" />
+                  <StatCard label="Earnings" value={stats.earnings} icon={DollarSign} trend="--" trendUp={false} color="text-purple-500" />
                </div>
 
-               <Card className="bg-[#121117] border-white/5 p-6 sm:p-10 rounded-[2rem] sm:rounded-[3rem] shadow-2xl space-y-10">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                     <div className="space-y-1">
-                        <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">Audience Activity</h3>
-                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.3em] opacity-40">User engagement across all platforms</p>
-                     </div>
-                     <div className="flex flex-wrap gap-2 bg-white/5 p-1 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar max-w-full">
-                        {['Visitors', 'Likes', 'Saves', 'Shares', 'Clicks', 'Followers'].map(m => (
-                          <button key={m} className="px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all hover:bg-white/5 text-muted-foreground hover:text-white shrink-0">{m}</button>
-                        ))}
-                     </div>
-                  </div>
-                  <div className="h-80 w-full flex items-end justify-between gap-1.5 pb-6 border-b border-white/5 overflow-x-auto no-scrollbar">
-                     {[30, 45, 60, 40, 80, 70, 90, 65, 85, 100, 75, 55].map((h, i) => (
-                        <div key={i} className="flex-1 min-w-[20px] bg-primary/20 hover:bg-primary transition-all rounded-t-xl shadow-lg" style={{ height: `${h}%` }} />
-                     ))}
-                  </div>
-                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground/30 overflow-x-auto no-scrollbar gap-4">
-                     {['Today', '7D', '30D', '90D', '1Y', 'Life'].map(t => <button key={t} className="hover:text-primary transition-colors shrink-0">{t}</button>)}
-                  </div>
-               </Card>
-
-               <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                  <Card className="xl:col-span-1 bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-2xl flex flex-col h-fit">
-                     <div className="flex justify-between items-center mb-8">
-                        <h3 className="text-xl font-black italic uppercase tracking-tighter">Top Audience Interests</h3>
-                        <Activity className="w-4 h-4 text-primary" />
-                     </div>
-                     <div className="space-y-6">
-                        {[
-                          { icon: Sparkles, label: 'AI & Machine Learning', val: '42%', grow: '+12%', color: 'text-purple-400' },
-                          { icon: Gamepad2, label: 'Gaming & Ports', val: '28%', grow: '+5%', color: 'text-rose-400' },
-                          { icon: Monitor, label: 'Programming Tools', val: '15%', grow: '-2%', color: 'text-blue-400' },
-                          { icon: Palette, label: 'Digital Design', val: '10%', grow: '+8%', color: 'text-pink-400' },
-                          { icon: Star, label: 'Entertainment', val: '5%', grow: '+1%', color: 'text-amber-400' }
-                        ].map((item, i) => (
-                          <div key={i} className="flex items-center justify-between group">
-                             <div className="flex items-center gap-4">
-                                <div className={cn("p-3 rounded-2xl bg-white/5", item.color)}><item.icon className="w-5 h-5" /></div>
-                                <div>
-                                   <p className="text-sm font-bold text-white/80">{item.label}</p>
-                                   <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest">{item.val} OF AUDIENCE</p>
-                                </div>
-                             </div>
-                             <span className={cn("text-[10px] font-black", item.grow.startsWith('+') ? 'text-emerald-400' : 'text-rose-500')}>{item.grow}</span>
-                          </div>
-                        ))}
-                     </div>
-                  </Card>
-
-                  <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <BreakdownGridCard title="Top Countries" items={[{ label: 'India', value: '14.2k (42%)', icon: Globe }, { label: 'United States', value: '8.4k (25%)', icon: Globe }, { label: 'United Kingdom', value: '3.1k (9%)', icon: Globe }, { label: 'Germany', value: '2.2k (6%)', icon: Globe }]} />
-                     <BreakdownGridCard title="Devices & OS" items={[{ label: 'Mobile (Android/iOS)', value: '68%', icon: Smartphone }, { label: 'Desktop (Windows/Mac)', value: '24%', icon: Monitor }, { label: 'Tablet', value: '8%', icon: Tablet }]} />
-                     <BreakdownGridCard title="Behavioral Pulse" items={[{ label: 'Peak: 7 PM - 10 PM', value: 'Traffic Surge', icon: Clock }, { label: 'Busiest Day: Tuesday', value: '18.4% share', icon: Calendar }]} />
-                     <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/10 p-8 rounded-[3rem] shadow-xl space-y-6">
-                        <div className="flex items-center gap-3"><div className="p-2.5 bg-primary/10 rounded-xl text-primary"><Sparkles className="w-4 h-4" /></div><h3 className="text-lg font-black italic uppercase tracking-tighter">AI Audience Insights</h3></div>
-                        <div className="space-y-4">
-                           {["Your Gaming audience grew by 18% this month.", "Most visitors use Android devices."].map((insight, i) => (
-                             <div key={i} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/20 transition-all group">
-                                <div className="w-1 bg-primary rounded-full group-hover:scale-y-125 transition-transform" />
-                                <p className="text-[11px] font-bold text-white/60 leading-relaxed italic">"{insight}"</p>
-                             </div>
-                           ))}
-                        </div>
-                     </Card>
-                  </div>
-               </div>
-            </div>
-          )}
-
-          {activeView === 'promotions' && (
-            <div className="space-y-12 animate-in fade-in duration-500 pb-24">
-              {/* Welcome Banner */}
-              <Card className="bg-gradient-to-r from-primary/20 to-purple-600/10 border-white/5 p-8 sm:p-12 rounded-[3rem] relative overflow-hidden group">
-                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] -mr-32 -mt-32 group-hover:bg-primary/30 transition-all duration-700" />
-                 <div className="relative z-10 space-y-4 max-w-2xl">
-                    <h2 className="text-4xl sm:text-5xl font-black italic uppercase tracking-tighter text-white">Boost Your <span className="text-primary">Reach</span></h2>
-                    <p className="text-lg text-muted-foreground font-medium leading-relaxed">
-                       Promotions help you reach 10x more users. Featured websites receive higher visibility, better placement, and premium credibility across the Bessites ecosystem.
-                    </p>
-                    <Button className="bg-white text-black hover:bg-primary hover:text-white rounded-2xl h-14 px-10 font-black uppercase tracking-widest text-xs italic transition-all">
-                       Start a Campaign
-                    </Button>
-                 </div>
-              </Card>
-
-              {/* Search & Stats Filter Row */}
-              <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
-                 <div className="relative group w-full md:w-96">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <input 
-                      placeholder="Search your promoted websites..." 
-                      className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 text-xs font-medium focus:ring-1 focus:ring-primary/50 outline-none transition-all" 
-                    />
-                 </div>
-                 <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 md:pb-0 w-full md:w-auto">
-                    <Button variant="outline" className="rounded-xl border-white/10 bg-white/5 h-12 px-6 font-bold text-[10px] uppercase shrink-0"><Filter className="w-3 h-3 mr-2" /> All Campaigns</Button>
-                    <Button variant="outline" className="rounded-xl border-white/10 bg-white/5 h-12 px-4 shrink-0 text-muted-foreground"><Megaphone className="w-4 h-4" /></Button>
-                    <Button variant="outline" className="rounded-xl border-white/10 bg-white/5 h-12 px-4 shrink-0 text-muted-foreground relative"><Bell className="w-4 h-4" /><span className="absolute top-3 right-3 w-1.5 h-1.5 bg-primary rounded-full" /></Button>
-                 </div>
-              </div>
-
-              {/* Promotion Metrics Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-                 <PromotionStatCard label="Active Promotions" value="3" trend="+1" trendUp color="text-primary" icon={Megaphone} />
-                 <PromotionStatCard label="Promotion Clicks" value="12.4k" trend="+18%" trendUp color="text-emerald-400" icon={Zap} />
-                 <PromotionStatCard label="Total Spend" value="$240.00" trend="-12%" trendUp={false} color="text-amber-400" icon={DollarSign} />
-                 <PromotionStatCard label="Reach Estimate" value="850k" trend="Rising" trendUp color="text-purple-400" icon={Target} />
-              </div>
-
-              {/* Large Performance Graph & Distribution */}
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                 <div className="xl:col-span-2">
-                    <Card className="bg-[#121117] border-white/5 p-8 sm:p-10 rounded-[3rem] shadow-2xl space-y-8">
-                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+               <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 md:gap-12">
+                  <div className="xl:col-span-2 space-y-8 md:space-y-12">
+                    {/* Primary Performance Graph */}
+                    <Card className="bg-[#121117] border-white/5 p-6 sm:p-10 rounded-[2.5rem] sm:rounded-[3.5rem] shadow-2xl relative overflow-hidden group">
+                       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] -mr-32 -mt-32 transition-all group-hover:bg-primary/10" />
+                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12 relative z-10">
                           <div className="space-y-1">
-                             <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">Campaign Performance</h3>
-                             <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.3em] opacity-40">Tracking impressions and click-through metrics</p>
+                             <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">Performance Engine</h3>
+                             <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.3em] opacity-40">Real-time Website Traffic Analysis</p>
                           </div>
-                          <div className="bg-white/5 p-1 rounded-2xl border border-white/5 flex">
-                             {['7D', '30D', '90D', 'All'].map(t => (
-                               <button key={t} className={cn("px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all", t === '30D' ? "bg-primary text-white" : "text-muted-foreground hover:text-white")}>{t}</button>
+                          <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar max-w-full">
+                             {['Today', '7D', '30D', '90D', '1Y', 'Life'].map(t => (
+                               <button key={t} className={cn("px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all shrink-0", t === '30D' ? "bg-primary text-white shadow-xl shadow-primary/20" : "text-muted-foreground hover:text-white")}>{t}</button>
                              ))}
                           </div>
                        </div>
-                       <div className="h-80 w-full flex items-end justify-between gap-2 pb-6 border-b border-white/5 overflow-x-auto no-scrollbar">
-                          {[60, 45, 90, 75, 55, 80, 100, 85, 60, 45, 70, 85, 90, 60, 95, 110, 80, 70].map((h, i) => (
-                             <div key={i} className="flex-1 min-w-[12px] bg-primary/20 hover:bg-primary transition-all rounded-t-xl" style={{ height: `${h}%` }} />
-                          ))}
-                       </div>
-                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
-                          <SmallTrend label="Total Impressions" value="1.2M" trend="+8.4%" />
-                          <SmallTrend label="Website Clicks" value="48.5k" trend="+12.1%" />
-                          <SmallTrend label="Average CTR" value="4.2%" trend="+0.5%" />
-                          <SmallTrend label="Daily Reach" value="42k" trend="+5.2%" />
-                       </div>
-                    </Card>
-                 </div>
-
-                 <div className="space-y-8">
-                    <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-2xl space-y-8">
-                       <div className="flex justify-between items-center"><h3 className="text-lg font-black italic uppercase tracking-tighter">Campaign Distribution</h3><PieChart className="w-4 h-4 text-primary" /></div>
-                       <div className="relative flex justify-center py-4">
-                          <div className="w-40 h-40 rounded-full border-[12px] border-white/5 relative flex items-center justify-center">
-                             <div className="absolute inset-0 rounded-full border-[12px] border-primary border-r-transparent border-b-transparent -rotate-45" />
-                             <div className="text-center"><span className="text-2xl font-black italic tracking-tighter text-white">74%</span><p className="text-[8px] font-bold text-muted-foreground uppercase">Efficiency</p></div>
-                          </div>
-                       </div>
-                       <div className="space-y-4">
-                          <DistributionRow label="Homepage Featured" percentage={45} color="bg-primary" />
-                          <DistributionRow label="Trending Section" percentage={25} color="bg-purple-500" />
-                          <DistributionRow label="Search Results" percentage={18} color="bg-blue-400" />
-                          <DistributionRow label="Recommendations" percentage={12} color="bg-indigo-400" />
-                       </div>
-                    </Card>
-
-                    <Card className="bg-gradient-to-br from-primary/10 to-purple-600/10 border-white/10 p-8 rounded-[3rem] shadow-xl relative overflow-hidden group h-fit">
-                       <div className="relative z-10 flex flex-col items-center text-center space-y-4">
-                          <div className="p-4 bg-white text-black rounded-full shadow-2xl group-hover:scale-110 transition-transform"><Plus className="w-8 h-8" strokeWidth={3} /></div>
-                          <h4 className="text-xl font-black italic uppercase tracking-tighter">Create New Promotion</h4>
-                          <p className="text-[10px] text-muted-foreground font-bold leading-relaxed px-4">Ready to double your traffic? Launch a premium placement campaign in seconds.</p>
-                          <Button className="w-full h-14 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-[10px] italic shadow-lg">Get Started</Button>
-                       </div>
-                    </Card>
-                 </div>
-              </div>
-
-              {/* Active Campaigns & AI assistant */}
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                 <div className="xl:col-span-2">
-                    <Card className="bg-[#121117] border-white/5 rounded-[3rem] overflow-hidden shadow-2xl">
-                       <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
-                          <h3 className="text-xl font-black italic uppercase tracking-tighter">Active Campaigns</h3>
-                          <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-primary italic">View All History</Button>
-                       </div>
-                       <div className="divide-y divide-white/5">
-                          {[1, 2].map((_, i) => (
-                            <div key={i} className="p-8 hover:bg-white/[0.02] transition-all flex flex-col sm:flex-row items-center gap-8">
-                               <div className="w-16 h-16 rounded-2xl bg-[#0B0A0F] border border-white/10 flex items-center justify-center overflow-hidden shadow-xl shrink-0">
-                                  <img src={`https://picsum.photos/seed/${i+42}/200`} className="w-full h-full object-cover" />
-                               </div>
-                               <div className="flex-1 min-w-0 text-center sm:text-left space-y-1">
-                                  <h4 className="text-lg font-black text-white italic tracking-tighter">Tools.ai Promotion</h4>
-                                  <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Placement: Homepage Featured</p>
-                                  <div className="flex items-center justify-center sm:justify-start gap-3 mt-2">
-                                     <Badge className="bg-emerald-500/10 text-emerald-400 border-none font-black text-[8px] italic uppercase tracking-widest px-2 py-0.5">Active</Badge>
-                                     <span className="text-[9px] font-bold text-muted-foreground/40 italic">Ends in 4 days</span>
-                                  </div>
-                               </div>
-                               <div className="grid grid-cols-3 gap-8 text-center px-4 sm:px-0">
-                                  <div><p className="text-lg font-black italic tracking-tighter text-white">4.2k</p><p className="text-[8px] font-bold text-muted-foreground uppercase">Clicks</p></div>
-                                  <div><p className="text-lg font-black italic tracking-tighter text-white">85k</p><p className="text-[8px] font-bold text-muted-foreground uppercase">Views</p></div>
-                                  <div><p className="text-lg font-black italic tracking-tighter text-white">4.9%</p><p className="text-[8px] font-bold text-muted-foreground uppercase">CTR</p></div>
-                               </div>
-                               <div className="flex gap-2 shrink-0">
-                                  <Button variant="outline" size="icon" className="w-12 h-12 rounded-xl border-white/5 bg-white/5 hover:bg-white/10"><Edit className="w-4 h-4" /></Button>
-                                  <Button variant="outline" size="icon" className="w-12 h-12 rounded-xl border-white/5 bg-white/5 hover:bg-destructive/10 hover:text-destructive"><X className="w-4 h-4" /></Button>
-                               </div>
-                            </div>
-                          ))}
-                       </div>
-                    </Card>
-                 </div>
-
-                 <div className="space-y-8">
-                    <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/10 p-8 rounded-[3rem] shadow-xl space-y-6">
-                       <div className="flex items-center gap-3">
-                          <div className="p-2.5 bg-primary/10 rounded-xl text-primary"><Sparkles className="w-4 h-4" /></div>
-                          <h3 className="text-lg font-black italic uppercase tracking-tighter">AI Promotion Assistant</h3>
-                       </div>
-                       <div className="space-y-4">
-                          {[
-                            "Your current campaign is outperforming category average by 24%.",
-                            "Suggesting higher budget for Weekend traffic spikes.",
-                            "Programming websites reach peak CTR between 6PM and 10PM."
-                          ].map((insight, i) => (
-                             <div key={i} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/20 transition-all group cursor-default">
-                                <div className="w-1 bg-primary rounded-full group-hover:scale-y-125 transition-transform" />
-                                <p className="text-[11px] font-bold text-white/60 leading-relaxed italic">"{insight}"</p>
-                             </div>
-                          ))}
-                       </div>
-                       <Button className="w-full h-12 rounded-xl bg-primary/10 border border-primary/20 text-primary font-black uppercase text-[9px] italic hover:bg-primary hover:text-white transition-all">Generate Strategy</Button>
-                    </Card>
-
-                    <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl space-y-6">
-                       <div className="flex justify-between items-center"><h3 className="text-lg font-black italic uppercase tracking-tighter">Recent Activity</h3><div className="w-2 h-2 rounded-full bg-primary animate-pulse" /></div>
-                       <div className="space-y-5">
-                          {[
-                            { label: "Campaign approved", time: "2m ago", icon: Check, color: "text-emerald-400" },
-                            { label: "Budget almost exhausted", time: "15m ago", icon: AlertTriangle, color: "text-amber-400" },
-                            { label: "Payment received", time: "1h ago", icon: CreditCard, color: "text-blue-400" },
-                            { label: "Editor's Choice awarded", time: "3h ago", icon: Award, color: "text-purple-400" }
-                          ].map((act, i) => (
-                             <div key={i} className="flex items-start justify-between gap-4">
-                                <div className="flex items-start gap-3">
-                                   <div className={cn("p-1.5 rounded-lg bg-white/5", act.color)}><act.icon className="w-3 h-3" /></div>
-                                   <p className="text-[11px] font-bold text-white/60 tracking-tight leading-none mt-1">{act.label}</p>
-                                </div>
-                                <span className="text-[9px] font-black uppercase text-white/10 shrink-0">{act.time}</span>
+                       <div className="h-80 w-full flex items-end justify-between gap-1.5 pb-6 border-b border-white/5 group/bars overflow-x-auto no-scrollbar">
+                          {[40, 65, 45, 90, 75, 55, 80, 100, 85, 60, 45, 70, 85, 90, 60].map((h, i) => (
+                             <div key={i} className="flex-1 min-w-[20px] bg-primary/20 hover:bg-primary transition-all rounded-t-xl relative group/bar cursor-pointer">
+                                <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent" />
+                                <div className="h-full w-full" style={{ height: `${h}%` }} />
+                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-card border border-white/10 text-[9px] font-black px-2 py-1 rounded-md opacity-0 group-hover/bar:opacity-100 transition-opacity shadow-2xl z-20 whitespace-nowrap">{h}% Growth</div>
                              </div>
                           ))}
                        </div>
                     </Card>
-                 </div>
-              </div>
 
-              {/* Billing Summary */}
-              <Card className="bg-[#121117] border-white/5 rounded-[3rem] overflow-hidden shadow-2xl">
-                 <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
-                    <h3 className="text-xl font-black italic uppercase tracking-tighter">Billing & Invoices</h3>
-                    <Button variant="outline" className="rounded-xl border-white/5 bg-white/5 h-10 px-4 font-bold text-[9px] uppercase"><Download className="w-3 h-3 mr-2" /> Export PDF</Button>
-                 </div>
-                 <div className="overflow-x-auto no-scrollbar">
-                    <table className="w-full text-left min-w-[800px]">
-                       <thead className="bg-white/5">
-                          <tr>
-                             <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Payment Date</th>
-                             <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Campaign Name</th>
-                             <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Promotion Type</th>
-                             <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Amount</th>
-                             <th className="p-6 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Status</th>
-                          </tr>
-                       </thead>
-                       <tbody className="divide-y divide-white/5">
-                          {[1, 2].map((_, i) => (
-                             <tr key={i} className="hover:bg-white/[0.02] transition-colors group">
-                                <td className="p-6 text-xs font-bold text-white/40">Feb {24 - i}, 2024</td>
-                                <td className="p-6 text-sm font-black text-white italic">Tools.ai Spotlight</td>
-                                <td className="p-6"><Badge className="bg-white/5 text-white border-none font-black text-[8px] uppercase tracking-widest px-2 py-0.5">Homepage</Badge></td>
-                                <td className="p-6 font-black text-xs text-white/80 tabular-nums">$120.00</td>
-                                <td className="p-6 text-right"><Badge className="bg-emerald-500/10 text-emerald-400 border-none font-black text-[8px] uppercase tracking-widest px-2 py-0.5 italic">Paid</Badge></td>
-                             </tr>
+                    {/* Registry Peek */}
+                    <div className="space-y-6">
+                       <div className="flex items-center justify-between">
+                          <h3 className="text-xl font-black italic uppercase tracking-tighter">Your Top Digital Properties</h3>
+                          <button onClick={() => setActiveView('my-websites')} className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors flex items-center gap-2">Manage All <ArrowRight className="w-3 h-3" /></button>
+                       </div>
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {rawSubmissions?.slice(0, 4).map((site: any) => (
+                             <SmallWebsiteCard key={site.id} site={site} globalStats={globalStats} />
                           ))}
-                       </tbody>
-                    </table>
-                 </div>
-              </Card>
-            </div>
-          )}
-
-          {activeView === 'reviews' && (
-            <div className="space-y-12 animate-in fade-in duration-500 pb-24">
-               <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8">
-                  <div className="space-y-1">
-                     <h2 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-white">Reviews Intelligence</h2>
-                     <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em] opacity-40">Manage Community Sentiment & Trust</p>
+                       </div>
+                    </div>
                   </div>
-                  <div className="flex gap-3">
-                     <Button variant="outline" className="rounded-2xl border-white/10 bg-white/5 font-black uppercase tracking-widest text-[10px] h-12 px-6">
-                        <Filter className="w-3.5 h-3.5 mr-2" /> Filter Rating
-                     </Button>
+
+                  <div className="space-y-8 md:space-y-12">
+                     {/* AI Assistant Quick Panel */}
+                     <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/10 p-8 rounded-[3rem] shadow-xl space-y-8 group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[50px] -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
+                        <div className="flex items-center gap-3 relative z-10">
+                           <div className="p-2.5 bg-primary/10 rounded-xl text-primary"><Sparkles className="w-4 h-4" /></div>
+                           <h3 className="text-lg font-black italic uppercase tracking-tighter">Bessites Assistant</h3>
+                        </div>
+                        <div className="space-y-4 relative z-10">
+                           {["Increase my website clicks", "Suggest better categories", "Generate SEO tags"].map(q => (
+                              <button key={q} className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/20 hover:bg-white/[0.08] transition-all group/btn text-left">
+                                 <span className="text-[11px] font-bold text-white/60 group-hover/btn:text-white transition-colors">"{q}"</span>
+                                 <ChevronRight className="w-3 h-3 text-muted-foreground/30 group-hover/btn:text-primary group-hover/btn:translate-x-1 transition-all" />
+                              </button>
+                           ))}
+                        </div>
+                     </Card>
+
+                     <AudienceWidget />
+                     <RecentActivityPanel />
                   </div>
-               </header>
-
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Card className="p-8 rounded-[2.5rem] bg-[#121117] border border-white/5 space-y-6 shadow-xl relative overflow-hidden">
-                     <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 blur-[50px] -mr-16 -mt-16" />
-                     <div className="flex justify-between items-center relative">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Global Rating</p>
-                        <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-                     </div>
-                     <div className="flex items-end gap-3 relative">
-                        <h3 className="text-5xl font-black italic tracking-tighter">{stats.rating}</h3>
-                        <span className="text-xs font-black text-amber-500/40 mb-2">/ 5.0</span>
-                     </div>
-                     <div className="h-1 bg-white/5 rounded-full relative"><div className="h-full bg-amber-500 rounded-full" style={{ width: `${(parseFloat(stats.rating) / 5) * 100}%` }} /></div>
-                  </Card>
-
-                  <Card className="p-8 rounded-[2.5rem] bg-[#121117] border border-white/5 space-y-6 shadow-xl relative overflow-hidden">
-                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[50px] -mr-16 -mt-16" />
-                     <div className="flex justify-between items-center relative">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Total Reviews</p>
-                        <MessageSquare className="w-5 h-5 text-primary" />
-                     </div>
-                     <div className="flex items-end gap-3 relative">
-                        <h3 className="text-5xl font-black italic tracking-tighter">{stats.ratingCount}</h3>
-                        <span className="text-xs font-black text-primary/40 mb-2">ENGAGED USERS</span>
-                     </div>
-                     <p className="text-[9px] font-black uppercase text-emerald-400 flex items-center gap-1"><ArrowUpRight className="w-3 h-3" /> +14% Momentum</p>
-                  </Card>
-
-                  <Card className="p-8 rounded-[2.5rem] bg-[#121117] border border-white/5 space-y-4 shadow-xl">
-                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Sentiment Heatmap</p>
-                     <div className="space-y-3">
-                        <SentimentBar label="Positive" percentage={78} icon={Smile} color="text-emerald-400" bg="bg-emerald-400" />
-                        <SentimentBar label="Neutral" percentage={15} icon={Meh} color="text-amber-400" bg="bg-amber-400" />
-                        <SentimentBar label="Negative" percentage={7} icon={Frown} color="text-rose-500" bg="bg-rose-500" />
-                     </div>
-                  </Card>
                </div>
-
-               <Card className="bg-[#121117] border-white/5 rounded-[2rem] sm:rounded-[3rem] shadow-2xl overflow-hidden">
-                  <div className="p-6 sm:p-10 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/[0.01]">
-                     <h3 className="text-2xl font-black italic uppercase tracking-tighter">Recent Feedback</h3>
-                     <div className="flex gap-4">
-                        <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-primary italic">Export PDF Report</Button>
-                     </div>
-                  </div>
-                  
-                  <div className="divide-y divide-white/5">
-                     <div className="p-20 text-center space-y-4 opacity-40">
-                        <MessageSquare className="w-12 h-12 mx-auto mb-4" />
-                        <p className="text-xl font-bold italic tracking-tight">Review stream is synchronizing...</p>
-                        <p className="text-sm text-muted-foreground max-w-xs mx-auto">We are aggregating feedback from all your digital properties into this central hub.</p>
-                     </div>
-                  </div>
-               </Card>
             </div>
           )}
 
           {activeView === 'my-websites' && (
-            <div className="space-y-12 animate-in fade-in duration-500 pb-20">
-              <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8">
-                 <div className="space-y-1">
-                    <h2 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-white">Your Projects</h2>
-                 </div>
-                 <Button onClick={() => router.push('/submit')} className="w-full sm:w-auto h-14 px-8 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-xs italic shadow-2xl hover:bg-primary hover:text-white transition-all">
-                    <Plus className="w-4 h-4 mr-2" /> Submit New Project
-                 </Button>
-              </header>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10">
-                 {rawSubmissions?.map((site: any) => (
-                    <Card key={site.id} className="bg-[#121117] border-white/5 rounded-[2.5rem] sm:rounded-[3rem] overflow-hidden group hover:border-white/10 transition-all shadow-2xl flex flex-col p-8">
-                       <div className="flex items-start justify-between mb-8">
-                          <div className="w-20 h-20 rounded-[1.75rem] bg-[#0B0A0F] border border-white/5 flex items-center justify-center overflow-hidden">
-                             {site.logoUrl ? <img src={site.logoUrl} className="w-full h-full object-cover" /> : <Globe className="w-10 h-10 opacity-20" />}
-                          </div>
-                          <Badge className={cn("uppercase text-[9px] font-black border-none", site.status === 'approved' ? "bg-green-500/10 text-green-500" : "bg-amber-500/10 text-amber-500")}>{site.status || 'pending'}</Badge>
-                       </div>
-                       <h4 className="text-2xl font-black italic tracking-tighter text-white truncate mb-4">{site.url.replace('https://', '')}</h4>
-                       <div className="mt-auto pt-6 border-t border-white/5 flex gap-2">
-                          <Button variant="outline" className="flex-1 h-12 rounded-xl border-white/10 text-[10px] font-black uppercase tracking-widest">Edit</Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(site.id)} className="h-12 w-12 rounded-xl bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></Button>
-                       </div>
-                    </Card>
-                 ))}
-                 {(!rawSubmissions || rawSubmissions.length === 0) && (
-                   <div className="col-span-full py-40 text-center border-2 border-dashed border-white/5 rounded-[3rem] space-y-4 opacity-40">
-                      <Plus className="w-12 h-12 mx-auto" />
-                      <p className="text-xl font-bold italic">No projects submitted yet.</p>
-                   </div>
-                 )}
-              </div>
+            <div className="space-y-12 animate-in fade-in duration-500 pb-24">
+               <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8">
+                  <div className="space-y-1">
+                     <h2 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-white">The Website Registry</h2>
+                     <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em] opacity-40">Managing {stats.total} Active digital properties</p>
+                  </div>
+                  <Button onClick={() => router.push('/submit')} className="w-full sm:w-auto h-14 px-10 rounded-[1.5rem] bg-white text-black font-black uppercase tracking-widest text-xs italic shadow-2xl shadow-white/5 hover:bg-primary hover:text-white transition-all">
+                     <Plus className="w-4 h-4 mr-2" strokeWidth={3} /> Submit New Project
+                  </Button>
+               </header>
+
+               <div className="bg-[#121117] border border-white/5 rounded-[2.5rem] sm:rounded-[3.5rem] overflow-hidden shadow-2xl">
+                  <div className="overflow-x-auto no-scrollbar">
+                     <table className="w-full text-left min-w-[1000px]">
+                        <thead className="bg-white/5">
+                           <tr>
+                              <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Digital Property</th>
+                              <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 text-center">Status</th>
+                              <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Performance</th>
+                              <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">CTR Momentum</th>
+                              <th className="p-8 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Studio Actions</th>
+                           </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                           {rawSubmissions?.map((site: any) => {
+                             const siteStats = globalStats?.find(gs => gs.id === site.id);
+                             const ctr = siteStats?.visitCount ? ((siteStats.visitCount / (siteStats.visitCount * 4)) * 100).toFixed(1) : "0.0";
+                             return (
+                                <tr key={site.id} className="group hover:bg-white/[0.02] transition-colors">
+                                   <td className="p-8">
+                                      <div className="flex items-center gap-6">
+                                         <div className="w-16 h-16 rounded-[1.25rem] bg-[#0B0A0F] border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-lg group-hover:scale-105 transition-transform duration-500">
+                                            {site.logoUrl ? <img src={site.logoUrl} className="w-full h-full object-cover" /> : <Globe className="w-6 h-6 text-white/10" />}
+                                         </div>
+                                         <div className="min-w-0">
+                                            <p className="text-sm font-black italic tracking-tighter text-white group-hover:text-primary transition-colors truncate">{site.url.replace('https://', '')}</p>
+                                            <p className="text-[10px] text-muted-foreground font-medium opacity-40 italic mt-0.5">Updated {site.timestamp ? formatDistanceToNow(site.timestamp.toDate()) : 'Recently'} ago</p>
+                                         </div>
+                                      </div>
+                                   </td>
+                                   <td className="p-8">
+                                      <div className="flex justify-center">
+                                         <Badge className={cn(
+                                            "uppercase text-[9px] font-black px-3 py-1 rounded-full border-none",
+                                            site.status === 'approved' ? "bg-emerald-500/10 text-emerald-400" :
+                                            site.status === 'rejected' ? "bg-rose-500/10 text-rose-400" : "bg-amber-500/10 text-amber-400"
+                                         )}>
+                                            {site.status || 'pending'}
+                                         </Badge>
+                                      </div>
+                                   </td>
+                                   <td className="p-8">
+                                      <div className="flex items-center gap-6">
+                                         <div className="text-center">
+                                            <p className="text-sm font-black italic tracking-tighter text-white">{(siteStats?.visitCount || 0) * 4}</p>
+                                            <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest opacity-40">Views</p>
+                                         </div>
+                                         <div className="text-center">
+                                            <p className="text-sm font-black italic tracking-tighter text-white">{siteStats?.visitCount || 0}</p>
+                                            <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest opacity-40">Clicks</p>
+                                         </div>
+                                      </div>
+                                   </td>
+                                   <td className="p-8">
+                                      <div className="flex items-center gap-3">
+                                         <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                            <div className="h-full bg-primary rounded-full shadow-[0_0_10px_rgba(123,51,255,0.6)]" style={{ width: `${Math.min(parseFloat(ctr) * 4, 100)}%` }} />
+                                         </div>
+                                         <span className="text-[10px] font-black text-primary italic">{ctr}%</span>
+                                      </div>
+                                   </td>
+                                   <td className="p-8">
+                                      <div className="flex items-center justify-end gap-2">
+                                         <button className="p-3 hover:bg-white/5 rounded-xl transition-all text-muted-foreground hover:text-white" title="Promotion Studio"><Flame className="w-4 h-4" /></button>
+                                         <button className="p-3 hover:bg-white/5 rounded-xl transition-all text-muted-foreground hover:text-white" title="Performance Suite"><BarChart3 className="w-4 h-4" /></button>
+                                         <button className="p-3 hover:bg-white/5 rounded-xl transition-all text-muted-foreground hover:text-white"><Edit className="w-4 h-4" /></button>
+                                         <button className="p-3 hover:bg-destructive/10 rounded-xl transition-all text-muted-foreground hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
+                                      </div>
+                                   </td>
+                                </tr>
+                             );
+                           })}
+                           {(!rawSubmissions || rawSubmissions.length === 0) && (
+                             <tr>
+                                <td colSpan={5} className="p-40 text-center text-muted-foreground italic font-medium opacity-20">The registry is currently empty. Submit your first project to unlock performance metrics.</td>
+                             </tr>
+                           )}
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
             </div>
           )}
 
+          {activeView !== 'overview' && activeView !== 'my-websites' && (
+             <div className="py-40 flex flex-col items-center justify-center text-center space-y-8 animate-in zoom-in duration-500">
+                <div className="w-32 h-32 bg-primary/5 rounded-[3.5rem] flex items-center justify-center text-primary mb-4 shadow-inner">
+                   <Zap className="w-16 h-16 opacity-20" />
+                </div>
+                <div className="space-y-3">
+                   <h3 className="text-5xl font-black italic uppercase tracking-tighter">Module Sync <span className="text-primary">Required</span></h3>
+                   <p className="text-muted-foreground font-medium max-w-lg mx-auto opacity-60">The <span className="text-white font-bold">{activeView.toUpperCase()}</span> infrastructure is currently being synchronized with the primary Bessites discovery cluster.</p>
+                </div>
+                <Button variant="outline" onClick={() => setActiveView('overview')} className="rounded-full h-16 px-16 border-white/10 bg-white/5 font-black uppercase tracking-widest text-xs italic hover:bg-primary hover:text-white transition-all shadow-xl">Back to Dashboard</Button>
+             </div>
+          )}
         </div>
       </main>
     </div>
   );
 }
 
-function SentimentBar({ label, percentage, icon: Icon, color, bg }: { label: string, percentage: number, icon: any, color: string, bg: string }) {
+function StatCard({ label, value, icon: Icon, trend, trendUp, color = "text-primary" }: { label: string, value: string, icon: any, trend: string, trendUp: boolean, color?: string }) {
   return (
-    <div className="space-y-1.5">
-       <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
-          <div className="flex items-center gap-1.5"><Icon className={cn("w-3 h-3", color)} /> {label}</div>
-          <span className="text-white/40">{percentage}%</span>
-       </div>
-       <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-          <div className={cn("h-full rounded-full", bg)} style={{ width: `${percentage}%` }} />
-       </div>
-    </div>
+    <Card className="bg-[#121117] border-white/5 p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] group hover:scale-[1.02] hover:bg-[#1A1823] transition-all duration-500 shadow-xl relative overflow-hidden flex flex-col justify-between cursor-default">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.02] blur-[40px] -mr-16 -mt-16 group-hover:bg-primary/5 transition-colors" />
+      <div className="flex justify-between items-start mb-8 relative z-10">
+        <div className={cn("p-3 rounded-2xl bg-white/5 transition-all group-hover:scale-110", color)}>
+          <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
+        </div>
+        <div className={cn("flex items-center gap-1 text-[9px] font-black uppercase tracking-tighter px-2.5 py-1 rounded-full", trendUp ? "bg-emerald-500/10 text-emerald-400" : "bg-muted text-muted-foreground/40")}>
+           {trendUp ? <ArrowUpRight className="w-2.5 h-2.5" /> : null}
+           {trend}
+        </div>
+      </div>
+      <div className="relative z-10">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30 mb-1">{label}</p>
+        <h4 className="text-2xl sm:text-4xl font-black italic tracking-tighter text-white tabular-nums leading-none">{value}</h4>
+      </div>
+    </Card>
   );
 }
 
-function AnalyticsSummaryCard({ label, value, trend, trendUp, color }: { label: string, value: string, trend: string, trendUp: boolean, color: string }) {
+function SmallWebsiteCard({ site, globalStats }: { site: any, globalStats: any[] | null }) {
+  const siteStats = globalStats?.find(gs => gs.id === site.id);
   return (
-    <div className={cn("relative p-8 rounded-[2.5rem] border border-white/5 overflow-hidden group hover:scale-[1.02] transition-all duration-500", color)}>
-      <div className="relative z-10 flex flex-col h-full justify-between">
-        <div className="flex justify-between items-start mb-6">
-          <div className="p-3 bg-white/5 rounded-2xl"><BarChart3 className="w-5 h-5 text-white" /></div>
-          <button className="text-white/20 hover:text-white transition-colors"><MoreVertical className="w-4 h-4" /></button>
-        </div>
-        <div className="space-y-1">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{label}</p>
-          <div className="flex items-end gap-4">
-             <h3 className="text-4xl font-black italic tracking-tighter text-white leading-none tabular-nums">{value}</h3>
-             <div className={cn("flex items-center gap-1 text-[10px] font-black mb-1", trendUp ? "text-emerald-400" : "text-rose-500")}>
-                {trendUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                {trend}
-             </div>
+    <div className="bg-[#121117] border border-white/5 p-5 rounded-[2rem] flex items-center justify-between group hover:border-primary/20 transition-all cursor-pointer shadow-lg overflow-hidden relative">
+       <div className="flex items-center gap-5 flex-1 min-w-0">
+          <div className="w-14 h-14 rounded-2xl bg-[#0B0A0F] border border-white/10 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
+             {site.logoUrl ? <img src={site.logoUrl} className="w-full h-full object-cover" /> : <Globe className="w-5 h-5 text-white/10" />}
           </div>
-        </div>
-      </div>
+          <div className="min-w-0">
+             <h4 className="text-sm font-black italic tracking-tighter text-white truncate">{site.url.replace('https://', '')}</h4>
+             <p className="text-[9px] font-black uppercase text-muted-foreground/30 tracking-widest mt-0.5">{site.categories?.[0] || 'Web App'}</p>
+          </div>
+       </div>
+       <div className="text-right ml-4">
+          <p className="text-sm font-black italic text-white leading-none">{(siteStats?.visitCount || 0) * 4}</p>
+          <p className="text-[8px] font-bold text-muted-foreground/20 uppercase tracking-widest">Views</p>
+       </div>
     </div>
   );
 }
 
-function PerformanceEngineChart() {
-  const [metric, setMetric] = useState('Views');
+function AudienceWidget() {
+  const regions = [
+    { name: 'India', val: '42%', color: 'bg-primary' },
+    { name: 'USA', val: '28%', color: 'bg-indigo-400' },
+    { name: 'UK', val: '15%', color: 'bg-sky-400' },
+    { name: 'Germany', val: '10%', color: 'bg-cyan-500' }
+  ];
   return (
-    <Card className="bg-[#121117] border-white/5 p-6 sm:p-10 rounded-[2.5rem] sm:rounded-[3rem] shadow-2xl space-y-10">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-         <div className="space-y-1">
-            <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">Website Performance</h3>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.3em] opacity-40">Interactive Traffic Analysis Engine</p>
-         </div>
-         <div className="flex flex-wrap gap-2 bg-white/5 p-1 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar max-w-full">
-            {['Views', 'Clicks', 'CTR', 'Likes', 'Saves'].map(m => (
-              <button key={m} onClick={() => setMetric(m)} className={cn("px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all shrink-0", metric === m ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:text-white")}>{m}</button>
-            ))}
-         </div>
-      </div>
-      <div className="h-80 w-full flex items-end justify-between gap-1.5 pb-6 border-b border-white/5 group overflow-x-auto no-scrollbar">
-         {[40, 65, 45, 90, 75, 55, 80, 100, 85, 60, 45, 70, 85, 90, 60].map((h, i) => (
-           <div key={i} className="flex-1 min-w-[15px] flex flex-col items-center gap-3 group/bar cursor-pointer">
-              <div className="w-full bg-primary/20 hover:bg-primary transition-all rounded-t-xl relative overflow-hidden" style={{ height: `${h}%` }}>
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent" />
-              </div>
-           </div>
-         ))}
-      </div>
-    </Card>
-  );
-}
-
-function SmallMetricCard({ label, value, sub, icon: Icon, pulse }: { label: string, value: string, sub: string, icon: any, pulse?: boolean }) {
-  return (
-    <div className="bg-[#121117] border border-white/5 p-6 rounded-[2.25rem] flex flex-col justify-between group hover:border-white/10 transition-all shadow-xl relative overflow-hidden">
-      {pulse && <div className="absolute top-4 right-4 w-2 h-2 bg-primary rounded-full animate-ping" />}
-      <div className="flex justify-between items-start mb-4">
-        <div className="p-2.5 rounded-xl bg-white/5 text-primary"><Icon className="w-4 h-4" /></div>
-      </div>
-      <div className="space-y-0.5">
-        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">{label}</p>
-        <h4 className="text-2xl font-black italic tracking-tighter text-white">{value}</h4>
-        <p className="text-[8px] font-bold text-muted-foreground/20 italic">{sub}</p>
-      </div>
-    </div>
-  );
-}
-
-function TrafficSourcesChart() {
-  const sources = [{ name: 'Home Feed', value: 35, color: 'bg-primary' }, { name: 'Search', value: 25, color: 'bg-purple-600' }, { name: 'Categories', value: 15, color: 'bg-blue-500' }, { name: 'Recommendations', value: 12, color: 'bg-indigo-400' }, { name: 'Google', value: 8, color: 'bg-cyan-500' }];
-  return (
-    <Card className="bg-[#121117] border-white/5 p-8 rounded-[2.5rem] shadow-xl space-y-8">
-      <div className="flex justify-between items-center"><h3 className="text-lg font-black italic uppercase tracking-tighter">Traffic Sources</h3><PieChart className="w-4 h-4 text-primary" /></div>
-      <div className="relative flex justify-center py-4">
-         <div className="w-40 h-40 rounded-full border-[12px] border-white/5 relative flex items-center justify-center">
-            <div className="absolute inset-0 rounded-full border-[12px] border-primary border-r-transparent border-b-transparent -rotate-45" />
-            <div className="text-center"><span className="text-2xl font-black italic tracking-tighter text-white">100%</span></div>
-         </div>
-      </div>
-      <div className="grid grid-cols-2 gap-y-4 gap-x-6">
-         {sources.map(s => (
-           <div key={s.name} className="flex items-center gap-3">
-              <div className={cn("w-1.5 h-1.5 rounded-full shrink-0", s.color)} />
-              <p className="text-[9px] font-black uppercase text-white/60 truncate tracking-tight">{s.name}</p>
-           </div>
-         ))}
-      </div>
-    </Card>
-  );
-}
-
-function WebsitePerformanceTable({ websites, globalStats }: { websites: any[] | null, globalStats: any[] | null }) {
-  return (
-    <Card className="bg-[#121117] border-white/5 rounded-[2.5rem] sm:rounded-[3rem] overflow-hidden shadow-2xl">
-      <div className="p-8 border-b border-white/5 flex justify-between items-center">
-         <h3 className="text-xl font-black italic uppercase tracking-tighter">Your Performance Registry</h3>
-      </div>
-      <div className="overflow-x-auto no-scrollbar">
-         <table className="w-full text-left min-w-[800px]">
-            <thead className="bg-white/5">
-               <tr>
-                  <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Digital Property</th>
-                  <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Views</th>
-                  <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Clicks</th>
-                  <th className="p-6 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">CTR Momentum</th>
-               </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-               {websites?.map(site => {
-                 const siteStats = globalStats?.find(gs => gs.id === site.id);
-                 const v = (siteStats?.visitCount || 0) * 4;
-                 const c = siteStats?.visitCount || 0;
-                 const ctr = v > 0 ? ((c / v) * 100).toFixed(1) : "0.0";
-                 return (
-                    <tr key={site.id} className="hover:bg-white/[0.02] transition-colors group">
-                       <td className="p-6">
-                          <div className="flex items-center gap-4">
-                             <div className="w-12 h-12 rounded-xl bg-[#0B0A0F] border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
-                                {site.logoUrl ? <img src={site.logoUrl} className="w-full h-full object-cover" /> : <Globe className="w-5 h-5 opacity-20" />}
-                             </div>
-                             <p className="text-sm font-black text-white truncate tracking-tight">{site.url.replace('https://', '')}</p>
-                          </div>
-                       </td>
-                       <td className="p-6 font-black text-xs text-white/80 tabular-nums">{v.toLocaleString()}</td>
-                       <td className="p-6 font-black text-xs text-white/80 tabular-nums">{c.toLocaleString()}</td>
-                       <td className="p-6 font-black text-xs text-emerald-400">{ctr}%</td>
-                    </tr>
-                 );
-               })}
-            </tbody>
-         </table>
-      </div>
-    </Card>
-  );
-}
-
-function PerformanceScoreGauge({ score }: { score: number }) {
-  return (
-    <Card className="bg-[#121117] border-white/5 p-10 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[80px] -mr-16 -mt-16" />
-      <div className="flex flex-col items-center space-y-6 relative z-10">
-         <div className="relative flex items-center justify-center">
-            <svg className="w-36 h-36 transform -rotate-90">
-               <circle cx="72" cy="72" r="64" stroke="currentColor" strokeWidth="10" fill="transparent" className="text-white/5" />
-               <circle cx="72" cy="72" r="64" stroke="currentColor" strokeWidth="10" fill="transparent" strokeDasharray="402" strokeDashoffset={402 - (402 * score) / 100} className="text-primary drop-shadow-[0_0_15px_rgba(123,51,255,0.6)]" strokeLinecap="round" />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-               <span className="text-5xl font-black italic tracking-tighter text-white leading-none">{score}</span>
-            </div>
-         </div>
-      </div>
-    </Card>
-  );
-}
-
-function AIInsightsCard() {
-  const insights = ["Your CTR increased 18% this week.", "Gaming websites perform 2.4x better for your profile."];
-  return (
-    <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/10 p-8 rounded-[2.5rem] shadow-xl space-y-6">
-      <div className="flex items-center gap-3"><div className="p-2.5 bg-primary/10 rounded-xl text-primary"><Sparkles className="w-4 h-4" /></div><h3 className="text-lg font-black italic uppercase tracking-tighter">AI Performance Insights</h3></div>
-      <div className="space-y-4">
-         {insights.map((insight, i) => (
-           <div key={i} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 group hover:border-primary/20 transition-all"><p className="text-[11px] font-bold text-white/60 leading-relaxed italic">"{insight}"</p></div>
-         ))}
-      </div>
-    </Card>
-  );
-}
-
-function ActivityFeed() {
-  const activities = [{ type: 'view', text: 'Someone viewed your website.', time: '2m ago' }, { type: 'click', text: 'Someone clicked your website.', time: '15m ago' }];
-  return (
-    <Card className="bg-[#121117] border-white/5 p-8 rounded-[2.5rem] shadow-xl space-y-6">
-      <div className="flex justify-between items-center"><h3 className="text-lg font-black italic uppercase tracking-tighter">Real-Time Activity</h3><div className="w-2 h-2 rounded-full bg-primary animate-pulse" /></div>
-      <div className="space-y-4">{activities.map((act, i) => (<div key={i} className="flex justify-between items-start gap-4"><p className="text-[11px] font-bold text-white/60 tracking-tight">{act.text}</p><span className="text-[9px] font-black uppercase text-white/10 shrink-0">{act.time}</span></div>))}</div>
-    </Card>
-  );
-}
-
-function AudienceStatCard({ label, value, growth, trendUp, color, icon: Icon }: { label: string, value: string, growth: string, trendUp: boolean, color: string, icon: any }) {
-   return (
-      <div className={cn("p-8 rounded-[2.5rem] border border-white/5 bg-[#121117] relative overflow-hidden group hover:scale-[1.02] transition-all")}>
-         <div className={cn("absolute top-0 right-0 w-32 h-32 blur-[80px] -mr-16 -mt-16 opacity-20", color)} />
-         <div className="relative z-10 flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-               <div className={cn("p-3 rounded-2xl bg-white/5", color.replace('bg-', 'text-'))}><Icon className="w-5 h-5" /></div>
-               <Badge className={cn("border-none text-[9px] font-black uppercase px-2 py-0.5", trendUp ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400")}>{growth}</Badge>
-            </div>
-            <div className="space-y-0.5">
-               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">{label}</p>
-               <h3 className="text-3xl font-black italic tracking-tighter leading-none">{value}</h3>
-            </div>
-         </div>
-      </div>
-   );
-}
-
-function PromotionStatCard({ label, value, trend, trendUp, color, icon: Icon }: { label: string, value: string, trend: string, trendUp: boolean, color: string, icon: any }) {
-   return (
-      <div className="p-8 rounded-[2.5rem] border border-white/5 bg-[#121117] relative overflow-hidden group hover:scale-[1.02] transition-all">
-         <div className={cn("absolute top-0 right-0 w-32 h-32 blur-[80px] -mr-16 -mt-16 opacity-20", color.replace('text-', 'bg-'))} />
-         <div className="relative z-10 flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-               <div className={cn("p-3 rounded-2xl bg-white/5", color)}><Icon className="w-5 h-5" /></div>
-               <Badge className={cn("border-none text-[9px] font-black uppercase px-2 py-0.5", trendUp ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400")}>{trend}</Badge>
-            </div>
-            <div className="space-y-0.5">
-               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">{label}</p>
-               <h3 className="text-3xl font-black italic tracking-tighter leading-none">{value}</h3>
-            </div>
-         </div>
-      </div>
-   );
-}
-
-function DistributionRow({ label, percentage, color }: { label: string, percentage: number, color: string }) {
-   return (
-      <div className="space-y-1.5">
-         <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
-            <span className="text-white/60">{label}</span>
-            <span className="text-white/40">{percentage}%</span>
-         </div>
-         <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-            <div className={cn("h-full rounded-full", color)} style={{ width: `${percentage}%` }} />
-         </div>
-      </div>
-   );
-}
-
-function SmallTrend({ label, value, trend }: { label: string, value: string, trend: string }) {
-   return (
-      <div className="space-y-1">
-         <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40">{label}</p>
-         <div className="flex items-center gap-2">
-            <span className="text-lg font-black text-white italic tracking-tighter">{value}</span>
-            <span className="text-[8px] font-bold text-emerald-400">{trend}</span>
-         </div>
-      </div>
-   );
-}
-
-function BreakdownGridCard({ title, items }: { title: string, items: any[] }) {
-   return (
-      <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-2xl flex flex-col h-fit">
-         <h3 className="text-lg font-black italic uppercase tracking-tighter mb-8">{title}</h3>
-         <div className="grid grid-cols-1 gap-5">
-            {items.map((item, i) => (
-               <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group">
-                  <div className="flex items-center gap-3">
-                     <item.icon className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
-                     <span className="text-xs font-bold text-white/80">{item.label}</span>
-                  </div>
-                  <span className="text-[10px] font-black uppercase text-muted-foreground/20">{item.value}</span>
+    <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl space-y-8 relative overflow-hidden group">
+       <div className="flex justify-between items-center relative z-10">
+          <h3 className="text-lg font-black italic uppercase tracking-tighter">Audience Pulse</h3>
+          <Map className="w-4 h-4 text-primary" />
+       </div>
+       <div className="space-y-5 relative z-10">
+          {regions.map(r => (
+            <div key={r.name} className="space-y-1.5">
+               <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
+                  <span className="text-white/60">{r.name}</span>
+                  <span className="text-white/30">{r.val}</span>
                </div>
-            ))}
-         </div>
-      </Card>
-   );
+               <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                  <div className={cn("h-full rounded-full transition-all duration-1000", r.color)} style={{ width: r.val }} />
+               </div>
+            </div>
+          ))}
+       </div>
+    </Card>
+  );
+}
+
+function RecentActivityPanel() {
+  const activity = [
+    { icon: Heart, label: 'Someone liked your website.', time: '2m ago', color: 'text-rose-500' },
+    { icon: Bookmark, label: 'Someone saved your website.', time: '15m ago', color: 'text-amber-500' },
+    { icon: Check, label: 'Website approved by admin.', time: '1h ago', color: 'text-emerald-500' }
+  ];
+  return (
+    <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl space-y-8">
+       <div className="flex justify-between items-center">
+          <h3 className="text-lg font-black italic uppercase tracking-tighter">Live Pulse</h3>
+          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+       </div>
+       <div className="space-y-6">
+          {activity.map((act, i) => (
+             <div key={i} className="flex items-start gap-4 group">
+                <div className={cn("p-2 rounded-xl bg-white/5 shrink-0 group-hover:scale-110 transition-transform", act.color)}><act.icon className="w-3.5 h-3.5" /></div>
+                <div className="min-w-0">
+                   <p className="text-[11px] font-bold text-white/60 leading-tight tracking-tight group-hover:text-white transition-colors">{act.label}</p>
+                   <p className="text-[9px] font-black uppercase text-muted-foreground/20 tracking-widest mt-1 italic">{act.time}</p>
+                </div>
+             </div>
+          ))}
+       </div>
+    </Card>
+  );
 }
 
 function SidebarItem({ icon: Icon, label, active = false, onClick, badge }: { icon: any, label: string, active?: boolean, onClick: () => void, badge?: number }) {
   return (
-    <button onClick={onClick} className={cn("w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all relative overflow-hidden group", active ? "text-white bg-gradient-to-r from-primary/40 to-transparent shadow-lg" : "text-muted-foreground/60 hover:text-white hover:bg-white/5")}>
+    <button 
+      onClick={onClick} 
+      className={cn(
+        "w-full flex items-center gap-4 px-6 py-4 rounded-[1.5rem] transition-all relative overflow-hidden group", 
+        active ? "text-white bg-gradient-to-r from-primary/40 to-transparent shadow-lg" : "text-muted-foreground/60 hover:text-white hover:bg-white/5"
+      )}
+    >
       {active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(123,51,255,1)]" />}
-      <Icon className={cn("w-5 h-5", active ? "text-primary" : "group-hover:scale-110 transition-transform")} />
+      <Icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", active ? "text-primary" : "group-hover:text-white")} />
       <span className="text-sm font-bold tracking-tight">{label}</span>
-      {badge !== undefined && (<span className="ml-auto bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-md shadow-lg">{badge}</span>)}
+      {badge !== undefined && (
+        <span className="ml-auto bg-primary text-white text-[9px] font-black px-2 py-0.5 rounded-md shadow-lg">{badge}</span>
+      )}
     </button>
   );
 }

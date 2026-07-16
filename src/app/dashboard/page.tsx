@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useMemo, useState, useEffect } from "react";
 import { useFirestore, useCollection, useUser, useDoc, useAuth } from "@/firebase";
-import { collection, doc, query, where, deleteDoc, updateDoc, orderBy } from "firebase/firestore";
+import { collection, doc, query, where, deleteDoc, updateDoc, orderBy, increment, serverTimestamp } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { 
   Check, 
@@ -59,7 +58,12 @@ import {
   Target,
   ArrowUpRight,
   ArrowDownRight,
-  Sparkles
+  Sparkles,
+  Gamepad2,
+  Palette,
+  Megaphone,
+  CreditCard,
+  Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -81,6 +85,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/co
 import { useToast } from "@/hooks/use-toast";
 import { WebsitePreview } from "@/components/website-preview";
 import { formatDistanceToNow } from "date-fns";
+import { Logo } from "@/components/logo";
 
 type DashboardView = 
   | 'overview'
@@ -137,7 +142,6 @@ export default function UserDashboard() {
     const totalClicks = myStats.reduce((acc, curr) => acc + (curr.visitCount || 0), 0);
     const totalLikes = myStats.reduce((acc, curr) => acc + (curr.likeCount || 0), 0);
     
-    // Virtual metrics for demo
     const totalViews = totalClicks * 4; 
     const ctr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0.0";
 
@@ -179,15 +183,10 @@ export default function UserDashboard() {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-3 mb-10">
-         <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-all">
-              <Zap className="w-6 h-6 text-white" fill="currentColor" />
-            </div>
-            <div className="min-w-0">
-              <span className="text-xl font-black italic uppercase tracking-tighter block leading-none">Bessites</span>
-              <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60">Creator Studio</span>
-            </div>
+      <div className="mb-10">
+         <Link href="/" className="group block">
+            <Logo showText />
+            <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60 mt-1 block">Creator Studio</span>
          </Link>
       </div>
 
@@ -225,14 +224,9 @@ export default function UserDashboard() {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 bg-[#0B0A0F]">
         
-        {/* Mobile Header & Nav Trigger */}
+        {/* Mobile Header */}
         <header className="lg:hidden flex items-center justify-between p-4 sticky top-0 bg-[#0B0A0F]/80 backdrop-blur-xl z-50 border-b border-white/5">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white" fill="currentColor" />
-            </div>
-            <span className="font-black italic uppercase tracking-tighter text-sm">Bessites</span>
-          </Link>
+          <Logo showText className="scale-75 origin-left" />
           
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <SheetTrigger asChild>
@@ -242,14 +236,14 @@ export default function UserDashboard() {
             </SheetTrigger>
             <SheetContent side="left" className="bg-[#0D0C12] border-r border-white/5 p-6 w-80">
               <SheetHeader>
-                <SheetTitle className="sr-only">Menu</SheetTitle>
+                <SheetTitle className="text-left text-xs font-black uppercase tracking-widest text-muted-foreground mb-4">Creator Menu</SheetTitle>
               </SheetHeader>
               <SidebarContent />
             </SheetContent>
           </Sheet>
         </header>
 
-        {/* Global Dashboard Command Bar */}
+        {/* Command Bar */}
         <div className="px-4 sm:px-8 md:px-12 pt-8 md:pt-12 pb-2">
           <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8 bg-[#0B0A0F]/80 backdrop-blur-xl z-40 py-2">
             <div className="space-y-1">
@@ -283,10 +277,9 @@ export default function UserDashboard() {
           </header>
         </div>
 
-        <div className="p-4 sm:p-8 md:p-12 overflow-y-auto no-scrollbar flex flex-col gap-8 md:gap-12">
+        <div className="p-4 sm:p-8 md:p-12 overflow-y-auto no-scrollbar flex flex-col gap-8 md:gap-12 pb-32">
           {activeView === 'overview' && (
             <div className="space-y-12 animate-in fade-in duration-700">
-               {/* High-Impact Stat Grid */}
                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
                   <StatCard label="Website Views" value={stats.views} icon={Eye} trend="+12.5%" trendUp />
                   <StatCard label="Website Clicks" value={stats.clicks} icon={MousePointer2} trend="+8.4%" trendUp />
@@ -300,7 +293,6 @@ export default function UserDashboard() {
 
                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 md:gap-12">
                   <div className="xl:col-span-2 space-y-8 md:space-y-12">
-                    {/* Primary Performance Graph */}
                     <Card className="bg-[#121117] border-white/5 p-6 sm:p-10 rounded-[2.5rem] sm:rounded-[3.5rem] shadow-2xl relative overflow-hidden group">
                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] -mr-32 -mt-32 transition-all group-hover:bg-primary/10" />
                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12 relative z-10">
@@ -325,7 +317,6 @@ export default function UserDashboard() {
                        </div>
                     </Card>
 
-                    {/* Registry Peek */}
                     <div className="space-y-6">
                        <div className="flex items-center justify-between">
                           <h3 className="text-xl font-black italic uppercase tracking-tighter">Your Top Digital Properties</h3>
@@ -340,7 +331,6 @@ export default function UserDashboard() {
                   </div>
 
                   <div className="space-y-8 md:space-y-12">
-                     {/* AI Assistant Quick Panel */}
                      <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/10 p-8 rounded-[3rem] shadow-xl space-y-8 group relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[50px] -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
                         <div className="flex items-center gap-3 relative z-10">
@@ -365,7 +355,7 @@ export default function UserDashboard() {
           )}
 
           {activeView === 'my-websites' && (
-            <div className="space-y-12 animate-in fade-in duration-500 pb-24">
+            <div className="space-y-12 animate-in fade-in duration-500">
                <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8">
                   <div className="space-y-1">
                      <h2 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-white">The Website Registry</h2>
@@ -397,7 +387,14 @@ export default function UserDashboard() {
                                    <td className="p-8">
                                       <div className="flex items-center gap-6">
                                          <div className="w-16 h-16 rounded-[1.25rem] bg-[#0B0A0F] border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-lg group-hover:scale-105 transition-transform duration-500">
-                                            {site.logoUrl ? <img src={site.logoUrl} className="w-full h-full object-cover" /> : <Globe className="w-6 h-6 text-white/10" />}
+                                            <WebsitePreview 
+                                              websiteUrl={site.url}
+                                              fallbackUrl={site.logoUrl}
+                                              alt={site.name || "Tool"}
+                                              width={64}
+                                              height={64}
+                                              className="w-full h-full object-cover"
+                                            />
                                          </div>
                                          <div className="min-w-0">
                                             <p className="text-sm font-black italic tracking-tighter text-white group-hover:text-primary transition-colors truncate">{site.url.replace('https://', '')}</p>
@@ -459,10 +456,131 @@ export default function UserDashboard() {
             </div>
           )}
 
-          {activeView !== 'overview' && activeView !== 'my-websites' && (
+          {activeView === 'promotions' && (
+            <div className="space-y-12 animate-in fade-in duration-500">
+               <div className="bg-gradient-to-r from-primary/20 to-purple-500/10 p-10 sm:p-16 rounded-[3.5rem] border border-white/5 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 blur-[120px] -mr-48 -mt-48 transition-transform group-hover:scale-110 duration-1000" />
+                  <div className="relative z-10 max-w-2xl space-y-6">
+                    <Badge className="bg-primary text-white border-none px-4 py-1 rounded-full font-black uppercase tracking-widest italic text-[10px]">Boost Discovery</Badge>
+                    <h2 className="text-4xl sm:text-6xl font-black italic uppercase tracking-tighter leading-none">Reach More <span className="text-primary">Curators.</span></h2>
+                    <p className="text-lg text-muted-foreground font-medium">Promote your high-quality websites to the front page and category highlights to increase traffic by up to 400%.</p>
+                    <Button className="h-16 px-12 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-sm italic shadow-2xl hover:scale-105 transition-all">
+                      Create New Promotion <ArrowUpRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                  <StatCard label="Active Campaigns" value="3" icon={Megaphone} trend="Live" trendUp color="text-emerald-500" />
+                  <StatCard label="Total Ad Clicks" value="14.2k" icon={MousePointer2} trend="+18%" trendUp />
+                  <StatCard label="Total Spend" value="$240.00" icon={CreditCard} trend="Budget OK" trendUp color="text-blue-500" />
+                  <StatCard label="Estimated Reach" value="85k+" icon={Zap} trend="+12k" trendUp color="text-amber-500" />
+               </div>
+
+               <div className="grid grid-cols-1 xl:grid-cols-3 gap-12">
+                  <Card className="xl:col-span-2 bg-[#121117] border-white/5 p-10 rounded-[3.5rem] space-y-10 shadow-2xl">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-2xl font-black italic uppercase tracking-tighter">Campaign Distribution</h3>
+                      <div className="flex gap-4">
+                        <div className="flex items-center gap-2 text-[10px] font-black uppercase text-primary"><div className="w-2 h-2 rounded-full bg-primary" /> Performance</div>
+                        <div className="flex items-center gap-2 text-[10px] font-black uppercase text-muted-foreground/30"><div className="w-2 h-2 rounded-full bg-white/10" /> Goal</div>
+                      </div>
+                    </div>
+                    <div className="h-96 flex items-center justify-center border border-white/5 rounded-3xl bg-white/[0.01]">
+                       <PieChart className="w-24 h-24 text-white/10" />
+                       <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 absolute">Ad Data Synchronizing</span>
+                    </div>
+                  </Card>
+
+                  <div className="space-y-8">
+                     <Card className="bg-primary/5 border-primary/20 p-8 rounded-[3rem] space-y-6">
+                        <div className="flex items-center gap-3">
+                           <Sparkles className="w-5 h-5 text-primary" />
+                           <h4 className="text-lg font-black italic uppercase tracking-tighter">AI Ad Assistant</h4>
+                        </div>
+                        <p className="text-xs text-muted-foreground font-medium italic leading-relaxed">"Your campaign in the <span className="text-white font-bold">Programming</span> category is outperforming generic placements by 24%. We recommend shifting 15% of your budget there."</p>
+                        <Button variant="outline" className="w-full border-primary/20 bg-primary/10 hover:bg-primary/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-primary italic">Apply Optimization</Button>
+                     </Card>
+
+                     <div className="space-y-4">
+                        <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground/40 italic ml-4">Recent Ad Events</h4>
+                        <div className="space-y-3">
+                           {[
+                             { label: 'Campaign Started', time: '2h ago', color: 'bg-emerald-500' },
+                             { label: 'Payment Received', time: '5h ago', color: 'bg-blue-500' },
+                             { label: 'Ad Approved', time: '1d ago', color: 'bg-primary' }
+                           ].map((e, i) => (
+                             <div key={i} className="flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/5">
+                                <div className="flex items-center gap-4">
+                                   <div className={cn("w-2 h-2 rounded-full", e.color)} />
+                                   <span className="text-[11px] font-bold">{e.label}</span>
+                                </div>
+                                <span className="text-[9px] font-black uppercase text-muted-foreground/40">{e.time}</span>
+                             </div>
+                           ))}
+                        </div>
+                     </div>
+                  </div>
+               </div>
+               
+               <div className="space-y-6">
+                  <h3 className="text-2xl font-black italic uppercase tracking-tighter ml-4">Active Campaigns</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     {[1, 2].map(i => (
+                       <Card key={i} className="bg-[#121117] border-white/5 p-8 rounded-[3rem] flex items-center justify-between group hover:border-primary/20 transition-all">
+                          <div className="flex items-center gap-6">
+                             <div className="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform duration-500">
+                                <ImageIcon className="w-8 h-8 text-white/5" />
+                             </div>
+                             <div className="min-w-0">
+                                <Badge className="bg-emerald-500/10 text-emerald-400 border-none text-[8px] font-black mb-2">ACTIVE</Badge>
+                                <h4 className="text-lg font-black italic tracking-tighter text-white truncate">Campaign_{i}.app</h4>
+                                <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest mt-1">Homepage Featured • 7 Days Left</p>
+                             </div>
+                          </div>
+                          <div className="text-right">
+                             <p className="text-xl font-black italic text-white leading-none">4.2k</p>
+                             <p className="text-[8px] font-bold text-muted-foreground/20 uppercase tracking-widest mt-1">Clicks</p>
+                          </div>
+                       </Card>
+                     ))}
+                  </div>
+               </div>
+
+               <div className="space-y-6">
+                  <h3 className="text-2xl font-black italic uppercase tracking-tighter ml-4">Billing & Payouts</h3>
+                  <Card className="bg-[#121117] border-white/5 rounded-[3rem] overflow-hidden">
+                     <table className="w-full text-left">
+                        <thead className="bg-white/5">
+                           <tr>
+                              <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Invoice ID</th>
+                              <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Date</th>
+                              <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Amount</th>
+                              <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Status</th>
+                              <th className="p-8 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Action</th>
+                           </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                           {[1, 2, 3].map(i => (
+                             <tr key={i} className="hover:bg-white/[0.02] transition-colors">
+                                <td className="p-8 text-xs font-bold font-code opacity-40">#BESS_0923{i}</td>
+                                <td className="p-8 text-[11px] font-bold text-white/60">Oct {10+i}, 2024</td>
+                                <td className="p-8 text-sm font-black italic text-white">$80.00</td>
+                                <td className="p-8"><Badge className="bg-emerald-500/10 text-emerald-400 border-none text-[8px] font-black">PAID</Badge></td>
+                                <td className="p-8 text-right"><button className="text-[10px] font-black uppercase text-primary italic hover:underline">Download PDF</button></td>
+                             </tr>
+                           ))}
+                        </tbody>
+                     </table>
+                  </Card>
+               </div>
+            </div>
+          )}
+
+          {activeView !== 'overview' && activeView !== 'my-websites' && activeView !== 'promotions' && (
              <div className="py-40 flex flex-col items-center justify-center text-center space-y-8 animate-in zoom-in duration-500">
                 <div className="w-32 h-32 bg-primary/5 rounded-[3.5rem] flex items-center justify-center text-primary mb-4 shadow-inner">
-                   <Zap className="w-16 h-16 opacity-20" />
+                   <Logo className="w-16 h-16 opacity-20 grayscale" />
                 </div>
                 <div className="space-y-3">
                    <h3 className="text-5xl font-black italic uppercase tracking-tighter">Module Sync <span className="text-primary">Required</span></h3>
@@ -504,7 +622,14 @@ function SmallWebsiteCard({ site, globalStats }: { site: any, globalStats: any[]
     <div className="bg-[#121117] border border-white/5 p-5 rounded-[2rem] flex items-center justify-between group hover:border-primary/20 transition-all cursor-pointer shadow-lg overflow-hidden relative">
        <div className="flex items-center gap-5 flex-1 min-w-0">
           <div className="w-14 h-14 rounded-2xl bg-[#0B0A0F] border border-white/10 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
-             {site.logoUrl ? <img src={site.logoUrl} className="w-full h-full object-cover" /> : <Globe className="w-5 h-5 text-white/10" />}
+             <WebsitePreview 
+                websiteUrl={site.url}
+                fallbackUrl={site.logoUrl}
+                alt={site.name || "Tool"}
+                width={48}
+                height={48}
+                className="w-full h-full"
+             />
           </div>
           <div className="min-w-0">
              <h4 className="text-sm font-black italic tracking-tighter text-white truncate">{site.url.replace('https://', '')}</h4>
@@ -521,10 +646,10 @@ function SmallWebsiteCard({ site, globalStats }: { site: any, globalStats: any[]
 
 function AudienceWidget() {
   const regions = [
-    { name: 'India', val: '42%', color: 'bg-primary' },
-    { name: 'USA', val: '28%', color: 'bg-indigo-400' },
-    { name: 'UK', val: '15%', color: 'bg-sky-400' },
-    { name: 'Germany', val: '10%', color: 'bg-cyan-500' }
+    { name: 'India', val: '42%', color: 'bg-primary', icon: Globe },
+    { name: 'USA', val: '28%', color: 'bg-indigo-400', icon: Target },
+    { name: 'UK', val: '15%', color: 'bg-sky-400', icon: Activity },
+    { name: 'Germany', val: '10%', color: 'bg-cyan-500', icon: Layers }
   ];
   return (
     <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl space-y-8 relative overflow-hidden group">
@@ -536,7 +661,10 @@ function AudienceWidget() {
           {regions.map(r => (
             <div key={r.name} className="space-y-1.5">
                <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
-                  <span className="text-white/60">{r.name}</span>
+                  <div className="flex items-center gap-2">
+                    <r.icon className="w-2.5 h-2.5 opacity-40" />
+                    <span className="text-white/60">{r.name}</span>
+                  </div>
                   <span className="text-white/30">{r.val}</span>
                </div>
                <div className="h-1 bg-white/5 rounded-full overflow-hidden">
@@ -581,14 +709,14 @@ function SidebarItem({ icon: Icon, label, active = false, onClick, badge }: { ic
     <button 
       onClick={onClick} 
       className={cn(
-        "w-full flex items-center gap-4 px-6 py-4 rounded-[1.5rem] transition-all relative overflow-hidden group", 
+        "w-full flex items-center gap-4 px-6 py-4 rounded-[1.5rem] transition-all relative overflow-hidden group text-left", 
         active ? "text-white bg-gradient-to-r from-primary/40 to-transparent shadow-lg" : "text-muted-foreground/60 hover:text-white hover:bg-white/5"
       )}
     >
       {active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(123,51,255,1)]" />}
       <Icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", active ? "text-primary" : "group-hover:text-white")} />
       <span className="text-sm font-bold tracking-tight">{label}</span>
-      {badge !== undefined && (
+      {badge !== undefined && badge > 0 && (
         <span className="ml-auto bg-primary text-white text-[9px] font-black px-2 py-0.5 rounded-md shadow-lg">{badge}</span>
       )}
     </button>

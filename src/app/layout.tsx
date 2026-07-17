@@ -29,6 +29,8 @@ export default function RootLayout({
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6811475243465738"
           crossOrigin="anonymous"
         ></script>
+        {/* Monetag Multitag */}
+        <script src="https://quge5.com/88/tag.min.js" data-zone="260744" async data-cfasync="false"></script>
       </head>
       <body className="font-body antialiased bg-background text-foreground pb-24">
         <FirebaseClientProvider>

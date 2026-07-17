@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useFirestore, useCollection, useUser, useDoc, useAuth } from "@/firebase";
 import { collection, doc, query, where, deleteDoc, updateDoc, orderBy, increment, serverTimestamp } from "firebase/firestore";
 import { signOut } from "firebase/auth";
@@ -63,7 +63,10 @@ import {
   Palette,
   Megaphone,
   CreditCard,
-  Download
+  Download,
+  Send,
+  User as UserIcon,
+  Layers
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -86,6 +89,7 @@ import { useToast } from "@/hooks/use-toast";
 import { WebsitePreview } from "@/components/website-preview";
 import { formatDistanceToNow } from "date-fns";
 import { Logo } from "@/components/logo";
+import { chatWithAstra } from "@/ai/flows/assistant-chat-flow";
 
 type DashboardView = 
   | 'overview'
@@ -100,6 +104,11 @@ type DashboardView =
   | 'settings' 
   | 'support';
 
+type ChatMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+};
+
 export default function UserDashboard() {
   const { user, loading: authLoading } = useUser();
   const auth = useAuth();
@@ -109,6 +118,14 @@ export default function UserDashboard() {
   const [activeView, setActiveView] = useState<DashboardView>('overview');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
+  // AI Assistant State
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { role: 'assistant', content: "Greetings, Creator. I am Astra. Ready to optimize your digital discovery path? What shall we focus on today?" }
+  ]);
+  const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
   const userDocRef = useMemo(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid);
@@ -116,7 +133,6 @@ export default function UserDashboard() {
 
   const { data: profile } = useDoc(userDocRef);
 
-  // Real Data Streams
   const mySubmissionsRef = useMemo(() => {
     if (!user || !db) return null;
     return query(collection(db, "submissions"), where("userId", "==", user.uid));
@@ -161,6 +177,38 @@ export default function UserDashboard() {
     };
   }, [rawSubmissions, globalStats]);
 
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
+
+  const handleSendMessage = async (e?: React.FormEvent, customMsg?: string) => {
+    e?.preventDefault();
+    const messageToSend = customMsg || input;
+    if (!messageToSend.trim() || isTyping) return;
+
+    const userMsg: ChatMessage = { role: 'user', content: messageToSend };
+    setMessages(prev => [...prev, userMsg]);
+    setInput("");
+    setIsTyping(true);
+
+    try {
+      const result = await chatWithAstra({ 
+        message: messageToSend, 
+        history: messages 
+      });
+      
+      setMessages(prev => [...prev, { role: 'assistant', content: result.response }]);
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Communication Interrupted",
+        description: "Astra is currently recalibrating. Please try again."
+      });
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
   const handleLogout = async () => {
     if (auth) {
       await signOut(auth);
@@ -183,7 +231,7 @@ export default function UserDashboard() {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      <div className="mb-10">
+      <div className="mb-10 px-2">
          <Link href="/" className="group block">
             <Logo showText />
             <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60 mt-1 block">Creator Studio</span>
@@ -199,7 +247,7 @@ export default function UserDashboard() {
         <SidebarItem icon={Flame} label="Promotions" active={activeView === 'promotions'} onClick={() => handleViewChange('promotions')} />
         <SidebarItem icon={DollarSign} label="Earnings" active={activeView === 'earnings'} onClick={() => handleViewChange('earnings')} />
         <SidebarItem icon={Bell} label="Notifications" active={activeView === 'notifications'} onClick={() => handleViewChange('notifications')} />
-        <SidebarItem icon={Mic} label="AI Assistant" active={activeView === 'ai-assistant'} onClick={() => handleViewChange('ai-assistant')} />
+        <SidebarItem icon={Sparkles} label="AI Assistant" active={activeView === 'ai-assistant'} onClick={() => handleViewChange('ai-assistant')} />
         <div className="pt-4 mt-4 border-t border-white/5 space-y-1.5">
           <SidebarItem icon={Settings} label="Settings" active={activeView === 'settings'} onClick={() => handleViewChange('settings')} />
           <SidebarItem icon={HelpCircle} label="Support" active={activeView === 'support'} onClick={() => handleViewChange('support')} />
@@ -247,7 +295,9 @@ export default function UserDashboard() {
         <div className="px-4 sm:px-8 md:px-12 pt-8 md:pt-12 pb-2">
           <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8 bg-[#0B0A0F]/80 backdrop-blur-xl z-40 py-2">
             <div className="space-y-1">
-               <h1 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter text-white">Welcome, {profile?.displayName?.split(' ')[0] || 'Curator'} 👋</h1>
+               <h1 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter text-white">
+                 {activeView === 'ai-assistant' ? 'Astra Strategy Hub' : `Welcome, ${profile?.displayName?.split(' ')[0] || 'Curator'} 👋`}
+               </h1>
                <div className="flex items-center gap-2">
                   <Badge className="bg-primary/20 text-primary border-none text-[9px] font-black uppercase tracking-widest px-2 py-0.5 italic">🥇 Rising Creator</Badge>
                   <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest opacity-40">Creator Level 01</p>
@@ -277,7 +327,7 @@ export default function UserDashboard() {
           </header>
         </div>
 
-        <div className="p-4 sm:p-8 md:p-12 overflow-y-auto no-scrollbar flex flex-col gap-8 md:gap-12 pb-32">
+        <div className="p-4 sm:p-8 md:p-12 overflow-y-auto no-scrollbar flex flex-col gap-8 md:gap-12 pb-32 flex-1">
           {activeView === 'overview' && (
             <div className="space-y-12 animate-in fade-in duration-700">
                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
@@ -339,7 +389,7 @@ export default function UserDashboard() {
                         </div>
                         <div className="space-y-4 relative z-10">
                            {["Increase my website clicks", "Suggest better categories", "Generate SEO tags"].map(q => (
-                              <button key={q} className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/20 hover:bg-white/[0.08] transition-all group/btn text-left">
+                              <button key={q} onClick={() => { setActiveView('ai-assistant'); handleSendMessage(undefined, q); }} className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/20 hover:bg-white/[0.08] transition-all group/btn text-left">
                                  <span className="text-[11px] font-bold text-white/60 group-hover/btn:text-white transition-colors">"{q}"</span>
                                  <ChevronRight className="w-3 h-3 text-muted-foreground/30 group-hover/btn:text-primary group-hover/btn:translate-x-1 transition-all" />
                               </button>
@@ -456,128 +506,96 @@ export default function UserDashboard() {
             </div>
           )}
 
-          {activeView === 'promotions' && (
-            <div className="space-y-12 animate-in fade-in duration-500">
-               <div className="bg-gradient-to-r from-primary/20 to-purple-500/10 p-10 sm:p-16 rounded-[3.5rem] border border-white/5 relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 blur-[120px] -mr-48 -mt-48 transition-transform group-hover:scale-110 duration-1000" />
-                  <div className="relative z-10 max-w-2xl space-y-6">
-                    <Badge className="bg-primary text-white border-none px-4 py-1 rounded-full font-black uppercase tracking-widest italic text-[10px]">Boost Discovery</Badge>
-                    <h2 className="text-4xl sm:text-6xl font-black italic uppercase tracking-tighter leading-none">Reach More <span className="text-primary">Curators.</span></h2>
-                    <p className="text-lg text-muted-foreground font-medium">Promote your high-quality websites to the front page and category highlights to increase traffic by up to 400%.</p>
-                    <Button className="h-16 px-12 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-sm italic shadow-2xl hover:scale-105 transition-all">
-                      Create New Promotion <ArrowUpRight className="w-5 h-5 ml-2" />
-                    </Button>
-                  </div>
-               </div>
-
-               <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                  <StatCard label="Active Campaigns" value="3" icon={Megaphone} trend="Live" trendUp color="text-emerald-500" />
-                  <StatCard label="Total Ad Clicks" value="14.2k" icon={MousePointer2} trend="+18%" trendUp />
-                  <StatCard label="Total Spend" value="$240.00" icon={CreditCard} trend="Budget OK" trendUp color="text-blue-500" />
-                  <StatCard label="Estimated Reach" value="85k+" icon={Zap} trend="+12k" trendUp color="text-amber-500" />
-               </div>
-
-               <div className="grid grid-cols-1 xl:grid-cols-3 gap-12">
-                  <Card className="xl:col-span-2 bg-[#121117] border-white/5 p-10 rounded-[3.5rem] space-y-10 shadow-2xl">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-2xl font-black italic uppercase tracking-tighter">Campaign Distribution</h3>
-                      <div className="flex gap-4">
-                        <div className="flex items-center gap-2 text-[10px] font-black uppercase text-primary"><div className="w-2 h-2 rounded-full bg-primary" /> Performance</div>
-                        <div className="flex items-center gap-2 text-[10px] font-black uppercase text-muted-foreground/30"><div className="w-2 h-2 rounded-full bg-white/10" /> Goal</div>
-                      </div>
+          {activeView === 'ai-assistant' && (
+            <div className="flex flex-col h-[calc(100vh-250px)] max-h-[800px] animate-in fade-in slide-in-from-bottom-4 duration-700 bg-[#121117] border border-white/5 rounded-[3.5rem] overflow-hidden shadow-2xl">
+              <div className="p-6 sm:p-8 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-2xl shadow-primary/20">
+                      <Sparkles className="w-6 h-6 text-white" />
                     </div>
-                    <div className="h-96 flex items-center justify-center border border-white/5 rounded-3xl bg-white/[0.01]">
-                       <PieChart className="w-24 h-24 text-white/10" />
-                       <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 absolute">Ad Data Synchronizing</span>
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-[#121117] animate-pulse" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black italic uppercase tracking-tighter">Astra</h2>
+                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em] opacity-40">Bessites Growth Strategist</p>
+                  </div>
+                </div>
+                <div className="hidden sm:flex gap-3">
+                  <Badge className="bg-primary/10 text-primary border-primary/20 px-3 py-1 rounded-full text-[9px] font-black uppercase italic">Neural Sync Active</Badge>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6 sm:p-10 space-y-8 no-scrollbar bg-gradient-to-b from-transparent to-primary/5">
+                {messages.map((msg, idx) => (
+                  <div key={idx} className={cn(
+                    "flex gap-4 sm:gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500",
+                    msg.role === 'user' ? "flex-row-reverse" : "flex-row"
+                  )}>
+                    <div className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-lg",
+                      msg.role === 'user' ? "bg-white/10" : "bg-primary shadow-primary/20"
+                    )}>
+                      {msg.role === 'user' ? <UserIcon className="w-5 h-5 text-white/40" /> : <Sparkles className="w-5 h-5 text-white" />}
                     </div>
-                  </Card>
-
-                  <div className="space-y-8">
-                     <Card className="bg-primary/5 border-primary/20 p-8 rounded-[3rem] space-y-6">
-                        <div className="flex items-center gap-3">
-                           <Sparkles className="w-5 h-5 text-primary" />
-                           <h4 className="text-lg font-black italic uppercase tracking-tighter">AI Ad Assistant</h4>
-                        </div>
-                        <p className="text-xs text-muted-foreground font-medium italic leading-relaxed">"Your campaign in the <span className="text-white font-bold">Programming</span> category is outperforming generic placements by 24%. We recommend shifting 15% of your budget there."</p>
-                        <Button variant="outline" className="w-full border-primary/20 bg-primary/10 hover:bg-primary/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-primary italic">Apply Optimization</Button>
-                     </Card>
-
-                     <div className="space-y-4">
-                        <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground/40 italic ml-4">Recent Ad Events</h4>
-                        <div className="space-y-3">
-                           {[
-                             { label: 'Campaign Started', time: '2h ago', color: 'bg-emerald-500' },
-                             { label: 'Payment Received', time: '5h ago', color: 'bg-blue-500' },
-                             { label: 'Ad Approved', time: '1d ago', color: 'bg-primary' }
-                           ].map((e, i) => (
-                             <div key={i} className="flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/5">
-                                <div className="flex items-center gap-4">
-                                   <div className={cn("w-2 h-2 rounded-full", e.color)} />
-                                   <span className="text-[11px] font-bold">{e.label}</span>
-                                </div>
-                                <span className="text-[9px] font-black uppercase text-muted-foreground/40">{e.time}</span>
-                             </div>
-                           ))}
-                        </div>
-                     </div>
+                    <div className={cn(
+                      "max-w-[85%] sm:max-w-[70%] p-5 rounded-[1.75rem] text-sm font-medium leading-relaxed shadow-xl border",
+                      msg.role === 'user' 
+                        ? "bg-white/5 border-white/5 rounded-tr-none text-white/90" 
+                        : "bg-[#1E1C26] border-primary/10 rounded-tl-none text-white italic"
+                    )}>
+                      {msg.content}
+                    </div>
                   </div>
-               </div>
-               
-               <div className="space-y-6">
-                  <h3 className="text-2xl font-black italic uppercase tracking-tighter ml-4">Active Campaigns</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     {[1, 2].map(i => (
-                       <Card key={i} className="bg-[#121117] border-white/5 p-8 rounded-[3rem] flex items-center justify-between group hover:border-primary/20 transition-all">
-                          <div className="flex items-center gap-6">
-                             <div className="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 group-hover:scale-105 transition-transform duration-500">
-                                <ImageIcon className="w-8 h-8 text-white/5" />
-                             </div>
-                             <div className="min-w-0">
-                                <Badge className="bg-emerald-500/10 text-emerald-400 border-none text-[8px] font-black mb-2">ACTIVE</Badge>
-                                <h4 className="text-lg font-black italic tracking-tighter text-white truncate">Campaign_{i}.app</h4>
-                                <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest mt-1">Homepage Featured • 7 Days Left</p>
-                             </div>
-                          </div>
-                          <div className="text-right">
-                             <p className="text-xl font-black italic text-white leading-none">4.2k</p>
-                             <p className="text-[8px] font-bold text-muted-foreground/20 uppercase tracking-widest mt-1">Clicks</p>
-                          </div>
-                       </Card>
-                     ))}
+                ))}
+                {isTyping && (
+                  <div className="flex gap-4 sm:gap-6 items-center">
+                    <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center animate-pulse shadow-lg shadow-primary/20">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex gap-1.5 p-4 bg-[#1E1C26] border border-primary/10 rounded-2xl rounded-tl-none">
+                      <div className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce delay-0" />
+                      <div className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce delay-150" />
+                      <div className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce delay-300" />
+                    </div>
                   </div>
-               </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
 
-               <div className="space-y-6">
-                  <h3 className="text-2xl font-black italic uppercase tracking-tighter ml-4">Billing & Payouts</h3>
-                  <Card className="bg-[#121117] border-white/5 rounded-[3rem] overflow-hidden">
-                     <table className="w-full text-left">
-                        <thead className="bg-white/5">
-                           <tr>
-                              <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Invoice ID</th>
-                              <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Date</th>
-                              <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Amount</th>
-                              <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Status</th>
-                              <th className="p-8 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Action</th>
-                           </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                           {[1, 2, 3].map(i => (
-                             <tr key={i} className="hover:bg-white/[0.02] transition-colors">
-                                <td className="p-8 text-xs font-bold font-code opacity-40">#BESS_0923{i}</td>
-                                <td className="p-8 text-[11px] font-bold text-white/60">Oct {10+i}, 2024</td>
-                                <td className="p-8 text-sm font-black italic text-white">$80.00</td>
-                                <td className="p-8"><Badge className="bg-emerald-500/10 text-emerald-400 border-none text-[8px] font-black">PAID</Badge></td>
-                                <td className="p-8 text-right"><button className="text-[10px] font-black uppercase text-primary italic hover:underline">Download PDF</button></td>
-                             </tr>
-                           ))}
-                        </tbody>
-                     </table>
-                  </Card>
-               </div>
+              <div className="p-6 sm:p-8 bg-white/[0.02] border-t border-white/5">
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {["Analyze my CTR", "Suggest categories", "Growth hacks", "SEO check"].map(tag => (
+                    <button 
+                      key={tag} 
+                      onClick={() => handleSendMessage(undefined, tag)}
+                      className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 hover:border-primary/20 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-all italic"
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+                <form onSubmit={handleSendMessage} className="relative group">
+                  <input 
+                    placeholder="Ask Astra for growth strategy..." 
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    disabled={isTyping}
+                    className="w-full h-16 bg-[#0B0A0F] border border-white/10 rounded-2xl pl-6 pr-20 text-sm font-medium focus:ring-1 focus:ring-primary/50 outline-none transition-all placeholder:italic group-focus-within:border-primary/40" 
+                  />
+                  <button 
+                    type="submit"
+                    disabled={!input.trim() || isTyping}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center shadow-xl shadow-primary/20 hover:scale-105 transition-all active:scale-95 disabled:opacity-30"
+                  >
+                    <Send className="w-5 h-5" />
+                  </button>
+                </form>
+              </div>
             </div>
           )}
 
-          {activeView !== 'overview' && activeView !== 'my-websites' && activeView !== 'promotions' && (
+          {activeView !== 'overview' && activeView !== 'my-websites' && activeView !== 'ai-assistant' && (
              <div className="py-40 flex flex-col items-center justify-center text-center space-y-8 animate-in zoom-in duration-500">
                 <div className="w-32 h-32 bg-primary/5 rounded-[3.5rem] flex items-center justify-center text-primary mb-4 shadow-inner">
                    <Logo className="w-16 h-16 opacity-20 grayscale" />

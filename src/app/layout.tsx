@@ -8,6 +8,9 @@ import { Analytics } from "@vercel/analytics/react";
 export const metadata: Metadata = {
   title: 'Bessites | Discover Web Apps',
   description: 'A professional directory for modern webs and digital tools.',
+  other: {
+    monetag: '69d4ecd723e9fb17cf62677950bf7f6d',
+  },
 };
 
 export default function RootLayout({

@@ -39,7 +39,9 @@ import {
   PieChart,
   History,
   Lock,
-  Plus
+  Plus,
+  Flame,
+  Clock
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from "@/firebase/error-emitter";
@@ -74,7 +76,8 @@ type AdminSection =
   | 'moderation' 
   | 'notifications' 
   | 'settings' 
-  | 'database';
+  | 'database'
+  | 'promotions';
 
 export default function AdminDashboard() {
   const { user, loading: authLoading } = useUser();
@@ -95,6 +98,12 @@ export default function AdminDashboard() {
     return query(collection(db, "submissions"), orderBy("timestamp", "desc"));
   }, [db]);
   const { data: submissions } = useCollection(submissionsRef);
+
+  const promosRef = useMemo(() => {
+    if (!db) return null;
+    return query(collection(db, "promotions"), orderBy("createdAt", "desc"));
+  }, [db]);
+  const { data: globalPromos } = useCollection(promosRef);
 
   const usersRef = useMemo(() => {
     if (!db) return null;
@@ -122,6 +131,7 @@ export default function AdminDashboard() {
       revenue: "$0.00",
       viewsToday: "--",
       sponsored: 0,
+      pendingPromos: 0,
       totalCategories: 108
     };
 
@@ -137,12 +147,13 @@ export default function AdminDashboard() {
       verified: appUsers.filter(u => u.interests && u.interests.length >= 5).length,
       totalClicks: globalStats.reduce((acc, curr) => acc + (curr.visitCount || 0), 0),
       newUsersToday: appUsers.filter(u => u.createdAt && new Date(u.createdAt.seconds * 1000) > oneDayAgo).length,
-      revenue: "$0.00",
+      revenue: `$${globalPromos?.reduce((acc, curr) => acc + (curr.cost || 0), 0).toFixed(2) || "0.00"}`,
       viewsToday: (globalStats.reduce((acc, curr) => acc + (curr.visitCount || 0), 0) * 4).toLocaleString(),
-      sponsored: 0,
+      sponsored: globalPromos?.filter(p => p.status === 'active').length || 0,
+      pendingPromos: globalPromos?.filter(p => p.status === 'pending').length || 0,
       totalCategories: 108
     };
-  }, [submissions, appUsers, globalStats]);
+  }, [submissions, appUsers, globalStats, globalPromos]);
 
   const handleStatusUpdate = (subId: string, status: 'approved' | 'rejected') => {
     if (!db) return;
@@ -162,6 +173,14 @@ export default function AdminDashboard() {
           requestResourceData: { status }
         }));
       });
+  };
+
+  const handlePromoApproval = (promoId: string, status: 'scheduled' | 'rejected') => {
+    if (!db) return;
+    const promoRef = doc(db, "promotions", promoId);
+    updateDoc(promoRef, { status }).then(() => {
+      toast({ title: "Promotion Updated", description: `Campaign is now ${status}.` });
+    });
   };
 
   const handleDelete = (subId: string) => {
@@ -199,9 +218,6 @@ export default function AdminDashboard() {
         <aside className="w-72 border-r border-white/5 bg-[#121019] flex flex-col hidden lg:flex shrink-0">
           <div className="p-8">
             <Link href="/" className="flex items-center gap-3 mb-10 group">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-2xl shadow-primary/20 group-hover:scale-110 transition-transform">
-                <Shield className="w-6 h-6 text-white" fill="currentColor" />
-              </div>
               <div className="min-w-0">
                 <span className="text-xl font-black italic uppercase tracking-tighter block leading-none">Bessites</span>
                 <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60">Admin Command</span>
@@ -212,6 +228,7 @@ export default function AdminDashboard() {
               <SidebarSection label="Platform">
                 <SidebarLink icon={LayoutDashboard} label="Dashboard" active={activeSection === 'overview'} onClick={() => setActiveSection('overview')} />
                 <SidebarLink icon={Inbox} label="Submission Queue" active={activeSection === 'submissions'} onClick={() => setActiveSection('submissions')} badge={stats.pending} />
+                <SidebarLink icon={Flame} label="Promotion Review" active={activeSection === 'promotions'} onClick={() => setActiveSection('promotions')} badge={stats.pendingPromos} />
                 <SidebarLink icon={Globe} label="Website Manager" active={activeSection === 'websites'} onClick={() => setActiveSection('websites')} />
                 <SidebarLink icon={Users} label="Users" active={activeSection === 'users'} onClick={() => setActiveSection('users')} />
               </SidebarSection>
@@ -236,24 +253,11 @@ export default function AdminDashboard() {
               </SidebarSection>
             </nav>
           </div>
-          
-          <div className="mt-auto p-6 border-t border-white/5 bg-white/[0.01]">
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-xs font-black shadow-lg">
-                AD
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-bold truncate">Bessites Admin</p>
-                <p className="text-[10px] text-primary uppercase font-black tracking-widest opacity-60">System Root</p>
-              </div>
-            </div>
-          </div>
         </aside>
 
         {/* Main Command Content */}
         <main className="flex-1 flex flex-col min-w-0 overflow-y-auto no-scrollbar bg-background">
           
-          {/* Top Admin Header */}
           <header className="h-16 border-b border-white/5 px-8 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-xl z-20">
             <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 italic">
               Admin Center <ChevronRight className="w-3 h-3" /> <span className="text-white">{activeSection}</span>
@@ -267,34 +271,6 @@ export default function AdminDashboard() {
                   className="bg-white/5 border border-white/10 rounded-xl h-10 pl-10 pr-4 text-xs font-medium w-48 focus:w-80 transition-all focus:border-primary outline-none" 
                 />
               </div>
-              
-              <div className="flex items-center gap-2 border-l border-white/10 ml-2 pl-4">
-                 <button className="p-2.5 hover:bg-white/5 rounded-xl transition-colors text-muted-foreground relative">
-                    <Activity className="w-4 h-4" />
-                    <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full animate-ping" />
-                 </button>
-                 
-                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="p-2.5 hover:bg-white/5 rounded-xl transition-colors text-muted-foreground">
-                      <Menu className="w-5 h-5" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-[#121019] border-white/10 text-white w-64 rounded-2xl p-2 shadow-2xl">
-                    <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 px-4 py-2">System Commands</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => setActiveSection('database')} className="rounded-xl focus:bg-white/5 cursor-pointer flex gap-3 px-4 py-3">
-                      <Database className="w-4 h-4 text-primary" /> <span className="text-sm font-bold">Cold Storage Backup</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveSection('notifications')} className="rounded-xl focus:bg-white/5 cursor-pointer flex gap-3 px-4 py-3">
-                      <Megaphone className="w-4 h-4 text-primary" /> <span className="text-sm font-bold">Global Announcement</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-white/5 my-1" />
-                    <DropdownMenuItem onClick={() => router.push('/profile')} className="rounded-xl focus:bg-destructive/10 text-destructive focus:text-destructive cursor-pointer flex gap-3 px-4 py-3 font-black italic uppercase tracking-widest text-[10px]">
-                      <X className="w-4 h-4" /> Close Admin Panel
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
             </div>
           </header>
 
@@ -302,59 +278,88 @@ export default function AdminDashboard() {
             
             {activeSection === 'overview' && (
               <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                
                 <div className="flex flex-col gap-2">
                    <h1 className="text-4xl font-black italic uppercase tracking-tighter">System <span className="text-primary">Overview</span></h1>
                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em] opacity-40">Real-time Bessites Infrastructure Metrics</p>
                 </div>
 
-                {/* 12 Metric Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   <StatCard label="Total Websites" value={stats.totalWebsites} icon={Globe} color="text-blue-500" />
                   <StatCard label="Pending Submissions" value={stats.pending} icon={Inbox} color="text-amber-500" pulse={stats.pending > 0} />
-                  <StatCard label="Approved Websites" value={stats.approved} icon={Check} color="text-green-500" />
-                  <StatCard label="Rejected Websites" value={stats.rejected} icon={X} color="text-red-500" />
+                  <StatCard label="Pending Promotions" value={stats.pendingPromos} icon={Flame} color="text-orange-500" pulse={stats.pendingPromos > 0} />
+                  <StatCard label="Revenue (Total)" value={stats.revenue} icon={DollarSign} color="text-emerald-500" />
                   <StatCard label="Total Users" value={stats.totalUsers} icon={Users} color="text-purple-500" />
-                  <StatCard label="Verified Creators" value={stats.verified} icon={Shield} color="text-cyan-500" />
-                  <StatCard label="Total Categories" value={stats.totalCategories} icon={Tags} color="text-pink-500" />
                   <StatCard label="Website Clicks Today" value={stats.totalClicks} icon={Zap} color="text-primary" />
                   <StatCard label="Total Views Today" value={stats.viewsToday} icon={Eye} color="text-indigo-400" />
                   <StatCard label="Active Sponsored" value={stats.sponsored} icon={Megaphone} color="text-yellow-500" />
-                  <StatCard label="Revenue (Month)" value={stats.revenue} icon={DollarSign} color="text-emerald-500" />
-                  <StatCard label="New Users Today" value={stats.newUsersToday} icon={ArrowUpRight} color="text-blue-400" />
                 </div>
+              </div>
+            )}
 
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                  <div className="xl:col-span-2 space-y-8">
-                    <DashboardChart title="Visitor & Click Momentum" subtitle="Growth trends over 12 months" />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                       <DashboardList 
-                        title="Most Visited Categories" 
-                        items={[
-                          { name: 'AI & Generative Tools', value: '14.2k clicks' },
-                          { name: 'Niche Gaming Ports', value: '9.8k clicks' },
-                          { name: 'Developer Utilities', value: '7.5k clicks' }
-                        ]} 
-                       />
-                       <DashboardList 
-                        title="Fast-Growing Websites" 
-                        items={submissions?.filter(s => s.status === 'approved').slice(0, 3).map(s => ({
-                          name: s.url.replace('https://', '').split('/')[0],
-                          value: 'Trending'
-                        })) || []} 
-                       />
-                    </div>
+            {activeSection === 'promotions' && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <h2 className="text-3xl font-black italic uppercase tracking-tighter">Promotion Review Queue</h2>
+                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em] opacity-40">Reviewing Advertising Campaigns</p>
                   </div>
-                  <DashboardList 
-                    title="Live Activity Feed" 
-                    items={[
-                      { name: 'New user joined: alex@...', value: '2m ago' },
-                      { name: 'Website submitted: tools.ai', value: '15m ago' },
-                      { name: 'Admin approved: devbox.io', value: '1h ago' },
-                      { name: 'New report: Broken link', value: '3h ago' },
-                      { name: 'Verification request: Mark', value: '5h ago' }
-                    ]} 
-                  />
+                </div>
+                
+                <div className="bg-[#121019] border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left min-w-[1200px]">
+                      <thead className="bg-white/5">
+                        <tr>
+                          <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Promotion ID</th>
+                          <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Digital Property</th>
+                          <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Placement</th>
+                          <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Duration</th>
+                          <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Payment Status</th>
+                          <th className="p-6 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">Review</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {globalPromos && globalPromos.length > 0 ? (
+                          globalPromos.filter(p => p.status === 'pending').map((promo: any) => (
+                            <tr key={promo.id} className="hover:bg-white/[0.01] transition-colors group">
+                              <td className="p-6">
+                                <span className="text-xs font-black italic tracking-tighter text-white">{promo.promoId}</span>
+                              </td>
+                              <td className="p-6">
+                                <div className="flex items-center gap-4">
+                                  <div className="w-10 h-10 rounded-lg bg-black border border-white/10 overflow-hidden"><WebsitePreview websiteUrl={promo.websiteUrl} alt="Logo" className="w-full h-full" /></div>
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-bold text-white truncate">{promo.websiteName}</p>
+                                    <p className="text-[9px] text-muted-foreground uppercase font-black opacity-30">{promo.userEmail}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="p-6">
+                                <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black uppercase">{promo.placement}</Badge>
+                              </td>
+                              <td className="p-6">
+                                <span className="text-[10px] font-bold text-white/80">{promo.duration} Days (Starts: {new Date(promo.startDate).toLocaleDateString()})</span>
+                              </td>
+                              <td className="p-6">
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[10px] font-black italic text-emerald-400">PAID ${promo.cost}</span>
+                                  <span className="text-[8px] font-black uppercase text-muted-foreground/30">{promo.paymentMethod.toUpperCase()} GATEWAY</span>
+                                </div>
+                              </td>
+                              <td className="p-6 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button onClick={() => handlePromoApproval(promo.id, 'scheduled')} className="h-9 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase text-[9px]">Approve</Button>
+                                  <Button onClick={() => handlePromoApproval(promo.id, 'rejected')} variant="ghost" className="h-9 px-4 rounded-xl text-red-500 hover:bg-red-500/10 font-black uppercase text-[9px]">Reject</Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr><td colSpan={6} className="p-40 text-center text-muted-foreground italic font-medium opacity-20">The promotion review queue is currently empty.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
@@ -366,12 +371,6 @@ export default function AdminDashboard() {
                     <h2 className="text-3xl font-black italic uppercase tracking-tighter">Submission Queue</h2>
                     <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em] mt-1 opacity-40">Reviewing Community Contributions</p>
                   </div>
-                  <div className="flex gap-3">
-                    <Button variant="outline" className="rounded-2xl border-white/5 bg-white/5 font-black uppercase tracking-widest text-[10px] h-12 px-6">
-                       <Filter className="w-3.5 h-3.5 mr-2" /> Filter Registry
-                    </Button>
-                    <Badge className="bg-primary/10 text-primary border-primary/20 h-12 px-6 rounded-2xl flex items-center font-black italic">{stats.pending} Pending Review</Badge>
-                  </div>
                 </div>
                 
                 <div className="bg-[#121019] border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl">
@@ -381,7 +380,6 @@ export default function AdminDashboard() {
                         <tr>
                           <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Website Identity</th>
                           <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Category</th>
-                          <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Description</th>
                           <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Digital Creator</th>
                           <th className="p-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Submission Date</th>
                           <th className="p-6 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">Operations</th>
@@ -417,9 +415,6 @@ export default function AdminDashboard() {
                                   ))}
                                 </div>
                               </td>
-                              <td className="p-6 max-w-xs">
-                                <p className="text-xs text-muted-foreground truncate italic">"{sub.description || 'No description provided'}"</p>
-                              </td>
                               <td className="p-6">
                                 <div className="min-w-0">
                                   <p className="text-xs font-bold text-white/80">{sub.userEmail}</p>
@@ -431,12 +426,10 @@ export default function AdminDashboard() {
                                   {sub.timestamp ? new Date(sub.timestamp.seconds * 1000).toLocaleDateString() : 'Real-time'}
                                 </span>
                               </td>
-                              <td className="p-6">
+                              <td className="p-6 text-right">
                                 <div className="flex items-center justify-end gap-2">
-                                  <Button size="sm" variant="ghost" onClick={() => window.open(sub.url, '_blank')} className="h-10 px-4 hover:bg-white/5 rounded-xl font-bold text-[10px] uppercase">Preview</Button>
-                                  <Button size="icon" variant="ghost" onClick={() => handleStatusUpdate(sub.id, 'approved')} className="h-10 w-10 hover:bg-green-500/20 text-green-500 rounded-xl" title="Approve Website"><Check className="w-4 h-4" /></Button>
-                                  <Button size="icon" variant="ghost" onClick={() => handleStatusUpdate(sub.id, 'rejected')} className="h-10 w-10 hover:bg-red-500/20 text-red-500 rounded-xl" title="Reject Website"><X className="w-4 h-4" /></Button>
-                                  <Button size="icon" variant="ghost" onClick={() => handleDelete(sub.id)} className="h-10 w-10 hover:bg-destructive/20 text-muted-foreground rounded-xl" title="Delete Permanently"><Trash2 className="w-4 h-4" /></Button>
+                                  <Button size="icon" variant="ghost" onClick={() => handleStatusUpdate(sub.id, 'approved')} className="h-10 w-10 hover:bg-green-500/20 text-green-500 rounded-xl"><Check className="w-4 h-4" /></Button>
+                                  <Button size="icon" variant="ghost" onClick={() => handleStatusUpdate(sub.id, 'rejected')} className="h-10 w-10 hover:bg-red-500/20 text-red-500 rounded-xl"><X className="w-4 h-4" /></Button>
                                 </div>
                               </td>
                             </tr>
@@ -451,14 +444,14 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {activeSection !== 'overview' && activeSection !== 'submissions' && (
+            {activeSection !== 'overview' && activeSection !== 'submissions' && activeSection !== 'promotions' && (
               <div className="py-40 flex flex-col items-center justify-center text-center space-y-8 animate-in zoom-in duration-500">
                 <div className="w-32 h-32 bg-primary/5 rounded-[3rem] flex items-center justify-center text-primary mb-4 shadow-2xl shadow-primary/10">
                    <ShieldAlert className="w-16 h-16 opacity-40" />
                 </div>
                 <div className="space-y-3">
                   <h3 className="text-5xl font-black italic uppercase tracking-tighter">Module Sync <span className="text-primary">Required</span></h3>
-                  <p className="text-muted-foreground font-medium max-w-lg mx-auto opacity-60">The <span className="text-white font-bold">{activeSection.toUpperCase()}</span> infrastructure is currently synchronizing with the primary discovery cluster.</p>
+                  <p className="text-muted-foreground font-medium max-w-lg mx-auto opacity-60">The <span className="text-white font-bold">{activeSection.toUpperCase()}</span> infrastructure is currently synchronizing.</p>
                 </div>
                 <Button variant="outline" onClick={() => setActiveSection('overview')} className="rounded-full h-16 px-16 border-white/10 bg-white/5 font-black uppercase tracking-widest text-xs italic hover:bg-primary hover:text-white transition-all">Restore Dashboard</Button>
               </div>
@@ -509,63 +502,6 @@ function StatCard({ label, value, icon: Icon, color, pulse = false }: { label: s
         </div>
       </div>
       <p className="text-3xl font-black tracking-tighter relative tabular-nums leading-none">{value}</p>
-    </div>
-  );
-}
-
-function DashboardChart({ title, subtitle }: { title: string, subtitle: string }) {
-  return (
-    <div className="bg-[#121019] border border-white/5 rounded-[3rem] p-10 space-y-8 shadow-2xl relative overflow-hidden">
-       <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-2xl font-black italic uppercase tracking-tighter">{title}</h3>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.25em] opacity-40 mt-1">{subtitle}</p>
-          </div>
-          <div className="flex gap-4">
-             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary"><div className="w-2 h-2 rounded-full bg-primary" /> Traffic</div>
-             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/40"><div className="w-2 h-2 rounded-full bg-white/10" /> Goal</div>
-          </div>
-       </div>
-       <div className="h-72 w-full flex items-end justify-between gap-1.5 pb-6 border-b border-white/5">
-          {[40, 65, 45, 90, 75, 55, 80, 100, 85, 60, 45, 70].map((h, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-3 group/bar cursor-pointer">
-              <div 
-                className="w-full bg-primary/20 hover:bg-primary transition-all rounded-t-xl relative" 
-                style={{ height: `${h}%` }}
-              >
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#1A1823] border border-white/5 text-white text-[10px] font-black px-3 py-1 rounded-xl opacity-0 group-hover/bar:opacity-100 transition-opacity shadow-2xl">{h}%</div>
-              </div>
-              <span className="text-[9px] font-black text-muted-foreground/20 uppercase tracking-tighter">{['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][i]}</span>
-            </div>
-          ))}
-       </div>
-    </div>
-  );
-}
-
-function DashboardList({ title, items, onAction }: { title: string, items: any[], onAction?: () => void }) {
-  return (
-    <div className="bg-[#121019] border border-white/5 rounded-[3rem] p-10 space-y-8 shadow-2xl relative overflow-hidden">
-      <div className="flex items-center justify-between">
-        <h3 className="text-2xl font-black italic uppercase tracking-tighter">{title}</h3>
-        {onAction && (
-          <button onClick={onAction} className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors italic">View All</button>
-        )}
-      </div>
-      <div className="space-y-4">
-        {items.map((item, i) => (
-          <div key={i} className="flex items-center justify-between p-6 rounded-[1.75rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group cursor-default">
-            <div className="flex items-center gap-5">
-              <div className="w-2.5 h-2.5 rounded-full bg-primary/40 shadow-[0_0_15px_rgba(123,51,255,0.4)] group-hover:scale-150 transition-transform" />
-              <span className="text-xs font-black text-white/80 truncate max-w-[240px] tracking-tight">{item.name}</span>
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">{item.value}</span>
-          </div>
-        ))}
-        {items.length === 0 && (
-          <div className="py-20 text-center text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/20">No Active Data Stream</div>
-        )}
-      </div>
     </div>
   );
 }

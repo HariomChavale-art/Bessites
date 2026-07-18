@@ -71,7 +71,22 @@ import {
   ActivityIcon,
   History,
   Timer,
-  Navigation2
+  Navigation2,
+  Laptop,
+  Chrome,
+  Code,
+  SmartphoneIcon,
+  Monitor,
+  Tablet,
+  Search as SearchLucide,
+  Briefcase,
+  Music,
+  ShoppingBag,
+  Clapperboard,
+  BookOpen,
+  Smartphone as PhoneIcon,
+  Building2,
+  Globe2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -106,7 +121,9 @@ import {
   Pie,
   Cell,
   AreaChart,
-  Area
+  Area,
+  BarChart,
+  Bar
 } from 'recharts';
 
 type DashboardView = 
@@ -129,13 +146,13 @@ type ChatMessage = {
 
 // Mock data for graphs
 const CHART_DATA = [
-  { name: 'Mon', views: 2400, clicks: 400, ctr: 12.5, likes: 45, saves: 32, followers: 2 },
-  { name: 'Tue', views: 3000, clicks: 650, ctr: 14.2, likes: 58, saves: 41, followers: 5 },
-  { name: 'Wed', views: 2000, clicks: 320, ctr: 11.0, likes: 33, saves: 28, followers: 1 },
-  { name: 'Thu', views: 2780, clicks: 510, ctr: 13.5, likes: 49, saves: 35, followers: 4 },
-  { name: 'Fri', views: 1890, clicks: 280, ctr: 10.2, likes: 21, saves: 19, followers: 0 },
-  { name: 'Sat', views: 2390, clicks: 440, ctr: 12.8, likes: 42, saves: 30, followers: 3 },
-  { name: 'Sun', views: 3490, clicks: 820, ctr: 15.6, likes: 74, saves: 55, followers: 8 },
+  { name: 'Mon', views: 2400, clicks: 400, ctr: 12.5, likes: 45, saves: 32, followers: 2, shares: 12 },
+  { name: 'Tue', views: 3000, clicks: 650, ctr: 14.2, likes: 58, saves: 41, followers: 5, shares: 28 },
+  { name: 'Wed', views: 2000, clicks: 320, ctr: 11.0, likes: 33, saves: 28, followers: 1, shares: 15 },
+  { name: 'Thu', views: 2780, clicks: 510, ctr: 13.5, likes: 49, saves: 35, followers: 4, shares: 22 },
+  { name: 'Fri', views: 1890, clicks: 280, ctr: 10.2, likes: 21, saves: 19, followers: 0, shares: 8 },
+  { name: 'Sat', views: 2390, clicks: 440, ctr: 12.8, likes: 42, saves: 30, followers: 3, shares: 31 },
+  { name: 'Sun', views: 3490, clicks: 820, ctr: 15.6, likes: 74, saves: 55, followers: 8, shares: 45 },
 ];
 
 const SOURCE_DATA = [
@@ -185,7 +202,7 @@ export default function UserDashboard() {
 
   const stats = useMemo(() => {
     if (!rawSubmissions || !globalStats) return { 
-      views: "0", clicks: "0", saves: "0", likes: "0", followers: "124", rating: "4.8", ctr: "12.4%", earnings: "$0.00",
+      views: "0", clicks: "0", saves: "0", likes: "0", followers: "124", rating: "4.8", ctr: "12.4%", earnings: "$0.00", shares: "842",
       total: 0, approved: 0, pending: 0, rejected: 0
     };
     
@@ -195,6 +212,7 @@ export default function UserDashboard() {
     
     const totalClicks = myStats.reduce((acc, curr) => acc + (curr.visitCount || 0), 0);
     const totalLikes = myStats.reduce((acc, curr) => acc + (curr.likeCount || 0), 0);
+    const totalShares = myStats.reduce((acc, curr) => acc + (curr.shareCount || 0), 0);
     
     const totalViews = totalClicks * 4; 
     const ctr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0.0";
@@ -208,6 +226,7 @@ export default function UserDashboard() {
       rating: "4.8",
       ctr: `${ctr}%`,
       earnings: "$0.00",
+      shares: totalShares.toLocaleString(),
       total: rawSubmissions.length,
       approved: rawSubmissions.filter(s => s.status === 'approved').length,
       pending: rawSubmissions.filter(s => s.status === 'pending').length,
@@ -338,7 +357,7 @@ export default function UserDashboard() {
           <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8 bg-[#0B0A0F]/80 backdrop-blur-xl z-40 py-2">
             <div className="space-y-1">
                <h1 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter text-white">
-                 {activeView === 'my-websites' ? 'Digital Property Manager' : activeView === 'analytics' ? 'Analytics Command Center' : activeView === 'ai-assistant' ? 'Astra Strategy Hub' : `Welcome, ${profile?.displayName?.split(' ')[0] || 'Curator'} 👋`}
+                 {activeView === 'my-websites' ? 'Digital Property Manager' : activeView === 'analytics' ? 'Analytics Command Center' : activeView === 'audience' ? 'Audience Insights' : activeView === 'ai-assistant' ? 'Astra Strategy Hub' : `Welcome, ${profile?.displayName?.split(' ')[0] || 'Curator'} 👋`}
                </h1>
                <div className="flex items-center gap-2">
                   <Badge className="bg-primary/20 text-primary border-none text-[9px] font-black uppercase tracking-widest px-2 py-0.5 italic">🥇 Rising Creator</Badge>
@@ -773,214 +792,396 @@ export default function UserDashboard() {
                      </div>
                   </div>
                </div>
-
-               {/* Real-time Activity Feed */}
-               <div className="max-w-4xl">
-                  <div className="flex items-center justify-between mb-8">
-                     <h3 className="text-2xl font-black italic uppercase tracking-tighter">Live Discovery Cluster</h3>
-                     <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
-                  </div>
-                  <div className="space-y-6">
-                     {[
-                        { icon: Eye, label: 'A new user from India viewed your website.', time: '2m ago', color: 'text-blue-400' },
-                        { icon: MousePointer2, label: 'Someone clicked your "Visit Website" link.', time: '15m ago', color: 'text-primary' },
-                        { icon: Bookmark, label: 'Website added to a private discovery collection.', time: '1h ago', color: 'text-amber-400' },
-                        { icon: Heart, label: 'Interaction Recorded: 🥇 Rising Creator Like.', time: '3h ago', color: 'text-rose-400' },
-                        { icon: MessageSquare, label: 'New community review submitted for validation.', time: '5h ago', color: 'text-sky-400' }
-                     ].map((act, i) => (
-                        <div key={i} className="flex items-start gap-6 p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group">
-                           <div className={cn("p-3 rounded-2xl bg-white/5 shrink-0 group-hover:scale-110 transition-transform", act.color)}><act.icon className="w-5 h-5" /></div>
-                           <div className="min-w-0 flex-1">
-                              <p className="text-sm font-bold text-white/80 leading-tight tracking-tight">{act.label}</p>
-                              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/20 mt-1 italic">{act.time}</p>
-                           </div>
-                           <ChevronRight className="w-4 h-4 text-muted-foreground/20 group-hover:text-primary transition-all" />
-                        </div>
-                     ))}
-                  </div>
-               </div>
             </div>
           )}
 
-          {activeView === 'my-websites' && (
-            <div className="space-y-12 animate-in fade-in duration-500">
-               {/* Premium Digital Property Header */}
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="md:col-span-2 relative group">
-                     <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/10 p-10 rounded-[3rem] shadow-2xl h-full flex flex-col justify-between overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] -mr-32 -mt-32 transition-all group-hover:bg-primary/20" />
-                        <div className="space-y-4 relative z-10">
-                           <h2 className="text-5xl font-black italic uppercase tracking-tighter text-white leading-none">The Website <br /><span className="text-primary">Registry</span></h2>
-                           <p className="text-muted-foreground font-medium text-lg max-w-md opacity-60 leading-relaxed">Manage and optimize your curated collection of {stats.total} digital properties within the Bessites ecosystem.</p>
+          {activeView === 'audience' && (
+            <div className="space-y-12 animate-in fade-in duration-700">
+               {/* Audience Header Cluster */}
+               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 md:gap-8">
+                  <AudienceStatCard label="❤️ Total Likes" value={stats.likes} growth="+12.4%" icon={Heart} color="text-rose-500" />
+                  <AudienceStatCard label="🔖 Total Saves" value={stats.saves} growth="+8.2%" icon={Bookmark} color="text-amber-500" />
+                  <AudienceStatCard label="🔄 Total Shares" value={stats.shares} growth="+15.1%" icon={Share2} color="text-emerald-500" />
+                  <AudienceStatCard label="👁️ Total Visitors" value={stats.views} growth="+22.5%" icon={Eye} color="text-blue-500" />
+               </div>
+
+               {/* Large Interactive Audience Activity Graph */}
+               <Card className="bg-[#121117] border-white/5 p-6 sm:p-10 rounded-[3rem] shadow-2xl relative overflow-hidden group">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+                     <div className="space-y-1">
+                        <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">Audience Activity</h3>
+                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.3em] opacity-40">Interactive engagement stream</p>
+                     </div>
+                     <div className="flex items-center gap-4 bg-white/5 p-1 rounded-2xl border border-white/5 w-full md:w-auto overflow-x-auto no-scrollbar">
+                        {['Visitors', 'Likes', 'Saves', 'Shares', 'Clicks', 'Followers'].map(m => (
+                          <button key={m} className={cn("px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all shrink-0", m === 'Visitors' ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:text-white")}>{m}</button>
+                        ))}
+                     </div>
+                  </div>
+                  
+                  <div className="h-[450px] w-full">
+                     <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={CHART_DATA}>
+                           <defs>
+                              <linearGradient id="audienceViews" x1="0" y1="0" x2="0" y2="1">
+                                 <stop offset="5%" stopColor="#7B33FF" stopOpacity={0.3}/>
+                                 <stop offset="95%" stopColor="#7B33FF" stopOpacity={0}/>
+                              </linearGradient>
+                           </defs>
+                           <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                           <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#ffffff20', fontSize: 10, fontWeight: 900 }} />
+                           <YAxis axisLine={false} tickLine={false} tick={{ fill: '#ffffff20', fontSize: 10, fontWeight: 900 }} />
+                           <RechartsTooltip 
+                              contentStyle={{ backgroundColor: '#1A1823', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '1rem', color: '#fff' }}
+                              itemStyle={{ color: '#7B33FF', fontWeight: 900 }}
+                           />
+                           <Area type="monotone" dataKey="views" stroke="#7B33FF" strokeWidth={4} fillOpacity={1} fill="url(#audienceViews)" />
+                        </AreaChart>
+                     </ResponsiveContainer>
+                  </div>
+                  <div className="flex justify-center gap-8 mt-8">
+                     {['Today', '7 Days', '30 Days', '90 Days', '1 Year', 'Lifetime'].map(f => (
+                        <button key={f} className={cn("text-[10px] font-black uppercase tracking-widest transition-all", f === '30 Days' ? "text-primary italic" : "text-muted-foreground/40 hover:text-white")}>{f}</button>
+                     ))}
+                  </div>
+               </Card>
+
+               <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 md:gap-12">
+                  {/* Top Audience Interests Panel */}
+                  <div className="xl:col-span-1 space-y-8">
+                     <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl space-y-8 h-full">
+                        <div className="flex justify-between items-center">
+                           <h3 className="text-xl font-black italic uppercase tracking-tighter">Top Audience Interests</h3>
+                           <Target className="w-5 h-5 text-primary" />
                         </div>
-                        <div className="flex flex-wrap gap-4 mt-12 relative z-10">
-                           <Button onClick={() => router.push('/submit')} className="h-16 px-12 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-sm italic shadow-2xl hover:bg-primary hover:text-white transition-all group/btn">
-                              <Plus className="w-5 h-5 mr-3 group-hover:rotate-90 transition-transform" strokeWidth={3} /> Submit New Project
-                           </Button>
-                           <Button variant="outline" className="h-16 px-12 rounded-2xl border-white/10 bg-white/5 font-black uppercase tracking-widest text-sm italic hover:bg-white/10 transition-all">
-                              <Download className="w-5 h-5 mr-3" /> Export Catalog
-                           </Button>
+                        <div className="space-y-6">
+                           {[
+                              { label: 'AI & Generative', icon: Sparkles, val: '4,280', pct: '45%', growth: '+12%', color: 'text-purple-400' },
+                              { label: 'Gaming Portal', icon: Gamepad2, val: '2,140', pct: '22%', growth: '+8%', color: 'text-rose-400' },
+                              { label: 'Developer Utils', icon: Code, val: '1,520', pct: '16%', growth: '+18%', color: 'text-blue-400' },
+                              { label: 'Design Tools', icon: Palette, val: '980', pct: '10%', growth: '+4%', color: 'text-pink-400' },
+                              { label: 'Education', icon: BookOpen, val: '450', pct: '5%', growth: '+22%', color: 'text-emerald-400' },
+                              { label: 'Business', icon: Briefcase, val: '210', pct: '2%', growth: '-2%', color: 'text-teal-400' }
+                           ].map((item, i) => (
+                              <div key={i} className="flex items-center justify-between group cursor-default">
+                                 <div className="flex items-center gap-4">
+                                    <div className={cn("p-2.5 rounded-xl bg-white/5 shrink-0 group-hover:scale-110 transition-transform", item.color)}>
+                                       <item.icon className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                       <p className="text-xs font-bold text-white/80">{item.label}</p>
+                                       <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/30">{item.val} Visitors</p>
+                                    </div>
+                                 </div>
+                                 <div className="text-right">
+                                    <p className="text-sm font-black italic text-white">{item.pct}</p>
+                                    <p className={cn("text-[9px] font-bold uppercase", item.growth.startsWith('+') ? 'text-emerald-400' : 'text-rose-400')}>{item.growth}</p>
+                                 </div>
+                              </div>
+                           ))}
                         </div>
                      </Card>
                   </div>
-                  
-                  <div className="space-y-6">
-                     <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl flex flex-col justify-between relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-[50px] -mr-16 -mt-16" />
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 italic">Active Listings</p>
-                        <div className="flex items-end justify-between mt-4">
-                           <p className="text-6xl font-black italic tracking-tighter text-white leading-none">{stats.approved}</p>
-                           <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-400 group-hover:scale-110 transition-transform"><Globe className="w-6 h-6" /></div>
-                        </div>
-                        <div className="mt-8 pt-6 border-t border-white/5">
-                           <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                              <span className="text-muted-foreground/40">Approval Rate</span>
-                              <span className="text-emerald-400">92%</span>
+
+                  {/* Comprehensive Audience Breakdown Grid */}
+                  <div className="xl:col-span-2 space-y-8">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Top Countries Card */}
+                        <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl space-y-6">
+                           <div className="flex justify-between items-center">
+                              <h3 className="text-lg font-black italic uppercase tracking-tighter">🌍 Top Countries</h3>
+                              <Globe2 className="w-4 h-4 text-primary" />
                            </div>
-                        </div>
-                     </Card>
-                     
-                     <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl flex flex-col justify-between relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[50px] -mr-16 -mt-16" />
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 italic">Discovery Momentum</p>
-                        <div className="flex items-end justify-between mt-4">
-                           <p className="text-6xl font-black italic tracking-tighter text-white leading-none">{stats.ctr}</p>
-                           <div className="p-3 bg-primary/10 rounded-2xl text-primary group-hover:scale-110 transition-transform"><TrendingUp className="w-6 h-6" /></div>
-                        </div>
-                        <div className="mt-8 pt-6 border-t border-white/5">
-                           <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                              <span className="text-muted-foreground/40">Vs. Industry Avg</span>
-                              <span className="text-primary">+12.4%</span>
+                           <div className="space-y-4">
+                              {[
+                                 { name: 'India', count: '12.4k', pct: 42, color: 'bg-primary' },
+                                 { name: 'United States', count: '8.2k', pct: 28, color: 'bg-blue-400' },
+                                 { name: 'United Kingdom', count: '4.1k', pct: 15, color: 'bg-sky-400' },
+                                 { name: 'Germany', count: '2.8k', pct: 10, color: 'bg-emerald-400' },
+                                 { name: 'Canada', count: '1.4k', pct: 5, color: 'bg-amber-400' }
+                              ].map((c, i) => (
+                                 <div key={i} className="space-y-1.5">
+                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                                       <span className="text-white/60">{c.name}</span>
+                                       <span className="text-white/30">{c.count} ({c.pct}%)</span>
+                                    </div>
+                                    <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                       <div className={cn("h-full transition-all duration-1000", c.color)} style={{ width: `${c.pct}%` }} />
+                                    </div>
+                                 </div>
+                              ))}
                            </div>
-                        </div>
-                     </Card>
+                        </Card>
+
+                        {/* Top Cities Card */}
+                        <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl space-y-6">
+                           <div className="flex justify-between items-center">
+                              <h3 className="text-lg font-black italic uppercase tracking-tighter">🏙️ Top Cities</h3>
+                              <Building2 className="w-4 h-4 text-primary" />
+                           </div>
+                           <div className="space-y-5">
+                              {[
+                                 { name: 'Mumbai, IN', val: '4.2k' },
+                                 { name: 'New York, US', val: '3.1k' },
+                                 { name: 'London, UK', val: '2.4k' },
+                                 { name: 'Bengaluru, IN', val: '2.1k' },
+                                 { name: 'San Francisco, US', val: '1.8k' }
+                              ].map((city, i) => (
+                                 <div key={i} className="flex justify-between items-center border-b border-white/5 pb-2 last:border-none">
+                                    <span className="text-xs font-bold text-white/60">{city.name}</span>
+                                    <span className="text-[10px] font-black italic text-primary">{city.val}</span>
+                                 </div>
+                              ))}
+                           </div>
+                        </Card>
+
+                        {/* Devices & Browsers Double Card */}
+                        <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl space-y-8 md:col-span-2">
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                              {/* Devices */}
+                              <div className="space-y-6">
+                                 <h3 className="text-lg font-black italic uppercase tracking-tighter">📱 Devices</h3>
+                                 <div className="flex items-center gap-8">
+                                    <div className="relative inline-flex items-center justify-center shrink-0">
+                                       <svg className="w-32 h-32 transform -rotate-90">
+                                          <circle cx="64" cy="64" r="50" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/[0.03]" />
+                                          <circle cx="64" cy="64" r="50" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={314} strokeDashoffset={314 * (1 - 0.65)} className="text-primary" />
+                                       </svg>
+                                       <PhoneIcon className="absolute w-8 h-8 text-primary/40" />
+                                    </div>
+                                    <div className="space-y-3 flex-1">
+                                       <div className="flex justify-between items-center">
+                                          <div className="flex items-center gap-2"><PhoneIcon className="w-3 h-3 text-primary" /><span className="text-[10px] font-black uppercase tracking-widest">Mobile</span></div>
+                                          <span className="text-sm font-black italic">65%</span>
+                                       </div>
+                                       <div className="flex justify-between items-center">
+                                          <div className="flex items-center gap-2"><Monitor className="w-3 h-3 text-blue-400" /><span className="text-[10px] font-black uppercase tracking-widest">Desktop</span></div>
+                                          <span className="text-sm font-black italic">30%</span>
+                                       </div>
+                                       <div className="flex justify-between items-center">
+                                          <div className="flex items-center gap-2"><Tablet className="w-3 h-3 text-emerald-400" /><span className="text-[10px] font-black uppercase tracking-widest">Tablet</span></div>
+                                          <span className="text-sm font-black italic">5%</span>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+
+                              {/* Browsers */}
+                              <div className="space-y-6">
+                                 <h3 className="text-lg font-black italic uppercase tracking-tighter">🌐 Browsers</h3>
+                                 <div className="space-y-4">
+                                    {[
+                                       { name: 'Chrome', pct: 72, color: 'bg-primary' },
+                                       { name: 'Safari', pct: 18, color: 'bg-sky-400' },
+                                       { name: 'Edge', pct: 6, color: 'bg-emerald-400' },
+                                       { name: 'Firefox', pct: 4, color: 'bg-orange-400' }
+                                    ].map((b, i) => (
+                                       <div key={i} className="flex items-center gap-4">
+                                          <span className="text-[10px] font-black uppercase tracking-widest w-16 text-muted-foreground/60">{b.name}</span>
+                                          <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                             <div className={cn("h-full", b.color)} style={{ width: `${b.pct}%` }} />
+                                          </div>
+                                          <span className="text-[10px] font-black italic w-8 text-right">{b.pct}%</span>
+                                       </div>
+                                    ))}
+                                 </div>
+                              </div>
+                           </div>
+                        </Card>
+                     </div>
                   </div>
                </div>
 
-               {/* Professional Registry Ledger */}
-               <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                     <h3 className="text-2xl font-black italic uppercase tracking-tighter">The Discovery Ledger</h3>
-                     <div className="flex gap-4">
-                        <Button variant="ghost" className="h-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white">Sort by Views</Button>
-                        <Button variant="ghost" className="h-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white">Filter Status</Button>
+               {/* Real-time Interaction Matrix */}
+               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
+                  {/* Traffic Pulse Section */}
+                  <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl space-y-8">
+                     <div className="space-y-6">
+                        <div className="flex justify-between items-center">
+                           <h3 className="text-lg font-black italic uppercase tracking-tighter">🚀 Traffic Sources</h3>
+                           <ZapIcon className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="space-y-4">
+                           {[
+                              { label: 'Home Feed', val: '45%', color: 'text-primary' },
+                              { label: 'Search Engine', val: '22%', color: 'text-blue-400' },
+                              { label: 'Direct Entry', val: '18%', color: 'text-emerald-400' },
+                              { label: 'Social Refer', val: '15%', color: 'text-amber-400' }
+                           ].map((src, i) => (
+                              <div key={i} className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                                 <span className="text-white/60">{src.label}</span>
+                                 <span className={cn("italic", src.color)}>{src.val}</span>
+                              </div>
+                           ))}
+                        </div>
                      </div>
-                  </div>
+                     <div className="pt-6 border-t border-white/5 space-y-6">
+                        <div className="flex justify-between items-center">
+                           <h3 className="text-lg font-black italic uppercase tracking-tighter">🗣️ Languages</h3>
+                           <Globe className="w-4 h-4 text-muted-foreground/30" />
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                           {['English (64%)', 'Hindi (18%)', 'Spanish (8%)', 'French (5%)', 'German (5%)'].map(l => (
+                              <Badge key={l} className="bg-white/5 text-white/40 border-none text-[9px] font-black uppercase tracking-widest px-3 py-1 italic">{l}</Badge>
+                           ))}
+                        </div>
+                     </div>
+                  </Card>
 
-                  <div className="bg-[#121117] border border-white/5 rounded-[3.5rem] overflow-hidden shadow-2xl">
-                     <div className="overflow-x-auto no-scrollbar">
-                        <table className="w-full text-left min-w-[1200px]">
-                           <thead className="bg-white/[0.03]">
-                              <tr>
-                                 <th className="p-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Digital Property Identity</th>
-                                 <th className="p-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40 text-center">Cloud Status</th>
-                                 <th className="p-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Total Views</th>
-                                 <th className="p-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Click Pulse</th>
-                                 <th className="p-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Momentum (30D)</th>
-                                 <th className="p-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">CTR Rate</th>
-                                 <th className="p-10 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Studio Actions</th>
-                              </tr>
-                           </thead>
-                           <tbody className="divide-y divide-white/5">
-                              {rawSubmissions?.map((site: any) => {
-                                 const siteStats = globalStats?.find(gs => gs.id === site.id);
-                                 const ctr = siteStats?.visitCount ? ((siteStats.visitCount / (siteStats.visitCount * 4)) * 100).toFixed(1) : "0.0";
-                                 return (
-                                    <tr key={site.id} className="group hover:bg-white/[0.02] transition-all">
-                                       <td className="p-10">
-                                          <div className="flex items-center gap-8">
-                                             <div className="relative">
-                                                <div className="w-20 h-20 rounded-[2rem] bg-[#0B0A0F] border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-2xl group-hover:scale-105 transition-transform duration-700">
-                                                   <WebsitePreview 
-                                                      websiteUrl={site.url}
-                                                      fallbackUrl={site.logoUrl}
-                                                      alt={site.name || "Tool"}
-                                                      width={80}
-                                                      height={80}
-                                                      className="w-full h-full object-cover"
-                                                   />
-                                                </div>
-                                                {site.status === 'approved' && (
-                                                   <div className="absolute -bottom-1 -right-1 bg-emerald-500 rounded-full p-1 border-4 border-[#121117]">
-                                                      <Check className="w-3 h-3 text-white" strokeWidth={5} />
-                                                   </div>
-                                                )}
-                                             </div>
-                                             <div className="min-w-0">
-                                                <p className="text-lg font-black italic tracking-tighter text-white group-hover:text-primary transition-colors truncate">{site.url.replace('https://', '')}</p>
-                                                <div className="flex items-center gap-3 mt-1.5">
-                                                   <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/30 italic">Registered {site.timestamp ? formatDistanceToNow(site.timestamp.toDate()) : 'Recently'} ago</span>
-                                                   <div className="w-1 h-1 rounded-full bg-white/10" />
-                                                   <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">{site.categories?.[0] || 'Web App'}</span>
-                                                </div>
-                                             </div>
-                                          </div>
-                                       </td>
-                                       <td className="p-10">
-                                          <div className="flex justify-center">
-                                             <Badge className={cn(
-                                                "uppercase text-[10px] font-black px-4 py-1.5 rounded-full border-none shadow-xl",
-                                                site.status === 'approved' ? "bg-emerald-500/10 text-emerald-400" :
-                                                site.status === 'rejected' ? "bg-rose-500/10 text-rose-400" : "bg-amber-500/10 text-amber-400"
-                                             )}>
-                                                {site.status || 'pending'}
-                                             </Badge>
-                                          </div>
-                                       </td>
-                                       <td className="p-10">
-                                          <div className="space-y-1">
-                                             <p className="text-xl font-black italic tracking-tighter text-white">{(siteStats?.visitCount || 0) * 4}</p>
-                                             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest opacity-20">Unique Views</p>
-                                          </div>
-                                       </td>
-                                       <td className="p-10">
-                                          <div className="space-y-1">
-                                             <p className="text-xl font-black italic tracking-tighter text-white">{siteStats?.visitCount || 0}</p>
-                                             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest opacity-20">Active Clicks</p>
-                                          </div>
-                                       </td>
-                                       <td className="p-10">
-                                          <div className="w-32 h-10 bg-white/5 rounded-2xl border border-white/5 relative overflow-hidden group-hover:bg-primary/5 transition-colors">
-                                             <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-                                                <path d="M0,80 Q10,20 20,60 T40,40 T60,80 T80,30 T100,50" fill="none" stroke={parseFloat(ctr) > 8 ? "#10b981" : "#7B33FF"} strokeWidth="4" className="drop-shadow-[0_0_10px_rgba(123,51,255,0.4)]" />
-                                             </svg>
-                                          </div>
-                                       </td>
-                                       <td className="p-10">
-                                          <div className="flex items-center gap-3">
-                                             <div className="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                                <div className="h-full bg-primary rounded-full shadow-[0_0_15px_rgba(123,51,255,1)]" style={{ width: `${Math.min(parseFloat(ctr) * 4, 100)}%` }} />
-                                             </div>
-                                             <span className="text-sm font-black text-primary italic">{ctr}%</span>
-                                          </div>
-                                       </td>
-                                       <td className="p-10">
-                                          <div className="flex items-center justify-end gap-3">
-                                             <button className="p-3.5 hover:bg-primary/20 bg-white/5 border border-white/5 rounded-2xl transition-all text-primary hover:scale-110 active:scale-95" title="Promotion Studio"><Flame className="w-5 h-5" /></button>
-                                             <button className="p-3.5 hover:bg-white/10 bg-white/5 border border-white/5 rounded-2xl transition-all text-white hover:scale-110 active:scale-95" title="Performance Suite"><BarChart3 className="w-5 h-5" /></button>
-                                             <button className="p-3.5 hover:bg-white/10 bg-white/5 border border-white/5 rounded-2xl transition-all text-muted-foreground hover:text-white hover:scale-110"><Edit className="w-5 h-5" /></button>
-                                             <button className="p-3.5 hover:bg-destructive/20 bg-white/5 border border-white/5 rounded-2xl transition-all text-muted-foreground hover:text-destructive hover:scale-110"><Trash2 className="w-5 h-5" /></button>
-                                          </div>
-                                       </td>
-                                    </tr>
-                                 );
-                              })}
-                              {(!rawSubmissions || rawSubmissions.length === 0) && (
-                                 <tr>
-                                    <td colSpan={7} className="p-60 text-center">
-                                       <div className="flex flex-col items-center gap-6 opacity-20">
-                                          <div className="w-24 h-24 rounded-full border-4 border-dashed border-white flex items-center justify-center">
-                                             <Plus className="w-12 h-12" />
-                                          </div>
-                                          <p className="text-xl font-black italic uppercase tracking-widest max-w-sm">The digital property registry is currently empty.</p>
-                                       </div>
-                                    </td>
-                                 </tr>
-                              )}
-                           </tbody>
-                        </table>
+                  {/* Engagement Pulse & Activity Times */}
+                  <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl space-y-10 lg:col-span-2">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <div className="space-y-8">
+                           <div className="space-y-1">
+                              <h3 className="text-lg font-black italic uppercase tracking-tighter">⏰ Most Active Hours</h3>
+                              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-40 italic">Peak Engagement Zone</p>
+                           </div>
+                           <div className="h-40 flex items-end justify-between gap-1 group/hours">
+                              {[20, 35, 15, 45, 60, 90, 100, 85, 55, 30, 15, 10].map((h, i) => (
+                                 <div key={i} className="flex-1 bg-primary/20 hover:bg-primary transition-all rounded-t-lg relative group/hour cursor-pointer">
+                                    <div className="h-full w-full" style={{ height: `${h}%` }} />
+                                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-card border border-white/10 text-[8px] font-black px-1.5 py-0.5 rounded opacity-0 group-hover/hour:opacity-100 transition-opacity z-20 whitespace-nowrap">{h}%</div>
+                                 </div>
+                              ))}
+                           </div>
+                           <div className="flex justify-between text-[10px] font-black uppercase tracking-tighter text-muted-foreground/20 italic">
+                              <span>00:00</span>
+                              <span className="text-primary font-black">PEAK: 8 PM - 10 PM</span>
+                              <span>23:59</span>
+                           </div>
+                        </div>
+
+                        <div className="space-y-8">
+                           <div className="space-y-1">
+                              <h3 className="text-lg font-black italic uppercase tracking-tighter">📅 Most Active Days</h3>
+                              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-40 italic">Weekly Traffic Cycle</p>
+                           </div>
+                           <div className="space-y-3">
+                              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                                 <div key={day} className="flex items-center gap-4">
+                                    <span className="text-[10px] font-black uppercase tracking-widest w-8 text-muted-foreground/30">{day}</span>
+                                    <div className="flex-1 h-3 bg-white/5 rounded-full overflow-hidden">
+                                       <div className={cn("h-full rounded-full transition-all duration-1000", day === 'Sun' ? 'bg-primary shadow-[0_0_10px_rgba(123,51,255,0.4)]' : 'bg-white/10')} style={{ width: day === 'Sun' ? '92%' : day === 'Tue' ? '85%' : '60%' }} />
+                                    </div>
+                                    <span className={cn("text-[10px] font-black italic", day === 'Sun' ? 'text-primary' : 'text-white/20')}>{day === 'Sun' ? 'BUSIEST' : ''}</span>
+                                 </div>
+                              ))}
+                           </div>
+                        </div>
+                     </div>
+                  </Card>
+               </div>
+
+               {/* Most Popular Website Card */}
+               <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/5 p-10 rounded-[4rem] shadow-2xl relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 blur-[120px] -mr-48 -mt-48 transition-all group-hover:bg-primary/20" />
+                  <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
+                     <div className="relative">
+                        <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-[4rem] overflow-hidden bg-[#0B0A0F] border-4 border-white/5 shadow-2xl group-hover:scale-105 transition-transform duration-700">
+                           <WebsitePreview 
+                              websiteUrl={rawSubmissions?.[0]?.url || 'https://bessites.store'}
+                              fallbackUrl={rawSubmissions?.[0]?.logoUrl}
+                              alt="Popular"
+                              width={256}
+                              height={256}
+                              className="w-full h-full object-cover"
+                           />
+                        </div>
+                        <div className="absolute -bottom-4 -right-4 bg-primary text-white p-4 rounded-3xl shadow-2xl animate-bounce">
+                           <Trophy className="w-8 h-8" />
+                        </div>
+                     </div>
+                     <div className="flex-1 space-y-6 text-center md:text-left">
+                        <Badge className="bg-primary/20 text-primary border-none text-[10px] font-black uppercase tracking-widest px-4 py-1 italic">👑 Top Digital Property</Badge>
+                        <h2 className="text-4xl sm:text-6xl font-black italic uppercase tracking-tighter text-white leading-none">
+                           {rawSubmissions?.[0]?.url?.replace('https://', '').split('/')[0] || 'Discovery Hub'}
+                        </h2>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                           <div className="space-y-1">
+                              <p className="text-2xl font-black italic text-white">14.2k</p>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Total Views</p>
+                           </div>
+                           <div className="space-y-1">
+                              <p className="text-2xl font-black italic text-white">2.8k</p>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Total Clicks</p>
+                           </div>
+                           <div className="space-y-1">
+                              <p className="text-2xl font-black italic text-white">842</p>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Total Likes</p>
+                           </div>
+                           <div className="space-y-1">
+                              <p className="text-2xl font-black italic text-white">412</p>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Total Saves</p>
+                           </div>
+                        </div>
                      </div>
                   </div>
+               </Card>
+
+               {/* AI Insights & Audience Growth Widget */}
+               <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
+                  {/* AI Insights Card */}
+                  <Card className="bg-[#121117] border-primary/10 p-10 rounded-[3rem] shadow-xl relative overflow-hidden group">
+                     <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity blur-[60px]" />
+                     <div className="flex items-center gap-4 mb-10 relative z-10">
+                        <div className="p-3 bg-primary/10 rounded-2xl text-primary"><Sparkles className="w-6 h-6" /></div>
+                        <div>
+                           <h3 className="text-2xl font-black italic uppercase tracking-tighter">AI Audience Insights</h3>
+                           <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-40">Generated by Astra Strategy Hub</p>
+                        </div>
+                     </div>
+                     <div className="space-y-6 relative z-10">
+                        {[
+                           "Your Gaming audience grew by 18% this month.",
+                           "Most visitors use Android devices to explore your catalog.",
+                           "Users from India have the highest engagement and click rates.",
+                           "Programming websites receive the longest average visit time (4m 12s).",
+                           "Your audience is most active between 8 PM and 10 PM on weekends."
+                        ].map((insight, i) => (
+                           <div key={i} className="flex items-start gap-4 p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group/insight cursor-default">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 group-hover/insight:scale-150 transition-transform" />
+                              <p className="text-sm font-bold text-white/60 group-hover/insight:text-white transition-colors leading-relaxed">"{insight}"</p>
+                           </div>
+                        ))}
+                     </div>
+                  </Card>
+
+                  {/* Audience Growth Metrics */}
+                  <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] shadow-xl space-y-12">
+                     <div className="flex justify-between items-center">
+                        <h3 className="text-2xl font-black italic uppercase tracking-tighter">📈 Audience Growth</h3>
+                        <Activity className="w-6 h-6 text-primary" />
+                     </div>
+                     <div className="grid grid-cols-2 gap-10">
+                        <div className="space-y-2">
+                           <p className="text-4xl font-black italic text-white tracking-tighter">+1,420</p>
+                           <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/30 italic">Followers Gained</p>
+                        </div>
+                        <div className="space-y-2">
+                           <p className="text-4xl font-black italic text-white tracking-tighter">+8,240</p>
+                           <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/30 italic">Visitors Gained</p>
+                        </div>
+                        <div className="space-y-2">
+                           <p className="text-4xl font-black italic text-white tracking-tighter">34.2%</p>
+                           <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/30 italic">Repeat Visitor Rate</p>
+                        </div>
+                        <div className="space-y-2">
+                           <div className="flex items-center gap-2">
+                              <p className="text-4xl font-black italic text-primary tracking-tighter">94</p>
+                              <div className="text-[8px] font-black uppercase tracking-tighter text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">HIGH</div>
+                           </div>
+                           <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/30 italic">Engagement Score</p>
+                        </div>
+                     </div>
+                     <div className="pt-10 border-t border-white/5 flex flex-wrap gap-4">
+                        <Button className="h-14 px-10 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-xs italic hover:bg-primary hover:text-white transition-all">
+                           <Download className="w-4 h-4 mr-2" /> Download Audience Report
+                        </Button>
+                        <Button variant="outline" className="h-14 px-10 rounded-2xl border-white/10 bg-white/5 font-black uppercase tracking-widest text-xs italic hover:bg-white/10 transition-all">
+                           <Send className="w-4 h-4 mr-2" /> Share Analytics
+                        </Button>
+                     </div>
+                  </Card>
                </div>
             </div>
           )}
@@ -1074,7 +1275,7 @@ export default function UserDashboard() {
             </div>
           )}
 
-          {activeView !== 'overview' && activeView !== 'my-websites' && activeView !== 'ai-assistant' && activeView !== 'analytics' && (
+          {activeView !== 'overview' && activeView !== 'my-websites' && activeView !== 'ai-assistant' && activeView !== 'analytics' && activeView !== 'audience' && (
              <div className="py-40 flex flex-col items-center justify-center text-center space-y-8 animate-in zoom-in duration-500">
                 <div className="w-32 h-32 bg-primary/5 rounded-[3.5rem] flex items-center justify-center text-primary mb-4 shadow-inner">
                    <Zap className="w-16 h-16 opacity-20 grayscale" />
@@ -1113,6 +1314,30 @@ function StatCard({ label, value, icon: Icon, trend, trendUp, color = "text-prim
   );
 }
 
+function AudienceStatCard({ label, value, growth, icon: Icon, color }: { label: string, value: string, growth: string, icon: any, color: string }) {
+  return (
+    <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-all">
+       <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.01] blur-3xl -mr-16 -mt-16" />
+       <div className="flex justify-between items-start mb-6">
+          <div className={cn("p-4 rounded-2xl bg-white/5", color)}>
+             <Icon className="w-6 h-6" />
+          </div>
+          <div className="text-right">
+             <div className={cn("flex items-center gap-1 text-[10px] font-black uppercase tracking-tighter", growth.startsWith('+') ? "text-emerald-400" : "text-rose-400")}>
+                {growth.startsWith('+') ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+                {growth}
+             </div>
+             <p className="text-[8px] font-bold text-muted-foreground/40 uppercase tracking-widest mt-1">vs last month</p>
+          </div>
+       </div>
+       <div className="space-y-1">
+          <p className="text-4xl font-black italic tracking-tighter text-white">{value}</p>
+          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-40">{label}</p>
+       </div>
+    </Card>
+  );
+}
+
 function AnalyticsSummaryCard({ label, value, trend, trendUp, color, icon: Icon }: { label: string, value: string, trend: string, trendUp: boolean, color: string, icon: any }) {
   return (
     <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-all">
@@ -1133,7 +1358,6 @@ function AnalyticsSummaryCard({ label, value, trend, trendUp, color, icon: Icon 
           <p className="text-4xl font-black italic tracking-tighter text-white">{value}</p>
           <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-40">{label}</p>
        </div>
-       {/* Micro trend line */}
        <div className="h-12 w-full mt-6 opacity-30">
           <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
              <path d="M0,80 Q25,20 50,70 T100,30" fill="none" stroke="currentColor" strokeWidth="4" className={color} />

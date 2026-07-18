@@ -7,7 +7,7 @@ import { MarqueeBanner } from "@/components/marquee-banner";
 import { MasonryFeed } from "@/components/masonry-feed";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, TrendingUp, Clock, Loader2 } from "lucide-react";
+import { Sparkles, TrendingUp, Clock, Loader2, Award } from "lucide-react";
 import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -34,7 +34,6 @@ export default function Home() {
 
   const submissionsRef = useMemo(() => {
     if (!db) return null;
-    // Only fetch approved submissions for the main feed
     return query(collection(db, "submissions"), where("status", "==", "approved"));
   }, [db]);
 
@@ -64,6 +63,7 @@ export default function Home() {
       updatedAt: "2024",
       size: "N/A",
       version: "1.0",
+      isSponsored: false,
       ...s
     }));
     
@@ -80,12 +80,14 @@ export default function Home() {
     return uniquePool;
   }, [submittedSites]);
 
+  // Featured websites including sponsored items for the marquee
   const featuredWebsites = useMemo(() => {
-    return allAvailableWebsites.slice(0, 15);
+    return allAvailableWebsites.filter(w => w.isSponsored || w.rating > 4.4).slice(0, 15);
   }, [allAvailableWebsites]);
 
   const filteredWebsites = useMemo(() => {
     const featuredIds = new Set(featuredWebsites.map(w => w.id));
+    // Exclude marquee items from the main masonry feed to prevent redundancy
     const mainList = allAvailableWebsites.filter(w => !featuredIds.has(w.id));
     let results = [...mainList];
     
@@ -137,42 +139,42 @@ export default function Home() {
       <main className="flex-1">
         <section className="mt-4">
           <div className="container mx-auto px-4 mb-4">
-            <h2 className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary glow-primary" />
-              Staff Picks
+            <h2 className="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] text-muted-foreground flex items-center gap-2 italic">
+              <Award className="w-3.5 h-3.5 text-primary" />
+              Creator Studio Staff Picks & Sponsored
             </h2>
           </div>
           <MarqueeBanner items={featuredWebsites} />
         </section>
 
-        <section className="container mx-auto px-4 mt-8 sm:mt-12 mb-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-              <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-2 tracking-tighter">
-                Discover your next <span className="text-primary italic">flow</span>.
+        <section className="container mx-auto px-4 mt-8 sm:mt-16 mb-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div className="space-y-2">
+              <h1 className="font-headline text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tighter uppercase italic leading-none">
+                Discovery <span className="text-primary">Pipeline</span>
               </h1>
-              <p className="text-muted-foreground text-sm sm:text-base max-w-lg">
-                Your interest-driven directory of modern webs.
+              <p className="text-muted-foreground font-medium text-sm sm:text-base max-w-lg opacity-60">
+                A professional-grade directory for zero-duplication digital tools.
               </p>
             </div>
             
-            <div className="flex items-center gap-4 bg-card p-1 sm:p-1.5 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-4 bg-white/[0.02] p-1.5 rounded-[1.5rem] border border-white/5 overflow-x-auto no-scrollbar">
               <Tabs 
                 defaultValue="foryou" 
                 className="w-full"
                 onValueChange={(value) => setActiveTab(value)}
               >
                 <TabsList className="bg-transparent h-auto gap-1">
-                  <TabsTrigger value="foryou" className="rounded-xl px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-1.5 sm:gap-2">
-                    <Sparkles className="w-3.5 h-3.5" />
+                  <TabsTrigger value="foryou" className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 italic">
+                    <Sparkles className="w-4 h-4" />
                     For You
                   </TabsTrigger>
-                  <TabsTrigger value="trending" className="rounded-xl px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white flex items-center gap-1.5 sm:gap-2">
-                    <TrendingUp className="w-3.5 h-3.5" />
+                  <TabsTrigger value="trending" className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white flex items-center gap-2 italic">
+                    <TrendingUp className="w-4 h-4" />
                     Trending
                   </TabsTrigger>
-                  <TabsTrigger value="new" className="rounded-xl px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white flex items-center gap-1.5 sm:gap-2">
-                    <Clock className="w-3.5 h-3.5" />
+                  <TabsTrigger value="new" className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white flex items-center gap-2 italic">
+                    <Clock className="w-4 h-4" />
                     New
                   </TabsTrigger>
                 </TabsList>
@@ -183,10 +185,10 @@ export default function Home() {
 
         <section className="container mx-auto px-2">
           {activeTab === 'trending' && (
-            <div className="container mx-auto px-4 mb-6">
-               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+            <div className="container mx-auto px-4 mb-10">
+               <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-primary/10 border border-primary/20 shadow-xl shadow-primary/5">
                   <TrendingUp className="w-4 h-4 text-primary" />
-                  <span className="text-xs font-black text-white uppercase tracking-widest italic">Top 50 Community Picks</span>
+                  <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] italic">Top 50 Performance Cluster</span>
                </div>
             </div>
           )}
@@ -194,16 +196,16 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="bg-card/50 border-t border-white/5 py-12">
-        <div className="container mx-auto px-4 text-center space-y-4">
-          <div className="flex flex-wrap justify-center gap-6 text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
+      <footer className="bg-card/50 border-t border-white/5 py-16">
+        <div className="container mx-auto px-4 text-center space-y-6">
+          <div className="flex flex-wrap justify-center gap-8 text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/40 mb-4 italic">
             <a href="/about" className="hover:text-primary transition-colors">About Us</a>
             <a href="/contact" className="hover:text-primary transition-colors">Contact</a>
             <a href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</a>
             <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
           </div>
-          <p className="text-sm text-muted-foreground">
-            © 2024 Bessites. Zero Duplication. Zero Padding.
+          <p className="text-xs text-muted-foreground opacity-20 font-black uppercase tracking-widest">
+            © 2024 Bessites Studio. Absolute Discovery.
           </p>
         </div>
       </footer>

@@ -60,7 +60,6 @@ export function Navigation() {
   if (isAuthPage) return null;
 
   const sidebarLinks = [
-    { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
     { label: 'My Websites', icon: Globe, href: '/dashboard' },
     { label: 'Analytics', icon: BarChart3, href: '/dashboard' },
     { label: 'Audience', icon: Users, href: '/dashboard' },

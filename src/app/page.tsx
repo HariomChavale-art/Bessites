@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
@@ -63,7 +62,6 @@ export default function Home() {
       updatedAt: "2024",
       size: "N/A",
       version: "1.0",
-      isSponsored: false,
       ...s
     }));
     
@@ -80,9 +78,9 @@ export default function Home() {
     return uniquePool;
   }, [submittedSites]);
 
-  // Featured websites including sponsored items for the marquee
+  // Featured websites for the marquee based on ratings
   const featuredWebsites = useMemo(() => {
-    return allAvailableWebsites.filter(w => w.isSponsored || w.rating > 4.4).slice(0, 15);
+    return allAvailableWebsites.filter(w => w.rating > 4.4).slice(0, 15);
   }, [allAvailableWebsites]);
 
   const filteredWebsites = useMemo(() => {
@@ -141,7 +139,7 @@ export default function Home() {
           <div className="container mx-auto px-4 mb-4">
             <h2 className="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] text-muted-foreground flex items-center gap-2 italic">
               <Award className="w-3.5 h-3.5 text-primary" />
-              Creator Studio Staff Picks & Sponsored
+              Creator Studio Staff Picks
             </h2>
           </div>
           <MarqueeBanner items={featuredWebsites} />

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Website } from "@/lib/mock-data";
@@ -12,8 +11,8 @@ interface MarqueeBannerProps {
 }
 
 /**
- * MarqueeBanner configured for horizontal scrolling ads and staff picks.
- * Blends naturally with the Creator Studio aesthetic.
+ * MarqueeBanner configured for horizontal scrolling staff picks.
+ * Provides a clean, ad-free curated experience.
  */
 export function MarqueeBanner({ items }: MarqueeBannerProps) {
   // Triple the items to ensure seamless infinite scroll
@@ -38,9 +37,6 @@ export function MarqueeBanner({ items }: MarqueeBannerProps) {
                 height={64}
                 className="w-full h-full object-cover"
               />
-              {item.isSponsored && (
-                <div className="absolute inset-0 bg-primary/10 pointer-events-none" />
-              )}
             </div>
             
             <div className="flex flex-col gap-1.5">
@@ -48,11 +44,6 @@ export function MarqueeBanner({ items }: MarqueeBannerProps) {
                 <span className="text-xl font-black italic uppercase tracking-tighter text-white group-hover:text-primary transition-colors">
                   {item.name}
                 </span>
-                {item.isSponsored && (
-                  <Badge className="bg-primary/20 text-primary border-none text-[8px] font-black uppercase tracking-widest px-2 py-0.5 italic">
-                    Sponsored
-                  </Badge>
-                )}
               </div>
               <span className="text-xs font-medium text-muted-foreground opacity-60 tracking-tight">
                 {item.description}

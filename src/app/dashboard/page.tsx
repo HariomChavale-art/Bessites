@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useEffect, useRef } from "react";
@@ -31,7 +32,7 @@ import {
   HelpCircle,
   MessageSquare,
   Trophy,
-  PieChart,
+  PieChart as PieChartIcon,
   MousePointer2,
   Share2,
   Calendar,
@@ -66,7 +67,12 @@ import {
   Download,
   Send,
   User as UserIcon,
-  Layers
+  Layers,
+  ArrowDown,
+  ActivityIcon,
+  History,
+  Timer,
+  Navigation2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -89,6 +95,20 @@ import { useToast } from "@/hooks/use-toast";
 import { WebsitePreview } from "@/components/website-preview";
 import { formatDistanceToNow } from "date-fns";
 import { chatWithAstra } from "@/ai/flows/assistant-chat-flow";
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartsTooltip, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area
+} from 'recharts';
 
 type DashboardView = 
   | 'overview'
@@ -107,6 +127,26 @@ type ChatMessage = {
   role: 'user' | 'assistant';
   content: string;
 };
+
+// Mock data for graphs
+const CHART_DATA = [
+  { name: 'Mon', views: 2400, clicks: 400, ctr: 12.5, likes: 45, saves: 32, followers: 2 },
+  { name: 'Tue', views: 3000, clicks: 650, ctr: 14.2, likes: 58, saves: 41, followers: 5 },
+  { name: 'Wed', views: 2000, clicks: 320, ctr: 11.0, likes: 33, saves: 28, followers: 1 },
+  { name: 'Thu', views: 2780, clicks: 510, ctr: 13.5, likes: 49, saves: 35, followers: 4 },
+  { name: 'Fri', views: 1890, clicks: 280, ctr: 10.2, likes: 21, saves: 19, followers: 0 },
+  { name: 'Sat', views: 2390, clicks: 440, ctr: 12.8, likes: 42, saves: 30, followers: 3 },
+  { name: 'Sun', views: 3490, clicks: 820, ctr: 15.6, likes: 74, saves: 55, followers: 8 },
+];
+
+const SOURCE_DATA = [
+  { name: 'Home Feed', value: 45, color: '#7B33FF' },
+  { name: 'Search', value: 25, color: '#85A3FF' },
+  { name: 'Categories', value: 15, color: '#2D79FF' },
+  { name: 'Recommendations', value: 10, color: '#AB33FF' },
+  { name: 'Google', value: 3, color: '#FF5F56' },
+  { name: 'Social', value: 2, color: '#FFBD2E' },
+];
 
 export default function UserDashboard() {
   const { user, loading: authLoading } = useUser();
@@ -248,7 +288,7 @@ export default function UserDashboard() {
         <SidebarItem icon={Flame} label="Promotions" active={activeView === 'promotions'} onClick={() => handleViewChange('promotions')} />
         <SidebarItem icon={DollarSign} label="Earnings" active={activeView === 'earnings'} onClick={() => handleViewChange('earnings')} />
         <SidebarItem icon={Bell} label="Notifications" active={activeView === 'notifications'} onClick={() => handleViewChange('notifications')} />
-        <SidebarItem icon={Sparkles} label="AI Assistant" active={activeView === 'ai-assistant'} onClick={() => handleViewChange('ai-assistant')} />
+        <SidebarItem icon={Mic} label="AI Assistant" active={activeView === 'ai-assistant'} onClick={() => handleViewChange('ai-assistant')} />
         <div className="pt-4 mt-4 border-t border-white/5 space-y-1.5">
           <SidebarItem icon={Settings} label="Settings" active={activeView === 'settings'} onClick={() => handleViewChange('settings')} />
           <SidebarItem icon={HelpCircle} label="Support" active={activeView === 'support'} onClick={() => handleViewChange('support')} />
@@ -300,7 +340,7 @@ export default function UserDashboard() {
           <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8 bg-[#0B0A0F]/80 backdrop-blur-xl z-40 py-2">
             <div className="space-y-1">
                <h1 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter text-white">
-                 {activeView === 'ai-assistant' ? 'Astra Strategy Hub' : `Welcome, ${profile?.displayName?.split(' ')[0] || 'Curator'} 👋`}
+                 {activeView === 'analytics' ? 'Analytics Command Center' : activeView === 'ai-assistant' ? 'Astra Strategy Hub' : `Welcome, ${profile?.displayName?.split(' ')[0] || 'Curator'} 👋`}
                </h1>
                <div className="flex items-center gap-2">
                   <Badge className="bg-primary/20 text-primary border-none text-[9px] font-black uppercase tracking-widest px-2 py-0.5 italic">🥇 Rising Creator</Badge>
@@ -312,7 +352,7 @@ export default function UserDashboard() {
                <div className="relative group w-full sm:w-96">
                   <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                   <input 
-                    placeholder="Search your collection..." 
+                    placeholder="Search studio global data..." 
                     className="w-full h-12 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 text-xs font-medium focus:ring-1 focus:ring-primary/50 outline-none transition-all placeholder:italic" 
                   />
                </div>
@@ -403,6 +443,362 @@ export default function UserDashboard() {
 
                      <AudienceWidget />
                      <RecentActivityPanel />
+                  </div>
+               </div>
+            </div>
+          )}
+
+          {activeView === 'analytics' && (
+            <div className="space-y-12 animate-in fade-in duration-700">
+               {/* Summary Cards Row */}
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+                  <AnalyticsSummaryCard 
+                    label="Total Website Views" 
+                    value={stats.views} 
+                    trend="+18.4%" 
+                    trendUp 
+                    color="text-primary"
+                    icon={Eye}
+                  />
+                  <AnalyticsSummaryCard 
+                    label="Total Clicks" 
+                    value={stats.clicks} 
+                    trend="+12.1%" 
+                    trendUp 
+                    color="text-blue-400"
+                    icon={MousePointer2}
+                  />
+                  <AnalyticsSummaryCard 
+                    label="Current CTR" 
+                    value={stats.ctr} 
+                    trend="Industry Avg: 8.2%" 
+                    trendUp={parseFloat(stats.ctr) > 8.2} 
+                    color="text-emerald-400"
+                    icon={TrendingUp}
+                  />
+               </div>
+
+               {/* Main Graph & Right Panel Row */}
+               <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+                  {/* Large Performance Graph */}
+                  <div className="xl:col-span-3 space-y-8">
+                     <Card className="bg-[#121117] border-white/5 p-6 sm:p-10 rounded-[3rem] shadow-2xl relative overflow-hidden group">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+                           <div className="space-y-1">
+                              <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">Website Performance</h3>
+                              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.3em] opacity-40">Interactive discovery stream</p>
+                           </div>
+                           <div className="flex items-center gap-4 bg-white/5 p-1 rounded-2xl border border-white/5 w-full md:w-auto overflow-x-auto no-scrollbar">
+                              {['Views', 'Clicks', 'CTR', 'Likes', 'Saves', 'Followers'].map(m => (
+                                <button key={m} className={cn("px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all shrink-0", m === 'Views' ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:text-white")}>{m}</button>
+                              ))}
+                           </div>
+                        </div>
+                        
+                        <div className="h-[400px] w-full">
+                           <ResponsiveContainer width="100%" height="100%">
+                              <AreaChart data={CHART_DATA}>
+                                 <defs>
+                                    <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                                       <stop offset="5%" stopColor="#7B33FF" stopOpacity={0.3}/>
+                                       <stop offset="95%" stopColor="#7B33FF" stopOpacity={0}/>
+                                    </linearGradient>
+                                 </defs>
+                                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                                 <XAxis 
+                                    dataKey="name" 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: '#ffffff20', fontSize: 10, fontWeight: 900 }} 
+                                 />
+                                 <YAxis 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: '#ffffff20', fontSize: 10, fontWeight: 900 }} 
+                                 />
+                                 <RechartsTooltip 
+                                    contentStyle={{ backgroundColor: '#1A1823', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '1rem', color: '#fff' }}
+                                    itemStyle={{ color: '#7B33FF', fontWeight: 900 }}
+                                 />
+                                 <Area type="monotone" dataKey="views" stroke="#7B33FF" strokeWidth={4} fillOpacity={1} fill="url(#colorViews)" />
+                              </AreaChart>
+                           </ResponsiveContainer>
+                        </div>
+
+                        <div className="flex justify-center gap-6 mt-8">
+                           {['Today', '7 Days', '30 Days', '90 Days', '1 Year', 'Lifetime'].map(f => (
+                              <button key={f} className={cn("text-[10px] font-black uppercase tracking-widest transition-all", f === '7 Days' ? "text-primary italic" : "text-muted-foreground/40 hover:text-white")}>{f}</button>
+                           ))}
+                        </div>
+                     </Card>
+
+                     {/* AI Insights Card */}
+                     <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-primary/10 p-10 rounded-[3rem] shadow-xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[80px] -mr-32 -mt-32" />
+                        <div className="flex items-center justify-between mb-8 relative z-10">
+                           <div className="flex items-center gap-4">
+                              <div className="p-3 bg-primary/10 rounded-2xl text-primary shadow-inner"><Sparkles className="w-6 h-6" /></div>
+                              <div>
+                                 <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">AI Performance Insights</h3>
+                                 <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.2em] opacity-40">Generated by Astra v2.0</p>
+                              </div>
+                           </div>
+                           <Button variant="outline" className="rounded-2xl border-white/5 bg-white/5 font-black uppercase tracking-widest text-[9px] h-12 px-6 hover:bg-primary transition-all">Generate More Insights</Button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                           {[
+                              { text: "Your CTR increased 18% this week due to improved logo resolution.", icon: ArrowUpRight, color: "text-emerald-400" },
+                              { text: "Gaming websites perform 3x better on weekends in your collection.", icon: Gamepad2, color: "text-rose-400" },
+                              { text: "Most visitors originate from Tier 1 cities in India and USA.", icon: Globe, color: "text-blue-400" },
+                              { text: "Tuesday at 2:00 PM GMT gets the highest organic traffic.", icon: Clock, color: "text-amber-400" },
+                              { text: "One of your websites is currently trending in the AI Tools category.", icon: Flame, color: "text-primary" }
+                           ].map((tip, i) => (
+                              <div key={i} className="flex items-start gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group/tip">
+                                 <tip.icon className={cn("w-5 h-5 mt-1 shrink-0 group-hover/tip:scale-110 transition-transform", tip.color)} />
+                                 <p className="text-xs font-bold text-white/60 group-hover/tip:text-white transition-colors">"{tip.text}"</p>
+                              </div>
+                           ))}
+                        </div>
+                     </Card>
+                  </div>
+
+                  {/* Right Analytics Sidebar */}
+                  <div className="space-y-8">
+                     {/* Performance Score */}
+                     <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl text-center space-y-6 relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity blur-[50px]" />
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic">Discovery Pulse Score</h3>
+                        <div className="relative inline-flex items-center justify-center">
+                           <svg className="w-48 h-48 transform -rotate-90">
+                              <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-white/[0.03]" />
+                              <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={502} strokeDashoffset={502 * (1 - 0.91)} className="text-primary drop-shadow-[0_0_15px_rgba(123,51,255,0.6)]" />
+                           </svg>
+                           <div className="absolute flex flex-col items-center">
+                              <span className="text-5xl font-black italic tracking-tighter text-white leading-none">91</span>
+                              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-2 opacity-40">Optimal</span>
+                           </div>
+                        </div>
+                        <div className="flex flex-wrap justify-center gap-2 pt-2">
+                           <Badge className="bg-primary/20 text-primary border-none text-[8px] font-black italic uppercase">🚀 Trending</Badge>
+                           <Badge className="bg-emerald-500/20 text-emerald-400 border-none text-[8px] font-black italic uppercase">⭐ Top Rated</Badge>
+                           <Badge className="bg-blue-500/20 text-blue-400 border-none text-[8px] font-black italic uppercase">🔥 Rising</Badge>
+                        </div>
+                     </Card>
+
+                     {/* Live Visitors Widget */}
+                     <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl space-y-6">
+                        <div className="flex justify-between items-center">
+                           <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                              <h3 className="text-lg font-black italic uppercase tracking-tighter">Live Visitors</h3>
+                           </div>
+                           <ActivityIcon className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="space-y-1">
+                           <p className="text-4xl font-black italic tracking-tighter text-white">42</p>
+                           <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-40">Active across all sites</p>
+                        </div>
+                        <div className="pt-4 border-t border-white/5">
+                           <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                              <span className="text-muted-foreground/40">Peak Visitors Today</span>
+                              <span className="text-white">124</span>
+                           </div>
+                        </div>
+                     </Card>
+
+                     {/* Session Stats */}
+                     <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl space-y-8">
+                        <div className="space-y-1">
+                           <h3 className="text-lg font-black italic uppercase tracking-tighter">Engagement Pulse</h3>
+                           <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.2em] opacity-40">Session intelligence</p>
+                        </div>
+                        <div className="space-y-6">
+                           <div className="flex justify-between items-end">
+                              <div>
+                                 <p className="text-2xl font-black italic tracking-tighter text-white">2m 47s</p>
+                                 <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 mt-1">Avg. Session Duration</p>
+                              </div>
+                              <Timer className="w-4 h-4 text-sky-400 opacity-40" />
+                           </div>
+                           <div className="h-px bg-white/5" />
+                           <div className="flex justify-between items-end">
+                              <div>
+                                 <p className="text-2xl font-black italic tracking-tighter text-white">34.2%</p>
+                                 <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 mt-1">Bounce Rate</p>
+                              </div>
+                              <History className="w-4 h-4 text-rose-400 opacity-40" />
+                           </div>
+                           <div className="h-px bg-white/5" />
+                           <div className="flex justify-between items-end">
+                              <div>
+                                 <p className="text-2xl font-black italic tracking-tighter text-white">4.8</p>
+                                 <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 mt-1">Pages Per Visit</p>
+                              </div>
+                              <Navigation2 className="w-4 h-4 text-emerald-400 opacity-40" />
+                           </div>
+                        </div>
+                     </Card>
+
+                     {/* Traffic Sources Circle Chart */}
+                     <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl space-y-8">
+                        <div className="flex justify-between items-center">
+                           <h3 className="text-lg font-black italic uppercase tracking-tighter">Traffic Sources</h3>
+                           <PieChartIcon className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="h-48 w-full">
+                           <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                 <Pie
+                                    data={SOURCE_DATA}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={45}
+                                    outerRadius={70}
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                 >
+                                    {SOURCE_DATA.map((entry, index) => (
+                                       <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                 </Pie>
+                                 <RechartsTooltip />
+                              </PieChart>
+                           </ResponsiveContainer>
+                        </div>
+                        <div className="space-y-3">
+                           {SOURCE_DATA.map((s, i) => (
+                              <div key={i} className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                                 <div className="flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.color }} />
+                                    <span className="text-white/60">{s.name}</span>
+                                 </div>
+                                 <span className="text-white/30">{s.value}%</span>
+                              </div>
+                           ))}
+                        </div>
+                     </Card>
+                  </div>
+               </div>
+
+               {/* Bottom Large Table */}
+               <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                     <h3 className="text-3xl font-black italic uppercase tracking-tighter">The Website Registry Ledger</h3>
+                     <div className="flex gap-4">
+                        <Button variant="outline" className="rounded-xl border-white/5 bg-white/5 font-black uppercase tracking-widest text-[9px] h-10 italic">Export CSV</Button>
+                        <Button variant="outline" className="rounded-xl border-white/5 bg-white/5 font-black uppercase tracking-widest text-[9px] h-10 italic">Filter Registry</Button>
+                     </div>
+                  </div>
+                  <div className="bg-[#121117] border border-white/5 rounded-[3rem] overflow-hidden shadow-2xl">
+                     <div className="overflow-x-auto no-scrollbar">
+                        <table className="w-full text-left min-w-[1200px]">
+                           <thead className="bg-white/5">
+                              <tr>
+                                 <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Digital Property</th>
+                                 <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 text-center">Status</th>
+                                 <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Views</th>
+                                 <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Clicks</th>
+                                 <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">CTR</th>
+                                 <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Saves</th>
+                                 <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Likes</th>
+                                 <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Trend (30D)</th>
+                                 <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Rating</th>
+                              </tr>
+                           </thead>
+                           <tbody className="divide-y divide-white/5">
+                              {rawSubmissions?.map((site: any) => {
+                                 const siteStats = globalStats?.find(gs => gs.id === site.id);
+                                 const ctr = siteStats?.visitCount ? ((siteStats.visitCount / (siteStats.visitCount * 4)) * 100).toFixed(1) : "0.0";
+                                 return (
+                                    <tr key={site.id} className="group hover:bg-white/[0.02] transition-colors">
+                                       <td className="p-8">
+                                          <div className="flex items-center gap-6">
+                                             <div className="w-14 h-14 rounded-2xl bg-[#0B0A0F] border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-lg group-hover:scale-105 transition-transform duration-500">
+                                                <WebsitePreview 
+                                                   websiteUrl={site.url}
+                                                   fallbackUrl={site.logoUrl}
+                                                   alt={site.name || "Tool"}
+                                                   width={56}
+                                                   height={56}
+                                                   className="w-full h-full object-cover"
+                                                />
+                                             </div>
+                                             <div className="min-w-0">
+                                                <p className="text-sm font-black italic tracking-tighter text-white group-hover:text-primary transition-colors truncate">{site.url.replace('https://', '')}</p>
+                                                <p className="text-[10px] text-muted-foreground font-medium opacity-40 italic mt-0.5">{site.categories?.[0] || 'Web App'}</p>
+                                             </div>
+                                          </div>
+                                       </td>
+                                       <td className="p-8">
+                                          <div className="flex justify-center">
+                                             <Badge className={cn(
+                                                "uppercase text-[9px] font-black px-3 py-1 rounded-full border-none",
+                                                site.status === 'approved' ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"
+                                             )}>
+                                                {site.status || 'pending'}
+                                             </Badge>
+                                          </div>
+                                       </td>
+                                       <td className="p-8">
+                                          <span className="text-sm font-black italic tracking-tighter text-white">{(siteStats?.visitCount || 0) * 4}</span>
+                                       </td>
+                                       <td className="p-8">
+                                          <span className="text-sm font-black italic tracking-tighter text-white">{siteStats?.visitCount || 0}</span>
+                                       </td>
+                                       <td className="p-8">
+                                          <span className="text-sm font-black italic tracking-tighter text-primary">{ctr}%</span>
+                                       </td>
+                                       <td className="p-8">
+                                          <span className="text-sm font-black italic tracking-tighter text-amber-400">{Math.floor((siteStats?.likeCount || 0) * 0.7)}</span>
+                                       </td>
+                                       <td className="p-8">
+                                          <span className="text-sm font-black italic tracking-tighter text-rose-400">{siteStats?.likeCount || 0}</span>
+                                       </td>
+                                       <td className="p-8">
+                                          <div className="w-24 h-8 bg-primary/5 rounded-lg border border-white/5 relative overflow-hidden">
+                                             <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+                                                <path d="M0,80 L20,60 L40,90 L60,40 L80,50 L100,10" fill="none" stroke="#7B33FF" strokeWidth="4" />
+                                             </svg>
+                                          </div>
+                                       </td>
+                                       <td className="p-8">
+                                          <div className="flex items-center gap-1.5 text-white font-black italic">
+                                             {siteStats?.ratingCount ? (siteStats.ratingSum / siteStats.ratingCount).toFixed(1) : "4.8"}
+                                             <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                                          </div>
+                                       </td>
+                                    </tr>
+                                 );
+                              })}
+                           </tbody>
+                        </table>
+                     </div>
+                  </div>
+               </div>
+
+               {/* Real-time Activity Feed */}
+               <div className="max-w-4xl">
+                  <div className="flex items-center justify-between mb-8">
+                     <h3 className="text-2xl font-black italic uppercase tracking-tighter">Live Discovery Cluster</h3>
+                     <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
+                  </div>
+                  <div className="space-y-6">
+                     {[
+                        { icon: Eye, label: 'A new user from India viewed your website.', time: '2m ago', color: 'text-blue-400' },
+                        { icon: MousePointer2, label: 'Someone clicked your "Visit Website" link.', time: '15m ago', color: 'text-primary' },
+                        { icon: Bookmark, label: 'Website added to a private discovery collection.', time: '1h ago', color: 'text-amber-400' },
+                        { icon: Heart, label: 'Interaction Recorded: 🥇 Rising Creator Like.', time: '3h ago', color: 'text-rose-400' },
+                        { icon: MessageSquare, label: 'New community review submitted for validation.', time: '5h ago', color: 'text-sky-400' }
+                     ].map((act, i) => (
+                        <div key={i} className="flex items-start gap-6 p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all group">
+                           <div className={cn("p-3 rounded-2xl bg-white/5 shrink-0 group-hover:scale-110 transition-transform", act.color)}><act.icon className="w-5 h-5" /></div>
+                           <div className="min-w-0 flex-1">
+                              <p className="text-sm font-bold text-white/80 leading-tight tracking-tight">{act.label}</p>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/20 mt-1 italic">{act.time}</p>
+                           </div>
+                           <ChevronRight className="w-4 h-4 text-muted-foreground/20 group-hover:text-primary transition-all" />
+                        </div>
+                     ))}
                   </div>
                </div>
             </div>
@@ -516,7 +912,7 @@ export default function UserDashboard() {
                 <div className="flex items-center gap-4">
                   <div className="relative">
                     <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-2xl shadow-primary/20">
-                      <Sparkles className="w-6 h-6 text-white" />
+                      <Mic className="w-6 h-6 text-white" />
                     </div>
                     <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-[#121117] animate-pulse" />
                   </div>
@@ -540,7 +936,7 @@ export default function UserDashboard() {
                       "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-lg",
                       msg.role === 'user' ? "bg-white/10" : "bg-primary shadow-primary/20"
                     )}>
-                      {msg.role === 'user' ? <UserIcon className="w-5 h-5 text-white/40" /> : <Sparkles className="w-5 h-5 text-white" />}
+                      {msg.role === 'user' ? <UserIcon className="w-5 h-5 text-white/40" /> : <Mic className="w-5 h-5 text-white" />}
                     </div>
                     <div className={cn(
                       "max-w-[85%] sm:max-w-[70%] p-5 rounded-[1.75rem] text-sm font-medium leading-relaxed shadow-xl border",
@@ -555,7 +951,7 @@ export default function UserDashboard() {
                 {isTyping && (
                   <div className="flex gap-4 sm:gap-6 items-center">
                     <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center animate-pulse shadow-lg shadow-primary/20">
-                      <Sparkles className="w-5 h-5 text-white" />
+                      <Mic className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex gap-1.5 p-4 bg-[#1E1C26] border border-primary/10 rounded-2xl rounded-tl-none">
                       <div className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce delay-0" />
@@ -599,7 +995,7 @@ export default function UserDashboard() {
             </div>
           )}
 
-          {activeView !== 'overview' && activeView !== 'my-websites' && activeView !== 'ai-assistant' && (
+          {activeView !== 'overview' && activeView !== 'my-websites' && activeView !== 'ai-assistant' && activeView !== 'analytics' && (
              <div className="py-40 flex flex-col items-center justify-center text-center space-y-8 animate-in zoom-in duration-500">
                 <div className="w-32 h-32 bg-primary/5 rounded-[3.5rem] flex items-center justify-center text-primary mb-4 shadow-inner">
                    <Zap className="w-16 h-16 opacity-20 grayscale" />
@@ -634,6 +1030,36 @@ function StatCard({ label, value, icon: Icon, trend, trendUp, color = "text-prim
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30 mb-1">{label}</p>
         <h4 className="text-2xl sm:text-4xl font-black italic tracking-tighter text-white tabular-nums leading-none">{value}</h4>
       </div>
+    </Card>
+  );
+}
+
+function AnalyticsSummaryCard({ label, value, trend, trendUp, color, icon: Icon }: { label: string, value: string, trend: string, trendUp: boolean, color: string, icon: any }) {
+  return (
+    <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-all">
+       <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.01] blur-3xl -mr-16 -mt-16" />
+       <div className="flex justify-between items-start mb-6">
+          <div className={cn("p-4 rounded-2xl bg-white/5", color)}>
+             <Icon className="w-6 h-6" />
+          </div>
+          <div className="text-right">
+             <div className={cn("flex items-center gap-1 text-[10px] font-black uppercase tracking-tighter", trendUp ? "text-emerald-400" : "text-rose-400")}>
+                {trendUp ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+                {trend}
+             </div>
+             <p className="text-[8px] font-bold text-muted-foreground/40 uppercase tracking-widest mt-1">vs last month</p>
+          </div>
+       </div>
+       <div className="space-y-1">
+          <p className="text-4xl font-black italic tracking-tighter text-white">{value}</p>
+          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-40">{label}</p>
+       </div>
+       {/* Micro trend line */}
+       <div className="h-12 w-full mt-6 opacity-30">
+          <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+             <path d="M0,80 Q25,20 50,70 T100,30" fill="none" stroke="currentColor" strokeWidth="4" className={color} />
+          </svg>
+       </div>
     </Card>
   );
 }

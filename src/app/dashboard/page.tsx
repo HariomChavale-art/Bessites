@@ -338,7 +338,7 @@ export default function UserDashboard() {
           <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8 bg-[#0B0A0F]/80 backdrop-blur-xl z-40 py-2">
             <div className="space-y-1">
                <h1 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter text-white">
-                 {activeView === 'analytics' ? 'Analytics Command Center' : activeView === 'ai-assistant' ? 'Astra Strategy Hub' : `Welcome, ${profile?.displayName?.split(' ')[0] || 'Curator'} 👋`}
+                 {activeView === 'my-websites' ? 'Digital Property Manager' : activeView === 'analytics' ? 'Analytics Command Center' : activeView === 'ai-assistant' ? 'Astra Strategy Hub' : `Welcome, ${profile?.displayName?.split(' ')[0] || 'Curator'} 👋`}
                </h1>
                <div className="flex items-center gap-2">
                   <Badge className="bg-primary/20 text-primary border-none text-[9px] font-black uppercase tracking-widest px-2 py-0.5 italic">🥇 Rising Creator</Badge>
@@ -562,7 +562,7 @@ export default function UserDashboard() {
 
                   {/* Right Analytics Sidebar */}
                   <div className="space-y-8">
-                     {/* Performance Score */}
+                     {/* Performance Score Pulse */}
                      <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl text-center space-y-6 relative overflow-hidden group">
                         <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity blur-[50px]" />
                         <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 italic">Discovery Pulse Score</h3>
@@ -804,101 +804,182 @@ export default function UserDashboard() {
 
           {activeView === 'my-websites' && (
             <div className="space-y-12 animate-in fade-in duration-500">
-               <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8">
-                  <div className="space-y-1">
-                     <h2 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-white">The Website Registry</h2>
-                     <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em] opacity-40">Managing {stats.total} Active digital properties</p>
+               {/* Premium Digital Property Header */}
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-2 relative group">
+                     <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/10 p-10 rounded-[3rem] shadow-2xl h-full flex flex-col justify-between overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] -mr-32 -mt-32 transition-all group-hover:bg-primary/20" />
+                        <div className="space-y-4 relative z-10">
+                           <h2 className="text-5xl font-black italic uppercase tracking-tighter text-white leading-none">The Website <br /><span className="text-primary">Registry</span></h2>
+                           <p className="text-muted-foreground font-medium text-lg max-w-md opacity-60 leading-relaxed">Manage and optimize your curated collection of {stats.total} digital properties within the Bessites ecosystem.</p>
+                        </div>
+                        <div className="flex flex-wrap gap-4 mt-12 relative z-10">
+                           <Button onClick={() => router.push('/submit')} className="h-16 px-12 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-sm italic shadow-2xl hover:bg-primary hover:text-white transition-all group/btn">
+                              <Plus className="w-5 h-5 mr-3 group-hover:rotate-90 transition-transform" strokeWidth={3} /> Submit New Project
+                           </Button>
+                           <Button variant="outline" className="h-16 px-12 rounded-2xl border-white/10 bg-white/5 font-black uppercase tracking-widest text-sm italic hover:bg-white/10 transition-all">
+                              <Download className="w-5 h-5 mr-3" /> Export Catalog
+                           </Button>
+                        </div>
+                     </Card>
                   </div>
-                  <Button onClick={() => router.push('/submit')} className="w-full sm:w-auto h-14 px-10 rounded-[1.5rem] bg-white text-black font-black uppercase tracking-widest text-xs italic shadow-2xl shadow-white/5 hover:bg-primary hover:text-white transition-all">
-                     <Plus className="w-4 h-4 mr-2" strokeWidth={3} /> Submit New Project
-                  </Button>
-               </header>
+                  
+                  <div className="space-y-6">
+                     <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl flex flex-col justify-between relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-[50px] -mr-16 -mt-16" />
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 italic">Active Listings</p>
+                        <div className="flex items-end justify-between mt-4">
+                           <p className="text-6xl font-black italic tracking-tighter text-white leading-none">{stats.approved}</p>
+                           <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-400 group-hover:scale-110 transition-transform"><Globe className="w-6 h-6" /></div>
+                        </div>
+                        <div className="mt-8 pt-6 border-t border-white/5">
+                           <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                              <span className="text-muted-foreground/40">Approval Rate</span>
+                              <span className="text-emerald-400">92%</span>
+                           </div>
+                        </div>
+                     </Card>
+                     
+                     <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl flex flex-col justify-between relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[50px] -mr-16 -mt-16" />
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 italic">Discovery Momentum</p>
+                        <div className="flex items-end justify-between mt-4">
+                           <p className="text-6xl font-black italic tracking-tighter text-white leading-none">{stats.ctr}</p>
+                           <div className="p-3 bg-primary/10 rounded-2xl text-primary group-hover:scale-110 transition-transform"><TrendingUp className="w-6 h-6" /></div>
+                        </div>
+                        <div className="mt-8 pt-6 border-t border-white/5">
+                           <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                              <span className="text-muted-foreground/40">Vs. Industry Avg</span>
+                              <span className="text-primary">+12.4%</span>
+                           </div>
+                        </div>
+                     </Card>
+                  </div>
+               </div>
 
-               <div className="bg-[#121117] border border-white/5 rounded-[2.5rem] sm:rounded-[3.5rem] overflow-hidden shadow-2xl">
-                  <div className="overflow-x-auto no-scrollbar">
-                     <table className="w-full text-left min-w-[1000px]">
-                        <thead className="bg-white/5">
-                           <tr>
-                              <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Digital Property</th>
-                              <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 text-center">Status</th>
-                              <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Performance</th>
-                              <th className="p-8 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">CTR Momentum</th>
-                              <th className="p-8 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Studio Actions</th>
-                           </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                           {rawSubmissions?.map((site: any) => {
-                             const siteStats = globalStats?.find(gs => gs.id === site.id);
-                             const ctr = siteStats?.visitCount ? ((siteStats.visitCount / (siteStats.visitCount * 4)) * 100).toFixed(1) : "0.0";
-                             return (
-                                <tr key={site.id} className="group hover:bg-white/[0.02] transition-colors">
-                                   <td className="p-8">
-                                      <div className="flex items-center gap-6">
-                                         <div className="w-16 h-16 rounded-[1.25rem] bg-[#0B0A0F] border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-lg group-hover:scale-105 transition-transform duration-500">
-                                            <WebsitePreview 
-                                              websiteUrl={site.url}
-                                              fallbackUrl={site.logoUrl}
-                                              alt={site.name || "Tool"}
-                                              width={64}
-                                              height={64}
-                                              className="w-full h-full object-cover"
-                                            />
-                                         </div>
-                                         <div className="min-w-0">
-                                            <p className="text-sm font-black italic tracking-tighter text-white group-hover:text-primary transition-colors truncate">{site.url.replace('https://', '')}</p>
-                                            <p className="text-[10px] text-muted-foreground font-medium opacity-40 italic mt-0.5">Updated {site.timestamp ? formatDistanceToNow(site.timestamp.toDate()) : 'Recently'} ago</p>
-                                         </div>
-                                      </div>
-                                   </td>
-                                   <td className="p-8">
-                                      <div className="flex justify-center">
-                                         <Badge className={cn(
-                                            "uppercase text-[9px] font-black px-3 py-1 rounded-full border-none",
-                                            site.status === 'approved' ? "bg-emerald-500/10 text-emerald-400" :
-                                            site.status === 'rejected' ? "bg-rose-500/10 text-rose-400" : "bg-amber-500/10 text-amber-400"
-                                         )}>
-                                            {site.status || 'pending'}
-                                         </Badge>
-                                      </div>
-                                   </td>
-                                   <td className="p-8">
-                                      <div className="flex items-center gap-6">
-                                         <div className="text-center">
-                                            <p className="text-sm font-black italic tracking-tighter text-white">{(siteStats?.visitCount || 0) * 4}</p>
-                                            <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest opacity-40">Views</p>
-                                         </div>
-                                         <div className="text-center">
-                                            <p className="text-sm font-black italic tracking-tighter text-white">{siteStats?.visitCount || 0}</p>
-                                            <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest opacity-40">Clicks</p>
-                                         </div>
-                                      </div>
-                                   </td>
-                                   <td className="p-8">
-                                      <div className="flex items-center gap-3">
-                                         <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                            <div className="h-full bg-primary rounded-full shadow-[0_0_10px_rgba(123,51,255,0.6)]" style={{ width: `${Math.min(parseFloat(ctr) * 4, 100)}%` }} />
-                                         </div>
-                                         <span className="text-[10px] font-black text-primary italic">{ctr}%</span>
-                                      </div>
-                                   </td>
-                                   <td className="p-8">
-                                      <div className="flex items-center justify-end gap-2">
-                                         <button className="p-3 hover:bg-white/5 rounded-xl transition-all text-muted-foreground hover:text-white" title="Promotion Studio"><Flame className="w-4 h-4" /></button>
-                                         <button className="p-3 hover:bg-white/5 rounded-xl transition-all text-muted-foreground hover:text-white" title="Performance Suite"><BarChart3 className="w-4 h-4" /></button>
-                                         <button className="p-3 hover:bg-white/5 rounded-xl transition-all text-muted-foreground hover:text-white"><Edit className="w-4 h-4" /></button>
-                                         <button className="p-3 hover:bg-destructive/10 rounded-xl transition-all text-muted-foreground hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
-                                      </div>
-                                   </td>
-                                </tr>
-                             );
-                           })}
-                           {(!rawSubmissions || rawSubmissions.length === 0) && (
-                             <tr>
-                                <td colSpan={5} className="p-40 text-center text-muted-foreground italic font-medium opacity-20">The registry is currently empty. Submit your first project to unlock performance metrics.</td>
-                             </tr>
-                           )}
-                        </tbody>
-                     </table>
+               {/* Professional Registry Ledger */}
+               <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                     <h3 className="text-2xl font-black italic uppercase tracking-tighter">The Discovery Ledger</h3>
+                     <div className="flex gap-4">
+                        <Button variant="ghost" className="h-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white">Sort by Views</Button>
+                        <Button variant="ghost" className="h-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white">Filter Status</Button>
+                     </div>
+                  </div>
+
+                  <div className="bg-[#121117] border border-white/5 rounded-[3.5rem] overflow-hidden shadow-2xl">
+                     <div className="overflow-x-auto no-scrollbar">
+                        <table className="w-full text-left min-w-[1200px]">
+                           <thead className="bg-white/[0.03]">
+                              <tr>
+                                 <th className="p-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Digital Property Identity</th>
+                                 <th className="p-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40 text-center">Cloud Status</th>
+                                 <th className="p-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Total Views</th>
+                                 <th className="p-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Click Pulse</th>
+                                 <th className="p-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Momentum (30D)</th>
+                                 <th className="p-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">CTR Rate</th>
+                                 <th className="p-10 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Studio Actions</th>
+                              </tr>
+                           </thead>
+                           <tbody className="divide-y divide-white/5">
+                              {rawSubmissions?.map((site: any) => {
+                                 const siteStats = globalStats?.find(gs => gs.id === site.id);
+                                 const ctr = siteStats?.visitCount ? ((siteStats.visitCount / (siteStats.visitCount * 4)) * 100).toFixed(1) : "0.0";
+                                 return (
+                                    <tr key={site.id} className="group hover:bg-white/[0.02] transition-all">
+                                       <td className="p-10">
+                                          <div className="flex items-center gap-8">
+                                             <div className="relative">
+                                                <div className="w-20 h-20 rounded-[2rem] bg-[#0B0A0F] border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-2xl group-hover:scale-105 transition-transform duration-700">
+                                                   <WebsitePreview 
+                                                      websiteUrl={site.url}
+                                                      fallbackUrl={site.logoUrl}
+                                                      alt={site.name || "Tool"}
+                                                      width={80}
+                                                      height={80}
+                                                      className="w-full h-full object-cover"
+                                                   />
+                                                </div>
+                                                {site.status === 'approved' && (
+                                                   <div className="absolute -bottom-1 -right-1 bg-emerald-500 rounded-full p-1 border-4 border-[#121117]">
+                                                      <Check className="w-3 h-3 text-white" strokeWidth={5} />
+                                                   </div>
+                                                )}
+                                             </div>
+                                             <div className="min-w-0">
+                                                <p className="text-lg font-black italic tracking-tighter text-white group-hover:text-primary transition-colors truncate">{site.url.replace('https://', '')}</p>
+                                                <div className="flex items-center gap-3 mt-1.5">
+                                                   <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/30 italic">Registered {site.timestamp ? formatDistanceToNow(site.timestamp.toDate()) : 'Recently'} ago</span>
+                                                   <div className="w-1 h-1 rounded-full bg-white/10" />
+                                                   <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">{site.categories?.[0] || 'Web App'}</span>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </td>
+                                       <td className="p-10">
+                                          <div className="flex justify-center">
+                                             <Badge className={cn(
+                                                "uppercase text-[10px] font-black px-4 py-1.5 rounded-full border-none shadow-xl",
+                                                site.status === 'approved' ? "bg-emerald-500/10 text-emerald-400" :
+                                                site.status === 'rejected' ? "bg-rose-500/10 text-rose-400" : "bg-amber-500/10 text-amber-400"
+                                             )}>
+                                                {site.status || 'pending'}
+                                             </Badge>
+                                          </div>
+                                       </td>
+                                       <td className="p-10">
+                                          <div className="space-y-1">
+                                             <p className="text-xl font-black italic tracking-tighter text-white">{(siteStats?.visitCount || 0) * 4}</p>
+                                             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest opacity-20">Unique Views</p>
+                                          </div>
+                                       </td>
+                                       <td className="p-10">
+                                          <div className="space-y-1">
+                                             <p className="text-xl font-black italic tracking-tighter text-white">{siteStats?.visitCount || 0}</p>
+                                             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest opacity-20">Active Clicks</p>
+                                          </div>
+                                       </td>
+                                       <td className="p-10">
+                                          <div className="w-32 h-10 bg-white/5 rounded-2xl border border-white/5 relative overflow-hidden group-hover:bg-primary/5 transition-colors">
+                                             <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+                                                <path d="M0,80 Q10,20 20,60 T40,40 T60,80 T80,30 T100,50" fill="none" stroke={parseFloat(ctr) > 8 ? "#10b981" : "#7B33FF"} strokeWidth="4" className="drop-shadow-[0_0_10px_rgba(123,51,255,0.4)]" />
+                                             </svg>
+                                          </div>
+                                       </td>
+                                       <td className="p-10">
+                                          <div className="flex items-center gap-3">
+                                             <div className="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                                <div className="h-full bg-primary rounded-full shadow-[0_0_15px_rgba(123,51,255,1)]" style={{ width: `${Math.min(parseFloat(ctr) * 4, 100)}%` }} />
+                                             </div>
+                                             <span className="text-sm font-black text-primary italic">{ctr}%</span>
+                                          </div>
+                                       </td>
+                                       <td className="p-10">
+                                          <div className="flex items-center justify-end gap-3">
+                                             <button className="p-3.5 hover:bg-primary/20 bg-white/5 border border-white/5 rounded-2xl transition-all text-primary hover:scale-110 active:scale-95" title="Promotion Studio"><Flame className="w-5 h-5" /></button>
+                                             <button className="p-3.5 hover:bg-white/10 bg-white/5 border border-white/5 rounded-2xl transition-all text-white hover:scale-110 active:scale-95" title="Performance Suite"><BarChart3 className="w-5 h-5" /></button>
+                                             <button className="p-3.5 hover:bg-white/10 bg-white/5 border border-white/5 rounded-2xl transition-all text-muted-foreground hover:text-white hover:scale-110"><Edit className="w-5 h-5" /></button>
+                                             <button className="p-3.5 hover:bg-destructive/20 bg-white/5 border border-white/5 rounded-2xl transition-all text-muted-foreground hover:text-destructive hover:scale-110"><Trash2 className="w-5 h-5" /></button>
+                                          </div>
+                                       </td>
+                                    </tr>
+                                 );
+                              })}
+                              {(!rawSubmissions || rawSubmissions.length === 0) && (
+                                 <tr>
+                                    <td colSpan={7} className="p-60 text-center">
+                                       <div className="flex flex-col items-center gap-6 opacity-20">
+                                          <div className="w-24 h-24 rounded-full border-4 border-dashed border-white flex items-center justify-center">
+                                             <Plus className="w-12 h-12" />
+                                          </div>
+                                          <p className="text-xl font-black italic uppercase tracking-widest max-w-sm">The digital property registry is currently empty.</p>
+                                       </div>
+                                    </td>
+                                 </tr>
+                              )}
+                           </tbody>
+                        </table>
+                     </div>
                   </div>
                </div>
             </div>

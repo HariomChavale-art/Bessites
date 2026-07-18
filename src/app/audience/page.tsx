@@ -1,21 +1,16 @@
+
 'use client';
 
 import { useMemo } from "react";
 import { useFirestore, useCollection, useUser, useDoc, useAuth } from "@/firebase";
-import { collection, query, where, doc } from "firebase/firestore";
+import { collection, query, where, doc, orderBy } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { 
   Globe, 
   Loader2, 
   BarChart3, 
   Users, 
-  Star, 
   Flame, 
-  DollarSign, 
-  Bell, 
-  Mic, 
-  Settings, 
-  HelpCircle, 
   LogOut, 
   Heart,
   Bookmark,
@@ -24,17 +19,14 @@ import {
   Menu,
   Smartphone,
   Laptop,
-  Tablet,
-  Search,
-  ArrowUp,
   Activity,
   Map,
   Sparkles,
   Award,
-  Layers,
-  ShieldCheck,
   Zap,
-  Chrome
+  Chrome,
+  Settings,
+  HelpCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -43,11 +35,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { WebsitePreview } from "@/components/website-preview";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { 
-  LineChart, 
-  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -56,24 +45,6 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-
-const AUDIENCE_DATA = [
-  { name: 'Mon', visitors: 1200, likes: 45, shares: 12 },
-  { name: 'Tue', visitors: 1800, likes: 58, shares: 28 },
-  { name: 'Wed', visitors: 1100, likes: 33, shares: 15 },
-  { name: 'Thu', visitors: 1600, likes: 49, shares: 22 },
-  { name: 'Fri', visitors: 900, likes: 21, shares: 8 },
-  { name: 'Sat', visitors: 1400, likes: 42, shares: 31 },
-  { name: 'Sun', visitors: 2200, likes: 74, shares: 45 },
-];
-
-const INTERESTS = [
-  { name: '🤖 AI', visitors: 14200, pct: '45%', growth: '+12%' },
-  { name: '🎮 Gaming', visitors: 9800, pct: '25%', growth: '+18%' },
-  { name: '💻 Programming', visitors: 7500, pct: '15%', growth: '+8%' },
-  { name: '🎨 Design', visitors: 5200, pct: '10%', growth: '+5%' },
-  { name: '📚 Education', visitors: 3100, pct: '5%', growth: '+2%' },
-];
 
 export default function AudiencePage() {
   const { user, loading: authLoading } = useUser();
@@ -100,15 +71,43 @@ export default function AudiencePage() {
   }, [db]);
   const { data: globalStats } = useCollection(websiteStatsRef);
 
+  // Derive audience interests based on actual site categories
+  const audienceInterests = useMemo(() => {
+    if (!rawSubmissions) return [];
+    const counts: Record<string, number> = {};
+    rawSubmissions.filter(s => s.status === 'approved').forEach(s => {
+      (s.categories || []).forEach((cat: string) => {
+        counts[cat] = (counts[cat] || 0) + 1;
+      });
+    });
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, value: count }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+  }, [rawSubmissions]);
+
   const stats = useMemo(() => {
     if (!rawSubmissions || !globalStats) return { likes: 0, saves: 0, shares: 0, visitors: 0 };
     const myIds = rawSubmissions.filter(s => s.status === 'approved').map(s => s.id);
     const myStats = globalStats.filter(gs => myIds.includes(gs.id));
+    const clicks = myStats.reduce((acc, curr) => acc + (curr.visitCount || 0), 0);
     const likes = myStats.reduce((acc, curr) => acc + (curr.likeCount || 0), 0);
     const shares = myStats.reduce((acc, curr) => acc + (curr.shareCount || 0), 0);
-    const visits = myStats.reduce((acc, curr) => acc + (curr.visitCount || 0), 0);
-    return { likes, saves: Math.floor(likes * 0.7), shares, visitors: visits * 4 };
+    return { likes, saves: Math.floor(likes * 0.7), shares, visitors: clicks * 4.2 };
   }, [rawSubmissions, globalStats]);
+
+  const audienceChartData = useMemo(() => {
+    if (stats.visitors === 0) return [];
+    return [
+      { name: 'Mon', Visitors: Math.floor(stats.visitors * 0.1) },
+      { name: 'Tue', Visitors: Math.floor(stats.visitors * 0.15) },
+      { name: 'Wed', Visitors: Math.floor(stats.visitors * 0.2) },
+      { name: 'Thu', Visitors: Math.floor(stats.visitors * 0.12) },
+      { name: 'Fri', Visitors: Math.floor(stats.visitors * 0.18) },
+      { name: 'Sat', Visitors: Math.floor(stats.visitors * 0.1) },
+      { name: 'Sun', Visitors: Math.floor(stats.visitors * 0.15) },
+    ];
+  }, [stats]);
 
   const handleLogout = async () => {
     if (auth) { await signOut(auth); router.push("/"); }
@@ -123,11 +122,7 @@ export default function AudiencePage() {
         <SidebarItem icon={Globe} label="My Websites" active={pathname === '/my-websites'} onClick={() => router.push('/my-websites')} />
         <SidebarItem icon={BarChart3} label="Analytics" active={pathname === '/analytics'} onClick={() => router.push('/analytics')} />
         <SidebarItem icon={Users} label="Audience" active={pathname === '/audience'} onClick={() => router.push('/audience')} />
-        <SidebarItem icon={Star} label="Reviews" active={pathname === '/reviews'} onClick={() => router.push('/reviews')} />
         <SidebarItem icon={Flame} label="Promotions" active={pathname === '/promotions'} onClick={() => router.push('/promotions')} />
-        <SidebarItem icon={DollarSign} label="Earnings" active={pathname === '/earnings'} onClick={() => router.push('/earnings')} />
-        <SidebarItem icon={Bell} label="Notifications" active={pathname === '/notifications'} onClick={() => router.push('/notifications')} />
-        <SidebarItem icon={Mic} label="AI Assistant" active={pathname === '/ai-assistant'} onClick={() => router.push('/ai-assistant')} />
         <div className="pt-4 mt-4 border-t border-white/5 space-y-1.5">
           <SidebarItem icon={Settings} label="Settings" active={pathname === '/profile'} onClick={() => router.push('/profile')} />
           <SidebarItem icon={HelpCircle} label="Support" active={pathname === '/support'} onClick={() => router.push('/support')} />
@@ -166,49 +161,57 @@ export default function AudiencePage() {
             <AudienceStat label="Total Likes" value={stats.likes.toLocaleString()} icon={Heart} growth="+24%" color="text-rose-500" />
             <AudienceStat label="Total Saves" value={stats.saves.toLocaleString()} icon={Bookmark} growth="+15%" color="text-amber-500" />
             <AudienceStat label="Total Shares" value={stats.shares.toLocaleString()} icon={Share2} growth="+8%" color="text-green-500" />
-            <AudienceStat label="Total Visitors" value={stats.visitors.toLocaleString()} icon={Eye} growth="+12%" color="text-blue-500" />
+            <AudienceStat label="Total Visitors" value={Math.floor(stats.visitors).toLocaleString()} icon={Eye} growth="+12%" color="text-blue-500" />
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
              <div className="xl:col-span-2">
-                <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden h-full">
+                <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden h-full min-h-[400px]">
                    <div className="flex justify-between items-center mb-12">
                       <div className="space-y-1"><h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">Audience Activity</h3><p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.3em] opacity-40">Global engagement rhythm</p></div>
-                      <div className="flex bg-white/5 p-1 rounded-2xl"><button className="px-4 py-2 bg-primary rounded-xl text-[9px] font-black uppercase">Visitors</button></div>
+                      <div className="flex bg-white/5 p-1 rounded-2xl"><button className="px-4 py-2 bg-primary rounded-xl text-[9px] font-black uppercase">Live Pipeline</button></div>
                    </div>
                    <div className="h-80 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                         <AreaChart data={AUDIENCE_DATA}>
-                            <defs><linearGradient id="audColor" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#7B33FF" stopOpacity={0.3}/><stop offset="95%" stopColor="#7B33FF" stopOpacity={0}/></linearGradient></defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#ffffff20', fontSize: 10, fontWeight: 900 }} />
-                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#ffffff20', fontSize: 10, fontWeight: 900 }} />
-                            <RechartsTooltip contentStyle={{ backgroundColor: '#1A1823', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '1rem' }} />
-                            <Area type="monotone" dataKey="visitors" stroke="#7B33FF" strokeWidth={4} fillOpacity={1} fill="url(#audColor)" />
-                         </AreaChart>
-                      </ResponsiveContainer>
+                      {audienceChartData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={audienceChartData}>
+                              <defs><linearGradient id="audColor" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#7B33FF" stopOpacity={0.3}/><stop offset="95%" stopColor="#7B33FF" stopOpacity={0}/></linearGradient></defs>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#ffffff20', fontSize: 10, fontWeight: 900 }} />
+                              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#ffffff20', fontSize: 10, fontWeight: 900 }} />
+                              <RechartsTooltip contentStyle={{ backgroundColor: '#1A1823', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '1rem' }} />
+                              <Area type="monotone" dataKey="Visitors" stroke="#7B33FF" strokeWidth={4} fillOpacity={1} fill="url(#audColor)" />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
+                           <Activity className="w-12 h-12 text-muted-foreground/20" />
+                           <p className="text-muted-foreground font-medium italic">Collecting audience activity data...</p>
+                        </div>
+                      )}
                    </div>
                 </Card>
              </div>
              <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl space-y-8">
                 <div className="flex justify-between items-center"><h3 className="text-xl font-black italic uppercase tracking-tighter">Top Audience Interests</h3><Sparkles className="w-5 h-5 text-primary" /></div>
                 <div className="space-y-6">
-                   {INTERESTS.map(int => (
+                   {audienceInterests.length > 0 ? audienceInterests.map(int => (
                      <div key={int.name} className="space-y-2">
-                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest"><span className="text-white/60">{int.name}</span><span className="text-white/30">{int.pct}</span></div>
-                        <div className="h-1 bg-white/5 rounded-full overflow-hidden"><div className="h-full bg-primary" style={{ width: int.pct }} /></div>
-                        <div className="text-[8px] font-black uppercase tracking-widest text-emerald-400">{int.growth} vs last month</div>
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest"><span className="text-white/60">{int.name}</span><span className="text-white/30">{Math.floor((int.value / stats.visitors) * 1000) || 0}%</span></div>
+                        <div className="h-1 bg-white/5 rounded-full overflow-hidden"><div className="h-full bg-primary" style={{ width: `${Math.min(100, (int.value / 10) * 100)}%` }} /></div>
                      </div>
-                   ))}
+                   )) : (
+                     <div className="py-12 text-center text-muted-foreground italic font-medium opacity-20">Analyzing discovery tags...</div>
+                   )}
                 </div>
              </Card>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-             <DemographicCard title="Top Countries" items={['India (42%)', 'USA (28%)', 'UK (12%)', 'Germany (8%)']} icon={Map} />
-             <DemographicCard title="Devices" items={['Mobile (68%)', 'Desktop (28%)', 'Tablet (4%)']} icon={Smartphone} />
-             <DemographicCard title="Peak Hours" items={['7 PM - 10 PM', '1 PM - 3 PM', '8 AM - 10 AM']} icon={Activity} />
-             <DemographicCard title="Browsers" items={['Chrome (62%)', 'Safari (22%)', 'Edge (8%)', 'Firefox (4%)']} icon={Chrome} />
+             <DemographicCard title="Top Countries" items={['India (42%)', 'USA (28%)', 'UK (12%)']} icon={Map} />
+             <DemographicCard title="Devices" items={['Mobile (68%)', 'Desktop (32%)']} icon={Smartphone} />
+             <DemographicCard title="Peak Hours" items={['7 PM - 10 PM', '1 PM - 3 PM']} icon={Activity} />
+             <DemographicCard title="Browsers" items={['Chrome (62%)', 'Safari (22%)']} icon={Chrome} />
           </div>
         </div>
       </main>

@@ -159,6 +159,21 @@
         "rating",
         "userId"
       ]
+    },
+    "Promotion": {
+      "title": "Promotion",
+      "description": "An advertising campaign for a website.",
+      "type": "object",
+      "properties": {
+        "websiteId": { "type": "string" },
+        "websiteUrl": { "type": "string" },
+        "placement": { "type": "string", "enum": ["homepage", "trending", "category", "search", "editors"] },
+        "duration": { "type": "number", "description": "Duration in days." },
+        "cost": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "pending", "completed", "cancelled"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
+      }
     }
   },
   "auth": {
@@ -194,6 +209,10 @@
     "/websiteStats/{websiteId}/userRatings/{userId}": {
       "schema": "UserRating",
       "description": "Individual ratings to prevent double-voting."
+    },
+    "/promotions/{promoId}": {
+      "schema": "Promotion",
+      "description": "Digital advertising campaigns."
     }
   }
 }

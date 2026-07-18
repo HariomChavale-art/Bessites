@@ -88,7 +88,6 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/co
 import { useToast } from "@/hooks/use-toast";
 import { WebsitePreview } from "@/components/website-preview";
 import { formatDistanceToNow } from "date-fns";
-import { Logo } from "@/components/logo";
 import { chatWithAstra } from "@/ai/flows/assistant-chat-flow";
 
 type DashboardView = 
@@ -233,7 +232,12 @@ export default function UserDashboard() {
     <div className="flex flex-col h-full">
       <div className="mb-10 px-2">
          <Link href="/" className="group block">
-            <Logo showText />
+            <div className="flex items-center gap-3 group">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-2xl shadow-primary/20">
+                <Zap className="w-6 h-6 text-white" fill="currentColor" />
+              </div>
+              <span className="text-2xl font-black italic uppercase tracking-tighter block leading-none text-white">Bessites</span>
+            </div>
             <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60 mt-1 block">Creator Studio</span>
          </Link>
       </div>
@@ -274,7 +278,10 @@ export default function UserDashboard() {
         
         {/* Mobile Header */}
         <header className="lg:hidden flex items-center justify-between p-4 sticky top-0 bg-[#0B0A0F]/80 backdrop-blur-xl z-50 border-b border-white/5">
-          <Logo showText className="scale-75 origin-left" />
+          <Link href="/" className="flex items-center gap-2 group scale-75 origin-left">
+            <Zap className="w-6 h-6 text-primary" fill="currentColor" />
+            <span className="text-xl font-black italic uppercase tracking-tighter text-white">Bessites</span>
+          </Link>
           
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <SheetTrigger asChild>
@@ -598,7 +605,7 @@ export default function UserDashboard() {
           {activeView !== 'overview' && activeView !== 'my-websites' && activeView !== 'ai-assistant' && (
              <div className="py-40 flex flex-col items-center justify-center text-center space-y-8 animate-in zoom-in duration-500">
                 <div className="w-32 h-32 bg-primary/5 rounded-[3.5rem] flex items-center justify-center text-primary mb-4 shadow-inner">
-                   <Logo className="w-16 h-16 opacity-20 grayscale" />
+                   <Zap className="w-16 h-16 opacity-20 grayscale" />
                 </div>
                 <div className="space-y-3">
                    <h3 className="text-5xl font-black italic uppercase tracking-tighter">Module Sync <span className="text-primary">Required</span></h3>

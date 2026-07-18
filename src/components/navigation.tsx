@@ -2,9 +2,29 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Logo } from "./logo";
-import { usePathname } from "next/navigation";
-import { Sparkles } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { 
+  Sparkles, 
+  Menu, 
+  LayoutDashboard, 
+  Globe, 
+  BarChart3, 
+  Users, 
+  Star, 
+  Flame, 
+  DollarSign, 
+  Bell, 
+  Mic, 
+  Settings, 
+  HelpCircle, 
+  LogOut,
+  Zap
+} from "lucide-react";
+import { Button } from "./ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
+import { cn } from "@/lib/utils";
+import { useUser, useAuth } from "@/firebase";
+import { signOut } from "firebase/auth";
 
 const SUGGESTIONS = [
   "Try searching 'AI' to find new tools.",
@@ -17,6 +37,9 @@ const SUGGESTIONS = [
 
 export function Navigation() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user } = useUser();
+  const auth = useAuth();
   const [suggestionIdx, setSuggestionIdx] = useState(0);
 
   useEffect(() => {
@@ -26,17 +49,83 @@ export function Navigation() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+      router.push("/");
+    }
+  };
+
   const isAuthPage = pathname === "/login" || pathname === "/onboarding";
   if (isAuthPage) return null;
+
+  const sidebarLinks = [
+    { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
+    { label: 'My Websites', icon: Globe, href: '/dashboard' },
+    { label: 'Analytics', icon: BarChart3, href: '/dashboard' },
+    { label: 'Audience', icon: Users, href: '/dashboard' },
+    { label: 'Reviews', icon: Star, href: '/dashboard' },
+    { label: 'Promotions', icon: Flame, href: '/dashboard' },
+    { label: 'Earnings', icon: DollarSign, href: '/dashboard' },
+    { label: 'Notifications', icon: Bell, href: '/dashboard' },
+    { label: 'AI Assistant', icon: Mic, href: '/dashboard' },
+    { label: 'Settings', icon: Settings, href: '/profile' },
+    { label: 'Support', icon: HelpCircle, href: '/dashboard' },
+  ];
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md border-b border-white/5">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
         
         <div className="flex items-center gap-4 shrink-0">
-          <Link href="/">
-            <Logo showText />
-          </Link>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
+                <Menu className="w-6 h-6 text-white" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="bg-[#0B0A0F] border-r border-white/5 p-0 w-80 overflow-hidden shadow-[20px_0_50px_rgba(123,51,255,0.1)]">
+               <SheetHeader className="p-8 pb-4">
+                  <SheetTitle className="text-white font-black uppercase tracking-widest text-xs italic text-left">Bessites Creator Menu</SheetTitle>
+                  <div className="mt-4 flex items-center gap-3 group">
+                    <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-2xl shadow-primary/20">
+                      <Zap className="w-6 h-6 text-white" fill="currentColor" />
+                    </div>
+                    <span className="text-xl font-black italic uppercase tracking-tighter block leading-none text-white">Bessites</span>
+                  </div>
+               </SheetHeader>
+               <div className="flex flex-col h-full">
+                  <div className="px-8 flex-1">
+                     <nav className="space-y-1 overflow-y-auto no-scrollbar max-h-[calc(100vh-250px)]">
+                        {sidebarLinks.map((link, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => { router.push(link.href); }}
+                            className={cn(
+                              "w-full flex items-center gap-4 px-5 py-4 rounded-[1.5rem] transition-all group relative overflow-hidden",
+                              pathname === link.href 
+                                ? "text-white bg-gradient-to-r from-primary/40 to-transparent shadow-lg" 
+                                : "text-muted-foreground/60 hover:text-white hover:bg-white/5"
+                            )}
+                          >
+                            {pathname === link.href && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(123,51,255,1)]" />}
+                            <link.icon className={cn("w-5 h-5", pathname === link.href ? "text-primary" : "group-hover:scale-110 transition-transform")} />
+                            <span className="text-sm font-bold tracking-tight">{link.label}</span>
+                          </button>
+                        ))}
+                     </nav>
+                  </div>
+                  {user && (
+                    <div className="mt-auto p-6 border-t border-white/5 bg-white/[0.01]">
+                      <button onClick={handleLogout} className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-muted-foreground/40 hover:bg-destructive/10 hover:text-destructive transition-all text-sm font-bold group">
+                        <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  )}
+               </div>
+            </SheetContent>
+          </Sheet>
         </div>
 
         <div className="flex items-center gap-2 bg-white/5 px-4 py-2 sm:px-6 sm:py-2.5 rounded-full border border-white/5 

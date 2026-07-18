@@ -232,13 +232,10 @@ export default function UserDashboard() {
     <div className="flex flex-col h-full">
       <div className="mb-10 px-2">
          <Link href="/" className="group block">
-            <div className="flex items-center gap-3 group">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-2xl shadow-primary/20">
-                <Zap className="w-6 h-6 text-white" fill="currentColor" />
-              </div>
+            <div className="flex flex-col items-start gap-1 group">
               <span className="text-2xl font-black italic uppercase tracking-tighter block leading-none text-white">Bessites</span>
+              <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60 mt-1 block">Creator Studio</span>
             </div>
-            <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60 mt-1 block">Creator Studio</span>
          </Link>
       </div>
 
@@ -278,9 +275,9 @@ export default function UserDashboard() {
         
         {/* Mobile Header */}
         <header className="lg:hidden flex items-center justify-between p-4 sticky top-0 bg-[#0B0A0F]/80 backdrop-blur-xl z-50 border-b border-white/5">
-          <Link href="/" className="flex items-center gap-2 group scale-75 origin-left">
-            <Zap className="w-6 h-6 text-primary" fill="currentColor" />
-            <span className="text-xl font-black italic uppercase tracking-tighter text-white">Bessites</span>
+          <Link href="/" className="flex flex-col items-start scale-75 origin-left">
+            <span className="text-2xl font-black italic uppercase tracking-tighter text-white">Bessites</span>
+            <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60">Creator Studio</span>
           </Link>
           
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>

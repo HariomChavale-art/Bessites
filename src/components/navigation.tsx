@@ -74,24 +74,23 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md border-b border-white/5">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
+    <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md border-b border-white/5 py-2 sm:py-0">
+      <div className="container mx-auto px-4 h-20 sm:h-24 flex items-center justify-between gap-4">
         
-        <div className="flex items-center gap-4 shrink-0">
+        {/* Bessites Text + Menu Stack */}
+        <div className="flex flex-col items-start gap-1 shrink-0">
+          <span className="text-xl font-black italic uppercase tracking-tighter text-white leading-none">Bessites</span>
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
+              <Button variant="ghost" size="icon" className="w-10 h-8 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-all flex items-center justify-center">
                 <Menu className="w-6 h-6 text-white" />
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="bg-[#0B0A0F] border-r border-white/5 p-0 w-80 overflow-hidden shadow-[20px_0_50px_rgba(123,51,255,0.1)]">
                <SheetHeader className="p-8 pb-4">
-                  <SheetTitle className="text-white font-black uppercase tracking-widest text-xs italic text-left">Bessites Creator Menu</SheetTitle>
-                  <div className="mt-4 flex items-center gap-3 group">
-                    <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-2xl shadow-primary/20">
-                      <Zap className="w-6 h-6 text-white" fill="currentColor" />
-                    </div>
-                    <span className="text-xl font-black italic uppercase tracking-tighter block leading-none text-white">Bessites</span>
+                  <SheetTitle className="text-white font-black uppercase tracking-widest text-[10px] italic text-left opacity-40">Bessites Creator Menu</SheetTitle>
+                  <div className="mt-4 flex flex-col items-start gap-1">
+                    <span className="text-2xl font-black italic uppercase tracking-tighter block leading-none text-white">Bessites</span>
                   </div>
                </SheetHeader>
                <div className="flex flex-col h-full">

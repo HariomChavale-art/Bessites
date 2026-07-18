@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, User, Eye, EyeOff, KeyRound, Zap } from "lucide-react";
+import { Loader2, Plus, User, Eye, EyeOff, KeyRound } from "lucide-react";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -186,11 +186,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
       <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center bg-background order-2 md:order-1">
         <div className="w-full max-md mx-auto">
-          <div className="mb-12 flex items-center gap-3 group">
-            <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/20">
-              <Zap className="w-8 h-8 text-white" fill="currentColor" />
-            </div>
-            <span className="text-3xl font-black italic uppercase tracking-tighter block leading-none text-white">Bessites</span>
+          <div className="mb-12">
+            <span className="text-4xl font-black italic uppercase tracking-tighter block leading-none text-white">Bessites</span>
           </div>
           
           <form onSubmit={handleAuth} className="space-y-6">

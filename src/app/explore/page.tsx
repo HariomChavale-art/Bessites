@@ -219,7 +219,7 @@ const TRENDING_CATEGORY_NAMES = [
   "Coding", "Design", "Shopping", "Photography", "Video",
   "Music", "Utilities", "Education", "Jobs", "Finance",
   "Travel", "Food", "Health", "Sports", "Cybersecurity",
-  "Investing", "Meditation", "Sleep", "Notes", "PC Software"
+  "Investing", "Meditation", "Sleep", "Science", "PC Software"
 ];
 
 export default function ExplorePage() {
@@ -239,7 +239,6 @@ export default function ExplorePage() {
 
   const submissionsRef = useMemo(() => {
     if (!db) return null;
-    // Only approved submissions
     return query(collection(db, "submissions"), where("status", "==", "approved"));
   }, [db]);
 
@@ -278,8 +277,10 @@ export default function ExplorePage() {
         app.description.toLowerCase().includes(queryText) ||
         app.url.toLowerCase().includes(queryText) ||
         app.categories.some(cat => cat.toLowerCase().includes(queryText));
+      
       const matchesCategory = !selectedCategory || 
-        app.categories.some(cat => cat.toLowerCase().includes(selectedCategory.toLowerCase()));
+        app.categories.some(cat => cat.toLowerCase() === selectedCategory.toLowerCase() || cat.toLowerCase().includes(selectedCategory.toLowerCase()));
+        
       return matchesSearch && matchesCategory;
     });
   }, [searchQuery, selectedCategory, allWebsites]);
@@ -293,7 +294,7 @@ export default function ExplorePage() {
       if (seen.has(c.name)) return false;
       seen.add(c.name);
       return true;
-    }).slice(0, 20); // Show top 20 visible categories
+    }).slice(0, 20);
   }, [userInterests]);
 
   const filteredModalCategories = useMemo(() => {
@@ -420,6 +421,15 @@ export default function ExplorePage() {
               {selectedCategory || searchQuery ? "Matching Results" : "Discovery Feed"}
               <span className="ml-4 text-sm font-medium text-muted-foreground">({filteredResults.length})</span>
             </h2>
+            {(selectedCategory || searchQuery) && (
+              <Button 
+                variant="link" 
+                onClick={() => { setSelectedCategory(null); setSearchQuery(""); }}
+                className="text-primary font-black uppercase italic tracking-widest text-xs"
+              >
+                Reset Feed
+              </Button>
+            )}
           </div>
           
           <div className="grid grid-cols-1 gap-6 sm:gap-12">
@@ -428,9 +438,13 @@ export default function ExplorePage() {
                 <ExploreItemRow key={app.id} app={app as any} />
               ))
             ) : (
-              <div className="py-20 text-center space-y-4">
+              <div className="py-20 text-center space-y-4 bg-white/[0.02] rounded-[3rem] border border-white/5">
                 <LayoutGrid className="w-16 h-16 text-muted-foreground mx-auto opacity-20" />
-                <p className="text-xl text-muted-foreground font-medium">No results found. Try a different interest.</p>
+                <div className="space-y-1">
+                  <p className="text-xl text-white font-bold italic tracking-tighter uppercase">Zero Matches Found</p>
+                  <p className="text-muted-foreground font-medium text-sm">Astra couldn't find any digital properties matching this interest.</p>
+                </div>
+                <Button variant="outline" onClick={() => { setSelectedCategory(null); setSearchQuery(""); }} className="rounded-full h-12 px-8 bg-white/5 border-white/10">Show All Websites</Button>
               </div>
             )}
           </div>
@@ -491,6 +505,11 @@ function ExploreItemRow({ app }: { app: any }) {
               {app.name} • <span className="text-muted-foreground font-normal">{app.description}</span>
             </h4>
           </Link>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {app.categories?.slice(0, 4).map((cat: string) => (
+              <span key={cat} className="text-[9px] font-black uppercase tracking-widest text-primary/60">{cat}</span>
+            ))}
+          </div>
           <div className="text-[10px] sm:text-xs text-muted-foreground/30 font-medium tracking-widest uppercase">
             {app.url.replace('https://', '').replace('www.', '').split('/')[0]}
           </div>

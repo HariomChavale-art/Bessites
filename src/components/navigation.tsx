@@ -6,7 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { 
   Sparkles, 
   Menu, 
-  LayoutDashboard, 
   Globe, 
   BarChart3, 
   Users, 
@@ -17,8 +16,7 @@ import {
   Mic, 
   Settings, 
   HelpCircle, 
-  LogOut,
-  Zap
+  LogOut
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
@@ -60,25 +58,24 @@ export function Navigation() {
   if (isAuthPage) return null;
 
   const sidebarLinks = [
-    { label: 'My Websites', icon: Globe, href: '/dashboard' },
-    { label: 'Analytics', icon: BarChart3, href: '/dashboard' },
-    { label: 'Audience', icon: Users, href: '/dashboard' },
-    { label: 'Reviews', icon: Star, href: '/dashboard' },
-    { label: 'Promotions', icon: Flame, href: '/dashboard' },
-    { label: 'Earnings', icon: DollarSign, href: '/dashboard' },
-    { label: 'Notifications', icon: Bell, href: '/dashboard' },
-    { label: 'AI Assistant', icon: Mic, href: '/dashboard' },
+    { label: 'My Websites', icon: Globe, href: '/my-websites' },
+    { label: 'Analytics', icon: BarChart3, href: '/analytics' },
+    { label: 'Audience', icon: Users, href: '/audience' },
+    { label: 'Reviews', icon: Star, href: '/reviews' },
+    { label: 'Promotions', icon: Flame, href: '/promotions' },
+    { label: 'Earnings', icon: DollarSign, href: '/earnings' },
+    { label: 'Notifications', icon: Bell, href: '/notifications' },
+    { label: 'AI Assistant', icon: '/ai-assistant' },
     { label: 'Settings', icon: Settings, href: '/profile' },
-    { label: 'Support', icon: HelpCircle, href: '/dashboard' },
+    { label: 'Support', icon: HelpCircle, href: '/support' },
   ];
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md border-b border-white/5 py-2 sm:py-0">
       <div className="container mx-auto px-4 h-20 sm:h-24 flex items-center justify-between gap-4">
         
-        {/* Bessites Text + Menu Stack */}
         <div className="flex flex-col items-start gap-1 shrink-0">
-          <span className="text-xl font-black italic uppercase tracking-tighter text-white leading-none">Bessites</span>
+          <Link href="/" className="text-xl font-black italic uppercase tracking-tighter text-white leading-none">Bessites</Link>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="w-10 h-8 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-all flex items-center justify-center">
@@ -107,7 +104,8 @@ export function Navigation() {
                             )}
                           >
                             {pathname === link.href && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(123,51,255,1)]" />}
-                            <link.icon className={cn("w-5 h-5", pathname === link.href ? "text-primary" : "group-hover:scale-110 transition-transform")} />
+                            {link.icon && typeof link.icon !== 'string' && <link.icon className={cn("w-5 h-5", pathname === link.href ? "text-primary" : "group-hover:scale-110 transition-transform")} />}
+                            {link.label === 'AI Assistant' && <Mic className={cn("w-5 h-5", pathname === '/ai-assistant' ? "text-primary" : "group-hover:scale-110 transition-transform")} />}
                             <span className="text-sm font-bold tracking-tight">{link.label}</span>
                           </button>
                         ))}

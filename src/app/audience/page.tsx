@@ -90,9 +90,9 @@ export default function AudiencePage() {
     if (!rawSubmissions || !globalStats) return { likes: 0, saves: 0, shares: 0, visitors: 0 };
     const myIds = rawSubmissions.filter((s: any) => s.status === 'approved').map((s: any) => s.id);
     const myStats = globalStats.filter((gs: any) => myIds.includes(gs.id));
-    const clicks = myStats.reduce((acc: number, curr: any) => acc + (curr.visitCount || 0), 0);
-    const likes = myStats.reduce((acc: number, curr: any) => acc + (curr.likeCount || 0), 0);
-    const shares = myStats.reduce((acc: number, curr: any) => acc + (curr.shareCount || 0), 0);
+    const clicks = myStats.reduce((acc: number, curr: any) => acc + (Number(curr?.visitCount) || 0), 0);
+    const likes = myStats.reduce((acc: number, curr: any) => acc + (Number(curr?.likeCount) || 0), 0);
+    const shares = myStats.reduce((acc: number, curr: any) => acc + (Number(curr?.shareCount) || 0), 0);
     return { likes, saves: Math.floor(likes * 0.7), shares, visitors: clicks * 4.2 };
   }, [rawSubmissions, globalStats]);
 
@@ -113,7 +113,7 @@ export default function AudiencePage() {
     if (auth) { await signOut(auth); router.push("/"); }
   };
 
-  if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#0B0A0F]"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
+  if (!isMounted || authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#0B0A0F]"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -197,7 +197,7 @@ export default function AudiencePage() {
                 <div className="space-y-6">
                    {audienceInterests.length > 0 ? audienceInterests.map(int => (
                      <div key={int.name} className="space-y-2">
-                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest"><span className="text-white/60">{int.name}</span><span className="text-white/30">{Math.floor((int.value / stats.visitors) * 1000) || 0}%</span></div>
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest"><span className="text-white/60">{int.name}</span><span className="text-white/30">{stats.visitors > 0 ? Math.floor((int.value / stats.visitors) * 1000) : 0}%</span></div>
                         <div className="h-1 bg-white/5 rounded-full overflow-hidden"><div className="h-full bg-primary" style={{ width: `${Math.min(100, (int.value / 10) * 100)}%` }} /></div>
                      </div>
                    )) : (

@@ -2,10 +2,9 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useFirestore, useCollection, useUser } from "@/firebase";
-import { collection, doc, updateDoc, query, orderBy, where } from "firebase/firestore";
+import { collection, doc, updateDoc, query, orderBy } from "firebase/firestore";
 import { 
   Check, 
-  X, 
   Globe, 
   Loader2, 
   User as UserIcon,
@@ -25,25 +24,15 @@ import {
   Eye,
   TrendingUp,
   ExternalLink,
-  Trash2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { WebsitePreview } from "@/components/website-preview";
 
 type AdminSection = 
@@ -59,11 +48,15 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [activeSection, setActiveSection] = useState<AdminSection>('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Gated Access Check
   useEffect(() => {
-    if (!authLoading && !user) router.push("/login");
-  }, [user, authLoading, router]);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!authLoading && !user && mounted) router.push("/login");
+  }, [user, authLoading, router, mounted]);
 
   const submissionsRef = useMemo(() => {
     if (!db) return null;
@@ -101,10 +94,10 @@ export default function AdminDashboard() {
     const promoList = promotions || [];
     const totalRev = promoList
       .filter((p: any) => p.status === 'active' || p.status === 'completed' || p.status === 'scheduled')
-      .reduce((acc: number, curr: any) => acc + (curr.cost || 0), 0);
+      .reduce((acc: number, curr: any) => acc + (Number(curr?.cost) || 0), 0);
 
     const statsList = globalStats || [];
-    const totalPlatformViews = statsList.reduce((acc: number, curr: any) => acc + (curr.visitCount || 0), 0);
+    const totalPlatformViews = statsList.reduce((acc: number, curr: any) => acc + (Number(curr?.visitCount) || 0), 0);
 
     return {
       totalWebsites: approvedSites,
@@ -124,7 +117,7 @@ export default function AdminDashboard() {
     });
   };
 
-  if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#0B0A0F]"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
+  if (!mounted || authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#0B0A0F]"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
 
   return (
     <div className="min-h-screen flex bg-[#F8FAFC] text-slate-900 selection:bg-indigo-100 antialiased">
@@ -179,7 +172,7 @@ export default function AdminDashboard() {
                               <td className="p-5">
                                  <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 overflow-hidden"><WebsitePreview websiteUrl={sub.url} alt={sub.url} className="w-full h-full" /></div>
-                                    <span className="text-sm font-bold truncate">{sub.url.replace('https://', '')}</span>
+                                    <span className="text-sm font-bold truncate">{sub.url?.replace('https://', '')}</span>
                                  </div>
                               </td>
                               <td className="p-5 text-[11px] font-medium text-slate-500">{sub.userEmail}</td>

@@ -1,4 +1,3 @@
-
 "use client"
 
 import Link from "next/link";
@@ -6,13 +5,22 @@ import { usePathname } from "next/navigation";
 import { Home, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/firebase";
+import { useState, useEffect } from "react";
 
 export function BottomNav() {
   const pathname = usePathname();
   const { user, loading } = useUser();
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch by waiting for client mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   // Hide navigation on auth pages, admin dashboard, or when user is not logged in
-  const isExcludedPage = pathname === "/login" || pathname === "/onboarding" || pathname.startsWith("/admin");
+  const isExcludedPage = pathname === "/login" || pathname === "/onboarding" || pathname?.startsWith("/admin");
   if (!user || isExcludedPage || loading) return null;
 
   const navItems = [

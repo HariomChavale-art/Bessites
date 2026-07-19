@@ -17,7 +17,6 @@ import {
   RefreshCw,
   Download,
   Menu,
-  ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -84,7 +83,7 @@ export default function AnalyticsPage() {
     const myApprovedIds = rawSubmissions.filter((s: any) => s.status === 'approved').map((s: any) => s.id);
     const myStats = globalStats.filter((gs: any) => myApprovedIds.includes(gs.id));
     
-    const clicks = myStats.reduce((acc: number, curr: any) => acc + (curr.visitCount || 0), 0);
+    const clicks = myStats.reduce((acc: number, curr: any) => acc + (Number(curr?.visitCount) || 0), 0);
     const views = clicks * 4.2; 
     const totalSaves = Math.floor(clicks * 0.7);
     const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : "0.0";
@@ -93,12 +92,12 @@ export default function AnalyticsPage() {
   }, [rawSubmissions, globalStats]);
 
   useEffect(() => {
-    if (stats.clicks > 0) {
+    if (stats.clicks > 0 && isMounted) {
       setLiveVisitors(Math.floor(Math.random() * 10) + 1);
     } else {
       setLiveVisitors(0);
     }
-  }, [stats.clicks]);
+  }, [stats.clicks, isMounted]);
 
   const chartData = useMemo(() => {
     if (stats.views === 0) return [];
@@ -117,7 +116,7 @@ export default function AnalyticsPage() {
     if (auth) { await signOut(auth); router.push("/"); }
   };
 
-  if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#0B0A0F]"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
+  if (!isMounted || authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#0B0A0F]"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -235,13 +234,13 @@ export default function AnalyticsPage() {
                    <tbody className="divide-y divide-white/5">
                       {rawSubmissions?.map((site: any) => {
                          const siteStats = globalStats?.find((gs: any) => gs.id === site.id);
-                         const views = (siteStats?.visitCount || 0) * 4.2;
+                         const views = (Number(siteStats?.visitCount) || 0) * 4.2;
                          return (
                            <tr key={site.id} className="group hover:bg-white/[0.02] transition-colors">
-                              <td className="p-8"><div className="flex items-center gap-4"><div className="w-12 h-12 rounded-xl bg-black border border-white/10 overflow-hidden"><WebsitePreview websiteUrl={site.url} fallbackUrl={site.logoUrl} alt="Logo" className="w-full h-full" /></div><span className="text-sm font-black italic tracking-tighter text-white">{site.url.replace('https://', '')}</span></div></td>
+                              <td className="p-8"><div className="flex items-center gap-4"><div className="w-12 h-12 rounded-xl bg-black border border-white/10 overflow-hidden"><WebsitePreview websiteUrl={site.url} fallbackUrl={site.logoUrl} alt="Logo" className="w-full h-full" /></div><span className="text-sm font-black italic tracking-tighter text-white">{site.url?.replace('https://', '')}</span></div></td>
                               <td className="p-8 text-sm font-black italic text-white">{Math.floor(views).toLocaleString()}</td>
-                              <td className="p-8 text-sm font-black italic text-white">{(siteStats?.visitCount || 0).toLocaleString()}</td>
-                              <td className="p-8 text-sm font-black italic text-white">{Math.floor((siteStats?.visitCount || 0) * 0.7)}</td>
+                              <td className="p-8 text-sm font-black italic text-white">{(Number(siteStats?.visitCount) || 0).toLocaleString()}</td>
+                              <td className="p-8 text-sm font-black italic text-white">{Math.floor((Number(siteStats?.visitCount) || 0) * 0.7)}</td>
                               <td className="p-8 text-center"><Badge className="bg-white/5 text-white/40 uppercase text-[8px] font-black border-none">{site.status}</Badge></td>
                               <td className="p-8"><div className="h-6 w-20 opacity-20"><svg className="w-full h-full" viewBox="0 0 100 20"><path d="M0,15 L20,5 L40,12 L60,8 L80,18 L100,5" fill="none" stroke={site.status === 'approved' ? "#7B33FF" : "#ffffff10"} strokeWidth="2" /></svg></div></td>
                            </tr>

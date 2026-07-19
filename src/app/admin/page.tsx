@@ -50,7 +50,8 @@ import {
   UserCheck,
   UserX,
   FileText,
-  CreditCard
+  CreditCard,
+  Calendar
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from "@/firebase/error-emitter";
@@ -82,6 +83,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { WebsitePreview } from "@/components/website-preview";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type AdminSection = 
   | 'overview' 
@@ -130,40 +132,35 @@ export default function AdminDashboard() {
     if (!db) return null;
     return collection(db, "websiteStats");
   }, [db]);
-  const { data: globalStats } = useCollection(websiteStatsRef);
+  const { data: globalStats, loading: statsLoading } = useCollection(websiteStatsRef);
 
-  // Dynamic Real-Time Stats
+  // Dynamic Real-Time Stats Aggregation
   const stats = useMemo(() => {
-    if (!submissions || !appUsers || !globalStats) return {
-      totalWebsites: 0,
-      pendingWebsites: 0,
-      activePromos: 0,
-      totalUsers: 0,
-      revenueToday: "$0.00",
-      totalRevenue: "$0.00",
-      newUsersToday: 0,
-      pendingReports: 0
-    };
-
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    const revToday = promotions?.filter(p => p.createdAt && new Date(p.createdAt.seconds * 1000) >= startOfToday)
-      .reduce((acc, curr) => acc + (curr.cost || 0), 0) || 0;
+    const isDataLoading = subLoading || promoLoading || userLoading || statsLoading;
     
-    const totalRev = promotions?.reduce((acc, curr) => acc + (curr.cost || 0), 0) || 0;
+    if (isDataLoading) return null;
+
+    const approvedSites = submissions?.filter(s => s.status === 'approved').length || 0;
+    const pendingSites = submissions?.filter(s => s.status === 'pending').length || 0;
+    const pendingPromos = promotions?.filter(p => p.status === 'pending').length || 0;
+    const activePromos = promotions?.filter(p => p.status === 'active').length || 0;
+    const totalUsersCount = appUsers?.length || 0;
+    
+    const totalRev = promotions?.filter(p => p.status === 'active' || p.status === 'completed')
+      .reduce((acc, curr) => acc + (curr.cost || 0), 0) || 0;
+
+    const totalPlatformViews = globalStats?.reduce((acc, curr) => acc + (curr.visitCount || 0), 0) || 0;
 
     return {
-      totalWebsites: submissions.length,
-      pendingWebsites: submissions.filter(s => s.status === 'pending').length,
-      activePromos: promotions?.filter(p => p.status === 'active').length || 0,
-      totalUsers: appUsers.length,
-      revenueToday: `$${revToday.toFixed(2)}`,
-      totalRevenue: `$${totalRev.toFixed(2)}`,
-      newUsersToday: appUsers.filter(u => u.createdAt && new Date(u.createdAt.seconds * 1000) >= startOfToday).length,
-      pendingReports: 0 // Feature for future expansion
+      totalWebsites: approvedSites,
+      pendingWebsites: pendingSites,
+      pendingPromotions: pendingPromos,
+      activePromos: activePromos,
+      totalUsers: totalUsersCount,
+      totalRevenue: `$${totalRev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      totalViews: totalPlatformViews.toLocaleString()
     };
-  }, [submissions, appUsers, globalStats, promotions]);
+  }, [submissions, appUsers, globalStats, promotions, subLoading, promoLoading, userLoading, statsLoading]);
 
   const handleStatusUpdate = (subId: string, status: 'approved' | 'rejected') => {
     if (!db) return;
@@ -229,8 +226,8 @@ export default function AdminDashboard() {
         <div className="flex-1 overflow-y-auto no-scrollbar py-6">
           <SidebarNavGroup label="Infrastructure" collapsed={sidebarCollapsed}>
              <SidebarNavLink icon={LayoutDashboard} label="System Overview" active={activeSection === 'overview'} onClick={() => setActiveSection('overview')} collapsed={sidebarCollapsed} />
-             <SidebarNavLink icon={Inbox} label="Website Moderation" active={activeSection === 'submissions'} onClick={() => setActiveSection('submissions')} badge={stats.pendingWebsites} collapsed={sidebarCollapsed} />
-             <SidebarNavLink icon={Flame} label="Promotion Studio" active={activeSection === 'promotions'} onClick={() => setActiveSection('promotions')} collapsed={sidebarCollapsed} />
+             <SidebarNavLink icon={Inbox} label="Website Moderation" active={activeSection === 'submissions'} onClick={() => setActiveSection('submissions')} badge={stats?.pendingWebsites} collapsed={sidebarCollapsed} />
+             <SidebarNavLink icon={Flame} label="Promotion Studio" active={activeSection === 'promotions'} onClick={() => setActiveSection('promotions')} badge={stats?.pendingPromotions} collapsed={sidebarCollapsed} />
              <SidebarNavLink icon={Users} label="User Registry" active={activeSection === 'users'} onClick={() => setActiveSection('users')} collapsed={sidebarCollapsed} />
           </SidebarNavGroup>
 
@@ -303,42 +300,87 @@ export default function AdminDashboard() {
                    <p className="text-sm text-slate-500 font-medium">System status and live operational metrics for Bessites ecosystem.</p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                   <AdminStatCard label="Total User Accounts" value={stats.totalUsers} icon={Users} color="text-blue-600" trend={stats.newUsersToday} trendLabel="New today" />
-                   <AdminStatCard label="Property Registry" value={stats.totalWebsites} icon={Globe} color="text-indigo-600" trend={stats.pendingWebsites} trendLabel="Awaiting review" trendColor="text-amber-600" />
-                   <AdminStatCard label="Today's Revenue" value={stats.revenueToday} icon={DollarSign} color="text-emerald-600" />
-                   <AdminStatCard label="Active Campaigns" value={stats.activePromos} icon={Flame} color="text-orange-600" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                   <AdminStatCard 
+                    label="Total Users" 
+                    value={stats?.totalUsers ?? '-'} 
+                    icon={Users} 
+                    color="text-blue-600" 
+                    loading={!stats}
+                   />
+                   <AdminStatCard 
+                    label="Approved Websites" 
+                    value={stats?.totalWebsites ?? '-'} 
+                    icon={Globe} 
+                    color="text-indigo-600" 
+                    loading={!stats}
+                   />
+                   <AdminStatCard 
+                    label="Pending Submissions" 
+                    value={stats?.pendingWebsites ?? '-'} 
+                    icon={Inbox} 
+                    color="text-amber-600" 
+                    loading={!stats}
+                   />
+                   <AdminStatCard 
+                    label="Pending Promotions" 
+                    value={stats?.pendingPromotions ?? '-'} 
+                    icon={Flame} 
+                    color="text-orange-600" 
+                    loading={!stats}
+                   />
+                   <AdminStatCard 
+                    label="Total Revenue" 
+                    value={stats?.totalRevenue ?? '-'} 
+                    icon={DollarSign} 
+                    color="text-emerald-600" 
+                    loading={!stats}
+                   />
+                   <AdminStatCard 
+                    label="Platform Views" 
+                    value={stats?.totalViews ?? '-'} 
+                    icon={BarChart3} 
+                    color="text-sky-600" 
+                    loading={!stats}
+                   />
                 </div>
 
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                    <Card className="xl:col-span-2 border-slate-200 shadow-sm rounded-2xl p-6">
                       <div className="flex items-center justify-between mb-8">
-                         <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">System Traffic Pulse</h3>
+                         <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">System Discovery Pulse</h3>
                          <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Real-time</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Real-time Data Active</span>
                          </div>
                       </div>
                       <div className="h-64 w-full bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center">
-                         <BarChart3 className="w-8 h-8 text-slate-200" />
-                         <span className="ml-3 text-xs font-bold text-slate-300 uppercase tracking-widest">Analytics Infrastructure Syncing</span>
+                         <div className="text-center space-y-2">
+                            <Activity className="w-8 h-8 text-slate-200 mx-auto" />
+                            <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Analytics Pulse Syncing...</p>
+                         </div>
                       </div>
                    </Card>
                    
                    <Card className="border-slate-200 shadow-sm rounded-2xl p-6 flex flex-col">
                       <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-6">Recent System Activity</h3>
                       <div className="flex-1 space-y-6">
-                         {[1, 2, 3, 4, 5].map(i => (
-                           <div key={i} className="flex gap-4 items-start group">
+                         {submissions?.slice(0, 5).map(sub => (
+                           <div key={sub.id} className="flex gap-4 items-start group">
                               <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 group-hover:bg-indigo-50 transition-colors">
                                  <Clock className="w-4 h-4 text-slate-400 group-hover:text-indigo-500" />
                               </div>
                               <div className="min-w-0">
-                                 <p className="text-[11px] font-bold text-slate-800 leading-snug">Website submission received for review</p>
-                                 <p className="text-[10px] text-slate-400 font-medium mt-0.5">34 minutes ago • System Agent</p>
+                                 <p className="text-[11px] font-bold text-slate-800 leading-snug truncate">New submission: {sub.url.replace('https://', '')}</p>
+                                 <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                                   {sub.timestamp ? new Date(sub.timestamp.seconds * 1000).toLocaleString() : 'Just now'} • System Agent
+                                 </p>
                               </div>
                            </div>
                          ))}
+                         {(!submissions || submissions.length === 0) && (
+                           <p className="text-[10px] text-slate-400 italic text-center py-10 uppercase font-black opacity-40">No activity recorded</p>
+                         )}
                       </div>
                       <Button variant="ghost" className="mt-6 w-full text-[10px] font-bold uppercase tracking-widest text-slate-400">View Audit Logs</Button>
                    </Card>
@@ -352,7 +394,7 @@ export default function AdminDashboard() {
                    <div className="space-y-1">
                       <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Website Moderation</h1>
                       <p className="text-sm text-slate-500 font-medium">Review community contributions and manage the discovery registry.</p>
-                   </div>
+                </div>
                    <div className="flex items-center gap-3">
                       <Button variant="outline" className="rounded-xl h-10 text-xs font-bold border-slate-200"><Filter className="w-3.5 h-3.5 mr-2" /> Filters</Button>
                       <Button className="rounded-xl h-10 bg-indigo-600 hover:bg-indigo-700 text-xs font-bold"><Plus className="w-3.5 h-3.5 mr-2" /> Add Property</Button>
@@ -480,7 +522,7 @@ export default function AdminDashboard() {
                                    <td className="p-5"><span className="text-[11px] font-bold text-slate-900">{promo.promoId}</span></td>
                                    <td className="p-5">
                                       <div className="flex items-center gap-3">
-                                         <div className="w-8 h-8 rounded bg-white border border-slate-200 overflow-hidden"><WebsitePreview websiteUrl={promo.websiteUrl} alt="Logo" className="w-full h-full" /></div>
+                                         <div className="w-8 h-8 rounded bg-white border border-slate-200 overflow-hidden shrink-0"><WebsitePreview websiteUrl={promo.websiteUrl} alt="Logo" className="w-full h-full" /></div>
                                          <div className="min-w-0">
                                             <p className="text-[11px] font-bold text-slate-800 truncate">{promo.websiteName}</p>
                                             <p className="text-[9px] text-slate-400 font-medium truncate">{promo.userEmail}</p>
@@ -574,22 +616,21 @@ function SidebarNavLink({ icon: Icon, label, active = false, onClick, badge, col
   );
 }
 
-function AdminStatCard({ label, value, icon: Icon, color, trend, trendLabel, trendColor = "text-indigo-400" }: { label: string, value: string | number, icon: any, color: string, trend?: number, trendLabel?: string, trendColor?: string }) {
+function AdminStatCard({ label, value, icon: Icon, color, loading = false }: { label: string, value: string | number, icon: any, color: string, loading?: boolean }) {
   return (
     <Card className="border-slate-200 shadow-sm rounded-2xl p-5 hover:border-slate-300 transition-all cursor-default flex flex-col justify-between group">
       <div className="flex items-center justify-between mb-4">
         <div className={cn("p-2 rounded-lg bg-slate-50 border border-slate-100 group-hover:scale-110 transition-transform", color)}>
           <Icon className="w-5 h-5" />
         </div>
-        {trend !== undefined && (
-          <div className={cn("text-[10px] font-bold uppercase tracking-wider", trendColor)}>
-            {trend > 0 ? `+${trend}` : trend} {trendLabel}
-          </div>
-        )}
       </div>
       <div>
          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1 leading-none">{label}</p>
-         <h4 className="text-2xl font-black text-slate-900 leading-none tabular-nums">{value}</h4>
+         {loading ? (
+           <Skeleton className="h-8 w-24 rounded-md mt-1" />
+         ) : (
+           <h4 className="text-2xl font-black text-slate-900 leading-none tabular-nums mt-1">{value}</h4>
+         )}
       </div>
     </Card>
   );

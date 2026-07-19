@@ -11,9 +11,9 @@ export function BottomNav() {
   const pathname = usePathname();
   const { user, loading } = useUser();
 
-  // Hide navigation on auth pages or when user is not loaded/logged in
-  const isAuthPage = pathname === "/login" || pathname === "/onboarding";
-  if (!user || isAuthPage || loading) return null;
+  // Hide navigation on auth pages, admin dashboard, or when user is not logged in
+  const isExcludedPage = pathname === "/login" || pathname === "/onboarding" || pathname.startsWith("/admin");
+  if (!user || isExcludedPage || loading) return null;
 
   const navItems = [
     { href: "/", icon: Home, label: "Home" },

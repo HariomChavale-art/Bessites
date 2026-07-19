@@ -61,34 +61,36 @@
         "timestamp": { "type": "string", "format": "date-time" }
       }
     },
-    "SavedWebsite": {
-      "title": "Saved Website",
-      "description": "Represents a website saved by a user.",
+    "Promotion": {
+      "title": "Promotion",
+      "description": "A sophisticated advertising campaign for a website.",
       "type": "object",
       "properties": {
-        "websiteId": {
-          "type": "string",
-          "description": "The ID of the website."
+        "promoId": { "type": "string" },
+        "orderId": { "type": "string" },
+        "websiteId": { "type": "string" },
+        "websiteUrl": { "type": "string" },
+        "websiteName": { "type": "string" },
+        "objective": { "type": "string" },
+        "placement": { "type": "string" },
+        "targetAudience": {
+          "type": "object",
+          "properties": {
+            "countries": { "type": "array", "items": { "type": "string" } },
+            "devices": { "type": "array", "items": { "type": "string" } },
+            "interests": { "type": "array", "items": { "type": "string" } }
+          }
         },
-        "savedAt": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "websiteId",
-        "savedAt"
-      ]
-    },
-    "UserInteraction": {
-      "title": "User Interaction",
-      "description": "Tracks an individual user's specific interaction with a website to prevent duplicates.",
-      "type": "object",
-      "properties": {
-        "interactedAt": {
-          "type": "string",
-          "format": "date-time"
-        }
+        "startDate": { "type": "string", "format": "date-time" },
+        "endDate": { "type": "string", "format": "date-time" },
+        "duration": { "type": "number" },
+        "dailyBudget": { "type": "number" },
+        "cost": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "scheduled", "active", "completed", "cancelled", "rejected"] },
+        "paymentMethod": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" }
       }
     },
     "WebsiteStats": {
@@ -96,83 +98,12 @@
       "description": "Global statistics and metadata for a website.",
       "type": "object",
       "properties": {
-        "visitCount": {
-          "type": "number",
-          "description": "Total clicks on the 'Visit Website' button."
-        },
-        "likeCount": {
-          "type": "number",
-          "description": "Total number of users who liked the project."
-        },
-        "shareCount": {
-          "type": "number",
-          "description": "Total unique shares by authenticated users."
-        },
-        "ratingSum": {
-          "type": "number",
-          "description": "Sum of all ratings given."
-        },
-        "ratingCount": {
-          "type": "number",
-          "description": "Total number of users who rated."
-        },
-        "previewUrl": {
-          "type": "string",
-          "description": "Cached URL for the website preview image."
-        },
-        "logoUrl": {
-          "type": "string",
-          "description": "Cached URL for the website logo."
-        },
-        "lastPreviewUpdate": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
-    },
-    "UserRating": {
-      "title": "User Rating",
-      "description": "An individual user's rating for a website.",
-      "type": "object",
-      "properties": {
-        "rating": {
-          "type": "number"
-        },
-        "comment": {
-          "type": "string"
-        },
-        "userId": {
-          "type": "string"
-        },
-        "userDisplayName": {
-          "type": "string"
-        },
-        "userPhotoURL": {
-          "type": "string"
-        },
-        "timestamp": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "rating",
-        "userId"
-      ]
-    },
-    "Promotion": {
-      "title": "Promotion",
-      "description": "An advertising campaign for a website.",
-      "type": "object",
-      "properties": {
-        "websiteId": { "type": "string" },
-        "websiteUrl": { "type": "string" },
-        "placement": { "type": "string", "enum": ["homepage", "trending", "category", "search", "editors"] },
-        "duration": { "type": "number", "description": "Duration in days." },
-        "cost": { "type": "number" },
-        "status": { "type": "string", "enum": ["active", "pending", "completed", "cancelled"] },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "userId": { "type": "string" }
+        "visitCount": { "type": "number" },
+        "likeCount": { "type": "number" },
+        "shareCount": { "type": "number" },
+        "ratingSum": { "type": "number" },
+        "ratingCount": { "type": "number" },
+        "logoUrl": { "type": "string" }
       }
     }
   },
@@ -190,25 +121,9 @@
       "schema": "Submission",
       "description": "User submitted project requests."
     },
-    "/users/{userId}/likedWebsites/{saveId}": {
-      "schema": "SavedWebsite",
-      "description": "Collection of websites bookmarked (saved) by the user."
-    },
-    "/users/{userId}/userLikes/{websiteId}": {
-      "schema": "UserInteraction",
-      "description": "Tracks if a user has liked a website to enable toggling."
-    },
-    "/users/{userId}/userShares/{websiteId}": {
-      "schema": "UserInteraction",
-      "description": "Tracks if a user has shared a website to prevent duplicate global increments."
-    },
     "/websiteStats/{websiteId}": {
       "schema": "WebsiteStats",
       "description": "Global stats and cached preview metadata for a website."
-    },
-    "/websiteStats/{websiteId}/userRatings/{userId}": {
-      "schema": "UserRating",
-      "description": "Individual ratings to prevent double-voting."
     },
     "/promotions/{promoId}": {
       "schema": "Promotion",

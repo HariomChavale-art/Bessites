@@ -11,8 +11,6 @@ import {
   BarChart3, 
   Users, 
   Flame, 
-  Bell, 
-  LogOut, 
   Plus,
   TrendingUp,
   ChevronRight,
@@ -20,7 +18,6 @@ import {
   Rocket,
   Zap,
   Wallet,
-  Receipt,
   Check,
   X,
   Settings,
@@ -36,7 +33,15 @@ import {
   ArrowRight,
   ExternalLink,
   Star,
-  Search
+  Search,
+  Target,
+  MousePointer2,
+  Bookmark,
+  Heart,
+  Layout,
+  Trophy,
+  Info,
+  ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -53,12 +58,20 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 
-const PROMO_TYPES = [
+const CAMPAIGN_OBJECTIVES = [
+  { id: 'visits', name: 'Website Visits', desc: 'Direct high-intent users to your URL.', icon: MousePointer2, color: 'text-blue-400' },
+  { id: 'visibility', name: 'Increase Visibility', desc: 'Maximize impressions across the home feed.', icon: Eye, color: 'text-purple-400' },
+  { id: 'saves', name: 'Increase Saves', desc: 'Get more users to bookmark your project.', icon: Bookmark, color: 'text-amber-400' },
+  { id: 'likes', name: 'Increase Likes', desc: 'Boost social proof and trending rank.', icon: Heart, color: 'text-rose-400' },
+  { id: 'launch', name: 'New Launch', desc: 'Massive blast for a brand new product.', icon: Rocket, color: 'text-emerald-400' },
+];
+
+const PLACEMENT_OPTIONS = [
   { id: 'homepage', name: 'Homepage Featured', price: 15, reach: '50k+', desc: 'Prime placement on the main discovery feed.', icon: Star, color: 'text-amber-400' },
   { id: 'trending', name: 'Trending Section', price: 12, reach: '30k+', desc: 'Boost your rank in the community charts.', icon: TrendingUp, color: 'text-primary' },
-  { id: 'staff', name: 'Staff Picks', price: 20, reach: '100k+', desc: 'The highest tier of professional curation.', icon: Zap, color: 'text-purple-400' },
   { id: 'category', name: 'Category Featured', price: 10, reach: '20k+', desc: 'Target niche audiences in your category.', icon: Globe, color: 'text-blue-400' },
   { id: 'search', name: 'Search Boost', price: 8, reach: '15k+', desc: 'Rank #1 for relevant discovery queries.', icon: Search, color: 'text-emerald-400' },
+  { id: 'staff', name: 'Staff Picks', price: 20, reach: '100k+', desc: 'The highest tier of professional curation.', icon: Zap, color: 'text-purple-400' },
 ];
 
 export default function PromotionsPage() {
@@ -69,16 +82,26 @@ export default function PromotionsPage() {
   const pathname = usePathname();
   const { toast } = useToast();
 
-  const [mode, setMode] = useState<'list' | 'create'>('list');
+  const [mode, setMode] = useState<'list' | 'create' | 'billing'>('list');
   const [step, setStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Creation State
+  // Advanced Creation State
   const [selectedSiteId, setSelectedSiteId] = useState("");
-  const [selectedType, setSelectedType] = useState(PROMO_TYPES[0]);
+  const [objective, setObjective] = useState(CAMPAIGN_OBJECTIVES[0]);
+  const [placement, setPlacement] = useState(PLACEMENT_OPTIONS[0]);
   const [startDate, setStartDate] = useState("");
+  const [startTime, setStartTime] = useState("09:00");
+  const [endDate, setEndDate] = useState("");
+  const [endTime, setStartTimeEnd] = useState("21:00");
   const [duration, setDuration] = useState("7");
+  const [dailyBudget, setDailyBudget] = useState("10");
   const [paymentMethod, setPaymentMethod] = useState("card");
+  const [targeting, setTargeting] = useState({
+    countries: ['Global'],
+    devices: ['Mobile', 'Desktop'],
+    interests: ['AI', 'Tech']
+  });
 
   const userDocRef = useMemo(() => {
     if (!user || !db) return null;
@@ -102,57 +125,44 @@ export default function PromotionsPage() {
   }, [user, db]);
   const { data: promotions, loading: promosLoading } = useCollection(promosRef);
 
-  const stats = useMemo(() => {
-    if (!promotions) return { active: 0, totalSpend: 0, scheduled: 0 };
-    return {
-      active: promotions.filter(p => p.status === 'active').length,
-      scheduled: promotions.filter(p => p.status === 'scheduled').length,
-      totalSpend: promotions.reduce((acc, curr) => acc + (curr.cost || 0), 0)
-    };
-  }, [promotions]);
-
-  const handleNext = () => setStep(prev => prev + 1);
-  const handleBack = () => setStep(prev => prev - 1);
-
   const totalCost = useMemo(() => {
-    const base = selectedType.price * parseInt(duration);
-    const tax = base * 0.18; // 18% GST/Tax
+    const base = placement.price * parseInt(duration);
+    const tax = base * 0.18;
     return (base + tax).toFixed(2);
-  }, [selectedType, duration]);
+  }, [placement, duration]);
 
   const handleLaunchCampaign = async () => {
     if (!db || !user || !selectedSiteId) return;
     setIsProcessing(true);
     
     const selectedSite = mySites?.find(s => s.id === selectedSiteId);
-    const promoId = `PRM-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
-
-    // Automatic status logic: Active if start date is now or past, else Scheduled.
-    // Given the user wants "automatic", we'll default to 'active' or 'scheduled'.
-    const start = new Date(startDate);
-    const now = new Date();
-    const initialStatus = start <= now ? "active" : "scheduled";
+    const promoId = `CAM-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+    const orderId = `ORD-${Date.now().toString().slice(-8)}`;
 
     const promoData = {
       promoId,
+      orderId,
       userId: user.uid,
       userEmail: user.email,
       websiteId: selectedSiteId,
       websiteUrl: selectedSite?.url || "",
-      websiteName: selectedSite?.url.replace('https://', '').split('/')[0] || "Unknown Site",
-      type: selectedType.id,
-      placement: selectedType.name,
-      startDate: start.toISOString(),
+      websiteName: selectedSite?.url.replace('https://', '').split('/')[0] || "Target Asset",
+      objective: objective.id,
+      placement: placement.name,
+      targetAudience: targeting,
+      startDate: `${startDate}T${startTime}:00`,
+      endDate: `${endDate}T${endTime}:00`,
       duration: parseInt(duration),
+      dailyBudget: parseFloat(dailyBudget),
       cost: parseFloat(totalCost),
-      status: initialStatus,
+      status: 'pending', // Requires Admin Review as per Google Ads / Meta Ads standard
       paymentMethod,
       createdAt: serverTimestamp()
     };
 
     addDoc(collection(db, "promotions"), promoData)
       .then(() => {
-        toast({ title: "Campaign Launched", description: `Your promotion is now ${initialStatus}.` });
+        toast({ title: "Campaign Submitted", description: "Your promotion is entering the admin review queue." });
         setIsProcessing(false);
         setMode('list');
         setStep(1);
@@ -165,14 +175,6 @@ export default function PromotionsPage() {
           requestResourceData: promoData
         }));
       });
-  };
-
-  const handleCancelPromo = (id: string) => {
-    if (!db) return;
-    const promoRef = doc(db, "promotions", id);
-    updateDoc(promoRef, { status: 'cancelled' }).then(() => {
-      toast({ title: "Cancelled", description: "Campaign removal complete." });
-    });
   };
 
   const handleLogout = async () => {
@@ -220,98 +222,62 @@ export default function PromotionsPage() {
           <div className="p-4 sm:p-8 md:p-12 space-y-12 animate-in fade-in duration-500">
             <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/5 p-10 sm:p-16 rounded-[4rem] relative overflow-hidden shadow-2xl group">
                <div className="relative z-10 space-y-6">
-                  <Badge className="bg-primary/20 text-primary border-none text-[10px] font-black uppercase tracking-widest px-4 py-1 italic">🚀 Automatic Discovery Boost</Badge>
-                  <h2 className="text-4xl sm:text-6xl font-black italic uppercase tracking-tighter text-white leading-none">Reach More <span className="text-primary">Curators.</span></h2>
-                  <p className="text-lg text-muted-foreground max-w-2xl font-medium leading-relaxed">Promotions are now instant. Select a site, pick a schedule, and go live immediately.</p>
+                  <Badge className="bg-primary/20 text-primary border-none text-[10px] font-black uppercase tracking-widest px-4 py-1 italic">🥇 Ads Manager</Badge>
+                  <h2 className="text-4xl sm:text-6xl font-black italic uppercase tracking-tighter text-white leading-none">Drive <span className="text-primary">Engagement.</span></h2>
+                  <p className="text-lg text-muted-foreground max-w-2xl font-medium leading-relaxed">Reach your target audience with objective-based advertising across the Bessites network.</p>
                   <div className="flex flex-col sm:flex-row items-center gap-4">
-                     <Button onClick={() => setMode('create')} className="h-14 px-10 rounded-full bg-white text-black font-black uppercase tracking-widest text-xs italic hover:scale-105 transition-all shadow-xl">Create New Promotion</Button>
-                     <div className="flex items-center gap-4 bg-white/5 p-2 rounded-full border border-white/5 px-6 h-14">
-                        <Wallet className="w-4 h-4 text-primary" />
-                        <div className="text-left"><p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest leading-none mb-1">Billing Balance</p><p className="text-sm font-black italic text-white">${stats.totalSpend.toLocaleString()}</p></div>
-                     </div>
+                     <Button onClick={() => setMode('create')} className="h-14 px-10 rounded-full bg-white text-black font-black uppercase tracking-widest text-xs italic hover:scale-105 transition-all shadow-xl">Create New Campaign</Button>
+                     <Button onClick={() => setMode('billing')} variant="outline" className="h-14 px-10 rounded-full border-white/5 bg-white/5 font-black uppercase tracking-widest text-xs italic">Billing & History</Button>
                   </div>
                </div>
             </Card>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-               <PromoStat label="Active Promos" value={stats.active} icon={Rocket} color="text-sky-500" />
-               <PromoStat label="Scheduled" value={stats.scheduled} icon={Clock} color="text-amber-500" />
-               <PromoStat label="Avg. Conversion" value="11.4%" icon={TrendingUp} color="text-emerald-400" />
-               <PromoStat label="Reach Pulse" value="2.1M" icon={Globe} color="text-indigo-400" />
-            </div>
-
-            <Tabs defaultValue="all" className="w-full">
-              <div className="bg-[#121117] border border-white/5 rounded-[3.5rem] overflow-hidden shadow-2xl">
+            <div className="bg-[#121117] border border-white/5 rounded-[3.5rem] overflow-hidden shadow-2xl">
                  <div className="p-8 border-b border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
-                    <h3 className="text-xl font-black italic uppercase tracking-tighter">Campaign Ledger</h3>
-                    <TabsList className="bg-white/5 rounded-2xl p-1 h-auto">
-                       <TabsTrigger value="all" className="rounded-xl px-6 py-2 text-[10px] font-black uppercase tracking-widest">All</TabsTrigger>
-                       <TabsTrigger value="active" className="rounded-xl px-6 py-2 text-[10px] font-black uppercase tracking-widest">Active</TabsTrigger>
-                       <TabsTrigger value="scheduled" className="rounded-xl px-6 py-2 text-[10px] font-black uppercase tracking-widest">Scheduled</TabsTrigger>
-                    </TabsList>
+                    <h3 className="text-xl font-black italic uppercase tracking-tighter">Campaign Vault</h3>
+                    <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5">
+                        {['all', 'active', 'pending', 'completed'].map(f => (
+                           <button key={f} className="px-6 py-2 rounded-xl text-[10px] font-black uppercase text-muted-foreground hover:text-white transition-all">{f}</button>
+                        ))}
+                    </div>
                  </div>
                  
-                 <TabsContent value="all" className="m-0">
-                    <div className="overflow-x-auto no-scrollbar">
-                       <table className="w-full text-left min-w-[1000px]">
-                          <thead className="bg-white/5 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40"><tr><th className="p-8">Promoted Property</th><th className="p-8">Placement</th><th className="p-8">Duration</th><th className="p-8">Cost</th><th className="p-8 text-center">Status</th><th className="p-8 text-right">Operations</th></tr></thead>
-                          <tbody className="divide-y divide-white/5">
-                             {promosLoading ? (
-                               <tr><td colSpan={6} className="p-20 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" /></td></tr>
-                             ) : promotions && promotions.length > 0 ? (
-                               promotions.map(promo => (
-                                 <tr key={promo.id} className="group hover:bg-white/[0.02] transition-colors">
-                                    <td className="p-8">
-                                       <div className="flex items-center gap-4">
-                                          <div className="w-12 h-12 rounded-xl bg-black border border-white/10 overflow-hidden shrink-0 shadow-lg">
-                                             <WebsitePreview websiteUrl={promo.websiteUrl} alt="Logo" className="w-full h-full" />
-                                          </div>
-                                          <div className="min-w-0">
-                                             <p className="text-sm font-black italic tracking-tighter text-white truncate">{promo.websiteName}</p>
-                                             <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest opacity-40">ID: {promo.promoId}</p>
-                                          </div>
-                                       </div>
-                                    </td>
-                                    <td className="p-8">
-                                       <div className="flex items-center gap-2">
-                                          <div className={cn("p-2 rounded-lg bg-white/5", PROMO_TYPES.find(t => t.id === promo.type)?.color)}><Flame className="w-3.5 h-3.5" /></div>
-                                          <span className="text-[10px] font-black uppercase text-white/60">{promo.placement}</span>
-                                       </div>
-                                    </td>
-                                    <td className="p-8 text-sm font-bold text-white">{promo.duration} Days</td>
-                                    <td className="p-8 text-sm font-black italic text-primary">${promo.cost.toFixed(2)}</td>
-                                    <td className="p-8 text-center">
-                                       <Badge className={cn("uppercase text-[8px] font-black border-none px-4 py-1.5 rounded-full shadow-lg", 
-                                          promo.status === 'active' ? "bg-emerald-500/10 text-emerald-400" : 
-                                          promo.status === 'scheduled' ? "bg-blue-500/10 text-blue-400" : 
-                                          promo.status === 'cancelled' ? "bg-red-500/10 text-red-400" : "bg-white/5 text-muted-foreground/40")}>
-                                          {promo.status}
-                                       </Badge>
-                                    </td>
-                                    <td className="p-8 text-right">
-                                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                          <Button size="icon" variant="ghost" className="w-10 h-10 rounded-xl hover:bg-white/10"><Download className="w-4 h-4" /></Button>
-                                          <Button onClick={() => handleCancelPromo(promo.id)} variant="ghost" className="text-[9px] font-black uppercase text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 rounded-xl px-4 py-2">Cancel</Button>
-                                       </div>
-                                    </td>
-                                 </tr>
-                               ))
-                             ) : (
-                               <tr><td colSpan={6} className="p-32 text-center text-muted-foreground italic font-medium opacity-20">The promotion ledger is empty. Launch your first campaign.</td></tr>
-                             )}
-                          </tbody>
-                       </table>
-                    </div>
-                 </TabsContent>
-              </div>
-            </Tabs>
+                 <div className="overflow-x-auto no-scrollbar">
+                    <table className="w-full text-left min-w-[1000px]">
+                       <thead className="bg-white/5 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40"><tr><th className="p-8">Campaign Asset</th><th className="p-8">Goal</th><th className="p-8">Placement</th><th className="p-8">Reach Est.</th><th className="p-8">Budget</th><th className="p-8 text-center">Status</th></tr></thead>
+                       <tbody className="divide-y divide-white/5">
+                          {promosLoading ? (
+                             <tr><td colSpan={6} className="p-20 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" /></td></tr>
+                          ) : promotions && promotions.length > 0 ? (
+                             promotions.map(promo => (
+                               <tr key={promo.id} className="group hover:bg-white/[0.02] transition-colors">
+                                  <td className="p-8">
+                                     <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-black border border-white/10 overflow-hidden"><WebsitePreview websiteUrl={promo.websiteUrl} alt={promo.websiteName} className="w-full h-full" /></div>
+                                        <div className="min-w-0"><p className="text-sm font-black italic text-white truncate">{promo.websiteName}</p><p className="text-[9px] text-muted-foreground font-black uppercase opacity-40">ID: {promo.promoId}</p></div>
+                                     </div>
+                                  </td>
+                                  <td className="p-8"><span className="text-[10px] font-black uppercase text-primary">{promo.objective}</span></td>
+                                  <td className="p-8"><span className="text-[10px] font-black uppercase text-white/60">{promo.placement}</span></td>
+                                  <td className="p-8"><span className="text-sm font-bold text-white">~{(promo.duration * 12000).toLocaleString()}</span></td>
+                                  <td className="p-8"><span className="text-sm font-black italic text-primary">${promo.cost.toFixed(2)}</span></td>
+                                  <td className="p-8 text-center"><Badge className={cn("uppercase text-[8px] font-black border-none px-4 py-1.5 rounded-full", promo.status === 'active' ? "bg-emerald-500/10 text-emerald-400" : "bg-white/5 text-muted-foreground/40")}>{promo.status}</Badge></td>
+                               </tr>
+                             ))
+                          ) : (
+                             <tr><td colSpan={6} className="p-32 text-center text-muted-foreground italic font-medium opacity-20">The ad vault is empty. Launch your first professional campaign.</td></tr>
+                          )}
+                       </tbody>
+                    </table>
+                 </div>
+            </div>
           </div>
-        ) : (
-          <div className="p-4 sm:p-8 md:p-12 max-w-4xl mx-auto w-full animate-in slide-in-from-right-4 duration-500">
+        ) : mode === 'create' ? (
+          <div className="p-4 sm:p-8 md:p-12 max-w-5xl mx-auto w-full animate-in slide-in-from-right-4 duration-500">
              <div className="mb-12 flex items-center justify-between">
-                <Button variant="ghost" onClick={() => setMode('list')} className="text-muted-foreground hover:text-white gap-2 font-bold"><ChevronLeft className="w-5 h-5" /> Exit Designer</Button>
+                <Button variant="ghost" onClick={() => setMode('list')} className="text-muted-foreground hover:text-white gap-2 font-bold"><ChevronLeft className="w-5 h-5" /> Exit Manager</Button>
                 <div className="flex items-center gap-3">
-                   {[1, 2, 3, 4, 5].map(s => (
+                   {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
                      <div key={s} className={cn("w-10 h-1.5 rounded-full transition-all duration-500", s <= step ? "bg-primary" : "bg-white/5")} />
                    ))}
                 </div>
@@ -319,260 +285,164 @@ export default function PromotionsPage() {
 
              {step === 1 && (
                <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
-                  <div className="space-y-2">
-                     <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 1: Choose <span className="text-primary">Target</span></h2>
-                     <p className="text-muted-foreground font-medium">Select the website you want to promote across the Bessites ecosystem.</p>
-                  </div>
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 1: Select <span className="text-primary">Website</span></h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                      {mySites?.map(site => (
-                       <Card 
-                        key={site.id} 
-                        onClick={() => setSelectedSiteId(site.id)}
-                        className={cn("p-6 rounded-[2.5rem] bg-[#121117] border-2 cursor-pointer transition-all duration-300 group hover:scale-[1.02]", 
-                        selectedSiteId === site.id ? "border-primary shadow-2xl shadow-primary/20" : "border-white/5 hover:border-white/20")}
-                       >
+                       <Card key={site.id} onClick={() => setSelectedSiteId(site.id)} className={cn("p-6 rounded-[2.5rem] bg-[#121117] border-2 cursor-pointer transition-all", selectedSiteId === site.id ? "border-primary shadow-2xl" : "border-white/5")}>
                           <div className="flex items-center gap-5">
-                             <div className="w-16 h-16 rounded-2xl bg-black overflow-hidden border border-white/10 group-hover:scale-110 transition-transform shadow-xl"><WebsitePreview websiteUrl={site.url} alt={site.url} className="w-full h-full" /></div>
-                             <div className="min-w-0">
-                                <p className="text-lg font-black italic tracking-tighter text-white truncate">{site.url.replace('https://', '').split('/')[0]}</p>
-                                <p className="text-xs font-bold text-primary uppercase tracking-widest">{site.categories?.[0]}</p>
-                             </div>
+                             <div className="w-16 h-16 rounded-2xl overflow-hidden border border-white/10"><WebsitePreview websiteUrl={site.url} alt={site.url} className="w-full h-full" /></div>
+                             <div className="min-w-0"><p className="text-lg font-black italic text-white truncate">{site.url.replace('https://', '').split('/')[0]}</p><p className="text-xs font-bold text-primary uppercase">{site.categories?.[0]}</p></div>
                           </div>
                        </Card>
                      ))}
-                     {(!mySites || mySites.length === 0) && (
-                        <div className="col-span-2 p-12 text-center bg-white/5 rounded-[2.5rem] border border-white/5">
-                           <Globe className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
-                           <p className="text-muted-foreground italic font-medium">You need an approved website to create a promotion.</p>
-                        </div>
-                     )}
                   </div>
-                  <Button onClick={handleNext} disabled={!selectedSiteId} className="w-full h-16 rounded-3xl bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-2xl glow-primary">CONTINUE TO PLACEMENT <ArrowRight className="w-5 h-5 ml-2" /></Button>
+                  <Button onClick={() => setStep(2)} disabled={!selectedSiteId} className="w-full h-16 rounded-3xl bg-primary text-white font-black">CHOOSE OBJECTIVE <ArrowRight className="w-5 h-5 ml-2" /></Button>
                </div>
              )}
 
              {step === 2 && (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <div className="space-y-2">
-                     <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 2: Promotion <span className="text-primary">Strategy</span></h2>
-                     <p className="text-muted-foreground font-medium">Choose where your website will be featured for maximum discovery.</p>
-                  </div>
-                  <div className="space-y-4">
-                     {PROMO_TYPES.map(type => (
-                       <Card 
-                        key={type.id} 
-                        onClick={() => setSelectedType(type)}
-                        className={cn("p-8 rounded-[3rem] bg-[#121117] border-2 cursor-pointer transition-all duration-300 relative overflow-hidden group", 
-                        selectedType.id === type.id ? "border-primary shadow-2xl shadow-primary/20" : "border-white/5 hover:border-white/10")}
-                       >
-                          <div className="absolute top-0 right-0 p-8">
-                             <div className={cn("text-3xl font-black italic tracking-tighter", type.color)}>${type.price}<span className="text-xs font-bold text-muted-foreground/40 uppercase">/Day</span></div>
-                          </div>
-                          <div className="flex items-start gap-8 relative z-10">
-                             <div className={cn("p-5 rounded-[2rem] bg-white/5 shadow-inner group-hover:scale-110 transition-transform", type.color)}><type.icon className="w-8 h-8" /></div>
-                             <div className="space-y-1 pr-24">
-                                <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">{type.name}</h4>
-                                <p className="text-muted-foreground text-sm font-medium leading-relaxed">{type.desc}</p>
-                                <div className="flex items-center gap-4 mt-4">
-                                   <Badge className="bg-emerald-500/10 text-emerald-400 border-none px-3 py-1 font-black uppercase text-[8px]">{type.reach} Est. Reach</Badge>
-                                   <Badge className="bg-primary/10 text-primary border-none px-3 py-1 font-black uppercase text-[8px]">High conversion</Badge>
-                                </div>
-                             </div>
-                          </div>
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 2: Campaign <span className="text-primary">Objective</span></h2>
+                  <div className="grid grid-cols-1 gap-4">
+                     {CAMPAIGN_OBJECTIVES.map(obj => (
+                       <Card key={obj.id} onClick={() => setObjective(obj)} className={cn("p-8 rounded-[3rem] bg-[#121117] border-2 cursor-pointer transition-all flex items-center gap-8", objective.id === obj.id ? "border-primary" : "border-white/5")}>
+                          <div className={cn("p-5 rounded-[2rem] bg-white/5", obj.color)}><obj.icon className="w-8 h-8" /></div>
+                          <div className="space-y-1"><h4 className="text-xl font-black italic uppercase text-white">{obj.name}</h4><p className="text-muted-foreground text-sm font-medium">{obj.desc}</p></div>
                        </Card>
                      ))}
                   </div>
-                  <div className="flex gap-4">
-                     <Button variant="outline" onClick={handleBack} className="h-16 flex-1 rounded-3xl border-white/5 bg-white/5 font-black uppercase tracking-widest text-xs italic">Go Back</Button>
-                     <Button onClick={handleNext} className="h-16 flex-[2] rounded-3xl bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-2xl glow-primary">DESIGN SCHEDULE <ArrowRight className="w-5 h-5 ml-2" /></Button>
-                  </div>
+                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(1)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(3)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">DEFINE AUDIENCE <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
                </div>
              )}
 
              {step === 3 && (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <div className="space-y-2">
-                     <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 3: Campaign <span className="text-primary">Schedule</span></h2>
-                     <p className="text-muted-foreground font-medium">Define exactly when your promotion starts and how long it lasts.</p>
-                  </div>
-                  <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] space-y-10 shadow-2xl">
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                        <div className="space-y-4">
-                           <label className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground opacity-40">Start Date & Time</label>
-                           <div className="relative">
-                              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                              <Input 
-                                type="datetime-local" 
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-xs font-black uppercase" 
-                              />
-                           </div>
-                        </div>
-                        <div className="space-y-4">
-                           <label className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground opacity-40">Campaign Duration</label>
-                           <div className="grid grid-cols-3 gap-2">
-                              {['1', '3', '7', '30'].map(d => (
-                                <button 
-                                 key={d} 
-                                 onClick={() => setDuration(d)}
-                                 className={cn("h-14 rounded-2xl font-black text-xs transition-all", 
-                                 duration === d ? "bg-primary text-white shadow-xl shadow-primary/20 scale-105" : "bg-white/5 text-muted-foreground hover:bg-white/10")}
-                                >{d} DAYS</button>
-                              ))}
-                           </div>
-                        </div>
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 3: Target <span className="text-primary">Audience</span></h2>
+                  <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] space-y-10">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div className="space-y-4"><label className="text-[10px] font-black uppercase text-muted-foreground/40">Geographic Regions</label><div className="flex flex-wrap gap-2">{targeting.countries.map(c => (<Badge key={c} className="bg-primary/20 text-primary border-none px-4 py-2 rounded-full">{c}</Badge>))}</div></div>
+                        <div className="space-y-4"><label className="text-[10px] font-black uppercase text-muted-foreground/40">Interests Clusters</label><div className="flex flex-wrap gap-2">{targeting.interests.map(i => (<Badge key={i} className="bg-white/5 text-white/60 border-none px-4 py-2 rounded-full">{i}</Badge>))}</div></div>
                      </div>
-                     <div className="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                           <div className="p-4 rounded-2xl bg-primary/10 text-primary shadow-inner"><ShieldCheck className="w-6 h-6" /></div>
-                           <div>
-                              <p className="text-sm font-black italic tracking-tighter text-white">Instant Automatic Launch</p>
-                              <p className="text-[10px] font-black uppercase text-muted-foreground/40">No admin review required.</p>
-                           </div>
-                        </div>
-                        <div className="text-right">
-                           <p className="text-[9px] font-black uppercase text-muted-foreground/30 mb-1">Estimated Impressions</p>
-                           <p className="text-2xl font-black italic text-primary">~{(parseInt(duration) * 8500).toLocaleString()}</p>
-                        </div>
+                     <div className="pt-10 border-t border-white/5 flex items-center justify-between">
+                        <div className="flex items-center gap-4"><div className="p-4 rounded-2xl bg-emerald-500/10 text-emerald-400"><Users className="w-6 h-6" /></div><div><p className="text-sm font-black italic text-white">Estimated Audience Size</p><p className="text-[10px] font-black uppercase text-muted-foreground/40">Broad Reach Profile</p></div></div>
+                        <div className="text-right"><p className="text-2xl font-black italic text-primary">~245,000 Curators</p></div>
                      </div>
                   </Card>
-                  <div className="flex gap-4">
-                     <Button variant="outline" onClick={handleBack} className="h-16 flex-1 rounded-3xl border-white/5 bg-white/5 font-black uppercase tracking-widest text-xs italic">Back</Button>
-                     <Button onClick={handleNext} disabled={!startDate} className="h-16 flex-[2] rounded-3xl bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-2xl glow-primary">REVIEW ORDER SUMMARY <ArrowRight className="w-5 h-5 ml-2" /></Button>
-                  </div>
+                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(2)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(4)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">BUDGET & DURATION <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
                </div>
              )}
 
              {step === 4 && (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <div className="space-y-2">
-                     <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 4: Order <span className="text-primary">Summary</span></h2>
-                     <p className="text-muted-foreground font-medium">Verify all campaign details before proceeding to instant activation.</p>
-                  </div>
-                  <Card className="bg-[#121117] border-white/5 rounded-[3.5rem] overflow-hidden shadow-2xl">
-                     <div className="p-10 border-b border-white/5 bg-white/[0.01]">
-                        <div className="flex items-center justify-between mb-10">
-                           <h3 className="text-xl font-black italic uppercase tracking-tighter">Campaign Configuration</h3>
-                           <Badge className="bg-primary text-white border-none px-4 py-1.5 rounded-full font-black uppercase text-[10px] italic shadow-xl">Automated Pipeline</Badge>
-                        </div>
-                        <div className="space-y-6">
-                           <SummaryRow label="Promoted Asset" value={mySites?.find(s => s.id === selectedSiteId)?.url.replace('https://', '')} />
-                           <SummaryRow label="Placement Tier" value={selectedType.name} />
-                           <SummaryRow label="Campaign Duration" value={`${duration} Days`} />
-                           <SummaryRow label="Start Window" value={new Date(startDate).toLocaleString()} />
-                        </div>
-                     </div>
-                     <div className="p-10 bg-white/[0.03] space-y-4">
-                        <div className="flex justify-between items-center text-sm font-medium text-muted-foreground"><span>Base Price</span><span className="text-white font-black">${(selectedType.price * parseInt(duration)).toFixed(2)}</span></div>
-                        <div className="flex justify-between items-center text-sm font-medium text-muted-foreground"><span>Platform Taxes (18%)</span><span className="text-white font-black">${(selectedType.price * parseInt(duration) * 0.18).toFixed(2)}</span></div>
-                        <div className="h-px bg-white/10 my-4" />
-                        <div className="flex justify-between items-center"><span className="text-xl font-black italic uppercase tracking-tighter text-white">Grand Total</span><span className="text-4xl font-black italic text-primary">${totalCost}</span></div>
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 4: <span className="text-primary">Budget</span></h2>
+                  <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] space-y-10">
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                        <div className="space-y-4"><label className="text-[10px] font-black uppercase text-muted-foreground/40">Daily Ad Spend ($)</label><Input type="number" value={dailyBudget} onChange={(e) => setDailyBudget(e.target.value)} className="h-16 bg-white/5 border-white/10 rounded-2xl text-xl font-black text-white" /></div>
+                        <div className="space-y-4"><label className="text-[10px] font-black uppercase text-muted-foreground/40">Campaign Days</label><div className="grid grid-cols-3 gap-2">{['3', '7', '30'].map(d => (<button key={d} onClick={() => setDuration(d)} className={cn("h-16 rounded-2xl font-black text-xs transition-all", duration === d ? "bg-primary text-white" : "bg-white/5 text-muted-foreground")}>{d} DAYS</button>))}</div></div>
                      </div>
                   </Card>
-                  <div className="flex gap-4">
-                     <Button variant="outline" onClick={handleBack} className="h-16 flex-1 rounded-3xl border-white/5 bg-white/5 font-black uppercase tracking-widest text-xs italic">Modify Order</Button>
-                     <Button onClick={handleNext} className="h-16 flex-[2] rounded-3xl bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-2xl glow-primary">PROCEED TO ACTIVATION <ArrowRight className="w-5 h-5 ml-2" /></Button>
-                  </div>
+                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(3)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(5)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">DESIGN SCHEDULE <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
                </div>
              )}
 
              {step === 5 && (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <div className="space-y-2">
-                     <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 5: Finalize <span className="text-primary">Activation</span></h2>
-                     <p className="text-muted-foreground font-medium">Bessites uses end-to-end encryption for all discovery transactions. Your campaign will go live instantly.</p>
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 5: <span className="text-primary">Schedule</span></h2>
+                  <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] space-y-10">
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                        <div className="space-y-4"><label className="text-[10px] font-black uppercase text-muted-foreground/40">Start Window</label><Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-16 bg-white/5 border-white/10 rounded-2xl font-black uppercase" /></div>
+                        <div className="space-y-4"><label className="text-[10px] font-black uppercase text-muted-foreground/40">End Window</label><Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-16 bg-white/5 border-white/10 rounded-2xl font-black uppercase" /></div>
+                     </div>
+                  </Card>
+                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(4)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(6)} disabled={!startDate || !endDate} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">CHOOSE PLACEMENT <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
+               </div>
+             )}
+
+             {step === 6 && (
+               <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 6: <span className="text-primary">Placement</span></h2>
+                  <div className="space-y-4">
+                     {PLACEMENT_OPTIONS.map(p => (
+                       <Card key={p.id} onClick={() => setPlacement(p)} className={cn("p-8 rounded-[3rem] bg-[#121117] border-2 cursor-pointer transition-all flex items-center justify-between", placement.id === p.id ? "border-primary" : "border-white/5")}>
+                          <div className="flex items-center gap-8"><div className={cn("p-4 rounded-2xl bg-white/5", p.color)}><p.icon className="w-6 h-6" /></div><div className="space-y-1"><h4 className="text-xl font-black italic uppercase text-white">{p.name}</h4><p className="text-muted-foreground text-xs font-medium">{p.desc}</p></div></div>
+                          <div className="text-right"><p className="text-lg font-black text-primary">${p.price}<span className="text-[10px] uppercase opacity-40">/Day</span></p></div>
+                       </Card>
+                     ))}
                   </div>
+                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(5)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(7)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">CAMPAIGN REVIEW <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
+               </div>
+             )}
+
+             {step === 7 && (
+               <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 7: <span className="text-primary">Review</span></h2>
+                  <Card className="bg-[#121117] border-white/5 rounded-[3.5rem] overflow-hidden">
+                     <div className="p-10 border-b border-white/5 space-y-6">
+                        <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Target Asset</span><span className="text-sm font-black italic text-white">{mySites?.find(s => s.id === selectedSiteId)?.url}</span></div>
+                        <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Primary Goal</span><span className="text-sm font-black italic text-primary">{objective.name}</span></div>
+                        <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Placement Tier</span><span className="text-sm font-black italic text-white">{placement.name}</span></div>
+                        <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Schedule</span><span className="text-sm font-black italic text-white">{startDate} — {endDate}</span></div>
+                     </div>
+                     <div className="p-10 bg-white/[0.03] flex justify-between items-center"><span className="text-xl font-black italic uppercase text-white">Total Order Value</span><span className="text-4xl font-black italic text-primary">${totalCost}</span></div>
+                  </Card>
+                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(6)} className="h-16 flex-1 rounded-3xl">Modify</Button><Button onClick={() => setStep(8)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">PROCEED TO CHECKOUT <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
+               </div>
+             )}
+
+             {step === 8 && (
+               <div className="space-y-8 animate-in fade-in duration-500">
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 8: <span className="text-primary">Payment</span></h2>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                      <div className="md:col-span-2 space-y-6">
-                        <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] shadow-2xl space-y-8">
-                           <div className="space-y-6">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Choose Payment Method</label>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                 <PaymentOption id="card" label="Credit / Debit Card" icon={CreditCard} active={paymentMethod === 'card'} onClick={() => setPaymentMethod('card')} />
-                                 <PaymentOption id="upi" label="UPI (Google Pay / PhonePe)" icon={Smartphone} active={paymentMethod === 'upi'} onClick={() => setPaymentMethod('upi')} />
-                                 <PaymentOption id="bank" label="Net Banking" icon={Building2} active={paymentMethod === 'bank'} onClick={() => setPaymentMethod('bank')} />
-                                 <PaymentOption id="wallet" label="Digital Wallets" icon={Wallet} active={paymentMethod === 'wallet'} onClick={() => setPaymentMethod('wallet')} />
-                              </div>
+                        <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] space-y-8">
+                           <div className="grid grid-cols-2 gap-4">
+                              <PaymentOption id="card" label="Credit Card" icon={CreditCard} active={paymentMethod === 'card'} onClick={() => setPaymentMethod('card')} />
+                              <PaymentOption id="upi" label="UPI (Instant)" icon={Smartphone} active={paymentMethod === 'upi'} onClick={() => setPaymentMethod('upi')} />
                            </div>
-                           
-                           {paymentMethod === 'card' && (
-                             <div className="space-y-6 pt-6 border-t border-white/5 animate-in fade-in duration-500">
-                                <div className="space-y-2">
-                                   <label className="text-[10px] font-black uppercase text-muted-foreground/40">Cardholder Name</label>
-                                   <Input placeholder="HARIOM CHAVALE" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black uppercase text-xs" />
-                                </div>
-                                <div className="space-y-2">
-                                   <label className="text-[10px] font-black uppercase text-muted-foreground/40">Card Number</label>
-                                   <Input placeholder="**** **** **** 4242" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                   <div className="space-y-2"><label className="text-[10px] font-black uppercase text-muted-foreground/40">Expiry Date</label><Input placeholder="MM/YY" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" /></div>
-                                   <div className="space-y-2"><label className="text-[10px] font-black uppercase text-muted-foreground/40">CVC</label><Input placeholder="***" type="password" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" /></div>
-                                </div>
-                             </div>
-                           )}
+                           <div className="pt-6 border-t border-white/5 space-y-6">
+                              <div className="space-y-2"><label className="text-[10px] font-black uppercase opacity-40">Cardholder Name</label><Input placeholder="HARIOM CHAVALE" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black uppercase text-xs" /></div>
+                              <div className="space-y-2"><label className="text-[10px] font-black uppercase opacity-40">Card Number</label><Input placeholder="**** **** **** 4242" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" /></div>
+                           </div>
                         </Card>
                      </div>
                      <div className="space-y-6">
-                        <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-xl space-y-6">
-                           <h4 className="text-lg font-black italic uppercase tracking-tighter text-white">Billing Total</h4>
+                        <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] space-y-6">
+                           <h4 className="text-lg font-black italic uppercase text-white">Billing Total</h4>
                            <div className="flex justify-between items-center text-sm font-bold text-muted-foreground"><span>Campaign Cost</span><span className="text-white font-black">${totalCost}</span></div>
-                           <div className="flex justify-between items-center text-sm font-bold text-muted-foreground"><span>Platform Fee</span><span className="text-emerald-400 font-black">WAIVED</span></div>
                            <div className="h-px bg-white/10 my-2" />
-                           <div className="space-y-1"><p className="text-[9px] font-black uppercase text-muted-foreground/40">Payable amount</p><p className="text-4xl font-black italic text-primary">${totalCost}</p></div>
+                           <p className="text-4xl font-black italic text-primary">${totalCost}</p>
                         </Card>
-                        <Button 
-                          onClick={handleLaunchCampaign} 
-                          disabled={isProcessing}
-                          className="w-full h-20 rounded-[2.5rem] bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xl shadow-2xl transition-all hover:scale-[1.02]"
-                        >
-                           {isProcessing ? <Loader2 className="animate-spin w-8 h-8" /> : "LAUNCH INSTANTLY"}
+                        <Button onClick={handleLaunchCampaign} disabled={isProcessing} className="w-full h-20 rounded-[2.5rem] bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xl shadow-2xl">
+                           {isProcessing ? <Loader2 className="animate-spin w-8 h-8" /> : "PAY & LAUNCH"}
                         </Button>
-                        <p className="text-[10px] text-center font-bold text-muted-foreground/40 uppercase tracking-widest px-4 leading-relaxed">Activation is automatic. No further review required.</p>
                      </div>
                   </div>
                </div>
              )}
           </div>
+        ) : (
+          <div className="p-4 sm:p-8 md:p-12 space-y-12 animate-in fade-in duration-500">
+             <div className="flex items-center justify-between"><h1 className="text-3xl font-black italic uppercase tracking-tighter">Billing & History</h1><Button variant="ghost" onClick={() => setMode('list')} className="text-muted-foreground font-bold"><ChevronLeft className="w-4 h-4 mr-2" /> Back to Studio</Button></div>
+             <div className="bg-[#121117] border border-white/5 rounded-[3.5rem] overflow-hidden">
+                <table className="w-full text-left">
+                   <thead className="bg-white/5 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40"><tr><th className="p-8">Order ID</th><th className="p-8">Campaign</th><th className="p-8">Amount</th><th className="p-8">Method</th><th className="p-8 text-right">Receipt</th></tr></thead>
+                   <tbody className="divide-y divide-white/5">
+                      {promotions?.map(p => (
+                        <tr key={p.id} className="hover:bg-white/[0.02]">
+                           <td className="p-8 font-black text-xs text-white">{p.orderId || '---'}</td>
+                           <td className="p-8 text-sm font-bold text-white/60">{p.websiteName}</td>
+                           <td className="p-8 text-sm font-black italic text-primary">${p.cost.toFixed(2)}</td>
+                           <td className="p-8 text-[10px] font-black uppercase text-muted-foreground">{p.paymentMethod}</td>
+                           <td className="p-8 text-right"><Button size="icon" variant="ghost" className="rounded-xl hover:bg-white/10"><Download className="w-4 h-4" /></Button></td>
+                        </tr>
+                      ))}
+                   </tbody>
+                </table>
+             </div>
+          </div>
         )}
       </main>
     </div>
-  );
-}
-
-function SummaryRow({ label, value }: { label: string, value: string | undefined }) {
-  return (
-    <div className="flex justify-between items-center">
-      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/30">{label}</span>
-      <span className="text-sm font-black italic text-white text-right truncate max-w-[240px]">{value || '---'}</span>
-    </div>
-  );
-}
-
-function PaymentOption({ id, label, icon: Icon, active, onClick }: { id: string, label: string, icon: any, active: boolean, onClick: () => void }) {
-  return (
-    <button 
-      onClick={onClick}
-      className={cn("flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all gap-3 group", 
-      active ? "border-primary bg-primary/5 shadow-xl" : "border-white/5 hover:border-white/10")}
-    >
-      <Icon className={cn("w-6 h-6 transition-transform group-hover:scale-110", active ? "text-primary" : "text-muted-foreground/40")} />
-      <span className={cn("text-[9px] font-black uppercase tracking-widest", active ? "text-white" : "text-muted-foreground/30")}>{label}</span>
-    </button>
-  );
-}
-
-function PromoStat({ label, value, icon: Icon, trend, color = "text-white" }: { label: string, value: string | number, icon: any, trend?: string, color?: string }) {
-  return (
-    <Card className="bg-[#121117] border-white/5 p-5 rounded-[2.5rem] shadow-xl group hover:scale-[1.02] transition-all relative overflow-hidden flex flex-col justify-between cursor-default">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-white/[0.01] blur-3xl -mr-12 -mt-12" />
-      <div className="flex justify-between items-start mb-6 relative z-10">
-        <div className="p-3 rounded-2xl bg-white/5"><Icon className={cn("w-5 h-5", color)} /></div>
-        {trend && <div className="text-[8px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">{trend}</div>}
-      </div>
-      <div className="relative z-10"><p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mb-1 leading-tight">{label}</p><h4 className="text-2xl font-black italic tracking-tighter text-white leading-none tabular-nums">{value}</h4></div>
-    </Card>
   );
 }
 
@@ -582,6 +452,15 @@ function SidebarItem({ icon: Icon, label, active = false, onClick }: { icon: any
       {active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(123,51,255,1)]" />}
       <Icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", active ? "text-primary" : "group-hover:text-white")} />
       <span className="text-sm font-bold tracking-tight">{label}</span>
+    </button>
+  );
+}
+
+function PaymentOption({ id, label, icon: Icon, active, onClick }: { id: string, label: string, icon: any, active: boolean, onClick: () => void }) {
+  return (
+    <button onClick={onClick} className={cn("flex flex-col items-center justify-center p-8 rounded-3xl border-2 transition-all gap-3 group", active ? "border-primary bg-primary/5" : "border-white/5 hover:border-white/10")}>
+      <Icon className={cn("w-8 h-8 transition-transform group-hover:scale-110", active ? "text-primary" : "text-muted-foreground/40")} />
+      <span className={cn("text-[10px] font-black uppercase tracking-widest", active ? "text-white" : "text-muted-foreground/30")}>{label}</span>
     </button>
   );
 }

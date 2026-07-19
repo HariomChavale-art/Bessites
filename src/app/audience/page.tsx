@@ -1,9 +1,8 @@
-
 'use client';
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useFirestore, useCollection, useUser, useDoc, useAuth } from "@/firebase";
-import { collection, query, where, doc, orderBy } from "firebase/firestore";
+import { collection, query, where, doc } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { 
   Globe, 
@@ -18,12 +17,9 @@ import {
   Eye,
   Menu,
   Smartphone,
-  Laptop,
   Activity,
   Map,
   Sparkles,
-  Award,
-  Zap,
   Chrome,
   Settings,
   HelpCircle
@@ -52,6 +48,11 @@ export default function AudiencePage() {
   const db = useFirestore();
   const router = useRouter();
   const pathname = usePathname();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const userDocRef = useMemo(() => {
     if (!user || !db) return null;
@@ -71,11 +72,10 @@ export default function AudiencePage() {
   }, [db]);
   const { data: globalStats } = useCollection(websiteStatsRef);
 
-  // Derive audience interests based on actual site categories
   const audienceInterests = useMemo(() => {
     if (!rawSubmissions) return [];
     const counts: Record<string, number> = {};
-    rawSubmissions.filter(s => s.status === 'approved').forEach(s => {
+    rawSubmissions.filter((s: any) => s.status === 'approved').forEach((s: any) => {
       (s.categories || []).forEach((cat: string) => {
         counts[cat] = (counts[cat] || 0) + 1;
       });
@@ -88,11 +88,11 @@ export default function AudiencePage() {
 
   const stats = useMemo(() => {
     if (!rawSubmissions || !globalStats) return { likes: 0, saves: 0, shares: 0, visitors: 0 };
-    const myIds = rawSubmissions.filter(s => s.status === 'approved').map(s => s.id);
-    const myStats = globalStats.filter(gs => myIds.includes(gs.id));
-    const clicks = myStats.reduce((acc, curr) => acc + (curr.visitCount || 0), 0);
-    const likes = myStats.reduce((acc, curr) => acc + (curr.likeCount || 0), 0);
-    const shares = myStats.reduce((acc, curr) => acc + (curr.shareCount || 0), 0);
+    const myIds = rawSubmissions.filter((s: any) => s.status === 'approved').map((s: any) => s.id);
+    const myStats = globalStats.filter((gs: any) => myIds.includes(gs.id));
+    const clicks = myStats.reduce((acc: number, curr: any) => acc + (curr.visitCount || 0), 0);
+    const likes = myStats.reduce((acc: number, curr: any) => acc + (curr.likeCount || 0), 0);
+    const shares = myStats.reduce((acc: number, curr: any) => acc + (curr.shareCount || 0), 0);
     return { likes, saves: Math.floor(likes * 0.7), shares, visitors: clicks * 4.2 };
   }, [rawSubmissions, globalStats]);
 
@@ -172,7 +172,7 @@ export default function AudiencePage() {
                       <div className="flex bg-white/5 p-1 rounded-2xl"><button className="px-4 py-2 bg-primary rounded-xl text-[9px] font-black uppercase">Live Pipeline</button></div>
                    </div>
                    <div className="h-80 w-full">
-                      {audienceChartData.length > 0 ? (
+                      {isMounted && audienceChartData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                           <AreaChart data={audienceChartData}>
                               <defs><linearGradient id="audColor" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#7B33FF" stopOpacity={0.3}/><stop offset="95%" stopColor="#7B33FF" stopOpacity={0}/></linearGradient></defs>
@@ -234,9 +234,9 @@ function AudienceStat({ label, value, growth, icon: Icon, color = "text-white" }
 
 function DemographicCard({ title, items, icon: Icon }: { title: string, items: string[], icon: any }) {
   return (
-    <Card className="bg-[#121117] border-white/5 p-6 rounded-[2.5rem] shadow-xl space-y-6">
+    <Card className="bg-[#121117] border-white/5 p-6 rounded-[2.5rem] shadow-xl space-y-6 h-40">
        <div className="flex items-center gap-3"><Icon className="w-4 h-4 text-primary" /><h4 className="text-xs font-black uppercase tracking-widest text-white/40">{title}</h4></div>
-       <div className="space-y-3">{items.map((item, i) => (<p key={i} className="text-[11px] font-bold text-white/60 flex items-center gap-2"><div className="w-1 h-1 rounded-full bg-primary/40" />{item}</p>))}</div>
+       <div className="space-y-3">{items.map((item, i) => (<p key={i} className="text-[11px] font-bold text-white/60 flex items-center gap-2"><span className="w-1 h-1 rounded-full bg-primary/40 shrink-0" />{item}</p>))}</div>
     </Card>
   );
 }

@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useFirestore, useCollection, useUser, useDoc, useAuth } from "@/firebase";
 import { collection, query, where, doc } from "firebase/firestore";
 import { signOut } from "firebase/auth";
@@ -11,27 +10,20 @@ import {
   BarChart3, 
   Users, 
   Flame, 
-  Bell, 
   Settings, 
   HelpCircle, 
   LogOut, 
-  Eye,
-  MousePointer2,
-  TrendingUp,
-  ChevronRight,
-  Menu,
   Activity,
-  Sparkles,
-  PieChart as PieChartIcon,
   RefreshCw,
-  Download
+  Download,
+  Menu,
+  ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { WebsitePreview } from "@/components/website-preview";
@@ -48,6 +40,13 @@ import {
   Area
 } from 'recharts';
 
+const SOURCE_DATA = [
+  { name: 'Home Feed', value: 45, color: '#7B33FF' },
+  { name: 'Search', value: 25, color: '#85A3FF' },
+  { name: 'Google', value: 15, color: '#2D79FF' },
+  { name: 'Social', value: 15, color: '#AB33FF' },
+];
+
 export default function AnalyticsPage() {
   const { user, loading: authLoading } = useUser();
   const auth = useAuth();
@@ -55,6 +54,12 @@ export default function AnalyticsPage() {
   const router = useRouter();
   const pathname = usePathname();
   const [metricView, setMetricView] = useState('Views');
+  const [isMounted, setIsMounted] = useState(false);
+  const [liveVisitors, setLiveVisitors] = useState(0);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const userDocRef = useMemo(() => {
     if (!user || !db) return null;
@@ -72,22 +77,29 @@ export default function AnalyticsPage() {
     if (!db) return null;
     return collection(db, "websiteStats");
   }, [db]);
-  const { data: globalStats, loading: statsLoading } = useCollection(websiteStatsRef);
+  const { data: globalStats } = useCollection(websiteStatsRef);
 
   const stats = useMemo(() => {
     if (!rawSubmissions || !globalStats) return { views: 0, clicks: 0, ctr: "0.0%", totalSaves: 0 };
-    const myApprovedIds = rawSubmissions.filter(s => s.status === 'approved').map(s => s.id);
-    const myStats = globalStats.filter(gs => myApprovedIds.includes(gs.id));
+    const myApprovedIds = rawSubmissions.filter((s: any) => s.status === 'approved').map((s: any) => s.id);
+    const myStats = globalStats.filter((gs: any) => myApprovedIds.includes(gs.id));
     
-    const clicks = myStats.reduce((acc, curr) => acc + (curr.visitCount || 0), 0);
-    const views = clicks * 4.2; // Derived multiplier for views estimate
+    const clicks = myStats.reduce((acc: number, curr: any) => acc + (curr.visitCount || 0), 0);
+    const views = clicks * 4.2; 
     const totalSaves = Math.floor(clicks * 0.7);
     const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : "0.0";
     
     return { views, clicks, ctr: `${ctr}%`, totalSaves };
   }, [rawSubmissions, globalStats]);
 
-  // Derived chart data based on real aggregated metrics
+  useEffect(() => {
+    if (stats.clicks > 0) {
+      setLiveVisitors(Math.floor(Math.random() * 10) + 1);
+    } else {
+      setLiveVisitors(0);
+    }
+  }, [stats.clicks]);
+
   const chartData = useMemo(() => {
     if (stats.views === 0) return [];
     return [
@@ -100,13 +112,6 @@ export default function AnalyticsPage() {
       { name: 'Sun', Views: Math.floor(stats.views * 0.15), Clicks: Math.floor(stats.clicks * 0.17) },
     ];
   }, [stats]);
-
-  const sourceData = [
-    { name: 'Home Feed', value: 45, color: '#7B33FF' },
-    { name: 'Search', value: 25, color: '#85A3FF' },
-    { name: 'Google', value: 15, color: '#2D79FF' },
-    { name: 'Social', value: 15, color: '#AB33FF' },
-  ];
 
   const handleLogout = async () => {
     if (auth) { await signOut(auth); router.push("/"); }
@@ -178,7 +183,7 @@ export default function AnalyticsPage() {
                       </div>
                    </div>
                    <div className="h-96 w-full">
-                      {chartData.length > 0 ? (
+                      {isMounted && chartData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                           <AreaChart data={chartData}>
                               <defs><linearGradient id="colorMet" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#7B33FF" stopOpacity={0.3}/><stop offset="95%" stopColor="#7B33FF" stopOpacity={0}/></linearGradient></defs>
@@ -201,12 +206,23 @@ export default function AnalyticsPage() {
              <div className="space-y-8">
                 <Card className="bg-[#121117] border-white/5 p-6 rounded-[2.5rem] shadow-xl space-y-6">
                    <div className="flex justify-between items-center"><h3 className="text-lg font-black italic uppercase tracking-tighter">Live Visitors</h3><div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(123,51,255,0.8)]" /></div>
-                   <div className="space-y-1"><p className="text-4xl font-black italic text-white">{stats.clicks > 0 ? Math.floor(Math.random() * 10) + 1 : 0}</p><p className="text-[9px] font-black uppercase text-muted-foreground opacity-40">Tracking interaction pulse</p></div>
+                   <div className="space-y-1"><p className="text-4xl font-black italic text-white">{isMounted ? liveVisitors : 0}</p><p className="text-[9px] font-black uppercase text-muted-foreground opacity-40">Tracking interaction pulse</p></div>
                 </Card>
                 <Card className="bg-[#121117] border-white/5 p-6 rounded-[2.5rem] shadow-xl space-y-6">
                    <h3 className="text-lg font-black italic uppercase tracking-tighter">Traffic Sources</h3>
-                   <div className="h-40"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={sourceData} cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={5} dataKey="value">{sourceData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}</Pie><RechartsTooltip /></PieChart></ResponsiveContainer></div>
-                   <div className="space-y-2">{sourceData.map(s => (<div key={s.name} className="flex justify-between items-center text-[10px] font-black uppercase"><span className="text-white/60">{s.name}</span><span className="text-white/30">{s.value}%</span></div>))}</div>
+                   <div className="h-40">
+                      {isMounted ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie data={SOURCE_DATA} cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={5} dataKey="value">
+                              {SOURCE_DATA.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
+                            </Pie>
+                            <RechartsTooltip />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      ) : null}
+                   </div>
+                   <div className="space-y-2">{SOURCE_DATA.map(s => (<div key={s.name} className="flex justify-between items-center text-[10px] font-black uppercase"><span className="text-white/60">{s.name}</span><span className="text-white/30">{s.value}%</span></div>))}</div>
                 </Card>
              </div>
           </div>
@@ -217,8 +233,8 @@ export default function AnalyticsPage() {
                 <table className="w-full text-left min-w-[1000px]">
                    <thead className="bg-white/5 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40"><tr><th className="p-8">Digital Property</th><th className="p-8">Views</th><th className="p-8">Clicks</th><th className="p-8">Saves</th><th className="p-8 text-center">Status</th><th className="p-8">Growth Pulse</th></tr></thead>
                    <tbody className="divide-y divide-white/5">
-                      {rawSubmissions?.map(site => {
-                         const siteStats = globalStats?.find(gs => gs.id === site.id);
+                      {rawSubmissions?.map((site: any) => {
+                         const siteStats = globalStats?.find((gs: any) => gs.id === site.id);
                          const views = (siteStats?.visitCount || 0) * 4.2;
                          return (
                            <tr key={site.id} className="group hover:bg-white/[0.02] transition-colors">
@@ -246,9 +262,9 @@ export default function AnalyticsPage() {
 
 function AnalyticsStat({ label, value, trend, trendUp, color = "text-white" }: { label: string, value: string, trend: string, trendUp: boolean, color?: string }) {
   return (
-    <Card className="bg-[#121117] border-white/5 p-8 rounded-[2.5rem] shadow-xl group hover:scale-[1.02] transition-all relative overflow-hidden flex flex-col justify-between cursor-default">
+    <Card className="bg-[#121117] border-white/5 p-8 rounded-[2.5rem] shadow-xl group hover:scale-[1.02] transition-all relative overflow-hidden flex flex-col justify-between cursor-default h-48">
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.01] blur-3xl -mr-16 -mt-16" />
-      <div className="flex justify-between items-start mb-10 relative z-10">
+      <div className="flex justify-between items-start mb-6 relative z-10">
         <div className="p-4 rounded-2xl bg-white/5"><Activity className={cn("w-6 h-6", color)} /></div>
         <div className={cn("flex items-center gap-1 text-[9px] font-black uppercase tracking-tighter px-2.5 py-1 rounded-full", trendUp ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400")}>{trend}</div>
       </div>

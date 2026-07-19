@@ -48,7 +48,8 @@ import {
   Globe2,
   ReceiptText,
   ShieldAlert,
-  ArrowUpRight
+  ArrowUpRight,
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -425,7 +426,7 @@ export default function PromotionsPage() {
                   <Card className="bg-[#121117] border-white/5 rounded-[3.5rem] overflow-hidden">
                      <div className="p-10 border-b border-white/5 space-y-6">
                         <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Target Asset</span><span className="text-sm font-black italic text-white">{mySites?.find(s => s.id === selectedSiteId)?.url}</span></div>
-                        <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Primary Goal</span><span className="text-sm font-black italic text-primary">{objective.name}</span></div>
+                        <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-primary">{objective.name}</span></div>
                         <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Placement Tier</span><span className="text-sm font-black italic text-white">{placement.name}</span></div>
                         <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Detected Region</span><span className="text-sm font-black italic text-white">{userCountry} ({currency.code})</span></div>
                      </div>
@@ -460,7 +461,7 @@ export default function PromotionsPage() {
                                   <GlobalPaymentOption id="card" label="Credit/Debit Card" icon={CardIcon} description="Visa, Master, AMEX, RuPay" active={paymentCategory === 'card'} onClick={() => {setPaymentCategory('card'); setPaymentMethod('card');}} />
                                   {userCountry === 'IN' && <GlobalPaymentOption id="upi" label="UPI Instant" icon={UpiIcon} description="Google Pay, PhonePe, Paytm" active={paymentCategory === 'upi'} onClick={() => {setPaymentCategory('upi'); setPaymentMethod('upi_intent');}} />}
                                   {userCountry !== 'IN' && <GlobalPaymentOption id="wallet" label="Digital Wallet" icon={Wallet} description="PayPal, Apple Pay, Google Pay" active={paymentCategory === 'wallet'} onClick={() => {setPaymentCategory('wallet'); setPaymentMethod('paypal');}} />}
-                               </div>
+                                </div>
                             </div>
 
                             <div className="pt-10 border-t border-white/5 space-y-8">

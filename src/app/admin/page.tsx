@@ -142,7 +142,6 @@ export default function AdminDashboard() {
 
     const approvedSites = submissions?.filter(s => s.status === 'approved').length || 0;
     const pendingSites = submissions?.filter(s => s.status === 'pending').length || 0;
-    const pendingPromos = promotions?.filter(p => p.status === 'pending').length || 0;
     const activePromos = promotions?.filter(p => p.status === 'active').length || 0;
     const totalUsersCount = appUsers?.length || 0;
     
@@ -154,7 +153,6 @@ export default function AdminDashboard() {
     return {
       totalWebsites: approvedSites,
       pendingWebsites: pendingSites,
-      pendingPromotions: pendingPromos,
       activePromos: activePromos,
       totalUsers: totalUsersCount,
       totalRevenue: `$${totalRev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
@@ -178,7 +176,7 @@ export default function AdminDashboard() {
       });
   };
 
-  const handlePromoApproval = (promoId: string, status: 'active' | 'cancelled') => {
+  const handlePromoAction = (promoId: string, status: 'active' | 'cancelled') => {
     if (!db) return;
     const promoRef = doc(db, "promotions", promoId);
     updateDoc(promoRef, { status }).then(() => {
@@ -227,7 +225,7 @@ export default function AdminDashboard() {
           <SidebarNavGroup label="Infrastructure" collapsed={sidebarCollapsed}>
              <SidebarNavLink icon={LayoutDashboard} label="System Overview" active={activeSection === 'overview'} onClick={() => setActiveSection('overview')} collapsed={sidebarCollapsed} />
              <SidebarNavLink icon={Inbox} label="Website Moderation" active={activeSection === 'submissions'} onClick={() => setActiveSection('submissions')} badge={stats?.pendingWebsites} collapsed={sidebarCollapsed} />
-             <SidebarNavLink icon={Flame} label="Promotion Studio" active={activeSection === 'promotions'} onClick={() => setActiveSection('promotions')} badge={stats?.pendingPromotions} collapsed={sidebarCollapsed} />
+             <SidebarNavLink icon={Flame} label="Promotion Studio" active={activeSection === 'promotions'} onClick={() => setActiveSection('promotions')} collapsed={sidebarCollapsed} />
              <SidebarNavLink icon={Users} label="User Registry" active={activeSection === 'users'} onClick={() => setActiveSection('users')} collapsed={sidebarCollapsed} />
           </SidebarNavGroup>
 
@@ -300,7 +298,7 @@ export default function AdminDashboard() {
                    <p className="text-sm text-slate-500 font-medium">System status and live operational metrics for Bessites ecosystem.</p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                    <AdminStatCard 
                     label="Total Users" 
                     value={stats?.totalUsers ?? '-'} 
@@ -320,13 +318,6 @@ export default function AdminDashboard() {
                     value={stats?.pendingWebsites ?? '-'} 
                     icon={Inbox} 
                     color="text-amber-600" 
-                    loading={!stats}
-                   />
-                   <AdminStatCard 
-                    label="Pending Promotions" 
-                    value={stats?.pendingPromotions ?? '-'} 
-                    icon={Flame} 
-                    color="text-orange-600" 
                     loading={!stats}
                    />
                    <AdminStatCard 
@@ -459,9 +450,13 @@ export default function AdminDashboard() {
                                       </Badge>
                                    </td>
                                    <td className="p-5 text-right">
-                                      <div className="flex items-center justify-end gap-1">
-                                         <Button size="icon" variant="ghost" onClick={() => handleStatusUpdate(sub.id, 'approved')} className="h-8 w-8 hover:bg-emerald-50 text-emerald-600 rounded-lg"><Check className="w-4 h-4" /></Button>
-                                         <Button size="icon" variant="ghost" onClick={() => handleStatusUpdate(sub.id, 'rejected')} className="h-8 w-8 hover:bg-rose-50 text-rose-600 rounded-lg"><X className="w-4 h-4" /></Button>
+                                      <div className="flex items-center justify-end gap-2">
+                                         {sub.status === 'pending' && (
+                                           <>
+                                             <Button onClick={() => handleStatusUpdate(sub.id, 'approved')} className="h-8 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] uppercase tracking-widest">Accept</Button>
+                                             <Button onClick={() => handleStatusUpdate(sub.id, 'rejected')} variant="outline" className="h-8 px-4 rounded-lg border-rose-200 text-rose-600 hover:bg-rose-50 font-bold text-[10px] uppercase tracking-widest">Decline</Button>
+                                           </>
+                                         )}
                                          
                                          <AlertDialog>
                                            <AlertDialogTrigger asChild>
@@ -495,8 +490,8 @@ export default function AdminDashboard() {
             {activeSection === 'promotions' && (
               <div className="space-y-8 animate-in fade-in duration-500">
                 <div className="flex flex-col gap-1">
-                   <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Promotion Review Hub</h1>
-                   <p className="text-sm text-slate-500 font-medium">Audit advertising campaigns and verify commercial placements.</p>
+                   <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Promotion Audit Log</h1>
+                   <p className="text-sm text-slate-500 font-medium">Monitor active advertising campaigns and platform placements (Automated Activation Active).</p>
                 </div>
 
                 <Card className="border-slate-200 shadow-sm rounded-2xl overflow-hidden">
@@ -510,7 +505,7 @@ export default function AdminDashboard() {
                                <th className="p-5 text-[10px] font-bold uppercase tracking-widest text-slate-500">Cycle</th>
                                <th className="p-5 text-[10px] font-bold uppercase tracking-widest text-slate-500">Billing</th>
                                <th className="p-5 text-center text-[10px] font-bold uppercase tracking-widest text-slate-500">Status</th>
-                               <th className="p-5 text-right text-[10px] font-bold uppercase tracking-widest text-slate-500">Audit</th>
+                               <th className="p-5 text-right text-[10px] font-bold uppercase tracking-widest text-slate-500">Actions</th>
                             </tr>
                          </thead>
                          <tbody className="divide-y divide-slate-100">
@@ -541,19 +536,18 @@ export default function AdminDashboard() {
                                       <Badge className={cn(
                                         "rounded-lg px-3 py-1 text-[9px] font-bold uppercase border-none",
                                         promo.status === 'active' ? "bg-emerald-100 text-emerald-700" :
-                                        promo.status === 'pending' ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500"
+                                        promo.status === 'scheduled' ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-500"
                                       )}>{promo.status}</Badge>
                                    </td>
                                    <td className="p-5 text-right">
                                       <div className="flex items-center justify-end gap-1">
-                                         <Button onClick={() => handlePromoApproval(promo.id, 'active')} className="h-8 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-widest">Activate</Button>
-                                         <Button onClick={() => handlePromoApproval(promo.id, 'cancelled')} variant="ghost" className="h-8 px-3 rounded-lg text-rose-600 hover:bg-rose-50 font-bold text-[9px] uppercase tracking-widest">Cancel</Button>
+                                         <Button onClick={() => handlePromoAction(promo.id, 'cancelled')} variant="ghost" className="h-8 px-3 rounded-lg text-rose-600 hover:bg-rose-50 font-bold text-[9px] uppercase tracking-widest">Cancel</Button>
                                       </div>
                                    </td>
                                 </tr>
                               ))
                             ) : (
-                              <tr><td colSpan={7} className="p-40 text-center text-slate-300 font-bold uppercase tracking-widest italic opacity-40">No promotion requests</td></tr>
+                              <tr><td colSpan={7} className="p-40 text-center text-slate-300 font-bold uppercase tracking-widest italic opacity-40">No promotion history</td></tr>
                             )}
                          </tbody>
                       </table>

@@ -103,10 +103,10 @@ export default function PromotionsPage() {
   const { data: promotions, loading: promosLoading } = useCollection(promosRef);
 
   const stats = useMemo(() => {
-    if (!promotions) return { active: 0, totalSpend: 0, pending: 0 };
+    if (!promotions) return { active: 0, totalSpend: 0, scheduled: 0 };
     return {
       active: promotions.filter(p => p.status === 'active').length,
-      pending: promotions.filter(p => p.status === 'pending').length,
+      scheduled: promotions.filter(p => p.status === 'scheduled').length,
       totalSpend: promotions.reduce((acc, curr) => acc + (curr.cost || 0), 0)
     };
   }, [promotions]);
@@ -127,6 +127,12 @@ export default function PromotionsPage() {
     const selectedSite = mySites?.find(s => s.id === selectedSiteId);
     const promoId = `PRM-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
+    // Automatic status logic: Active if start date is now or past, else Scheduled.
+    // Given the user wants "automatic", we'll default to 'active' or 'scheduled'.
+    const start = new Date(startDate);
+    const now = new Date();
+    const initialStatus = start <= now ? "active" : "scheduled";
+
     const promoData = {
       promoId,
       userId: user.uid,
@@ -136,17 +142,17 @@ export default function PromotionsPage() {
       websiteName: selectedSite?.url.replace('https://', '').split('/')[0] || "Unknown Site",
       type: selectedType.id,
       placement: selectedType.name,
-      startDate: new Date(startDate).toISOString(),
+      startDate: start.toISOString(),
       duration: parseInt(duration),
       cost: parseFloat(totalCost),
-      status: "pending",
+      status: initialStatus,
       paymentMethod,
       createdAt: serverTimestamp()
     };
 
     addDoc(collection(db, "promotions"), promoData)
       .then(() => {
-        toast({ title: "Campaign Submitted", description: "Your promotion is entering the admin review queue." });
+        toast({ title: "Campaign Launched", description: `Your promotion is now ${initialStatus}.` });
         setIsProcessing(false);
         setMode('list');
         setStep(1);
@@ -214,9 +220,9 @@ export default function PromotionsPage() {
           <div className="p-4 sm:p-8 md:p-12 space-y-12 animate-in fade-in duration-500">
             <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/5 p-10 sm:p-16 rounded-[4rem] relative overflow-hidden shadow-2xl group">
                <div className="relative z-10 space-y-6">
-                  <Badge className="bg-primary/20 text-primary border-none text-[10px] font-black uppercase tracking-widest px-4 py-1 italic">🚀 Boost Discovery Pipeline</Badge>
+                  <Badge className="bg-primary/20 text-primary border-none text-[10px] font-black uppercase tracking-widest px-4 py-1 italic">🚀 Automatic Discovery Boost</Badge>
                   <h2 className="text-4xl sm:text-6xl font-black italic uppercase tracking-tighter text-white leading-none">Reach More <span className="text-primary">Curators.</span></h2>
-                  <p className="text-lg text-muted-foreground max-w-2xl font-medium leading-relaxed">Promotions help your website gain massive visibility across the Bessites ecosystem.</p>
+                  <p className="text-lg text-muted-foreground max-w-2xl font-medium leading-relaxed">Promotions are now instant. Select a site, pick a schedule, and go live immediately.</p>
                   <div className="flex flex-col sm:flex-row items-center gap-4">
                      <Button onClick={() => setMode('create')} className="h-14 px-10 rounded-full bg-white text-black font-black uppercase tracking-widest text-xs italic hover:scale-105 transition-all shadow-xl">Create New Promotion</Button>
                      <div className="flex items-center gap-4 bg-white/5 p-2 rounded-full border border-white/5 px-6 h-14">
@@ -229,7 +235,7 @@ export default function PromotionsPage() {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
                <PromoStat label="Active Promos" value={stats.active} icon={Rocket} color="text-sky-500" />
-               <PromoStat label="Pending Review" value={stats.pending} icon={Clock} color="text-amber-500" />
+               <PromoStat label="Scheduled" value={stats.scheduled} icon={Clock} color="text-amber-500" />
                <PromoStat label="Avg. Conversion" value="11.4%" icon={TrendingUp} color="text-emerald-400" />
                <PromoStat label="Reach Pulse" value="2.1M" icon={Globe} color="text-indigo-400" />
             </div>
@@ -241,7 +247,7 @@ export default function PromotionsPage() {
                     <TabsList className="bg-white/5 rounded-2xl p-1 h-auto">
                        <TabsTrigger value="all" className="rounded-xl px-6 py-2 text-[10px] font-black uppercase tracking-widest">All</TabsTrigger>
                        <TabsTrigger value="active" className="rounded-xl px-6 py-2 text-[10px] font-black uppercase tracking-widest">Active</TabsTrigger>
-                       <TabsTrigger value="pending" className="rounded-xl px-6 py-2 text-[10px] font-black uppercase tracking-widest">Pending</TabsTrigger>
+                       <TabsTrigger value="scheduled" className="rounded-xl px-6 py-2 text-[10px] font-black uppercase tracking-widest">Scheduled</TabsTrigger>
                     </TabsList>
                  </div>
                  
@@ -277,17 +283,15 @@ export default function PromotionsPage() {
                                     <td className="p-8 text-center">
                                        <Badge className={cn("uppercase text-[8px] font-black border-none px-4 py-1.5 rounded-full shadow-lg", 
                                           promo.status === 'active' ? "bg-emerald-500/10 text-emerald-400" : 
-                                          promo.status === 'pending' ? "bg-amber-500/10 text-amber-500" : 
-                                          promo.status === 'cancelled' ? "bg-red-500/10 text-red-500" : "bg-white/5 text-muted-foreground/40")}>
+                                          promo.status === 'scheduled' ? "bg-blue-500/10 text-blue-400" : 
+                                          promo.status === 'cancelled' ? "bg-red-500/10 text-red-400" : "bg-white/5 text-muted-foreground/40")}>
                                           {promo.status}
                                        </Badge>
                                     </td>
                                     <td className="p-8 text-right">
                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                           <Button size="icon" variant="ghost" className="w-10 h-10 rounded-xl hover:bg-white/10"><Download className="w-4 h-4" /></Button>
-                                          {promo.status === 'pending' && (
-                                            <Button onClick={() => handleCancelPromo(promo.id)} variant="ghost" className="text-[9px] font-black uppercase text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 rounded-xl px-4 py-2">Cancel</Button>
-                                          )}
+                                          <Button onClick={() => handleCancelPromo(promo.id)} variant="ghost" className="text-[9px] font-black uppercase text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 rounded-xl px-4 py-2">Cancel</Button>
                                        </div>
                                     </td>
                                  </tr>
@@ -423,8 +427,8 @@ export default function PromotionsPage() {
                         <div className="flex items-center gap-4">
                            <div className="p-4 rounded-2xl bg-primary/10 text-primary shadow-inner"><ShieldCheck className="w-6 h-6" /></div>
                            <div>
-                              <p className="text-sm font-black italic tracking-tighter text-white">Guaranteed Slot Availability</p>
-                              <p className="text-[10px] font-black uppercase text-muted-foreground/40">Placement secured for your selection.</p>
+                              <p className="text-sm font-black italic tracking-tighter text-white">Instant Automatic Launch</p>
+                              <p className="text-[10px] font-black uppercase text-muted-foreground/40">No admin review required.</p>
                            </div>
                         </div>
                         <div className="text-right">
@@ -444,13 +448,13 @@ export default function PromotionsPage() {
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                   <div className="space-y-2">
                      <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 4: Order <span className="text-primary">Summary</span></h2>
-                     <p className="text-muted-foreground font-medium">Verify all campaign details before proceeding to secure payment.</p>
+                     <p className="text-muted-foreground font-medium">Verify all campaign details before proceeding to instant activation.</p>
                   </div>
                   <Card className="bg-[#121117] border-white/5 rounded-[3.5rem] overflow-hidden shadow-2xl">
                      <div className="p-10 border-b border-white/5 bg-white/[0.01]">
                         <div className="flex items-center justify-between mb-10">
                            <h3 className="text-xl font-black italic uppercase tracking-tighter">Campaign Configuration</h3>
-                           <Badge className="bg-primary text-white border-none px-4 py-1.5 rounded-full font-black uppercase text-[10px] italic shadow-xl">Discovery Boost Active</Badge>
+                           <Badge className="bg-primary text-white border-none px-4 py-1.5 rounded-full font-black uppercase text-[10px] italic shadow-xl">Automated Pipeline</Badge>
                         </div>
                         <div className="space-y-6">
                            <SummaryRow label="Promoted Asset" value={mySites?.find(s => s.id === selectedSiteId)?.url.replace('https://', '')} />
@@ -468,7 +472,7 @@ export default function PromotionsPage() {
                   </Card>
                   <div className="flex gap-4">
                      <Button variant="outline" onClick={handleBack} className="h-16 flex-1 rounded-3xl border-white/5 bg-white/5 font-black uppercase tracking-widest text-xs italic">Modify Order</Button>
-                     <Button onClick={handleNext} className="h-16 flex-[2] rounded-3xl bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-2xl glow-primary">PROCEED TO CHECKOUT <ArrowRight className="w-5 h-5 ml-2" /></Button>
+                     <Button onClick={handleNext} className="h-16 flex-[2] rounded-3xl bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-2xl glow-primary">PROCEED TO ACTIVATION <ArrowRight className="w-5 h-5 ml-2" /></Button>
                   </div>
                </div>
              )}
@@ -476,8 +480,8 @@ export default function PromotionsPage() {
              {step === 5 && (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                   <div className="space-y-2">
-                     <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 5: Secure <span className="text-primary">Payment</span></h2>
-                     <p className="text-muted-foreground font-medium">Bessites uses end-to-end encryption for all discovery transactions.</p>
+                     <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 5: Finalize <span className="text-primary">Activation</span></h2>
+                     <p className="text-muted-foreground font-medium">Bessites uses end-to-end encryption for all discovery transactions. Your campaign will go live instantly.</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                      <div className="md:col-span-2 space-y-6">
@@ -508,14 +512,6 @@ export default function PromotionsPage() {
                                 </div>
                              </div>
                            )}
-                           
-                           {paymentMethod === 'upi' && (
-                              <div className="py-12 text-center bg-white/5 rounded-[2rem] border border-white/5 animate-in fade-in duration-500">
-                                 <Smartphone className="w-12 h-12 text-primary mx-auto mb-4" />
-                                 <p className="text-white font-black italic tracking-tighter">A payment request will be sent to your device.</p>
-                                 <Input placeholder="Enter your UPI ID (e.g., user@okaxis)" className="max-w-xs mx-auto h-12 bg-white/5 border-white/10 rounded-xl mt-6 font-bold text-center" />
-                              </div>
-                           )}
                         </Card>
                      </div>
                      <div className="space-y-6">
@@ -531,9 +527,9 @@ export default function PromotionsPage() {
                           disabled={isProcessing}
                           className="w-full h-20 rounded-[2.5rem] bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xl shadow-2xl transition-all hover:scale-[1.02]"
                         >
-                           {isProcessing ? <Loader2 className="animate-spin w-8 h-8" /> : "FINALIZE & PAY"}
+                           {isProcessing ? <Loader2 className="animate-spin w-8 h-8" /> : "LAUNCH INSTANTLY"}
                         </Button>
-                        <p className="text-[10px] text-center font-bold text-muted-foreground/40 uppercase tracking-widest px-4 leading-relaxed">By finalizing, you agree to our Promotion Policy & Secure Gateway Terms.</p>
+                        <p className="text-[10px] text-center font-bold text-muted-foreground/40 uppercase tracking-widest px-4 leading-relaxed">Activation is automatic. No further review required.</p>
                      </div>
                   </div>
                </div>

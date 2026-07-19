@@ -41,7 +41,14 @@ import {
   Layout,
   Trophy,
   Info,
-  ChevronDown
+  ChevronDown,
+  Eye,
+  CreditCard as CardIcon,
+  Smartphone as UpiIcon,
+  Globe2,
+  ReceiptText,
+  ShieldAlert,
+  ArrowUpRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -74,6 +81,20 @@ const PLACEMENT_OPTIONS = [
   { id: 'staff', name: 'Staff Picks', price: 20, reach: '100k+', desc: 'The highest tier of professional curation.', icon: Zap, color: 'text-purple-400' },
 ];
 
+type CurrencyInfo = {
+  code: string;
+  symbol: string;
+  rate: number;
+};
+
+const CURRENCIES: Record<string, CurrencyInfo> = {
+  US: { code: 'USD', symbol: '$', rate: 1 },
+  IN: { code: 'INR', symbol: '₹', rate: 83.5 },
+  GB: { code: 'GBP', symbol: '£', rate: 0.78 },
+  EU: { code: 'EUR', symbol: '€', rate: 0.92 },
+  JP: { code: 'JPY', symbol: '¥', rate: 155 },
+};
+
 export default function PromotionsPage() {
   const { user, loading: authLoading } = useUser();
   const auth = useAuth();
@@ -82,26 +103,34 @@ export default function PromotionsPage() {
   const pathname = usePathname();
   const { toast } = useToast();
 
-  const [mode, setMode] = useState<'list' | 'create' | 'billing'>('list');
+  const [mode, setMode] = useState<'list' | 'create' | 'success'>('list');
   const [step, setStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [userCountry, setUserCountry] = useState('US');
 
-  // Advanced Creation State
+  // Campaign State
   const [selectedSiteId, setSelectedSiteId] = useState("");
   const [objective, setObjective] = useState(CAMPAIGN_OBJECTIVES[0]);
   const [placement, setPlacement] = useState(PLACEMENT_OPTIONS[0]);
   const [startDate, setStartDate] = useState("");
-  const [startTime, setStartTime] = useState("09:00");
   const [endDate, setEndDate] = useState("");
-  const [endTime, setStartTimeEnd] = useState("21:00");
   const [duration, setDuration] = useState("7");
   const [dailyBudget, setDailyBudget] = useState("10");
   const [paymentMethod, setPaymentMethod] = useState("card");
-  const [targeting, setTargeting] = useState({
-    countries: ['Global'],
-    devices: ['Mobile', 'Desktop'],
-    interests: ['AI', 'Tech']
-  });
+  const [paymentCategory, setPaymentCategory] = useState<'card' | 'upi' | 'wallet' | 'bank'>('card');
+  const [lastOrderId, setLastOrderId] = useState("");
+
+  // Detect user locale
+  useEffect(() => {
+    const locale = Intl.DateTimeFormat().resolvedOptions().locale;
+    if (locale.includes('IN')) setUserCountry('IN');
+    else if (locale.includes('GB')) setUserCountry('GB');
+    else if (locale.includes('JP')) setUserCountry('JP');
+    else if (locale.includes('DE') || locale.includes('FR') || locale.includes('IT')) setUserCountry('EU');
+    else setUserCountry('US');
+  }, []);
+
+  const currency = useMemo(() => CURRENCIES[userCountry] || CURRENCIES.US, [userCountry]);
 
   const userDocRef = useMemo(() => {
     if (!user || !db) return null;
@@ -117,19 +146,17 @@ export default function PromotionsPage() {
 
   const promosRef = useMemo(() => {
     if (!user || !db) return null;
-    return query(
-      collection(db, "promotions"), 
-      where("userId", "==", user.uid),
-      orderBy("createdAt", "desc")
-    );
+    return query(collection(db, "promotions"), where("userId", "==", user.uid), orderBy("createdAt", "desc"));
   }, [user, db]);
   const { data: promotions, loading: promosLoading } = useCollection(promosRef);
 
-  const totalCost = useMemo(() => {
-    const base = placement.price * parseInt(duration);
-    const tax = base * 0.18;
-    return (base + tax).toFixed(2);
-  }, [placement, duration]);
+  const basePrice = useMemo(() => {
+    const total = placement.price * parseInt(duration);
+    return (total * currency.rate).toFixed(2);
+  }, [placement, duration, currency]);
+
+  const taxAmount = useMemo(() => (parseFloat(basePrice) * 0.18).toFixed(2), [basePrice]);
+  const finalTotal = useMemo(() => (parseFloat(basePrice) + parseFloat(taxAmount)).toFixed(2), [basePrice, taxAmount]);
 
   const handleLaunchCampaign = async () => {
     if (!db || !user || !selectedSiteId) return;
@@ -149,32 +176,36 @@ export default function PromotionsPage() {
       websiteName: selectedSite?.url.replace('https://', '').split('/')[0] || "Target Asset",
       objective: objective.id,
       placement: placement.name,
-      targetAudience: targeting,
-      startDate: `${startDate}T${startTime}:00`,
-      endDate: `${endDate}T${endTime}:00`,
+      startDate: startDate || new Date().toISOString(),
+      endDate: endDate || new Date(Date.now() + parseInt(duration) * 86400000).toISOString(),
       duration: parseInt(duration),
       dailyBudget: parseFloat(dailyBudget),
-      cost: parseFloat(totalCost),
-      status: 'pending', // Requires Admin Review as per Google Ads / Meta Ads standard
-      paymentMethod,
+      cost: parseFloat(finalTotal),
+      currency: currency.code,
+      status: 'active', // Automatic as per instructions
+      paymentMethod: paymentMethod,
+      paymentCategory: paymentCategory,
       createdAt: serverTimestamp()
     };
 
-    addDoc(collection(db, "promotions"), promoData)
-      .then(() => {
-        toast({ title: "Campaign Submitted", description: "Your promotion is entering the admin review queue." });
-        setIsProcessing(false);
-        setMode('list');
-        setStep(1);
-      })
-      .catch((e) => {
-        setIsProcessing(false);
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: 'promotions',
-          operation: 'create',
-          requestResourceData: promoData
-        }));
-      });
+    // Simulate gateway delay
+    setTimeout(() => {
+      addDoc(collection(db, "promotions"), promoData)
+        .then(() => {
+          setLastOrderId(orderId);
+          setIsProcessing(false);
+          setMode('success');
+          setStep(1);
+        })
+        .catch((e) => {
+          setIsProcessing(false);
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: 'promotions',
+            operation: 'create',
+            requestResourceData: promoData
+          }));
+        });
+    }, 2000);
   };
 
   const handleLogout = async () => {
@@ -222,29 +253,28 @@ export default function PromotionsPage() {
           <div className="p-4 sm:p-8 md:p-12 space-y-12 animate-in fade-in duration-500">
             <Card className="bg-gradient-to-br from-[#1E1C26] to-[#121117] border-white/5 p-10 sm:p-16 rounded-[4rem] relative overflow-hidden shadow-2xl group">
                <div className="relative z-10 space-y-6">
-                  <Badge className="bg-primary/20 text-primary border-none text-[10px] font-black uppercase tracking-widest px-4 py-1 italic">🥇 Ads Manager</Badge>
-                  <h2 className="text-4xl sm:text-6xl font-black italic uppercase tracking-tighter text-white leading-none">Drive <span className="text-primary">Engagement.</span></h2>
-                  <p className="text-lg text-muted-foreground max-w-2xl font-medium leading-relaxed">Reach your target audience with objective-based advertising across the Bessites network.</p>
+                  <Badge className="bg-primary/20 text-primary border-none text-[10px] font-black uppercase tracking-widest px-4 py-1 italic">🥇 Global Ads Manager</Badge>
+                  <h2 className="text-4xl sm:text-6xl font-black italic uppercase tracking-tighter text-white leading-none">Global <span className="text-primary">Discovery.</span></h2>
+                  <p className="text-lg text-muted-foreground max-w-2xl font-medium leading-relaxed">Boost your website across the Bessites network. Reach curators worldwide with localized targeting and payments.</p>
                   <div className="flex flex-col sm:flex-row items-center gap-4">
-                     <Button onClick={() => setMode('create')} className="h-14 px-10 rounded-full bg-white text-black font-black uppercase tracking-widest text-xs italic hover:scale-105 transition-all shadow-xl">Create New Campaign</Button>
-                     <Button onClick={() => setMode('billing')} variant="outline" className="h-14 px-10 rounded-full border-white/5 bg-white/5 font-black uppercase tracking-widest text-xs italic">Billing & History</Button>
+                     <Button onClick={() => setMode('create')} className="h-14 px-10 rounded-full bg-white text-black font-black uppercase tracking-widest text-xs italic hover:scale-105 transition-all shadow-xl">Start Global Campaign</Button>
+                     <Button variant="outline" className="h-14 px-10 rounded-full border-white/5 bg-white/5 font-black uppercase tracking-widest text-xs italic">View Billing Center</Button>
                   </div>
                </div>
             </Card>
 
             <div className="bg-[#121117] border border-white/5 rounded-[3.5rem] overflow-hidden shadow-2xl">
                  <div className="p-8 border-b border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
-                    <h3 className="text-xl font-black italic uppercase tracking-tighter">Campaign Vault</h3>
-                    <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5">
-                        {['all', 'active', 'pending', 'completed'].map(f => (
-                           <button key={f} className="px-6 py-2 rounded-xl text-[10px] font-black uppercase text-muted-foreground hover:text-white transition-all">{f}</button>
-                        ))}
+                    <h3 className="text-xl font-black italic uppercase tracking-tighter">Campaign Registry</h3>
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase text-muted-foreground/40">
+                      <Globe2 className="w-3.5 h-3.5" />
+                      Detected Locale: {userCountry} ({currency.code})
                     </div>
                  </div>
                  
                  <div className="overflow-x-auto no-scrollbar">
                     <table className="w-full text-left min-w-[1000px]">
-                       <thead className="bg-white/5 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40"><tr><th className="p-8">Campaign Asset</th><th className="p-8">Goal</th><th className="p-8">Placement</th><th className="p-8">Reach Est.</th><th className="p-8">Budget</th><th className="p-8 text-center">Status</th></tr></thead>
+                       <thead className="bg-white/5 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40"><tr><th className="p-8">Asset</th><th className="p-8">Goal</th><th className="p-8">Placement</th><th className="p-8">Reach</th><th className="p-8">Spend</th><th className="p-8 text-center">Status</th></tr></thead>
                        <tbody className="divide-y divide-white/5">
                           {promosLoading ? (
                              <tr><td colSpan={6} className="p-20 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" /></td></tr>
@@ -260,12 +290,12 @@ export default function PromotionsPage() {
                                   <td className="p-8"><span className="text-[10px] font-black uppercase text-primary">{promo.objective}</span></td>
                                   <td className="p-8"><span className="text-[10px] font-black uppercase text-white/60">{promo.placement}</span></td>
                                   <td className="p-8"><span className="text-sm font-bold text-white">~{(promo.duration * 12000).toLocaleString()}</span></td>
-                                  <td className="p-8"><span className="text-sm font-black italic text-primary">${promo.cost.toFixed(2)}</span></td>
+                                  <td className="p-8"><span className="text-sm font-black italic text-primary">{CURRENCIES[userCountry]?.symbol || '$'}{promo.cost?.toFixed(2)}</span></td>
                                   <td className="p-8 text-center"><Badge className={cn("uppercase text-[8px] font-black border-none px-4 py-1.5 rounded-full", promo.status === 'active' ? "bg-emerald-500/10 text-emerald-400" : "bg-white/5 text-muted-foreground/40")}>{promo.status}</Badge></td>
                                </tr>
                              ))
                           ) : (
-                             <tr><td colSpan={6} className="p-32 text-center text-muted-foreground italic font-medium opacity-20">The ad vault is empty. Launch your first professional campaign.</td></tr>
+                             <tr><td colSpan={6} className="p-32 text-center text-muted-foreground italic font-medium opacity-20">No active campaigns. Start your global discovery journey.</td></tr>
                           )}
                        </tbody>
                     </table>
@@ -311,79 +341,98 @@ export default function PromotionsPage() {
                        </Card>
                      ))}
                   </div>
-                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(1)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(3)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">DEFINE AUDIENCE <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
+                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(1)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(3)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">TARGETING <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
                </div>
              )}
 
              {step === 3 && (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 3: Target <span className="text-primary">Audience</span></h2>
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 3: Global <span className="text-primary">Targeting</span></h2>
                   <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] space-y-10">
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                        <div className="space-y-4"><label className="text-[10px] font-black uppercase text-muted-foreground/40">Geographic Regions</label><div className="flex flex-wrap gap-2">{targeting.countries.map(c => (<Badge key={c} className="bg-primary/20 text-primary border-none px-4 py-2 rounded-full">{c}</Badge>))}</div></div>
-                        <div className="space-y-4"><label className="text-[10px] font-black uppercase text-muted-foreground/40">Interests Clusters</label><div className="flex flex-wrap gap-2">{targeting.interests.map(i => (<Badge key={i} className="bg-white/5 text-white/60 border-none px-4 py-2 rounded-full">{i}</Badge>))}</div></div>
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-black uppercase text-muted-foreground/40">Geographic Coverage</label>
+                          <div className="flex flex-wrap gap-2">
+                             {['Worldwide', 'India', 'USA', 'Japan', 'Europe'].map(c => (<Badge key={c} className="bg-primary/20 text-primary border-none px-4 py-2 rounded-full">{c}</Badge>))}
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-black uppercase text-muted-foreground/40">Interest Segments</label>
+                          <div className="flex flex-wrap gap-2">
+                             {['AI Enthusisasts', 'Tech Founders', 'Visual Designers'].map(i => (<Badge key={i} className="bg-white/5 text-white/60 border-none px-4 py-2 rounded-full">{i}</Badge>))}
+                          </div>
+                        </div>
                      </div>
                      <div className="pt-10 border-t border-white/5 flex items-center justify-between">
-                        <div className="flex items-center gap-4"><div className="p-4 rounded-2xl bg-emerald-500/10 text-emerald-400"><Users className="w-6 h-6" /></div><div><p className="text-sm font-black italic text-white">Estimated Audience Size</p><p className="text-[10px] font-black uppercase text-muted-foreground/40">Broad Reach Profile</p></div></div>
-                        <div className="text-right"><p className="text-2xl font-black italic text-primary">~245,000 Curators</p></div>
+                        <div className="flex items-center gap-4"><div className="p-4 rounded-2xl bg-emerald-500/10 text-emerald-400"><Users className="w-6 h-6" /></div><div><p className="text-sm font-black italic text-white">Total Potential Reach</p><p className="text-[10px] font-black uppercase text-muted-foreground/40">Curated Global Profile</p></div></div>
+                        <div className="text-right"><p className="text-2xl font-black italic text-primary">~1.2M Monthly Users</p></div>
                      </div>
                   </Card>
-                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(2)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(4)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">BUDGET & DURATION <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
+                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(2)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(4)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">BUDGET & PERIOD <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
                </div>
              )}
 
              {step === 4 && (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 4: <span className="text-primary">Budget</span></h2>
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 4: <span className="text-primary">Budgeting</span></h2>
                   <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] space-y-10">
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                        <div className="space-y-4"><label className="text-[10px] font-black uppercase text-muted-foreground/40">Daily Ad Spend ($)</label><Input type="number" value={dailyBudget} onChange={(e) => setDailyBudget(e.target.value)} className="h-16 bg-white/5 border-white/10 rounded-2xl text-xl font-black text-white" /></div>
-                        <div className="space-y-4"><label className="text-[10px] font-black uppercase text-muted-foreground/40">Campaign Days</label><div className="grid grid-cols-3 gap-2">{['3', '7', '30'].map(d => (<button key={d} onClick={() => setDuration(d)} className={cn("h-16 rounded-2xl font-black text-xs transition-all", duration === d ? "bg-primary text-white" : "bg-white/5 text-muted-foreground")}>{d} DAYS</button>))}</div></div>
+                        <div className="space-y-4">
+                           <label className="text-[10px] font-black uppercase text-muted-foreground/40">Daily Spend ({currency.code})</label>
+                           <Input type="number" value={dailyBudget} onChange={(e) => setDailyBudget(e.target.value)} className="h-16 bg-white/5 border-white/10 rounded-2xl text-xl font-black text-white" />
+                        </div>
+                        <div className="space-y-4">
+                           <label className="text-[10px] font-black uppercase text-muted-foreground/40">Campaign Duration</label>
+                           <div className="grid grid-cols-3 gap-2">{['3', '7', '30'].map(d => (<button key={d} onClick={() => setDuration(d)} className={cn("h-16 rounded-2xl font-black text-xs transition-all", duration === d ? "bg-primary text-white" : "bg-white/5 text-muted-foreground")}>{d} DAYS</button>))}</div>
+                        </div>
                      </div>
                   </Card>
-                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(3)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(5)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">DESIGN SCHEDULE <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
+                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(3)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(5)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">SCHEDULE WINDOW <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
                </div>
              )}
 
              {step === 5 && (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 5: <span className="text-primary">Schedule</span></h2>
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 5: <span className="text-primary">Scheduling</span></h2>
                   <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] space-y-10">
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                        <div className="space-y-4"><label className="text-[10px] font-black uppercase text-muted-foreground/40">Start Window</label><Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-16 bg-white/5 border-white/10 rounded-2xl font-black uppercase" /></div>
-                        <div className="space-y-4"><label className="text-[10px] font-black uppercase text-muted-foreground/40">End Window</label><Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="h-16 bg-white/5 border-white/10 rounded-2xl font-black uppercase" /></div>
+                        <div className="space-y-4"><label className="text-[10px] font-black uppercase text-muted-foreground/40">Start Date</label><Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-16 bg-white/5 border-white/10 rounded-2xl font-black" /></div>
+                        <div className="space-y-4"><label className="text-[10px] font-black uppercase text-muted-foreground/40">End Date (Auto-calculated)</label><Input type="date" value={endDate} disabled className="h-16 bg-white/5 border-white/10 rounded-2xl font-black opacity-40" /></div>
                      </div>
                   </Card>
-                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(4)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(6)} disabled={!startDate || !endDate} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">CHOOSE PLACEMENT <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
+                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(4)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(6)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">CHOOSE PLACEMENT <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
                </div>
              )}
 
              {step === 6 && (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 6: <span className="text-primary">Placement</span></h2>
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 6: Premium <span className="text-primary">Placement</span></h2>
                   <div className="space-y-4">
                      {PLACEMENT_OPTIONS.map(p => (
                        <Card key={p.id} onClick={() => setPlacement(p)} className={cn("p-8 rounded-[3rem] bg-[#121117] border-2 cursor-pointer transition-all flex items-center justify-between", placement.id === p.id ? "border-primary" : "border-white/5")}>
                           <div className="flex items-center gap-8"><div className={cn("p-4 rounded-2xl bg-white/5", p.color)}><p.icon className="w-6 h-6" /></div><div className="space-y-1"><h4 className="text-xl font-black italic uppercase text-white">{p.name}</h4><p className="text-muted-foreground text-xs font-medium">{p.desc}</p></div></div>
-                          <div className="text-right"><p className="text-lg font-black text-primary">${p.price}<span className="text-[10px] uppercase opacity-40">/Day</span></p></div>
+                          <div className="text-right"><p className="text-lg font-black text-primary">{currency.symbol}{(p.price * currency.rate).toFixed(0)}<span className="text-[10px] uppercase opacity-40">/Day</span></p></div>
                        </Card>
                      ))}
                   </div>
-                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(5)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(7)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">CAMPAIGN REVIEW <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
+                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(5)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(7)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">REVIEW SUMMARY <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
                </div>
              )}
 
              {step === 7 && (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 7: <span className="text-primary">Review</span></h2>
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 7: Final <span className="text-primary">Review</span></h2>
                   <Card className="bg-[#121117] border-white/5 rounded-[3.5rem] overflow-hidden">
                      <div className="p-10 border-b border-white/5 space-y-6">
                         <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Target Asset</span><span className="text-sm font-black italic text-white">{mySites?.find(s => s.id === selectedSiteId)?.url}</span></div>
                         <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Primary Goal</span><span className="text-sm font-black italic text-primary">{objective.name}</span></div>
                         <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Placement Tier</span><span className="text-sm font-black italic text-white">{placement.name}</span></div>
-                        <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Schedule</span><span className="text-sm font-black italic text-white">{startDate} — {endDate}</span></div>
+                        <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Detected Region</span><span className="text-sm font-black italic text-white">{userCountry} ({currency.code})</span></div>
                      </div>
-                     <div className="p-10 bg-white/[0.03] flex justify-between items-center"><span className="text-xl font-black italic uppercase text-white">Total Order Value</span><span className="text-4xl font-black italic text-primary">${totalCost}</span></div>
+                     <div className="p-10 bg-white/[0.03] flex justify-between items-center">
+                        <div className="space-y-1"><span className="text-sm font-black italic uppercase text-white/40">Total Order Value</span><p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Incl. 18% Service Tax</p></div>
+                        <span className="text-4xl font-black italic text-primary">{currency.symbol}{finalTotal}</span>
+                     </div>
                   </Card>
                   <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(6)} className="h-16 flex-1 rounded-3xl">Modify</Button><Button onClick={() => setStep(8)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">PROCEED TO CHECKOUT <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
                </div>
@@ -391,54 +440,112 @@ export default function PromotionsPage() {
 
              {step === 8 && (
                <div className="space-y-8 animate-in fade-in duration-500">
-                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 8: <span className="text-primary">Payment</span></h2>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                     <div className="md:col-span-2 space-y-6">
-                        <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] space-y-8">
-                           <div className="grid grid-cols-2 gap-4">
-                              <PaymentOption id="card" label="Credit Card" icon={CreditCard} active={paymentMethod === 'card'} onClick={() => setPaymentMethod('card')} />
-                              <PaymentOption id="upi" label="UPI (Instant)" icon={Smartphone} active={paymentMethod === 'upi'} onClick={() => setPaymentMethod('upi')} />
-                           </div>
-                           <div className="pt-6 border-t border-white/5 space-y-6">
-                              <div className="space-y-2"><label className="text-[10px] font-black uppercase opacity-40">Cardholder Name</label><Input placeholder="HARIOM CHAVALE" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black uppercase text-xs" /></div>
-                              <div className="space-y-2"><label className="text-[10px] font-black uppercase opacity-40">Card Number</label><Input placeholder="**** **** **** 4242" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" /></div>
-                           </div>
-                        </Card>
-                     </div>
-                     <div className="space-y-6">
-                        <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] space-y-6">
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 8: Global <span className="text-primary">Payment</span></h2>
+                  
+                  {isProcessing ? (
+                    <Card className="bg-[#121117] border-white/5 p-20 rounded-[3rem] flex flex-col items-center justify-center text-center gap-6">
+                       <Loader2 className="w-16 h-16 animate-spin text-primary" />
+                       <div className="space-y-2">
+                          <h3 className="text-2xl font-black italic uppercase tracking-tighter">Securing Transaction...</h3>
+                          <p className="text-muted-foreground font-medium text-sm">Please do not refresh or close this window.</p>
+                       </div>
+                    </Card>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="md:col-span-2 space-y-6">
+                          <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] space-y-10">
+                            <div className="space-y-6">
+                               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Recommended for {userCountry}</p>
+                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <GlobalPaymentOption id="card" label="Credit/Debit Card" icon={CardIcon} description="Visa, Master, AMEX, RuPay" active={paymentCategory === 'card'} onClick={() => {setPaymentCategory('card'); setPaymentMethod('card');}} />
+                                  {userCountry === 'IN' && <GlobalPaymentOption id="upi" label="UPI Instant" icon={UpiIcon} description="Google Pay, PhonePe, Paytm" active={paymentCategory === 'upi'} onClick={() => {setPaymentCategory('upi'); setPaymentMethod('upi_intent');}} />}
+                                  {userCountry !== 'IN' && <GlobalPaymentOption id="wallet" label="Digital Wallet" icon={Wallet} description="PayPal, Apple Pay, Google Pay" active={paymentCategory === 'wallet'} onClick={() => {setPaymentCategory('wallet'); setPaymentMethod('paypal');}} />}
+                               </div>
+                            </div>
+
+                            <div className="pt-10 border-t border-white/5 space-y-8">
+                               {paymentCategory === 'card' && (
+                                 <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+                                    <div className="space-y-2"><label className="text-[9px] font-black uppercase opacity-40">Cardholder Name</label><Input placeholder="HARIOM CHAVALE" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black uppercase text-xs" /></div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                       <div className="space-y-2"><label className="text-[9px] font-black uppercase opacity-40">Card Number</label><Input placeholder="**** **** **** 4242" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" /></div>
+                                       <div className="grid grid-cols-2 gap-4">
+                                          <div className="space-y-2"><label className="text-[9px] font-black uppercase opacity-40">Expiry</label><Input placeholder="MM/YY" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" /></div>
+                                          <div className="space-y-2"><label className="text-[9px] font-black uppercase opacity-40">CVC</label><Input placeholder="***" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" /></div>
+                                       </div>
+                                    </div>
+                                 </div>
+                               )}
+                               {paymentCategory === 'upi' && (
+                                 <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+                                    <div className="space-y-2"><label className="text-[9px] font-black uppercase opacity-40">Virtual Payment Address (VPA)</label><Input placeholder="username@okaxis" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" /></div>
+                                    <div className="p-6 bg-white/[0.02] rounded-2xl border border-white/5 flex items-center justify-between">
+                                       <div className="flex items-center gap-3"><UpiIcon className="w-5 h-5 text-primary" /><span className="text-[10px] font-black uppercase">Instant Intent Flow</span></div>
+                                       <Badge className="bg-emerald-500/10 text-emerald-400 border-none px-2 py-0.5 text-[8px] font-black uppercase">Verified Merchant</Badge>
+                                    </div>
+                                 </div>
+                               )}
+                               {paymentCategory === 'wallet' && (
+                                 <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+                                    <div className="p-8 bg-white/[0.02] border border-dashed border-white/10 rounded-[2rem] flex flex-col items-center gap-4 text-center">
+                                       <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center"><Wallet className="w-8 h-8 text-primary" /></div>
+                                       <p className="text-xs font-bold text-muted-foreground italic">You will be redirected to complete the authentication with {paymentMethod === 'paypal' ? 'PayPal' : 'your Wallet provider'}.</p>
+                                    </div>
+                                 </div>
+                               )}
+                            </div>
+                          </Card>
+                      </div>
+
+                      <div className="space-y-6">
+                        <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] space-y-6 shadow-2xl">
                            <h4 className="text-lg font-black italic uppercase text-white">Billing Total</h4>
-                           <div className="flex justify-between items-center text-sm font-bold text-muted-foreground"><span>Campaign Cost</span><span className="text-white font-black">${totalCost}</span></div>
-                           <div className="h-px bg-white/10 my-2" />
-                           <p className="text-4xl font-black italic text-primary">${totalCost}</p>
+                           <div className="space-y-4">
+                              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground/40"><span>Base Value</span><span className="text-white">{currency.symbol}{basePrice}</span></div>
+                              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground/40"><span>Global Tax (18%)</span><span className="text-white">{currency.symbol}{taxAmount}</span></div>
+                              <div className="h-px bg-white/5" />
+                              <div className="flex justify-between items-center"><span className="text-sm font-black italic uppercase text-white">Final Total</span><span className="text-3xl font-black italic text-primary">{currency.symbol}{finalTotal}</span></div>
+                           </div>
                         </Card>
-                        <Button onClick={handleLaunchCampaign} disabled={isProcessing} className="w-full h-20 rounded-[2.5rem] bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xl shadow-2xl">
-                           {isProcessing ? <Loader2 className="animate-spin w-8 h-8" /> : "PAY & LAUNCH"}
+                        <Button onClick={handleLaunchCampaign} disabled={isProcessing} className="w-full h-20 rounded-[2.5rem] bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xl shadow-2xl shadow-emerald-500/10 active:scale-95 transition-all">
+                           PAY & ACTIVATE
                         </Button>
-                     </div>
-                  </div>
+                        <p className="text-center text-[9px] font-black uppercase text-muted-foreground/30 px-4">By clicking Pay, you agree to our Promotion Terms and Refund Policy.</p>
+                      </div>
+                    </div>
+                  )}
                </div>
              )}
           </div>
         ) : (
-          <div className="p-4 sm:p-8 md:p-12 space-y-12 animate-in fade-in duration-500">
-             <div className="flex items-center justify-between"><h1 className="text-3xl font-black italic uppercase tracking-tighter">Billing & History</h1><Button variant="ghost" onClick={() => setMode('list')} className="text-muted-foreground font-bold"><ChevronLeft className="w-4 h-4 mr-2" /> Back to Studio</Button></div>
-             <div className="bg-[#121117] border border-white/5 rounded-[3.5rem] overflow-hidden">
-                <table className="w-full text-left">
-                   <thead className="bg-white/5 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40"><tr><th className="p-8">Order ID</th><th className="p-8">Campaign</th><th className="p-8">Amount</th><th className="p-8">Method</th><th className="p-8 text-right">Receipt</th></tr></thead>
-                   <tbody className="divide-y divide-white/5">
-                      {promotions?.map(p => (
-                        <tr key={p.id} className="hover:bg-white/[0.02]">
-                           <td className="p-8 font-black text-xs text-white">{p.orderId || '---'}</td>
-                           <td className="p-8 text-sm font-bold text-white/60">{p.websiteName}</td>
-                           <td className="p-8 text-sm font-black italic text-primary">${p.cost.toFixed(2)}</td>
-                           <td className="p-8 text-[10px] font-black uppercase text-muted-foreground">{p.paymentMethod}</td>
-                           <td className="p-8 text-right"><Button size="icon" variant="ghost" className="rounded-xl hover:bg-white/10"><Download className="w-4 h-4" /></Button></td>
-                        </tr>
-                      ))}
-                   </tbody>
-                </table>
-             </div>
+          <div className="p-4 sm:p-8 md:p-12 flex items-center justify-center min-h-[calc(100vh-200px)] animate-in zoom-in duration-700">
+             <Card className="bg-[#121117] border-white/5 p-12 sm:p-20 rounded-[4rem] max-w-2xl w-full text-center space-y-8 shadow-2xl shadow-primary/5">
+                <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto ring-8 ring-emerald-500/5">
+                   <Check className="w-12 h-12 text-emerald-400" strokeWidth={4} />
+                </div>
+                <div className="space-y-2">
+                   <h2 className="text-4xl sm:text-5xl font-black italic uppercase tracking-tighter text-white">Discovery Activated!</h2>
+                   <p className="text-muted-foreground font-medium text-lg italic">Your campaign is now live across the platform.</p>
+                </div>
+                <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[2.5rem] space-y-4 text-left">
+                   <div className="flex justify-between text-xs font-bold">
+                      <span className="text-muted-foreground uppercase tracking-widest opacity-40">Receipt No.</span>
+                      <span className="text-white font-black">{lastOrderId}</span>
+                   </div>
+                   <div className="flex justify-between text-xs font-bold">
+                      <span className="text-muted-foreground uppercase tracking-widest opacity-40">Total Amount</span>
+                      <span className="text-primary font-black">{currency.symbol}{finalTotal}</span>
+                   </div>
+                   <div className="flex justify-between text-xs font-bold">
+                      <span className="text-muted-foreground uppercase tracking-widest opacity-40">Status</span>
+                      <Badge className="bg-emerald-500/10 text-emerald-400 border-none px-2 py-0 text-[8px] font-black uppercase">Confirmed</Badge>
+                   </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                   <Button onClick={() => setMode('list')} className="h-16 flex-1 rounded-3xl bg-white text-black font-black uppercase tracking-widest text-xs italic">Return to Studio</Button>
+                   <Button variant="outline" className="h-16 flex-1 rounded-3xl border-white/5 bg-white/5 font-black uppercase tracking-widest text-xs italic gap-2"><Download className="w-4 h-4" /> Download Receipt</Button>
+                </div>
+             </Card>
           </div>
         )}
       </main>
@@ -456,11 +563,17 @@ function SidebarItem({ icon: Icon, label, active = false, onClick }: { icon: any
   );
 }
 
-function PaymentOption({ id, label, icon: Icon, active, onClick }: { id: string, label: string, icon: any, active: boolean, onClick: () => void }) {
+function GlobalPaymentOption({ id, label, icon: Icon, description, active, onClick }: { id: string, label: string, icon: any, description: string, active: boolean, onClick: () => void }) {
   return (
-    <button onClick={onClick} className={cn("flex flex-col items-center justify-center p-8 rounded-3xl border-2 transition-all gap-3 group", active ? "border-primary bg-primary/5" : "border-white/5 hover:border-white/10")}>
-      <Icon className={cn("w-8 h-8 transition-transform group-hover:scale-110", active ? "text-primary" : "text-muted-foreground/40")} />
-      <span className={cn("text-[10px] font-black uppercase tracking-widest", active ? "text-white" : "text-muted-foreground/30")}>{label}</span>
+    <button onClick={onClick} className={cn("flex items-center gap-6 p-6 rounded-3xl border-2 transition-all group text-left", active ? "border-primary bg-primary/5" : "border-white/5 hover:border-white/10")}>
+      <div className={cn("p-4 rounded-2xl bg-white/5 transition-all group-hover:scale-110", active ? "text-primary" : "text-muted-foreground/40")}>
+        <Icon className="w-6 h-6" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <h4 className={cn("text-xs font-black uppercase tracking-widest", active ? "text-white" : "text-muted-foreground/60")}>{label}</h4>
+        <p className="text-[9px] text-muted-foreground font-medium truncate opacity-40 mt-0.5">{description}</p>
+      </div>
+      {active && <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center shrink-0"><Check className="w-3 h-3 text-white" strokeWidth={5} /></div>}
     </button>
   );
 }

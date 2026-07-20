@@ -69,6 +69,20 @@ const PLACEMENT_OPTIONS = [
   { id: 'staff', name: 'Staff Picks', price: 20, reach: '100k+', desc: 'The highest tier of professional curation.', icon: Zap, color: 'text-purple-400' },
 ];
 
+const TARGET_INTERESTS = [
+  "AI", "Gaming", "Entertainment", "Anime", "Android", "Coding", "Design", "Shopping", "Photography", "Video",
+  "Music", "Utilities", "Education", "Jobs", "Finance", "Travel", "Food", "Health", "Sports", "Cybersecurity",
+  "Space", "Earth & Weather", "Brain Games", "Geography", "Fun", "OSINT", "Creative", "Voice", "Reading", "News",
+  "Internet", "SEO", "Startups", "Ideas", "Freelancing", "AI Directories", "Home", "Science", "Physics", "Math",
+  "Movies", "TV Shows", "Fitness", "Nature", "Interesting", "PDF", "Productivity", "History", "Browser Extensions",
+  "Podcasts", "Domain Names", "Infographics", "DNA & Genetics", "Telescopes", "Rocketry", "Architecture", "Cars",
+  "Motorcycles", "Cycling", "Fishing", "Hiking", "Volcanoes", "Oceans", "Birds", "Pets", "Cooking", "Coffee",
+  "Sewing", "Woodworking", "3D Printing", "Satellite Images", "Gemstones", "Board Games", "Tabletop RPG", "Magic Tricks",
+  "Live Cameras", "Watches", "Gifts", "Deals", "Languages", "Dating", "Parenting", "PC Software", "Downloads",
+  "Chat & Community", "Sleep", "Meditation", "Investing", "Competitions", "Password Managers", "File Sharing",
+  "Astronomy", "School", "Hotels", "Trains", "Blogging", "Resume Builders", "Mockups", "Scholarships", "Memes", "Keyboard"
+];
+
 export default function PromotionsPage() {
   const { user, loading: authLoading } = useUser();
   const auth = useAuth();
@@ -89,6 +103,10 @@ export default function PromotionsPage() {
   const [duration, setDuration] = useState("7");
   const [dailyBudget, setDailyBudget] = useState("10");
   const [lastOrderId, setLastOrderId] = useState("");
+
+  // Targeting State
+  const [interestSearch, setInterestSearch] = useState("");
+  const [selectedInterests, setSelectedInterests] = useState<string[]>(['Worldwide']);
 
   const userDocRef = useMemo(() => {
     if (!user || !db) return null;
@@ -119,6 +137,17 @@ export default function PromotionsPage() {
     return (profile?.walletBalance || 0) < finalTotal;
   }, [profile, finalTotal]);
 
+  const filteredTargetOptions = useMemo(() => {
+    if (!interestSearch.trim()) return TARGET_INTERESTS.slice(0, 10);
+    return TARGET_INTERESTS.filter(i => i.toLowerCase().includes(interestSearch.toLowerCase())).slice(0, 15);
+  }, [interestSearch]);
+
+  const toggleInterest = (interest: string) => {
+    setSelectedInterests(prev => 
+      prev.includes(interest) ? prev.filter(i => i !== interest) : [...prev, interest]
+    );
+  };
+
   const handleLaunchCampaign = async () => {
     if (!db || !user || !selectedSiteId || hasInsufficientBalance) return;
     setIsProcessing(true);
@@ -144,7 +173,8 @@ export default function PromotionsPage() {
       cost: finalTotal,
       currency: 'USD',
       status: 'active',
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
+      targeting: selectedInterests
     };
 
     const transactionData = {
@@ -272,11 +302,15 @@ export default function PromotionsPage() {
           </div>
         ) : mode === 'create' ? (
           <div className="p-4 sm:p-8 md:p-12 max-w-5xl mx-auto w-full animate-in slide-in-from-right-4 duration-500">
-             <div className="mb-12 flex items-center justify-between">
-                <Button variant="ghost" onClick={() => setMode('list')} className="text-muted-foreground hover:text-white gap-2 font-bold"><ChevronLeft className="w-5 h-5" /> Exit Manager</Button>
-                <div className="flex items-center gap-3">
+             <div className="mb-12 flex flex-col sm:flex-row items-center gap-6 justify-between">
+                <Button variant="ghost" onClick={() => setMode('list')} className="text-muted-foreground hover:text-white gap-2 font-bold px-0 sm:px-4">
+                  <ChevronLeft className="w-5 h-5 shrink-0" /> 
+                  <span className="hidden sm:inline">Exit Manager</span>
+                  <span className="sm:hidden">Exit</span>
+                </Button>
+                <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-center">
                    {[1, 2, 3, 4, 5, 6, 7].map(s => (
-                     <div key={s} className={cn("w-10 h-1.5 rounded-full transition-all duration-500", s <= step ? "bg-primary" : "bg-white/5")} />
+                     <div key={s} className={cn("h-1.5 rounded-full transition-all duration-500", s <= step ? "bg-primary" : "bg-white/5", step === s ? "w-8 sm:w-12" : "w-3 sm:w-8")} />
                    ))}
                 </div>
              </div>
@@ -316,19 +350,50 @@ export default function PromotionsPage() {
              {step === 3 && (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                   <h2 className="text-4xl font-black italic uppercase tracking-tighter">Global <span className="text-primary">Targeting</span></h2>
-                  <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] space-y-10">
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <Card className="bg-[#121117] border-white/5 p-6 sm:p-10 rounded-[3rem] space-y-10">
+                     <div className="space-y-8">
                         <div className="space-y-4">
-                          <label className="text-[10px] font-black uppercase text-muted-foreground/40">Geographic Coverage</label>
-                          <div className="flex flex-wrap gap-2">
-                             {['Worldwide', 'India', 'USA', 'Japan', 'Europe'].map(c => (<Badge key={c} className="bg-primary/20 text-primary border-none px-4 py-2 rounded-full">{c}</Badge>))}
+                          <label className="text-[10px] font-black uppercase text-muted-foreground/40 ml-1">Search & Select Audience Segments</label>
+                          <div className="relative">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <Input 
+                              placeholder="Search interests (e.g. AI, Gaming, Science...)" 
+                              value={interestSearch}
+                              onChange={(e) => setInterestSearch(e.target.value)}
+                              className="pl-12 h-16 bg-white/5 border-white/10 rounded-2xl text-lg font-bold"
+                            />
+                          </div>
+
+                          <div className="flex flex-wrap gap-2 pt-2">
+                             {filteredTargetOptions.map(interest => (
+                               <button 
+                                 key={interest} 
+                                 onClick={() => toggleInterest(interest)}
+                                 className={cn(
+                                   "px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all",
+                                   selectedInterests.includes(interest) 
+                                     ? "bg-primary text-white shadow-[0_0_15px_rgba(123,51,255,0.3)]" 
+                                     : "bg-white/5 text-muted-foreground/60 hover:bg-white/10"
+                                 )}
+                               >
+                                 {interest}
+                               </button>
+                             ))}
                           </div>
                         </div>
-                        <div className="space-y-4">
-                          <label className="text-[10px] font-black uppercase text-muted-foreground/40">Interest Segments</label>
-                          <div className="flex flex-wrap gap-2">
-                             {['AI Enthusisasts', 'Tech Founders', 'Visual Designers'].map(i => (<Badge key={i} className="bg-white/5 text-white/60 border-none px-4 py-2 rounded-full">{i}</Badge>))}
-                          </div>
+
+                        <div className="pt-8 border-t border-white/5 space-y-4">
+                           <label className="text-[10px] font-black uppercase text-primary tracking-[0.2em]">Active Targeting Pool</label>
+                           <div className="flex flex-wrap gap-2">
+                              {selectedInterests.length > 0 ? selectedInterests.map(item => (
+                                <Badge key={item} className="bg-primary/20 text-primary border-none px-4 py-2 rounded-full flex items-center gap-2 group">
+                                  {item}
+                                  <X className="w-3 h-3 cursor-pointer hover:scale-125 transition-transform" onClick={() => toggleInterest(item)} />
+                                </Badge>
+                              )) : (
+                                <p className="text-xs italic text-muted-foreground/40 py-2">No segments selected. Targeting will default to Global Discovery.</p>
+                              )}
+                           </div>
                         </div>
                      </div>
                   </Card>
@@ -360,9 +425,9 @@ export default function PromotionsPage() {
                   <h2 className="text-4xl font-black italic uppercase tracking-tighter">Premium <span className="text-primary">Placement</span></h2>
                   <div className="space-y-4">
                      {PLACEMENT_OPTIONS.map(p => (
-                       <Card key={p.id} onClick={() => setPlacement(p)} className={cn("p-8 rounded-[3rem] bg-[#121117] border-2 cursor-pointer transition-all flex items-center justify-between", placement.id === p.id ? "border-primary" : "border-white/5")}>
+                       <Card key={p.id} onClick={() => setPlacement(p)} className={cn("p-8 rounded-[3rem] bg-[#121117] border-2 cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-6", placement.id === p.id ? "border-primary" : "border-white/5")}>
                           <div className="flex items-center gap-8"><div className={cn("p-4 rounded-2xl bg-white/5", p.color)}><p.icon className="w-6 h-6" /></div><div className="space-y-1"><h4 className="text-xl font-black italic uppercase text-white">{p.name}</h4><p className="text-muted-foreground text-xs font-medium">{p.desc}</p></div></div>
-                          <div className="text-right"><p className="text-lg font-black text-primary">${p.price}<span className="text-[10px] uppercase opacity-40">/Day</span></p></div>
+                          <div className="sm:text-right border-t sm:border-none border-white/5 pt-4 sm:pt-0"><p className="text-lg font-black text-primary">${p.price}<span className="text-[10px] uppercase opacity-40">/Day</span></p></div>
                        </Card>
                      ))}
                   </div>
@@ -375,9 +440,13 @@ export default function PromotionsPage() {
                   <h2 className="text-4xl font-black italic uppercase tracking-tighter">Final <span className="text-primary">Review</span></h2>
                   <Card className="bg-[#121117] border-white/5 rounded-[3.5rem] overflow-hidden">
                      <div className="p-10 border-b border-white/5 space-y-6">
-                        <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Target Asset</span><span className="text-sm font-black italic text-white">{mySites?.find(s => s.id === selectedSiteId)?.url}</span></div>
+                        <div className="flex justify-between items-center gap-4"><span className="text-[10px] font-black uppercase text-muted-foreground/30 shrink-0">Target Asset</span><span className="text-sm font-black italic text-white truncate">{mySites?.find(s => s.id === selectedSiteId)?.url}</span></div>
                         <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-primary">{objective.name}</span></div>
                         <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Duration</span><span className="text-sm font-black italic text-white">{duration} Days</span></div>
+                        <div className="flex justify-between items-start gap-4">
+                           <span className="text-[10px] font-black uppercase text-muted-foreground/30 shrink-0">Targeting</span>
+                           <span className="text-[10px] font-bold text-white/60 text-right">{selectedInterests.join(', ')}</span>
+                        </div>
                      </div>
                      <div className="p-10 bg-white/[0.03] flex justify-between items-center">
                         <div className="space-y-1"><span className="text-sm font-black italic uppercase text-white/40">Total Order Value</span><p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Incl. 18% Service Tax</p></div>
@@ -396,10 +465,10 @@ export default function PromotionsPage() {
                   </Card>
 
                   {hasInsufficientBalance ? (
-                    <div className="p-8 bg-rose-500/10 rounded-[2.5rem] border border-rose-500/20 flex items-center gap-6">
+                    <div className="p-8 bg-rose-500/10 rounded-[2.5rem] border border-rose-500/20 flex flex-col sm:flex-row items-center gap-6">
                        <AlertCircle className="w-8 h-8 text-rose-500 shrink-0" />
-                       <div className="space-y-1"><h4 className="text-lg font-black italic uppercase text-rose-500">Insufficient balance</h4><p className="text-muted-foreground text-sm font-medium">Add funds to your wallet to activate this promotion.</p></div>
-                       <Button onClick={() => router.push('/wallet/add-funds')} className="ml-auto bg-rose-500 text-white font-black text-xs uppercase px-8 h-12 rounded-xl shrink-0">ADD FUNDS</Button>
+                       <div className="space-y-1 text-center sm:text-left"><h4 className="text-lg font-black italic uppercase text-rose-500">Insufficient balance</h4><p className="text-muted-foreground text-sm font-medium">Add funds to your wallet to activate this promotion.</p></div>
+                       <Button onClick={() => router.push('/wallet/add-funds')} className="sm:ml-auto bg-rose-500 text-white font-black text-xs uppercase px-8 h-12 rounded-xl shrink-0">ADD FUNDS</Button>
                     </div>
                   ) : (
                     <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(5)} className="h-16 flex-1 rounded-3xl">Modify</Button><Button onClick={handleLaunchCampaign} disabled={isProcessing} className="h-16 flex-[2] rounded-3xl bg-emerald-500 hover:bg-emerald-600 text-white font-black">LAUNCH PROMOTION {isProcessing ? <Loader2 className="w-5 h-5 ml-2 animate-spin" /> : <Zap className="w-5 h-5 ml-2" />}</Button></div>

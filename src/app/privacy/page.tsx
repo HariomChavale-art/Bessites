@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Navigation } from "@/components/navigation";
@@ -34,13 +33,7 @@ export default function PrivacyPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">3. Google AdSense and Cookies</h2>
-              <p>Bessites uses Google AdSense to serve advertisements. Google, as a third-party vendor, uses cookies to serve ads on our site. Google's use of advertising cookies enables it and its partners to serve ads to our users based on their visit to Bessites and other sites on the Internet.</p>
-              <p>Users may opt out of personalized advertising by visiting Google's <a href="https://www.google.com/settings/ads" className="text-primary underline">Ad Settings</a>. Alternatively, you can opt out of a third-party vendor's use of cookies for personalized advertising by visiting <a href="https://www.aboutads.info" className="text-primary underline">www.aboutads.info</a>.</p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">4. How We Use Your Information</h2>
+              <h2 className="text-2xl font-bold text-white">3. How We Use Your Information</h2>
               <p>We use the collected data to:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Provide and maintain our discovery directory.</li>
@@ -52,17 +45,17 @@ export default function PrivacyPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">5. Data Sharing and Third Parties</h2>
-              <p>We do not sell your personal data. We may share information with third-party service providers (such as hosting providers, analytics services, and advertising partners) who perform services on our behalf and are obligated to protect your data.</p>
+              <h2 className="text-2xl font-bold text-white">4. Data Sharing and Third Parties</h2>
+              <p>We do not sell your personal data. We may share information with third-party service providers (such as hosting providers and analytics services) who perform services on our behalf and are obligated to protect your data.</p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">6. Your Rights</h2>
+              <h2 className="text-2xl font-bold text-white">5. Your Rights</h2>
               <p>Depending on your location, you may have rights regarding your personal data, including the right to access, correct, or delete your information. You can manage your profile settings or contact us directly for data requests.</p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">7. Contact Us</h2>
+              <h2 className="text-2xl font-bold text-white">6. Contact Us</h2>
               <p>If you have any questions about this Privacy Policy, please contact us at: <br />
               <span className="text-white font-bold">privacy@bessites.store</span></p>
             </section>

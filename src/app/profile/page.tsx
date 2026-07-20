@@ -33,22 +33,6 @@ import {
   Camera,
   ChevronLeft,
   Save,
-  Menu,
-  LayoutDashboard,
-  BarChart3,
-  Globe,
-  Inbox,
-  Zap,
-  CreditCard,
-  Users,
-  MessageSquare,
-  Bell,
-  HelpCircle,
-  Flame,
-  Mic,
-  Award,
-  Star,
-  DollarSign
 } from "lucide-react";
 import Link from "next/link";
 import { signOut, updateProfile } from "firebase/auth";
@@ -60,7 +44,7 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { SheetTitle } from "@/components/ui/sheet";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -241,7 +225,7 @@ export default function ProfilePage() {
                         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 opacity-50">Legal & Support</p>
                         <SettingsOption icon={Info} label="About Us" description="Our mission and story." onClick={() => router.push('/about')} />
                         <SettingsOption icon={Mail} label="Contact Support" description="Help and feedback." onClick={() => router.push('/contact')} />
-                        <SettingsOption icon={FileText} label="Privacy Policy" description="Data and AdSense policies." onClick={() => router.push('/privacy')} />
+                        <SettingsOption icon={FileText} label="Privacy Policy" description="Our data usage and privacy policies." onClick={() => router.push('/privacy')} />
                         <SettingsOption icon={ShieldCheck} label="Terms of Service" description="Usage terms." onClick={() => router.push('/terms')} />
                       </div>
                       

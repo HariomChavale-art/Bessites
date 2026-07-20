@@ -4,7 +4,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { BottomNav } from "@/components/bottom-nav";
 import { FirebaseClientProvider } from '@/firebase';
 import { Analytics } from "@vercel/analytics/react";
-import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'Bessites | Discover Web Apps',
@@ -22,12 +21,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
-        <Script 
-          async 
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6811475243465738"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
       </head>
       <body className="font-body antialiased bg-background text-foreground pb-24">
         <FirebaseClientProvider>

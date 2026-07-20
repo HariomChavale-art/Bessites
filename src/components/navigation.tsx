@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link";
@@ -16,7 +17,8 @@ import {
   Mic, 
   Settings, 
   HelpCircle, 
-  LogOut
+  LogOut,
+  Wallet
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
@@ -61,11 +63,9 @@ export function Navigation() {
     { label: 'My Websites', icon: Globe, href: '/my-websites' },
     { label: 'Analytics', icon: BarChart3, href: '/analytics' },
     { label: 'Audience', icon: Users, href: '/audience' },
-    { label: 'Reviews', icon: Star, href: '/reviews' },
     { label: 'Promotions', icon: Flame, href: '/promotions' },
-    { label: 'Earnings', icon: DollarSign, href: '/earnings' },
-    { label: 'Notifications', icon: Bell, href: '/notifications' },
-    { label: 'AI Assistant', icon: '/ai-assistant' },
+    { label: 'Wallet', icon: Wallet, href: '/wallet' },
+    { label: 'AI Assistant', icon: Mic, href: '/ai-assistant' },
     { label: 'Settings', icon: Settings, href: '/profile' },
     { label: 'Support', icon: HelpCircle, href: '/support' },
   ];
@@ -104,8 +104,7 @@ export function Navigation() {
                             )}
                           >
                             {pathname === link.href && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(123,51,255,1)]" />}
-                            {link.icon && typeof link.icon !== 'string' && <link.icon className={cn("w-5 h-5", pathname === link.href ? "text-primary" : "group-hover:scale-110 transition-transform")} />}
-                            {link.label === 'AI Assistant' && <Mic className={cn("w-5 h-5", pathname === '/ai-assistant' ? "text-primary" : "group-hover:scale-110 transition-transform")} />}
+                            <link.icon className={cn("w-5 h-5", pathname === link.href ? "text-primary" : "group-hover:scale-110 transition-transform")} />
                             <span className="text-sm font-bold tracking-tight">{link.label}</span>
                           </button>
                         ))}

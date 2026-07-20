@@ -3,7 +3,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useFirestore, useCollection, useUser, useDoc, useAuth } from "@/firebase";
-import { collection, query, where, doc, addDoc, serverTimestamp, deleteDoc, orderBy, updateDoc } from "firebase/firestore";
+import { collection, query, where, doc, addDoc, serverTimestamp, orderBy, updateDoc, increment } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { 
   Globe, 
@@ -26,43 +26,30 @@ import {
   Calendar,
   CreditCard,
   Smartphone,
-  Building2,
   ShieldCheck,
   Download,
-  Clock,
   ArrowRight,
-  ExternalLink,
   Star,
   Search,
-  Target,
   MousePointer2,
   Bookmark,
   Heart,
-  Layout,
-  Trophy,
-  Info,
-  ChevronDown,
   Eye,
-  CreditCard as CardIcon,
-  Smartphone as UpiIcon,
   Globe2,
   ReceiptText,
-  ShieldAlert,
-  ArrowUpRight,
-  LogOut
+  LogOut,
+  AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { WebsitePreview } from "@/components/website-preview";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 
@@ -82,20 +69,6 @@ const PLACEMENT_OPTIONS = [
   { id: 'staff', name: 'Staff Picks', price: 20, reach: '100k+', desc: 'The highest tier of professional curation.', icon: Zap, color: 'text-purple-400' },
 ];
 
-type CurrencyInfo = {
-  code: string;
-  symbol: string;
-  rate: number;
-};
-
-const CURRENCIES: Record<string, CurrencyInfo> = {
-  US: { code: 'USD', symbol: '$', rate: 1 },
-  IN: { code: 'INR', symbol: '₹', rate: 83.5 },
-  GB: { code: 'GBP', symbol: '£', rate: 0.78 },
-  EU: { code: 'EUR', symbol: '€', rate: 0.92 },
-  JP: { code: 'JPY', symbol: '¥', rate: 155 },
-};
-
 export default function PromotionsPage() {
   const { user, loading: authLoading } = useUser();
   const auth = useAuth();
@@ -107,31 +80,15 @@ export default function PromotionsPage() {
   const [mode, setMode] = useState<'list' | 'create' | 'success'>('list');
   const [step, setStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [userCountry, setUserCountry] = useState('US');
 
   // Campaign State
   const [selectedSiteId, setSelectedSiteId] = useState("");
   const [objective, setObjective] = useState(CAMPAIGN_OBJECTIVES[0]);
   const [placement, setPlacement] = useState(PLACEMENT_OPTIONS[0]);
   const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
   const [duration, setDuration] = useState("7");
   const [dailyBudget, setDailyBudget] = useState("10");
-  const [paymentMethod, setPaymentMethod] = useState("card");
-  const [paymentCategory, setPaymentCategory] = useState<'card' | 'upi' | 'wallet' | 'bank'>('card');
   const [lastOrderId, setLastOrderId] = useState("");
-
-  // Detect user locale
-  useEffect(() => {
-    const locale = Intl.DateTimeFormat().resolvedOptions().locale;
-    if (locale.includes('IN')) setUserCountry('IN');
-    else if (locale.includes('GB')) setUserCountry('GB');
-    else if (locale.includes('JP')) setUserCountry('JP');
-    else if (locale.includes('DE') || locale.includes('FR') || locale.includes('IT')) setUserCountry('EU');
-    else setUserCountry('US');
-  }, []);
-
-  const currency = useMemo(() => CURRENCIES[userCountry] || CURRENCIES.US, [userCountry]);
 
   const userDocRef = useMemo(() => {
     if (!user || !db) return null;
@@ -152,15 +109,18 @@ export default function PromotionsPage() {
   const { data: promotions, loading: promosLoading } = useCollection(promosRef);
 
   const basePrice = useMemo(() => {
-    const total = placement.price * parseInt(duration);
-    return (total * currency.rate).toFixed(2);
-  }, [placement, duration, currency]);
+    return placement.price * parseInt(duration);
+  }, [placement, duration]);
 
-  const taxAmount = useMemo(() => (parseFloat(basePrice) * 0.18).toFixed(2), [basePrice]);
-  const finalTotal = useMemo(() => (parseFloat(basePrice) + parseFloat(taxAmount)).toFixed(2), [basePrice, taxAmount]);
+  const taxAmount = useMemo(() => basePrice * 0.18, [basePrice]);
+  const finalTotal = useMemo(() => basePrice + taxAmount, [basePrice, taxAmount]);
+
+  const hasInsufficientBalance = useMemo(() => {
+    return (profile?.walletBalance || 0) < finalTotal;
+  }, [profile, finalTotal]);
 
   const handleLaunchCampaign = async () => {
-    if (!db || !user || !selectedSiteId) return;
+    if (!db || !user || !selectedSiteId || hasInsufficientBalance) return;
     setIsProcessing(true);
     
     const selectedSite = mySites?.find(s => s.id === selectedSiteId);
@@ -178,35 +138,51 @@ export default function PromotionsPage() {
       objective: objective.id,
       placement: placement.name,
       startDate: startDate || new Date().toISOString(),
-      endDate: endDate || new Date(Date.now() + parseInt(duration) * 86400000).toISOString(),
+      endDate: new Date(Date.now() + parseInt(duration) * 86400000).toISOString(),
       duration: parseInt(duration),
       dailyBudget: parseFloat(dailyBudget),
-      cost: parseFloat(finalTotal),
-      currency: currency.code,
-      status: 'active', // Automatic as per instructions
-      paymentMethod: paymentMethod,
-      paymentCategory: paymentCategory,
+      cost: finalTotal,
+      currency: 'USD',
+      status: 'active',
       createdAt: serverTimestamp()
     };
 
-    // Simulate gateway delay
-    setTimeout(() => {
-      addDoc(collection(db, "promotions"), promoData)
-        .then(() => {
-          setLastOrderId(orderId);
-          setIsProcessing(false);
-          setMode('success');
-          setStep(1);
-        })
-        .catch((e) => {
-          setIsProcessing(false);
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: 'promotions',
-            operation: 'create',
-            requestResourceData: promoData
-          }));
-        });
-    }, 2000);
+    const transactionData = {
+      userId: user.uid,
+      type: 'spend',
+      amount: finalTotal,
+      currency: 'USD',
+      description: `Promotion: ${placement.name} for ${promoData.websiteName}`,
+      status: 'completed',
+      method: 'wallet',
+      orderId,
+      timestamp: serverTimestamp()
+    };
+
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const promoRef = collection(db, "promotions");
+      const transRef = collection(db, "users", user.uid, "transactions");
+
+      await updateDoc(userRef, {
+        walletBalance: increment(-finalTotal)
+      });
+
+      await addDoc(promoRef, promoData);
+      await addDoc(transRef, transactionData);
+
+      setLastOrderId(orderId);
+      setIsProcessing(false);
+      setMode('success');
+      setStep(1);
+      toast({ title: "Campaign Launched!", description: "Funds deducted from your wallet." });
+    } catch (e) {
+      setIsProcessing(false);
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: 'promotions',
+        operation: 'create'
+      }));
+    }
   };
 
   const handleLogout = async () => {
@@ -217,19 +193,13 @@ export default function PromotionsPage() {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      <div className="mb-10 px-2">
-         <Link href="/" className="group block">
-            <div className="flex flex-col items-start gap-1">
-              <span className="text-2xl font-black italic uppercase tracking-tighter block leading-none text-white">Bessites</span>
-              <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60 mt-1 block">Creator Studio</span>
-            </div>
-         </Link>
-      </div>
+      <div className="mb-10 px-2"><Link href="/" className="group block"><div className="flex flex-col items-start gap-1"><span className="text-2xl font-black italic uppercase tracking-tighter text-white">Bessites</span><span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60">Creator Studio</span></div></Link></div>
       <nav className="flex-1 space-y-1.5 overflow-y-auto no-scrollbar">
         <SidebarItem icon={Globe} label="My Websites" active={pathname === '/my-websites'} onClick={() => router.push('/my-websites')} />
         <SidebarItem icon={BarChart3} label="Analytics" active={pathname === '/analytics'} onClick={() => router.push('/analytics')} />
         <SidebarItem icon={Users} label="Audience" active={pathname === '/audience'} onClick={() => router.push('/audience')} />
         <SidebarItem icon={Flame} label="Promotions" active={pathname === '/promotions'} onClick={() => router.push('/promotions')} />
+        <SidebarItem icon={Wallet} label="Wallet" active={pathname === '/wallet'} onClick={() => router.push('/wallet')} />
         <div className="pt-4 mt-4 border-t border-white/5 space-y-1.5">
           <SidebarItem icon={Settings} label="Settings" active={pathname === '/profile'} onClick={() => router.push('/profile')} />
           <SidebarItem icon={HelpCircle} label="Support" active={pathname === '/support'} onClick={() => router.push('/support')} />
@@ -256,10 +226,10 @@ export default function PromotionsPage() {
                <div className="relative z-10 space-y-6">
                   <Badge className="bg-primary/20 text-primary border-none text-[10px] font-black uppercase tracking-widest px-4 py-1 italic">🥇 Global Ads Manager</Badge>
                   <h2 className="text-4xl sm:text-6xl font-black italic uppercase tracking-tighter text-white leading-none">Global <span className="text-primary">Discovery.</span></h2>
-                  <p className="text-lg text-muted-foreground max-w-2xl font-medium leading-relaxed">Boost your website across the Bessites network. Reach curators worldwide with localized targeting and payments.</p>
+                  <p className="text-lg text-muted-foreground max-w-2xl font-medium leading-relaxed">Fund your wallet and boost your website across the Bessites network instantly.</p>
                   <div className="flex flex-col sm:flex-row items-center gap-4">
-                     <Button onClick={() => setMode('create')} className="h-14 px-10 rounded-full bg-white text-black font-black uppercase tracking-widest text-xs italic hover:scale-105 transition-all shadow-xl">Start Global Campaign</Button>
-                     <Button variant="outline" className="h-14 px-10 rounded-full border-white/5 bg-white/5 font-black uppercase tracking-widest text-xs italic">View Billing Center</Button>
+                     <Button onClick={() => setMode('create')} className="h-14 px-10 rounded-full bg-white text-black font-black uppercase tracking-widest text-xs italic hover:scale-105 transition-all shadow-xl">Start New Promotion</Button>
+                     <Button variant="outline" onClick={() => router.push('/wallet')} className="h-14 px-10 rounded-full border-white/5 bg-white/5 font-black uppercase tracking-widest text-xs italic flex items-center gap-2"><Wallet className="w-4 h-4" /> Wallet Balance: ${(profile?.walletBalance || 0).toFixed(2)}</Button>
                   </div>
                </div>
             </Card>
@@ -267,10 +237,7 @@ export default function PromotionsPage() {
             <div className="bg-[#121117] border border-white/5 rounded-[3.5rem] overflow-hidden shadow-2xl">
                  <div className="p-8 border-b border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
                     <h3 className="text-xl font-black italic uppercase tracking-tighter">Campaign Registry</h3>
-                    <div className="flex items-center gap-2 text-[10px] font-black uppercase text-muted-foreground/40">
-                      <Globe2 className="w-3.5 h-3.5" />
-                      Detected Locale: {userCountry} ({currency.code})
-                    </div>
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase text-muted-foreground/40"><Globe2 className="w-3.5 h-3.5" /> Worldwide Reach Enabled</div>
                  </div>
                  
                  <div className="overflow-x-auto no-scrollbar">
@@ -291,7 +258,7 @@ export default function PromotionsPage() {
                                   <td className="p-8"><span className="text-[10px] font-black uppercase text-primary">{promo.objective}</span></td>
                                   <td className="p-8"><span className="text-[10px] font-black uppercase text-white/60">{promo.placement}</span></td>
                                   <td className="p-8"><span className="text-sm font-bold text-white">~{(promo.duration * 12000).toLocaleString()}</span></td>
-                                  <td className="p-8"><span className="text-sm font-black italic text-primary">{CURRENCIES[userCountry]?.symbol || '$'}{promo.cost?.toFixed(2)}</span></td>
+                                  <td className="p-8"><span className="text-sm font-black italic text-primary">${promo.cost?.toFixed(2)}</span></td>
                                   <td className="p-8 text-center"><Badge className={cn("uppercase text-[8px] font-black border-none px-4 py-1.5 rounded-full", promo.status === 'active' ? "bg-emerald-500/10 text-emerald-400" : "bg-white/5 text-muted-foreground/40")}>{promo.status}</Badge></td>
                                </tr>
                              ))
@@ -308,7 +275,7 @@ export default function PromotionsPage() {
              <div className="mb-12 flex items-center justify-between">
                 <Button variant="ghost" onClick={() => setMode('list')} className="text-muted-foreground hover:text-white gap-2 font-bold"><ChevronLeft className="w-5 h-5" /> Exit Manager</Button>
                 <div className="flex items-center gap-3">
-                   {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
+                   {[1, 2, 3, 4, 5, 6, 7].map(s => (
                      <div key={s} className={cn("w-10 h-1.5 rounded-full transition-all duration-500", s <= step ? "bg-primary" : "bg-white/5")} />
                    ))}
                 </div>
@@ -316,7 +283,7 @@ export default function PromotionsPage() {
 
              {step === 1 && (
                <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
-                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 1: Select <span className="text-primary">Website</span></h2>
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Select <span className="text-primary">Website</span></h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                      {mySites?.map(site => (
                        <Card key={site.id} onClick={() => setSelectedSiteId(site.id)} className={cn("p-6 rounded-[2.5rem] bg-[#121117] border-2 cursor-pointer transition-all", selectedSiteId === site.id ? "border-primary shadow-2xl" : "border-white/5")}>
@@ -333,7 +300,7 @@ export default function PromotionsPage() {
 
              {step === 2 && (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 2: Campaign <span className="text-primary">Objective</span></h2>
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Campaign <span className="text-primary">Objective</span></h2>
                   <div className="grid grid-cols-1 gap-4">
                      {CAMPAIGN_OBJECTIVES.map(obj => (
                        <Card key={obj.id} onClick={() => setObjective(obj)} className={cn("p-8 rounded-[3rem] bg-[#121117] border-2 cursor-pointer transition-all flex items-center gap-8", objective.id === obj.id ? "border-primary" : "border-white/5")}>
@@ -348,7 +315,7 @@ export default function PromotionsPage() {
 
              {step === 3 && (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 3: Global <span className="text-primary">Targeting</span></h2>
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Global <span className="text-primary">Targeting</span></h2>
                   <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] space-y-10">
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <div className="space-y-4">
@@ -364,10 +331,6 @@ export default function PromotionsPage() {
                           </div>
                         </div>
                      </div>
-                     <div className="pt-10 border-t border-white/5 flex items-center justify-between">
-                        <div className="flex items-center gap-4"><div className="p-4 rounded-2xl bg-emerald-500/10 text-emerald-400"><Users className="w-6 h-6" /></div><div><p className="text-sm font-black italic text-white">Total Potential Reach</p><p className="text-[10px] font-black uppercase text-muted-foreground/40">Curated Global Profile</p></div></div>
-                        <div className="text-right"><p className="text-2xl font-black italic text-primary">~1.2M Monthly Users</p></div>
-                     </div>
                   </Card>
                   <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(2)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(4)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">BUDGET & PERIOD <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
                </div>
@@ -375,11 +338,11 @@ export default function PromotionsPage() {
 
              {step === 4 && (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 4: <span className="text-primary">Budgeting</span></h2>
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Period & <span className="text-primary">Budget</span></h2>
                   <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] space-y-10">
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                         <div className="space-y-4">
-                           <label className="text-[10px] font-black uppercase text-muted-foreground/40">Daily Spend ({currency.code})</label>
+                           <label className="text-[10px] font-black uppercase text-muted-foreground/40">Daily Spend (USD)</label>
                            <Input type="number" value={dailyBudget} onChange={(e) => setDailyBudget(e.target.value)} className="h-16 bg-white/5 border-white/10 rounded-2xl text-xl font-black text-white" />
                         </div>
                         <div className="space-y-4">
@@ -388,132 +351,58 @@ export default function PromotionsPage() {
                         </div>
                      </div>
                   </Card>
-                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(3)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(5)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">SCHEDULE WINDOW <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
+                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(3)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(5)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">CHOOSE PLACEMENT <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
                </div>
              )}
 
              {step === 5 && (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 5: <span className="text-primary">Scheduling</span></h2>
-                  <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] space-y-10">
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                        <div className="space-y-4"><label className="text-[10px] font-black uppercase text-muted-foreground/40">Start Date</label><Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="h-16 bg-white/5 border-white/10 rounded-2xl font-black" /></div>
-                        <div className="space-y-4"><label className="text-[10px] font-black uppercase text-muted-foreground/40">End Date (Auto-calculated)</label><Input type="date" value={endDate} disabled className="h-16 bg-white/5 border-white/10 rounded-2xl font-black opacity-40" /></div>
-                     </div>
-                  </Card>
-                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(4)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(6)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">CHOOSE PLACEMENT <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Premium <span className="text-primary">Placement</span></h2>
+                  <div className="space-y-4">
+                     {PLACEMENT_OPTIONS.map(p => (
+                       <Card key={p.id} onClick={() => setPlacement(p)} className={cn("p-8 rounded-[3rem] bg-[#121117] border-2 cursor-pointer transition-all flex items-center justify-between", placement.id === p.id ? "border-primary" : "border-white/5")}>
+                          <div className="flex items-center gap-8"><div className={cn("p-4 rounded-2xl bg-white/5", p.color)}><p.icon className="w-6 h-6" /></div><div className="space-y-1"><h4 className="text-xl font-black italic uppercase text-white">{p.name}</h4><p className="text-muted-foreground text-xs font-medium">{p.desc}</p></div></div>
+                          <div className="text-right"><p className="text-lg font-black text-primary">${p.price}<span className="text-[10px] uppercase opacity-40">/Day</span></p></div>
+                       </Card>
+                     ))}
+                  </div>
+                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(4)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(6)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">FINAL REVIEW <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
                </div>
              )}
 
              {step === 6 && (
                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 6: Premium <span className="text-primary">Placement</span></h2>
-                  <div className="space-y-4">
-                     {PLACEMENT_OPTIONS.map(p => (
-                       <Card key={p.id} onClick={() => setPlacement(p)} className={cn("p-8 rounded-[3rem] bg-[#121117] border-2 cursor-pointer transition-all flex items-center justify-between", placement.id === p.id ? "border-primary" : "border-white/5")}>
-                          <div className="flex items-center gap-8"><div className={cn("p-4 rounded-2xl bg-white/5", p.color)}><p.icon className="w-6 h-6" /></div><div className="space-y-1"><h4 className="text-xl font-black italic uppercase text-white">{p.name}</h4><p className="text-muted-foreground text-xs font-medium">{p.desc}</p></div></div>
-                          <div className="text-right"><p className="text-lg font-black text-primary">{currency.symbol}{(p.price * currency.rate).toFixed(0)}<span className="text-[10px] uppercase opacity-40">/Day</span></p></div>
-                       </Card>
-                     ))}
-                  </div>
-                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(5)} className="h-16 flex-1 rounded-3xl">Back</Button><Button onClick={() => setStep(7)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">REVIEW SUMMARY <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
-               </div>
-             )}
-
-             {step === 7 && (
-               <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 7: Final <span className="text-primary">Review</span></h2>
+                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Final <span className="text-primary">Review</span></h2>
                   <Card className="bg-[#121117] border-white/5 rounded-[3.5rem] overflow-hidden">
                      <div className="p-10 border-b border-white/5 space-y-6">
                         <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Target Asset</span><span className="text-sm font-black italic text-white">{mySites?.find(s => s.id === selectedSiteId)?.url}</span></div>
                         <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-primary">{objective.name}</span></div>
-                        <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Placement Tier</span><span className="text-sm font-black italic text-white">{placement.name}</span></div>
-                        <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Detected Region</span><span className="text-sm font-black italic text-white">{userCountry} ({currency.code})</span></div>
+                        <div className="flex justify-between items-center"><span className="text-[10px] font-black uppercase text-muted-foreground/30">Duration</span><span className="text-sm font-black italic text-white">{duration} Days</span></div>
                      </div>
                      <div className="p-10 bg-white/[0.03] flex justify-between items-center">
                         <div className="space-y-1"><span className="text-sm font-black italic uppercase text-white/40">Total Order Value</span><p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Incl. 18% Service Tax</p></div>
-                        <span className="text-4xl font-black italic text-primary">{currency.symbol}{finalTotal}</span>
+                        <span className="text-4xl font-black italic text-primary">${finalTotal.toFixed(2)}</span>
                      </div>
                   </Card>
-                  <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(6)} className="h-16 flex-1 rounded-3xl">Modify</Button><Button onClick={() => setStep(8)} className="h-16 flex-[2] rounded-3xl bg-primary text-white font-black">PROCEED TO CHECKOUT <ArrowRight className="w-5 h-5 ml-2" /></Button></div>
-               </div>
-             )}
-
-             {step === 8 && (
-               <div className="space-y-8 animate-in fade-in duration-500">
-                  <h2 className="text-4xl font-black italic uppercase tracking-tighter">Step 8: Global <span className="text-primary">Payment</span></h2>
                   
-                  {isProcessing ? (
-                    <Card className="bg-[#121117] border-white/5 p-20 rounded-[3rem] flex flex-col items-center justify-center text-center gap-6">
-                       <Loader2 className="w-16 h-16 animate-spin text-primary" />
-                       <div className="space-y-2">
-                          <h3 className="text-2xl font-black italic uppercase tracking-tighter">Securing Transaction...</h3>
-                          <p className="text-muted-foreground font-medium text-sm">Please do not refresh or close this window.</p>
-                       </div>
-                    </Card>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="md:col-span-2 space-y-6">
-                          <Card className="bg-[#121117] border-white/5 p-10 rounded-[3rem] space-y-10">
-                            <div className="space-y-6">
-                               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Recommended for {userCountry}</p>
-                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  <GlobalPaymentOption id="card" label="Credit/Debit Card" icon={CardIcon} description="Visa, Master, AMEX, RuPay" active={paymentCategory === 'card'} onClick={() => {setPaymentCategory('card'); setPaymentMethod('card');}} />
-                                  {userCountry === 'IN' && <GlobalPaymentOption id="upi" label="UPI Instant" icon={UpiIcon} description="Google Pay, PhonePe, Paytm" active={paymentCategory === 'upi'} onClick={() => {setPaymentCategory('upi'); setPaymentMethod('upi_intent');}} />}
-                                  {userCountry !== 'IN' && <GlobalPaymentOption id="wallet" label="Digital Wallet" icon={Wallet} description="PayPal, Apple Pay, Google Pay" active={paymentCategory === 'wallet'} onClick={() => {setPaymentCategory('wallet'); setPaymentMethod('paypal');}} />}
-                                </div>
-                            </div>
+                  <Card className="bg-primary/10 border-primary/20 p-6 rounded-3xl flex items-center justify-between">
+                     <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-2xl bg-primary/20 text-primary"><Wallet className="w-5 h-5" /></div>
+                        <div><p className="text-[10px] font-black uppercase text-primary tracking-widest">Wallet Balance</p><p className="text-lg font-black italic text-white">${(profile?.walletBalance || 0).toFixed(2)}</p></div>
+                     </div>
+                     {hasInsufficientBalance && (
+                        <Link href="/wallet/add-funds"><Button variant="outline" className="rounded-xl border-rose-500/20 text-rose-400 text-[10px] font-black uppercase">Refill Wallet</Button></Link>
+                     )}
+                  </Card>
 
-                            <div className="pt-10 border-t border-white/5 space-y-8">
-                               {paymentCategory === 'card' && (
-                                 <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
-                                    <div className="space-y-2"><label className="text-[9px] font-black uppercase opacity-40">Cardholder Name</label><Input placeholder="HARIOM CHAVALE" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black uppercase text-xs" /></div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                       <div className="space-y-2"><label className="text-[9px] font-black uppercase opacity-40">Card Number</label><Input placeholder="**** **** **** 4242" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" /></div>
-                                       <div className="grid grid-cols-2 gap-4">
-                                          <div className="space-y-2"><label className="text-[9px] font-black uppercase opacity-40">Expiry</label><Input placeholder="MM/YY" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" /></div>
-                                          <div className="space-y-2"><label className="text-[9px] font-black uppercase opacity-40">CVC</label><Input placeholder="***" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" /></div>
-                                       </div>
-                                    </div>
-                                 </div>
-                               )}
-                               {paymentCategory === 'upi' && (
-                                 <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
-                                    <div className="space-y-2"><label className="text-[9px] font-black uppercase opacity-40">Virtual Payment Address (VPA)</label><Input placeholder="username@okaxis" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" /></div>
-                                    <div className="p-6 bg-white/[0.02] rounded-2xl border border-white/5 flex items-center justify-between">
-                                       <div className="flex items-center gap-3"><UpiIcon className="w-5 h-5 text-primary" /><span className="text-[10px] font-black uppercase">Instant Intent Flow</span></div>
-                                       <Badge className="bg-emerald-500/10 text-emerald-400 border-none px-2 py-0.5 text-[8px] font-black uppercase">Verified Merchant</Badge>
-                                    </div>
-                                 </div>
-                               )}
-                               {paymentCategory === 'wallet' && (
-                                 <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
-                                    <div className="p-8 bg-white/[0.02] border border-dashed border-white/10 rounded-[2rem] flex flex-col items-center gap-4 text-center">
-                                       <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center"><Wallet className="w-8 h-8 text-primary" /></div>
-                                       <p className="text-xs font-bold text-muted-foreground italic">You will be redirected to complete the authentication with {paymentMethod === 'paypal' ? 'PayPal' : 'your Wallet provider'}.</p>
-                                    </div>
-                                 </div>
-                               )}
-                            </div>
-                          </Card>
-                      </div>
-
-                      <div className="space-y-6">
-                        <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] space-y-6 shadow-2xl">
-                           <h4 className="text-lg font-black italic uppercase text-white">Billing Total</h4>
-                           <div className="space-y-4">
-                              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground/40"><span>Base Value</span><span className="text-white">{currency.symbol}{basePrice}</span></div>
-                              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground/40"><span>Global Tax (18%)</span><span className="text-white">{currency.symbol}{taxAmount}</span></div>
-                              <div className="h-px bg-white/5" />
-                              <div className="flex justify-between items-center"><span className="text-sm font-black italic uppercase text-white">Final Total</span><span className="text-3xl font-black italic text-primary">{currency.symbol}{finalTotal}</span></div>
-                           </div>
-                        </Card>
-                        <Button onClick={handleLaunchCampaign} disabled={isProcessing} className="w-full h-20 rounded-[2.5rem] bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xl shadow-2xl shadow-emerald-500/10 active:scale-95 transition-all">
-                           PAY & ACTIVATE
-                        </Button>
-                        <p className="text-center text-[9px] font-black uppercase text-muted-foreground/30 px-4">By clicking Pay, you agree to our Promotion Terms and Refund Policy.</p>
-                      </div>
+                  {hasInsufficientBalance ? (
+                    <div className="p-8 bg-rose-500/10 rounded-[2.5rem] border border-rose-500/20 flex items-center gap-6">
+                       <AlertCircle className="w-8 h-8 text-rose-500 shrink-0" />
+                       <div className="space-y-1"><h4 className="text-lg font-black italic uppercase text-rose-500">Insufficient balance</h4><p className="text-muted-foreground text-sm font-medium">Add funds to your wallet to activate this promotion.</p></div>
+                       <Button onClick={() => router.push('/wallet/add-funds')} className="ml-auto bg-rose-500 text-white font-black text-xs uppercase px-8 h-12 rounded-xl shrink-0">ADD FUNDS</Button>
                     </div>
+                  ) : (
+                    <div className="flex gap-4"><Button variant="outline" onClick={() => setStep(5)} className="h-16 flex-1 rounded-3xl">Modify</Button><Button onClick={handleLaunchCampaign} disabled={isProcessing} className="h-16 flex-[2] rounded-3xl bg-emerald-500 hover:bg-emerald-600 text-white font-black">LAUNCH PROMOTION {isProcessing ? <Loader2 className="w-5 h-5 ml-2 animate-spin" /> : <Zap className="w-5 h-5 ml-2" />}</Button></div>
                   )}
                </div>
              )}
@@ -529,18 +418,8 @@ export default function PromotionsPage() {
                    <p className="text-muted-foreground font-medium text-lg italic">Your campaign is now live across the platform.</p>
                 </div>
                 <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[2.5rem] space-y-4 text-left">
-                   <div className="flex justify-between text-xs font-bold">
-                      <span className="text-muted-foreground uppercase tracking-widest opacity-40">Receipt No.</span>
-                      <span className="text-white font-black">{lastOrderId}</span>
-                   </div>
-                   <div className="flex justify-between text-xs font-bold">
-                      <span className="text-muted-foreground uppercase tracking-widest opacity-40">Total Amount</span>
-                      <span className="text-primary font-black">{currency.symbol}{finalTotal}</span>
-                   </div>
-                   <div className="flex justify-between text-xs font-bold">
-                      <span className="text-muted-foreground uppercase tracking-widest opacity-40">Status</span>
-                      <Badge className="bg-emerald-500/10 text-emerald-400 border-none px-2 py-0 text-[8px] font-black uppercase">Confirmed</Badge>
-                   </div>
+                   <div className="flex justify-between text-xs font-bold"><span className="text-muted-foreground uppercase opacity-40">Receipt No.</span><span className="text-white font-black">{lastOrderId}</span></div>
+                   <div className="flex justify-between text-xs font-bold"><span className="text-muted-foreground uppercase opacity-40">Amount Deducted</span><span className="text-primary font-black">${finalTotal.toFixed(2)}</span></div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
                    <Button onClick={() => setMode('list')} className="h-16 flex-1 rounded-3xl bg-white text-black font-black uppercase tracking-widest text-xs italic">Return to Studio</Button>
@@ -560,21 +439,6 @@ function SidebarItem({ icon: Icon, label, active = false, onClick }: { icon: any
       {active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(123,51,255,1)]" />}
       <Icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", active ? "text-primary" : "group-hover:text-white")} />
       <span className="text-sm font-bold tracking-tight">{label}</span>
-    </button>
-  );
-}
-
-function GlobalPaymentOption({ id, label, icon: Icon, description, active, onClick }: { id: string, label: string, icon: any, description: string, active: boolean, onClick: () => void }) {
-  return (
-    <button onClick={onClick} className={cn("flex items-center gap-6 p-6 rounded-3xl border-2 transition-all group text-left", active ? "border-primary bg-primary/5" : "border-white/5 hover:border-white/10")}>
-      <div className={cn("p-4 rounded-2xl bg-white/5 transition-all group-hover:scale-110", active ? "text-primary" : "text-muted-foreground/40")}>
-        <Icon className="w-6 h-6" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <h4 className={cn("text-xs font-black uppercase tracking-widest", active ? "text-white" : "text-muted-foreground/60")}>{label}</h4>
-        <p className="text-[9px] text-muted-foreground font-medium truncate opacity-40 mt-0.5">{description}</p>
-      </div>
-      {active && <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center shrink-0"><Check className="w-3 h-3 text-white" strokeWidth={5} /></div>}
     </button>
   );
 }

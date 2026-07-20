@@ -37,6 +37,10 @@
           "type": "boolean",
           "description": "Grants access to management features."
         },
+        "walletBalance": {
+          "type": "number",
+          "description": "Current available funds in the user's wallet."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time"
@@ -46,6 +50,23 @@
         "email",
         "createdAt"
       ]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A financial record of a deposit or spend operation.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["deposit", "spend", "refund"] },
+        "amount": { "type": "number" },
+        "currency": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["completed", "failed", "pending"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "method": { "type": "string" },
+        "orderId": { "type": "string" }
+      }
     },
     "Submission": {
       "title": "Submission",
@@ -73,21 +94,12 @@
         "websiteName": { "type": "string" },
         "objective": { "type": "string" },
         "placement": { "type": "string" },
-        "targetAudience": {
-          "type": "object",
-          "properties": {
-            "countries": { "type": "array", "items": { "type": "string" } },
-            "devices": { "type": "array", "items": { "type": "string" } },
-            "interests": { "type": "array", "items": { "type": "string" } }
-          }
-        },
         "startDate": { "type": "string", "format": "date-time" },
         "endDate": { "type": "string", "format": "date-time" },
         "duration": { "type": "number" },
         "dailyBudget": { "type": "number" },
         "cost": { "type": "number" },
         "status": { "type": "string", "enum": ["pending", "scheduled", "active", "completed", "cancelled", "rejected"] },
-        "paymentMethod": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
         "userId": { "type": "string" },
         "userEmail": { "type": "string" }
@@ -116,6 +128,10 @@
     "/users/{userId}": {
       "schema": "UserProfile",
       "description": "Individual user profile documents."
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Financial history for a specific user."
     },
     "/submissions/{submissionId}": {
       "schema": "Submission",

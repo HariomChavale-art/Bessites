@@ -2,7 +2,7 @@
 'use client';
 
 import { useMemo, useState, useEffect } from "react";
-import { useFirestore, useUser, useDoc } from "@/firebase";
+import { useFirestore, useUser } from "@/firebase";
 import { collection, doc, addDoc, updateDoc, increment, serverTimestamp } from "firebase/firestore";
 import { 
   ChevronLeft, 
@@ -12,35 +12,35 @@ import {
   Check, 
   Loader2, 
   ArrowRight,
-  Sparkles,
   ShieldCheck,
-  Zap,
-  Globe2
+  Globe2,
+  AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
+import { createStripeSession, createRazorpayOrder } from "@/app/actions/payments";
+import { loadStripe } from "@stripe/stripe-js";
+import Script from "next/script";
 
 const PRESET_AMOUNTS = [10, 25, 50, 100];
 
 const PAYMENT_METHODS = [
-  { id: 'upi', name: 'UPI Instant', icon: Smartphone, desc: 'GPay, PhonePe, Paytm', regions: ['IN'], category: 'upi' },
-  { id: 'card', name: 'Credit/Debit Card', icon: CreditCard, desc: 'Visa, Mastercard, RuPay', regions: ['ALL'], category: 'card' },
-  { id: 'apple', name: 'Apple Pay', icon: Globe2, desc: 'Express Checkout', regions: ['US', 'EU', 'GB'], category: 'wallet' },
-  { id: 'paypal', name: 'PayPal', icon: Wallet, desc: 'International Balance', regions: ['ALL'], category: 'wallet' },
+  { id: 'upi', name: 'UPI Instant', icon: Smartphone, desc: 'GPay, PhonePe, Paytm', regions: ['IN'], category: 'razorpay' },
+  { id: 'card', name: 'Credit/Debit Card', icon: CreditCard, desc: 'International Checkout', regions: ['ALL'], category: 'stripe' },
+  { id: 'paypal', name: 'PayPal', icon: Wallet, desc: 'International Balance', regions: ['ALL'], category: 'stripe' },
 ];
 
 export default function AddFundsPage() {
   const { user, loading: authLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [step, setStep] = useState(1);
@@ -49,62 +49,128 @@ export default function AddFundsPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [userCountry, setUserCountry] = useState('US');
 
+  // Handle Return from Payment Gateway
   useEffect(() => {
-    const locale = Intl.DateTimeFormat().resolvedOptions().locale;
-    if (locale.includes('IN')) setUserCountry('IN');
+    const success = searchParams.get('success');
+    const sessionId = searchParams.get('session_id');
+    const returnAmount = searchParams.get('amount');
+
+    if (success === 'true' && returnAmount && user && db) {
+      handleFinalizeDeposit(parseFloat(returnAmount), 'stripe', sessionId || 'N/A');
+    } else if (success === 'false') {
+      toast({ variant: "destructive", title: "Payment Cancelled", description: "Your wallet was not funded." });
+    }
+  }, [searchParams, user, db]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const locale = Intl.DateTimeFormat().resolvedOptions().locale;
+      if (locale.includes('IN')) setUserCountry('IN');
+    }
   }, []);
 
   const filteredMethods = useMemo(() => {
     return PAYMENT_METHODS.filter(m => m.regions.includes('ALL') || m.regions.includes(userCountry));
   }, [userCountry]);
 
-  const handleDeposit = async () => {
-    if (!db || !user || !amount) return;
-    setIsProcessing(true);
-
-    const depositAmount = parseFloat(amount);
-    const orderId = `DEP-${Date.now().toString().slice(-8)}`;
+  const handleFinalizeDeposit = (depositAmount: number, gateway: string, orderId: string) => {
+    if (!db || !user) return;
 
     const transactionData = {
       userId: user.uid,
       type: 'deposit',
       amount: depositAmount,
       currency: userCountry === 'IN' ? 'INR' : 'USD',
-      description: `Wallet Deposit via ${method.name}`,
+      description: `Wallet Deposit via ${gateway}`,
       status: 'completed',
-      method: method.id,
+      method: gateway,
       orderId,
       timestamp: serverTimestamp()
     };
 
-    // Simulate Payment Gateway delay
-    setTimeout(() => {
-      const userRef = doc(db, "users", user.uid);
-      const transRef = collection(db, "users", user.uid, "transactions");
+    const userRef = doc(db, "users", user.uid);
+    const transRef = collection(db, "users", user.uid, "transactions");
 
-      updateDoc(userRef, {
-        walletBalance: increment(depositAmount)
-      }).then(() => {
-        addDoc(transRef, transactionData).then(() => {
+    updateDoc(userRef, {
+      walletBalance: increment(depositAmount)
+    }).catch(async (e) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: userRef.path,
+        operation: 'update',
+        requestResourceData: { walletBalance: increment(depositAmount) }
+      }));
+    });
+
+    addDoc(transRef, transactionData).catch(async (e) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: 'transactions',
+        operation: 'create',
+        requestResourceData: transactionData
+      }));
+    });
+
+    setStep(3);
+  };
+
+  const handleSecurePayment = async () => {
+    if (!user || !amount) return;
+    setIsProcessing(true);
+
+    try {
+      const depositAmount = parseFloat(amount);
+
+      if (method.category === 'stripe') {
+        const { url } = await createStripeSession(depositAmount, user.uid, user.email || '');
+        if (url) {
+          window.location.href = url;
+        } else {
+          throw new Error("Failed to create Stripe session URL");
+        }
+      } else if (method.category === 'razorpay') {
+        const order = await createRazorpayOrder(depositAmount, user.uid);
+        
+        const options = {
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          amount: order.amount,
+          currency: order.currency,
+          name: "Bessites Studio",
+          description: "Wallet Refill",
+          order_id: order.orderId,
+          handler: function (response: any) {
+            handleFinalizeDeposit(depositAmount, 'razorpay', response.razorpay_payment_id);
+          },
+          prefill: {
+            email: user.email,
+          },
+          theme: {
+            color: "#7B33FF",
+          },
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.on('payment.failed', function (response: any) {
+          toast({ variant: "destructive", title: "Payment Failed", description: response.error.description });
           setIsProcessing(false);
-          setStep(3);
-          toast({ title: "Funds Added!", description: `Successully added ${amount} to your wallet.` });
         });
-      }).catch(async (e) => {
-          setIsProcessing(false);
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: userRef.path,
-            operation: 'update',
-            requestResourceData: { walletBalance: increment(depositAmount) }
-          }));
+        rzp.open();
+      }
+    } catch (error: any) {
+      console.error('Payment Error:', error);
+      toast({
+        variant: "destructive",
+        title: "Connection Error",
+        description: error.message || "Could not connect to payment gateway. Please verify your internet and try again.",
       });
-    }, 2000);
+      setIsProcessing(false);
+    }
   };
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#0B0A0F]"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
 
   return (
     <div className="min-h-screen bg-[#0B0A0F] text-white p-4 sm:p-8 md:p-12 font-body selection:bg-primary/30 antialiased">
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+      
       <div className="max-w-3xl mx-auto space-y-12">
         <header className="flex items-center justify-between">
            <Button variant="ghost" onClick={() => router.back()} className="text-muted-foreground hover:text-white gap-2 font-bold transition-all hover:-translate-x-1">
@@ -184,34 +250,14 @@ export default function AddFundsPage() {
                    </div>
                 </div>
 
-                <div className="pt-8 border-t border-white/5 space-y-6">
-                   {method.category === 'card' && (
-                     <div className="space-y-4 animate-in slide-in-from-bottom-2 duration-300">
-                        <Input placeholder="CARDHOLDER NAME" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs uppercase" />
-                        <div className="grid grid-cols-2 gap-4">
-                           <Input placeholder="CARD NUMBER" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" />
-                           <div className="grid grid-cols-2 gap-4">
-                              <Input placeholder="MM/YY" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" />
-                              <Input placeholder="CVC" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" />
-                           </div>
-                        </div>
-                     </div>
-                   )}
-                   {method.category === 'upi' && (
-                     <div className="space-y-4 animate-in slide-in-from-bottom-2 duration-300">
-                        <Input placeholder="username@okaxis" className="h-14 bg-white/5 border-white/10 rounded-2xl font-black text-xs" />
-                        <p className="text-[9px] font-black uppercase text-muted-foreground/40 text-center italic">Payment request will be sent to your UPI app.</p>
-                     </div>
-                   )}
-                   {method.category === 'wallet' && (
-                     <div className="py-8 text-center bg-white/[0.02] rounded-3xl border border-dashed border-white/10">
-                        <p className="text-xs font-bold text-muted-foreground italic">Secure redirect to {method.name}...</p>
-                     </div>
-                   )}
+                <div className="pt-8 border-t border-white/5">
+                   <div className="py-8 text-center bg-white/[0.02] rounded-3xl border border-dashed border-white/10">
+                      <p className="text-xs font-bold text-muted-foreground italic">You will be redirected to {method.name} secure checkout.</p>
+                   </div>
                 </div>
 
-                <Button onClick={handleDeposit} disabled={isProcessing} className="w-full h-20 rounded-[2.5rem] bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xl shadow-2xl shadow-emerald-500/10 active:scale-95 transition-all">
-                  {isProcessing ? <Loader2 className="w-8 h-8 animate-spin" /> : "SECURE PAYMENT"}
+                <Button onClick={handleSecurePayment} disabled={isProcessing} className="w-full h-20 rounded-[2.5rem] bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xl shadow-2xl shadow-emerald-500/10 active:scale-95 transition-all">
+                  {isProcessing ? <Loader2 className="w-8 h-8 animate-spin" /> : `PAY WITH ${method.name.toUpperCase()}`}
                 </Button>
              </Card>
           </div>

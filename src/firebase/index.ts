@@ -16,6 +16,7 @@ export function initializeFirebase(): {
   storage: FirebaseStorage | null;
 } {
   // Guard against missing API key to prevent crashes during SSR or before env vars are synced
+  console.log("Firebase Config:", firebaseConfig);
   if (!firebaseConfig.apiKey || firebaseConfig.apiKey === 'undefined') {
     console.warn("Firebase configuration is missing. Please ensure your environment variables are set.");
     return { firebaseApp: null, firestore: null, auth: null, storage: null };

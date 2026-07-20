@@ -38,8 +38,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-const PRESET_AMOUNTS = [100, 250, 500, 1000, 2500];
-
 export default function AddFundsPage() {
   const { user, loading: authLoading } = useUser();
   const db = useFirestore();
@@ -47,7 +45,7 @@ export default function AddFundsPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [amount, setAmount] = useState<string>("500");
+  const [amount, setAmount] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [transId, setTransId] = useState("");
@@ -77,8 +75,12 @@ export default function AddFundsPage() {
   };
 
   const handleManualSubmit = async () => {
-    if (!db || !user || !transId) {
-      toast({ variant: "destructive", title: "Missing ID", description: "Transaction ID is required for verification." });
+    if (!db || !user || !transId || !amount) {
+      toast({ 
+        variant: "destructive", 
+        title: "Missing Info", 
+        description: "Amount and Transaction ID are required for verification." 
+      });
       return;
     }
 
@@ -112,8 +114,11 @@ export default function AddFundsPage() {
       setIsSubmitting(false);
       setIsModalOpen(false);
       setShowSuccess(true);
+      setAmount("");
+      setTransId("");
+      setSelectedFile(null);
       
-      // Auto-dismiss success after 5 seconds
+      // Auto-dismiss success after 8 seconds
       setTimeout(() => setShowSuccess(false), 8000);
     } catch (e) {
       setIsSubmitting(false);
@@ -127,7 +132,7 @@ export default function AddFundsPage() {
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#0B0A0F]"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
 
   return (
-    <div className="min-h-screen bg-[#0B0A0F] text-white font-body selection:bg-primary/30 antialiased p-4 sm:p-8 md:p-12 pb-32">
+    <div className="min-h-screen bg-[#0B0A0F] text-white font-body antialiased p-4 sm:p-8 md:p-12 pb-32">
       <div className="max-w-5xl mx-auto space-y-10">
         
         {/* Header */}
@@ -143,7 +148,7 @@ export default function AddFundsPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Left Column: Balance & Quick Add */}
+          {/* Left Column: Balance & Promo */}
           <div className="lg:col-span-7 space-y-8">
             
             {/* Wallet Balance Card */}
@@ -162,40 +167,6 @@ export default function AddFundsPage() {
                   <Sparkles className="w-10 h-10 text-white/20 animate-pulse" />
                </div>
             </Card>
-
-            {/* Quick Add Section */}
-            <div className="space-y-6">
-               <div className="flex items-center justify-between px-2">
-                  <h3 className="text-xl font-black italic uppercase tracking-tighter">Quick Add</h3>
-                  <span className="text-[10px] font-black uppercase text-muted-foreground/40">Select Amount</span>
-               </div>
-               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {PRESET_AMOUNTS.map(a => (
-                    <button 
-                      key={a} 
-                      onClick={() => setAmount(a.toString())} 
-                      className={cn(
-                        "h-20 rounded-[2rem] font-black text-xl border-2 transition-all active:scale-95 flex items-center justify-center gap-1.5",
-                        amount === a.toString() 
-                          ? "border-primary bg-primary/10 text-white shadow-xl shadow-primary/10" 
-                          : "border-white/5 bg-white/[0.02] text-muted-foreground/60 hover:border-white/20 hover:bg-white/5"
-                      )}
-                    >
-                      <span className="text-sm opacity-60">₹</span>{a}
-                    </button>
-                  ))}
-                  <div className="relative group sm:col-span-1">
-                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-sm font-black text-primary/40 group-focus-within:text-primary">₹</span>
-                    <Input 
-                      type="number" 
-                      placeholder="Custom"
-                      value={PRESET_AMOUNTS.includes(parseInt(amount)) ? "" : amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      className="h-20 pl-10 rounded-[2rem] bg-white/[0.02] border-white/5 text-xl font-black text-white text-center focus:ring-primary"
-                    />
-                  </div>
-               </div>
-            </div>
 
             {/* Promotion Info Card */}
             <Card className="bg-[#121117] border border-white/5 p-8 rounded-[2.5rem] relative overflow-hidden group">
@@ -230,14 +201,14 @@ export default function AddFundsPage() {
                </div>
 
                <div className="flex flex-col items-center gap-8">
-                  {/* QR Code Placeholder/Container */}
                   <div className="relative group">
                      <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 to-transparent blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                      <div className="relative w-56 h-56 bg-white rounded-3xl p-4 shadow-2xl overflow-hidden flex items-center justify-center">
                         <img 
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=bessites@upi&pn=Bessites%20Studio&am=${amount}&cu=INR`}
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=bessites@upi&pn=Bessites%20Studio&cu=INR`}
                           alt="UPI QR Code"
                           className="w-full h-full"
+                          data-ai-hint="UPI QR Code"
                         />
                         <div className="absolute inset-0 bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
                            <QrCode className="w-8 h-8 text-black opacity-40" />
@@ -274,6 +245,17 @@ export default function AddFundsPage() {
 
                         <div className="space-y-6">
                            <div className="space-y-3">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 ml-1">Amount Paid (₹)</label>
+                              <Input 
+                                type="number"
+                                placeholder="e.g. 500" 
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                className="h-14 bg-white/5 border-white/10 rounded-2xl text-white font-bold"
+                              />
+                           </div>
+
+                           <div className="space-y-3">
                               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 ml-1">Transaction ID (Ref No.)</label>
                               <Input 
                                 placeholder="e.g. 405612349876" 
@@ -306,7 +288,7 @@ export default function AddFundsPage() {
 
                         <Button 
                           onClick={handleManualSubmit}
-                          disabled={!transId || isSubmitting}
+                          disabled={!transId || !amount || isSubmitting}
                           className="w-full h-16 rounded-[1.5rem] bg-primary hover:bg-primary/90 text-white font-black text-lg"
                         >
                            {isSubmitting ? <Loader2 className="animate-spin" /> : "CONFIRM SUBMISSION"}

@@ -125,6 +125,10 @@ export default function AddFundsPage() {
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#0B0A0F]"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
 
+  // Merchant UPI Payment Link for QR Generation
+  const upiPayLink = "upi://pay?pa=hariomchavale@ybl&pn=Bessites&cu=INR";
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(upiPayLink)}`;
+
   return (
     <div className="min-h-screen bg-[#0B0A0F] text-white font-body antialiased p-4 sm:p-8 md:p-12 pb-32">
       <div className="max-w-5xl mx-auto space-y-10">
@@ -199,10 +203,9 @@ export default function AddFundsPage() {
                      <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 to-transparent blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                      <div className="relative w-64 h-64 bg-white rounded-[2.5rem] p-4 shadow-2xl overflow-hidden flex items-center justify-center">
                         <img 
-                          src="/qr-code.png"
+                          src={qrCodeUrl}
                           alt="Payment QR Code"
-                          className="w-full h-full object-cover"
-                          data-ai-hint="QR code"
+                          className="w-full h-full object-contain"
                         />
                         <div className="absolute inset-0 bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
                            <QrCode className="w-10 h-10 text-black opacity-40" />

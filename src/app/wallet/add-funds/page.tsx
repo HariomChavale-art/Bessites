@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useEffect } from "react";
@@ -64,11 +63,6 @@ export default function AddFundsPage() {
     return query(collection(db, "users", user.uid, "transactions"), orderBy("timestamp", "desc"), limit(10));
   }, [user, db]);
   const { data: transactions, loading: transLoading } = useCollection(transactionsRef);
-
-  const handleCopyUPI = () => {
-    navigator.clipboard.writeText("bessites@upi");
-    toast({ title: "Copied!", description: "UPI ID copied to clipboard." });
-  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) setSelectedFile(e.target.files[0]);
@@ -205,7 +199,7 @@ export default function AddFundsPage() {
                      <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 to-transparent blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                      <div className="relative w-56 h-56 bg-white rounded-3xl p-4 shadow-2xl overflow-hidden flex items-center justify-center">
                         <img 
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=bessites@upi&pn=Bessites%20Studio&cu=INR`}
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=upi://pay?pa=hariomchavale@ybl&pn=Hariom%20Chavale&cu=INR`}
                           alt="UPI QR Code"
                           className="w-full h-full"
                           data-ai-hint="UPI QR Code"
@@ -216,17 +210,8 @@ export default function AddFundsPage() {
                      </div>
                   </div>
 
-                  <div className="w-full space-y-4">
-                     <div className="flex items-center justify-between bg-white/[0.03] border border-white/5 p-5 rounded-2xl group hover:bg-white/[0.05] transition-colors">
-                        <div className="space-y-1">
-                           <p className="text-[9px] font-black uppercase text-muted-foreground/40 tracking-widest">Merchant UPI ID</p>
-                           <p className="text-lg font-black italic text-white">bessites@upi</p>
-                        </div>
-                        <Button variant="ghost" onClick={handleCopyUPI} size="icon" className="h-12 w-12 rounded-xl bg-white/5 hover:bg-white/10 text-primary transition-all">
-                           <Copy className="w-5 h-5" />
-                        </Button>
-                     </div>
-                     <p className="text-[10px] text-center text-muted-foreground/40 font-bold italic">Scan the QR code above or pay to the UPI ID manually.</p>
+                  <div className="w-full">
+                     <p className="text-[10px] text-center text-muted-foreground/40 font-bold italic">Scan the QR code above with any UPI app to pay.</p>
                   </div>
                </div>
 

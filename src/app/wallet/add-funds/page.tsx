@@ -199,8 +199,8 @@ export default function AddFundsPage() {
                      <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 to-transparent blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                      <div className="relative w-64 h-64 bg-white rounded-[2.5rem] p-4 shadow-2xl overflow-hidden flex items-center justify-center">
                         <img 
-                          src="https://picsum.photos/seed/phonepe-qr-merchant/512/512"
-                          alt="PhonePe QR Code"
+                          src="/qr-code.png"
+                          alt="Payment QR Code"
                           className="w-full h-full object-cover"
                           data-ai-hint="QR code"
                         />
@@ -208,10 +208,6 @@ export default function AddFundsPage() {
                            <QrCode className="w-10 h-10 text-black opacity-40" />
                         </div>
                      </div>
-                  </div>
-
-                  <div className="w-full">
-                     <p className="text-[10px] text-center text-muted-foreground/40 font-bold italic px-4">Scan the PhonePe QR code above to proceed with the manual payment.</p>
                   </div>
                </div>
 

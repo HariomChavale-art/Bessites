@@ -197,21 +197,21 @@ export default function AddFundsPage() {
                <div className="flex flex-col items-center gap-8">
                   <div className="relative group">
                      <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 to-transparent blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                     <div className="relative w-56 h-56 bg-white rounded-3xl p-4 shadow-2xl overflow-hidden flex items-center justify-center">
+                     <div className="relative w-64 h-64 bg-white rounded-[2.5rem] p-4 shadow-2xl overflow-hidden flex items-center justify-center">
                         <img 
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=upi://pay?pa=hariomchavale@ybl&pn=Hariom%20Chavale&cu=INR`}
-                          alt="UPI QR Code"
-                          className="w-full h-full"
-                          data-ai-hint="UPI QR Code"
+                          src="https://picsum.photos/seed/phonepe-qr-merchant/512/512"
+                          alt="PhonePe QR Code"
+                          className="w-full h-full object-cover"
+                          data-ai-hint="QR code"
                         />
                         <div className="absolute inset-0 bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
-                           <QrCode className="w-8 h-8 text-black opacity-40" />
+                           <QrCode className="w-10 h-10 text-black opacity-40" />
                         </div>
                      </div>
                   </div>
 
                   <div className="w-full">
-                     <p className="text-[10px] text-center text-muted-foreground/40 font-bold italic">Scan the QR code above with any UPI app to pay.</p>
+                     <p className="text-[10px] text-center text-muted-foreground/40 font-bold italic px-4">Scan the PhonePe QR code above to proceed with the manual payment.</p>
                   </div>
                </div>
 

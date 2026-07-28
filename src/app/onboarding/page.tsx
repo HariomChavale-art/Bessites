@@ -9,6 +9,8 @@ import { Card } from "@/components/ui/card";
 import { Check, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, Map, ShoppingBag, Music, Loader2, Zap, Briefcase, Layout, Globe, Camera as PhotographyIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const ONBOARDING_INTERESTS = [
   { id: "Gaming", label: "Gaming", icon: Gamepad2, color: "text-red-400", bg: "bg-red-500/10" },
@@ -64,34 +66,34 @@ export default function OnboardingPage() {
     );
   };
 
-  const handleComplete = async () => {
+  const handleComplete = () => {
     if (!user || !db || selected.length < 3) return;
     
     setSaving(true);
-    try {
-      const userRef = doc(db, "users", user.uid);
-      await updateDoc(userRef, {
-        interests: selected,
-        onboardingComplete: true
+    const userRef = doc(db, "users", user.uid);
+    const updateData = {
+      interests: selected,
+      onboardingComplete: true
+    };
+
+    updateDoc(userRef, updateData)
+      .then(() => {
+        toast({
+          title: isExistingUser ? "Preferences updated!" : "Profile setup!",
+          description: isExistingUser 
+            ? "Your discovery feed has been refreshed." 
+            : "Welcome to Bessites. We've personalized your feed.",
+        });
+        router.push("/");
+      })
+      .catch(async (e) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: userRef.path,
+          operation: 'update',
+          requestResourceData: updateData
+        }));
+        setSaving(false);
       });
-      
-      toast({
-        title: isExistingUser ? "Preferences updated!" : "Profile setup!",
-        description: isExistingUser 
-          ? "Your discovery feed has been refreshed." 
-          : "Welcome to Bessites. We've personalized your feed.",
-      });
-      
-      router.push("/");
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Setup failed",
-        description: error.message,
-      });
-    } finally {
-      setSaving(false);
-    }
   };
 
   if (userLoading) {

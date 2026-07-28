@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User Profile Rules
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+      
+      // Transactions Sub-collection
+      match /transactions/{transactionId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Social Interactions Sub-collections
+      match /likedWebsites/{id} { allow read, write: if request.auth != null && request.auth.uid == userId; }
+      match /userLikes/{id} { allow read, write: if request.auth != null && request.auth.uid == userId; }
+      match /userShares/{id} { allow read, write: if request.auth != null && request.auth.uid == userId; }
+    }
+
+    // Submissions Rules
+    match /submissions/{submissionId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (resource.data.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true);
+    }
+
+    // Website Stats Rules
+    match /websiteStats/{websiteId} {
+      allow read: if true;
+      allow write: if request.auth != null; // Allow increments for likes/visits
+
+      match /userRatings/{userId} {
+        allow read: if true;
+        allow write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // Promotions Rules
+    match /promotions/{promoId} {
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true);
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (resource.data.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true);
+    }
+  }
+}

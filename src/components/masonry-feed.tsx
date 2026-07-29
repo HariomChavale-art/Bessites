@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Website } from "@/lib/mock-data";
@@ -8,9 +7,10 @@ import { useState, useMemo, useEffect } from "react";
 
 interface MasonryFeedProps {
   initialWebsites: Website[];
+  hideEndMessage?: boolean;
 }
 
-export function MasonryFeed({ initialWebsites }: MasonryFeedProps) {
+export function MasonryFeed({ initialWebsites, hideEndMessage = false }: MasonryFeedProps) {
   // Start with a larger initial count to show more upfront
   const [displayCount, setDisplayCount] = useState(24);
   const [loading, setLoading] = useState(false);
@@ -58,7 +58,7 @@ export function MasonryFeed({ initialWebsites }: MasonryFeedProps) {
         </div>
       )}
 
-      {!hasMore && uniqueWebsites.length > 0 && (
+      {!hasMore && uniqueWebsites.length > 0 && !hideEndMessage && (
         <div className="text-center py-20 opacity-10">
           <div className="h-px w-32 bg-white/20 mx-auto mb-4" />
           <p className="text-[10px] font-black uppercase tracking-[0.2em]">End of Collection</p>

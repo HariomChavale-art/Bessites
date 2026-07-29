@@ -105,15 +105,21 @@ export default function Home() {
         break;
       case "foryou":
       default:
-        results.sort((a, b) => {
-          const aMatchCount = a.categories.filter(c => userInterests.includes(c)).length;
-          const bMatchCount = b.categories.filter(c => userInterests.includes(c)).length;
-          
-          if (bMatchCount !== aMatchCount) {
-            return bMatchCount - aMatchCount;
-          }
-          return a.name.localeCompare(b.name);
+        // Prioritize matches, then randomize the rest
+        const matches = results.filter(w => w.categories.some(c => userInterests.includes(c)));
+        const nonMatches = results.filter(w => !w.categories.some(c => userInterests.includes(c)));
+        
+        // Shuffle non-matches for a "random" discovery experience
+        const shuffledNonMatches = [...nonMatches].sort(() => Math.random() - 0.5);
+        
+        // Sort matches by most interest overlap
+        matches.sort((a, b) => {
+          const aCount = a.categories.filter(c => userInterests.includes(c)).length;
+          const bCount = b.categories.filter(c => userInterests.includes(c)).length;
+          return bCount - aCount;
         });
+
+        results = [...matches, ...shuffledNonMatches];
         break;
     }
     
@@ -190,7 +196,7 @@ export default function Home() {
                </div>
             </div>
           )}
-          <MasonryFeed key={activeTab + userInterests.join(',') + filteredWebsites.length} initialWebsites={filteredWebsites} />
+          <MasonryFeed key={activeTab + userInterests.join(',') + filteredWebsites.length} initialWebsites={filteredWebsites} hideEndMessage={true} />
         </section>
       </main>
 

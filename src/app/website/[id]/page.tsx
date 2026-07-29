@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useParams } from "next/navigation";
@@ -29,6 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { WebsitePreview } from "@/components/website-preview";
+import { WebsiteCard } from "@/components/website-card";
 import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -77,6 +77,14 @@ export default function WebsiteDetail() {
   }, [db, id]);
 
   const { data: recentRatings } = useCollection(ratingsQuery);
+
+  const relatedWebsites = useMemo(() => {
+    if (!website) return [];
+    return MOCK_WEBSITES.filter(w => 
+      w.id !== website.id && 
+      w.categories.some(cat => website.categories.includes(cat))
+    ).slice(0, 4);
+  }, [website]);
 
   if (!website) return <div className="p-8 text-center text-white font-bold">Website not found</div>;
 
@@ -513,6 +521,20 @@ export default function WebsiteDetail() {
             )}
           </div>
         </section>
+
+        {relatedWebsites.length > 0 && (
+          <section className="space-y-8 mt-16 pt-16 border-t border-white/5">
+            <div className="flex items-center gap-3">
+              <Sparkles className="w-6 h-6 text-primary" />
+              <h2 className="text-3xl font-black text-white tracking-tighter italic uppercase">Related Discovery</h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {relatedWebsites.map((site) => (
+                <WebsiteCard key={site.id} website={site} />
+              ))}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

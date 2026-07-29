@@ -6,7 +6,8 @@ import { doc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, Map, ShoppingBag, Music, Loader2, Zap, Briefcase, Layout, Globe, Camera as PhotographyIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Check, Sparkles, Gamepad2, Wrench, GraduationCap, Palette, Cpu, HeartPulse, Utensils, Map, ShoppingBag, Music, Loader2, Zap, Briefcase, Layout, Globe, Camera as PhotographyIcon, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -47,6 +48,7 @@ export default function OnboardingPage() {
 
   const [selected, setSelected] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (!userLoading && !user) {
@@ -59,6 +61,14 @@ export default function OnboardingPage() {
       setSelected(profile.interests);
     }
   }, [profile]);
+
+  const filteredInterests = useMemo(() => {
+    if (!searchQuery.trim()) return ONBOARDING_INTERESTS;
+    return ONBOARDING_INTERESTS.filter(i => 
+      i.label.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      i.id.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
 
   const toggleInterest = (id: string) => {
     setSelected(prev => 
@@ -118,8 +128,23 @@ export default function OnboardingPage() {
           </p>
         </div>
 
+        <div className="relative max-w-md mx-auto group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <Input 
+            placeholder="Search interests..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-lg font-bold focus:ring-primary shadow-xl"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white">
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-          {ONBOARDING_INTERESTS.map((interest) => {
+          {filteredInterests.length > 0 ? filteredInterests.map((interest) => {
             const isSelected = selected.includes(interest.id);
             const Icon = interest.icon;
             
@@ -151,7 +176,11 @@ export default function OnboardingPage() {
                 )}
               </Card>
             );
-          })}
+          }) : (
+            <div className="col-span-full py-12 text-center text-muted-foreground italic font-medium opacity-40">
+              No categories match your search.
+            </div>
+          )}
         </div>
 
         <div className="sticky bottom-10 z-50 py-8 w-full flex justify-center">

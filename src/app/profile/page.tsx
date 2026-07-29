@@ -44,7 +44,6 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { SheetTitle } from "@/components/ui/sheet";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -64,7 +63,6 @@ export default function ProfilePage() {
 
   const { data: profileData } = useDoc(userDocRef);
 
-  const [settingsView, setSettingsView] = useState<'menu' | 'account' | 'privacy' | 'display'>('menu');
   const [isUpdating, setIsUpdating] = useState(false);
   const [editName, setEditName] = useState("");
   const [editBio, setEditBio] = useState("");
@@ -113,14 +111,6 @@ export default function ProfilePage() {
     return MOCK_WEBSITES.filter(w => likedIds.includes(w.id));
   }, [likedDocs]);
 
-  const handleLogout = async () => {
-    if (auth) {
-      await signOut(auth);
-      toast({ title: "Bessites Access", description: "Signed out successfully." });
-      router.push("/");
-    }
-  };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -128,43 +118,47 @@ export default function ProfilePage() {
       const reader = new FileReader();
       reader.onloadend = () => setPhotoPreview(reader.result as string);
       reader.readAsDataURL(file);
+      // Trigger upload immediately for better UX
+      uploadPhoto(file);
+    }
+  };
+
+  const uploadPhoto = async (file: File) => {
+    if (!user || !db || !storage) return;
+    setIsUpdating(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `profiles/${user.uid}-${Date.now()}.${fileExt}`;
+      const storageRef = ref(storage, fileName);
+      await uploadBytes(storageRef, file);
+      const photoURL = await getDownloadURL(storageRef);
+
+      await updateProfile(user, { photoURL });
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, { photoURL });
+
+      toast({ title: "Photo Updated", description: "Your profile picture has been refreshed." });
+      setPhotoPreview(null);
+      setSelectedFile(null);
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Update Failed", description: error.message });
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   const handleUpdateAccount = async () => {
-    if (!user || !db || !storage) return;
+    if (!user || !db) return;
     setIsUpdating(true);
     try {
-      let finalPhotoURL = profileData?.photoURL || user.photoURL;
-      
-      if (selectedFile) {
-        const fileExt = selectedFile.name.split('.').pop();
-        const fileName = `profiles/${user.uid}-${Date.now()}.${fileExt}`;
-        const storageRef = ref(storage, fileName);
-        
-        await uploadBytes(storageRef, selectedFile);
-        finalPhotoURL = await getDownloadURL(storageRef);
-      }
-
-      await updateProfile(user, { displayName: editName, photoURL: finalPhotoURL });
-      
+      await updateProfile(user, { displayName: editName });
       const userRef = doc(db, "users", user.uid);
       await updateDoc(userRef, {
         displayName: editName,
         bio: editBio,
-        photoURL: finalPhotoURL
-      }).catch(async (e) => {
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: userRef.path,
-            operation: 'update',
-            requestResourceData: { displayName: editName }
-          }));
       });
 
-      toast({ title: "Profile Updated", description: "Your account information has been saved." });
-      setSettingsView('menu');
-      setSelectedFile(null);
-      setPhotoPreview(null);
+      toast({ title: "Profile Updated", description: "Your information has been saved." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Update Failed", description: error.message });
     } finally {
@@ -193,103 +187,17 @@ export default function ProfilePage() {
         <div className="flex flex-col items-center text-center mb-12">
           <div className="relative mb-6 group">
             <Avatar className="w-32 h-32 border-4 border-background ring-4 ring-primary/20 shadow-2xl">
-              <AvatarImage src={photoURL} className="object-cover" />
+              <AvatarImage src={photoPreview || photoURL} className="object-cover" />
               <AvatarFallback className="text-2xl bg-primary/20 text-primary">{displayName.charAt(0)}</AvatarFallback>
             </Avatar>
             
-            <Dialog onOpenChange={(open) => !open && setSettingsView('menu')}>
-              <DialogTrigger asChild>
-                <button className="absolute bottom-1 right-1 bg-white text-black p-2.5 rounded-full shadow-xl hover:scale-110 transition-transform active:scale-95 z-10 border border-black/5">
-                  <Settings className="w-5 h-5" />
-                </button>
-              </DialogTrigger>
-              <DialogContent className="bg-background border-white/10 text-white rounded-[2.5rem] sm:max-w-md p-0 overflow-hidden">
-                <SheetTitle className="sr-only">Settings Menu</SheetTitle>
-                {settingsView === 'menu' ? (
-                  <>
-                    <div className="p-8 pb-4">
-                      <DialogHeader>
-                        <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">Settings</DialogTitle>
-                      </DialogHeader>
-                    </div>
-                    <div className="p-4 space-y-2 max-h-[70vh] overflow-y-auto no-scrollbar">
-                      <div className="px-4 py-2">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 opacity-50">Account Management</p>
-                        <SettingsOption icon={UserIcon} label="Account Info" description="Display name and profile picture." onClick={() => setSettingsView('account')} />
-                        <SettingsOption icon={Palette} label="Discovery Preferences" description="Update your discovery feed tags." onClick={() => router.push('/onboarding')} />
-                        <SettingsOption icon={Shield} label="Privacy & Security" description="Password and data controls." onClick={() => setSettingsView('privacy')} />
-                        <SettingsOption icon={Eye} label="Display Mode" description="Customize your visual experience." onClick={() => setSettingsView('display')} />
-                      </div>
-
-                      <div className="px-4 py-4 border-t border-white/5">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 opacity-50">Legal & Support</p>
-                        <SettingsOption icon={Info} label="About Us" description="Our mission and story." onClick={() => router.push('/about')} />
-                        <SettingsOption icon={Mail} label="Contact Support" description="Help and feedback." onClick={() => router.push('/contact')} />
-                        <SettingsOption icon={FileText} label="Privacy Policy" description="Our data usage and privacy policies." onClick={() => router.push('/privacy')} />
-                        <SettingsOption icon={ShieldCheck} label="Terms of Service" description="Usage terms." onClick={() => router.push('/terms')} />
-                      </div>
-                      
-                      <div className="pt-6 px-4 pb-8 border-t border-white/5">
-                        <button onClick={handleLogout} className="w-full flex items-center justify-center gap-4 h-16 rounded-[1.5rem] border border-white/5 hover:bg-destructive/10 hover:text-destructive font-black uppercase tracking-widest text-[10px] transition-all italic">
-                          <LogOut className="w-4 h-4" /> Sign Out
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                ) : settingsView === 'account' ? (
-                  <div className="p-8 space-y-6">
-                    <div className="flex items-center gap-4 mb-2">
-                      <Button variant="ghost" size="icon" onClick={() => setSettingsView('menu')} className="rounded-full">
-                        <ChevronLeft className="w-6 h-6" />
-                      </Button>
-                      <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter">Account Info</DialogTitle>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-4">
-                      <div className="relative group">
-                        <Avatar className="w-24 h-24 border-2 border-white/10 ring-4 ring-primary/10">
-                          <AvatarImage src={photoPreview || photoURL} className="object-cover" />
-                          <AvatarFallback className="text-xl">{displayName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <button onClick={() => fileInputRef.current?.click()} className="absolute bottom-0 right-0 bg-primary p-2 rounded-full text-white shadow-xl hover:scale-110 transition-all">
-                          <Camera className="w-4 h-4" />
-                        </button>
-                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase tracking-widest opacity-50">Display Name</Label>
-                        <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="bg-white/5 border-white/10 rounded-2xl h-12" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase tracking-widest opacity-50">Bio</Label>
-                        <Textarea value={editBio} onChange={(e) => setEditBio(e.target.value)} placeholder="Curator of fine webs..." className="bg-white/5 border-white/10 rounded-2xl min-h-[100px]" />
-                      </div>
-                    </div>
-
-                    <Button onClick={handleUpdateAccount} disabled={isUpdating} className="w-full h-14 bg-primary hover:bg-primary/90 rounded-2xl font-black text-lg">
-                      {isUpdating ? <Loader2 className="animate-spin" /> : <Save className="w-5 h-5 mr-2" />}
-                      SAVE CHANGES
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="p-8 space-y-6">
-                    <div className="flex items-center gap-4 mb-2">
-                      <Button variant="ghost" size="icon" onClick={() => setSettingsView('menu')} className="rounded-full">
-                        <ChevronLeft className="w-6 h-6" />
-                      </Button>
-                      <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter">{settingsView.toUpperCase()}</DialogTitle>
-                    </div>
-                    <div className="p-12 text-center bg-white/5 rounded-[2rem] border border-white/5">
-                      <Shield className="w-12 h-12 text-primary mx-auto mb-4 opacity-20" />
-                      <p className="text-muted-foreground font-medium italic">This section is being synchronized with your profile details at {email}.</p>
-                    </div>
-                  </div>
-                )}
-              </DialogContent>
-            </Dialog>
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute bottom-1 right-1 bg-primary text-white p-3 rounded-full shadow-xl hover:scale-110 transition-transform active:scale-95 z-10 border-4 border-background"
+            >
+              {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
+            </button>
+            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
           </div>
 
           <h1 className="text-4xl font-headline font-extrabold text-white mb-2 tracking-tight">{displayName}</h1>
@@ -306,6 +214,33 @@ export default function ProfilePage() {
           )}
 
           <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm justify-center">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex-1 rounded-2xl border-white/10 bg-white/5 h-14 font-black text-lg hover:bg-white/10">
+                  <UserIcon className="w-5 h-5 mr-2" /> EDIT PROFILE
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-background border-white/10 text-white rounded-[2.5rem] sm:max-w-md p-8">
+                <DialogHeader>
+                  <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">Edit Info</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-6 pt-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest opacity-50 ml-1">Display Name</Label>
+                    <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="bg-white/5 border-white/10 rounded-2xl h-12" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest opacity-50 ml-1">Bio</Label>
+                    <Textarea value={editBio} onChange={(e) => setEditBio(e.target.value)} placeholder="Curator of fine webs..." className="bg-white/5 border-white/10 rounded-2xl min-h-[100px]" />
+                  </div>
+                  <Button onClick={handleUpdateAccount} disabled={isUpdating} className="w-full h-14 bg-primary hover:bg-primary/90 rounded-2xl font-black text-lg">
+                    {isUpdating ? <Loader2 className="animate-spin" /> : <Save className="w-5 h-5 mr-2" />}
+                    SAVE CHANGES
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
             <Link href="/submit" className="flex-1">
               <Button className="w-full rounded-2xl bg-white text-background h-14 font-black text-lg shadow-xl hover:bg-white/90">
                 <Plus className="w-5 h-5 mr-2" strokeWidth={3} /> SUBMIT SITE
@@ -394,20 +329,5 @@ export default function ProfilePage() {
         </Tabs>
       </main>
     </div>
-  );
-}
-
-function SettingsOption({ icon: Icon, label, description, onClick }: { icon: any, label: string, description: string, onClick?: () => void }) {
-  return (
-    <button onClick={onClick} className="w-full flex items-center gap-5 p-5 rounded-[1.5rem] hover:bg-white/5 transition-all text-left group">
-      <div className="bg-white/5 p-3.5 rounded-2xl group-hover:bg-primary/20 group-hover:text-primary transition-all group-hover:scale-105 shadow-inner">
-        <Icon className="w-5 h-5" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <h4 className="font-bold text-white text-sm leading-none mb-1 group-hover:text-primary transition-colors">{label}</h4>
-        <p className="text-[10px] text-muted-foreground font-medium truncate opacity-70 italic">{description}</p>
-      </div>
-      <ChevronRight className="w-4 h-4 text-muted-foreground opacity-20 group-hover:opacity-100 group-hover:text-primary transition-all" />
-    </button>
   );
 }

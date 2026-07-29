@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, User, Eye, EyeOff, KeyRound } from "lucide-react";
+import { Loader2, Plus, User, Eye, EyeOff, KeyRound, Camera } from "lucide-react";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -279,9 +279,9 @@ export default function LoginPage() {
             <button 
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="absolute bottom-2 right-2 bg-primary p-4 rounded-full text-white shadow-xl glow-primary hover:scale-110 transition-transform active:scale-95 z-10"
+              className="absolute bottom-2 right-2 bg-primary p-4 rounded-full text-white shadow-xl glow-primary hover:scale-110 transition-transform active:scale-95 z-10 border-4 border-background"
             >
-              <Plus className="w-6 h-6" strokeWidth={5} />
+              <Camera className="w-6 h-6" strokeWidth={3} />
             </button>
           )}
           <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />

@@ -1,4 +1,3 @@
-
 "use client"
 
 import Link from "next/link";
@@ -66,7 +65,7 @@ export function Navigation() {
     { label: 'Promotions', icon: Flame, href: '/promotions' },
     { label: 'Wallet', icon: Wallet, href: '/wallet' },
     { label: 'AI Assistant', icon: Mic, href: '/ai-assistant' },
-    { label: 'Settings', icon: Settings, href: '/profile' },
+    { label: 'Settings', icon: Settings, href: '/settings' },
     { label: 'Support', icon: HelpCircle, href: '/support' },
   ];
 

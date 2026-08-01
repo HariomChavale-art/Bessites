@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect } from "react";
@@ -82,11 +81,13 @@ export default function LoginPage() {
   };
 
   const formatAuthError = (error: any) => {
-    const code = error.code || "";
-    const message = error.message || "";
+    if (!error) return "Bessites Access: An unknown error occurred.";
     
     // Log the actual error for easier debugging in the console
-    console.error("Auth Error Details:", { code, message });
+    console.error("Auth Error Details:", error);
+
+    const code = error?.code || error?.name || "";
+    const message = error?.message || String(error) || "";
 
     switch (code) {
       case 'auth/user-not-found':
@@ -113,10 +114,12 @@ export default function LoginPage() {
         return "Database Access Denied: We couldn't save your profile data.";
       default:
         // Provide more info if it's an unhandled but recognized Firebase error
-        if (code.startsWith('auth/')) {
+        if (typeof code === 'string' && code.startsWith('auth/')) {
           return `Authentication Error (${code.replace('auth/', '')}): ${message}`;
         }
-        return "Bessites Access: An unexpected authorization glitch occurred.";
+        // Fallback to the error message if it's not a recognized code, 
+        // avoiding the generic "glitch" whenever possible.
+        return message || "Bessites Access: An unexpected authorization glitch occurred.";
     }
   };
 

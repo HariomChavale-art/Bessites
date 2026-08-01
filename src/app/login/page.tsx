@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useRef, useEffect } from "react";
@@ -15,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, User, Eye, EyeOff, KeyRound, Camera } from "lucide-react";
+import { Loader2, Plus, User, Eye, EyeOff, KeyRound, Camera, AlertCircle } from "lucide-react";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -82,6 +83,11 @@ export default function LoginPage() {
 
   const formatAuthError = (error: any) => {
     const code = error.code || "";
+    const message = error.message || "";
+    
+    // Log the actual error for easier debugging in the console
+    console.error("Auth Error Details:", { code, message });
+
     switch (code) {
       case 'auth/user-not-found':
         return "Account not found. Check your email or join the community!";
@@ -97,23 +103,42 @@ export default function LoginPage() {
         return "System lockout: Too many attempts. Please try again later.";
       case 'auth/invalid-credential':
         return "Incorrect email or password. Please verify and try again.";
+      case 'auth/network-request-failed':
+        return "Connectivity Issue: Please check your internet connection and try again.";
+      case 'auth/operation-not-allowed':
+        return "System configuration error: Email sign-in is currently disabled.";
+      case 'auth/internal-error':
+        return "Authentication service error. Please try again in a few moments.";
+      case 'permission-denied':
+        return "Database Access Denied: We couldn't save your profile data.";
       default:
-        return "Bessites Access: An authentication glitch occurred.";
+        // Provide more info if it's an unhandled but recognized Firebase error
+        if (code.startsWith('auth/')) {
+          return `Authentication Error (${code.replace('auth/', '')}): ${message}`;
+        }
+        return "Bessites Access: An unexpected authorization glitch occurred.";
     }
   };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth || !db) return;
+    
+    if (!auth || !db) {
+      toast({
+        variant: "destructive",
+        title: "Configuration Error",
+        description: "Firebase is not initialized. Please ensure your environment variables are set correctly.",
+      });
+      return;
+    }
     
     setLoading(true);
     try {
       if (mode === 'login') {
         const result = await signInWithEmailAndPassword(auth, email, password);
         const userRef = doc(db, "users", result.user.uid);
-        getDoc(userRef).then(docSnap => {
-          router.push(docSnap.exists() && docSnap.data()?.onboardingComplete ? "/" : "/onboarding");
-        }).catch(() => router.push("/onboarding"));
+        const docSnap = await getDoc(userRef);
+        router.push(docSnap.exists() && docSnap.data()?.onboardingComplete ? "/" : "/onboarding");
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
@@ -126,7 +151,7 @@ export default function LoginPage() {
         
         const userData = {
           email: user.email,
-          displayName: user.displayName || email.split('@')[0],
+          displayName: editName() || user.displayName || email.split('@')[0],
           photoURL: finalPhotoURL,
           createdAt: serverTimestamp(),
           onboardingComplete: false,
@@ -134,15 +159,17 @@ export default function LoginPage() {
         };
 
         const userRef = doc(db, "users", user.uid);
-        setDoc(userRef, userData)
-          .then(() => router.push("/onboarding"))
-          .catch(async (e) => {
-             errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: userRef.path,
-                operation: 'create',
-                requestResourceData: userData
-              }));
-          });
+        try {
+          await setDoc(userRef, userData);
+          router.push("/onboarding");
+        } catch (dbError: any) {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'create',
+            requestResourceData: userData
+          }));
+          throw dbError; // Rethrow to be caught by outer try/catch
+        }
       }
     } catch (error: any) {
       toast({
@@ -152,6 +179,11 @@ export default function LoginPage() {
       });
       setLoading(false);
     }
+  };
+
+  const editName = () => {
+    // Helper to get name from email for signup if not specified
+    return email.split('@')[0];
   };
 
   const handleForgotPassword = async () => {
@@ -182,6 +214,9 @@ export default function LoginPage() {
     }
   };
 
+  // Check if Firebase is available
+  const isFirebaseMissing = !auth || !db;
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
       <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center bg-background order-2 md:order-1">
@@ -189,6 +224,16 @@ export default function LoginPage() {
           <div className="mb-12">
             <span className="text-4xl font-black italic uppercase tracking-tighter block leading-none text-white">Bessites</span>
           </div>
+
+          {isFirebaseMissing && (
+            <div className="mb-8 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-start gap-4">
+              <AlertCircle className="w-6 h-6 text-destructive shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-white">Initialization Failure</p>
+                <p className="text-xs text-muted-foreground">Firebase services are not responding. This usually means the API keys in your .env file are missing or invalid.</p>
+              </div>
+            </div>
+          )}
           
           <form onSubmit={handleAuth} className="space-y-6">
             <div className="space-y-2">
@@ -199,6 +244,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isFirebaseMissing}
                 className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg focus:ring-primary"
               />
             </div>
@@ -211,11 +257,13 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isFirebaseMissing}
                   className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg pr-12 focus:ring-primary"
                 />
                 <button 
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={isFirebaseMissing}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -225,7 +273,7 @@ export default function LoginPage() {
                 <button 
                   type="button"
                   onClick={handleForgotPassword}
-                  disabled={resetLoading}
+                  disabled={resetLoading || isFirebaseMissing}
                   className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors mt-2 flex items-center gap-1.5"
                 >
                   {resetLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <KeyRound className="w-3 h-3" />}
@@ -236,7 +284,7 @@ export default function LoginPage() {
 
             <Button 
               type="submit" 
-              disabled={loading}
+              disabled={loading || isFirebaseMissing}
               className="w-full bg-primary hover:bg-primary/90 text-white rounded-full h-16 text-xl font-black shadow-xl glow-primary transition-all active:scale-95"
             >
               {loading ? <Loader2 className="animate-spin" /> : mode === 'login' ? 'SIGN IN' : 'JOIN THE FLOW'}
@@ -247,6 +295,7 @@ export default function LoginPage() {
               <button 
                 type="button"
                 onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                disabled={isFirebaseMissing}
                 className="text-primary font-bold hover:underline"
               >
                 {mode === 'login' ? 'Create Account' : 'Sign In'}
@@ -279,6 +328,7 @@ export default function LoginPage() {
             <button 
               type="button"
               onClick={() => fileInputRef.current?.click()}
+              disabled={isFirebaseMissing}
               className="absolute bottom-2 right-2 bg-primary p-4 rounded-full text-white shadow-xl glow-primary hover:scale-110 transition-transform active:scale-95 z-10 border-4 border-background"
             >
               <Camera className="w-6 h-6" strokeWidth={3} />

@@ -37,6 +37,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+// Official Payment QR Image (Place this in your public folder or use a hosted link)
+const OFFICIAL_QR_URL = "https://raw.githubusercontent.com/HariomChavale-art/Webdock/main/public/payment-qr.png";
+
 export default function AddFundsPage() {
   const { user, loading: authLoading } = useUser();
   const db = useFirestore();
@@ -112,7 +115,6 @@ export default function AddFundsPage() {
       setTransId("");
       setSelectedFile(null);
       
-      // Auto-dismiss success after 8 seconds
       setTimeout(() => setShowSuccess(false), 8000);
     } catch (e) {
       setIsSubmitting(false);
@@ -125,15 +127,10 @@ export default function AddFundsPage() {
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#0B0A0F]"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
 
-  // Merchant UPI Payment Link for QR Generation
-  const upiPayLink = "upi://pay?pa=hariomchavale@ybl&pn=Bessites&cu=INR";
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(upiPayLink)}`;
-
   return (
     <div className="min-h-screen bg-[#0B0A0F] text-white font-body antialiased p-4 sm:p-8 md:p-12 pb-32">
       <div className="max-w-5xl mx-auto space-y-10">
         
-        {/* Header */}
         <header className="flex items-center justify-between">
            <Button variant="ghost" onClick={() => router.back()} className="text-muted-foreground hover:text-white gap-2 font-bold group">
              <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> Back to Studio
@@ -146,10 +143,7 @@ export default function AddFundsPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Left Column: Balance & Promo */}
           <div className="lg:col-span-7 space-y-8">
-            
-            {/* Wallet Balance Card */}
             <Card className="relative overflow-hidden border-none bg-gradient-to-br from-primary to-[#5B13E6] p-10 rounded-[3rem] shadow-2xl shadow-primary/20 group">
                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-[100px] -mr-32 -mt-32 group-hover:scale-110 transition-transform duration-700" />
                <div className="relative z-10 flex justify-between items-start">
@@ -166,7 +160,6 @@ export default function AddFundsPage() {
                </div>
             </Card>
 
-            {/* Promotion Info Card */}
             <Card className="bg-[#121117] border border-white/5 p-8 rounded-[2.5rem] relative overflow-hidden group">
                <div className="flex items-start gap-6">
                   <div className="bg-primary/10 p-4 rounded-2xl text-primary shrink-0 group-hover:scale-110 transition-transform">
@@ -185,7 +178,6 @@ export default function AddFundsPage() {
             </Card>
           </div>
 
-          {/* Right Column: Payment Method */}
           <div className="lg:col-span-5 space-y-8">
             <Card className="bg-[#121117] border border-white/5 p-10 rounded-[3rem] space-y-10 shadow-2xl relative overflow-hidden">
                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl" />
@@ -203,13 +195,14 @@ export default function AddFundsPage() {
                      <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 to-transparent blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                      <div className="relative w-64 h-64 bg-white rounded-[2.5rem] p-4 shadow-2xl overflow-hidden flex items-center justify-center">
                         <img 
-                          src={qrCodeUrl}
-                          alt="Payment QR Code"
-                          className="w-full h-full object-contain"
+                          src={OFFICIAL_QR_URL}
+                          alt="Official Payment QR"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback if the raw URL isn't available yet
+                            (e.target as HTMLImageElement).src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent("upi://pay?pa=hariomchavale@ybl&pn=Bessites&cu=INR")}`;
+                          }}
                         />
-                        <div className="absolute inset-0 bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
-                           <QrCode className="w-10 h-10 text-black opacity-40" />
-                        </div>
                      </div>
                   </div>
                </div>
@@ -261,7 +254,7 @@ export default function AddFundsPage() {
                                   </div>
                                 ) : (
                                   <>
-                                    <ImageIcon className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
+                                    <ImageIcon className="w-10 h-10 text-muted-foreground group-hover:text-primary transition-colors" />
                                     <span className="text-xs font-bold text-muted-foreground/40 mt-2">Upload Receipt</span>
                                   </>
                                 )}
@@ -284,7 +277,6 @@ export default function AddFundsPage() {
           </div>
         </div>
 
-        {/* Success Feedback Section */}
         {showSuccess && (
           <div className="animate-in zoom-in slide-in-from-top-4 duration-700">
              <Card className="bg-emerald-500/10 border-emerald-500/20 p-10 rounded-[3rem] flex flex-col sm:flex-row items-center gap-8 shadow-2xl shadow-emerald-500/5">
@@ -301,7 +293,6 @@ export default function AddFundsPage() {
           </div>
         )}
 
-        {/* Recent Transactions Section */}
         <div className="space-y-8">
            <div className="flex items-center justify-between px-4">
               <div className="flex items-center gap-4">

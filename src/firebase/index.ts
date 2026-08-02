@@ -6,8 +6,7 @@ import { firebaseConfig } from './config';
 
 /**
  * Initializes Firebase services.
- * Using experimentalAutoDetectLongPolling and experimentalForceLongPolling to ensure connectivity
- * in proxy-restricted or cloud-based development environments where standard WebSockets may fail.
+ * Checks for valid configuration and handles missing environment variables.
  */
 export function initializeFirebase(): {
   firebaseApp: FirebaseApp | null;
@@ -15,10 +14,16 @@ export function initializeFirebase(): {
   auth: Auth | null;
   storage: FirebaseStorage | null;
 } {
-  // Guard against missing API key to prevent crashes during SSR or before env vars are synced
-  console.log("Firebase Config:", firebaseConfig);
-  if (!firebaseConfig.apiKey || firebaseConfig.apiKey === 'undefined') {
-    console.warn("Firebase configuration is missing. Please ensure your environment variables are set.");
+  // Guard against missing or placeholder API keys to prevent crashes
+  const apiKey = firebaseConfig.apiKey;
+  const isValidConfig = apiKey && 
+                        apiKey !== 'undefined' && 
+                        apiKey !== '' && 
+                        !apiKey.includes('YOUR_') && 
+                        !apiKey.includes('REPLACE_');
+
+  if (!isValidConfig) {
+    console.warn("Firebase configuration is invalid or missing. Please ensure your .env variables are set correctly.");
     return { firebaseApp: null, firestore: null, auth: null, storage: null };
   }
 
@@ -27,13 +32,11 @@ export function initializeFirebase(): {
     
     let firestore: Firestore;
     
-    // Initialize Firestore with robust polling settings to prevent connection timeouts
     if (getApps().length > 0) {
       firestore = getFirestore(firebaseApp);
     } else {
       firestore = initializeFirestore(firebaseApp, {
         experimentalAutoDetectLongPolling: true,
-        // Force long polling if standard detection is insufficient in the current environment
         experimentalForceLongPolling: true, 
       });
     }

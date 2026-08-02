@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, User, Eye, EyeOff, KeyRound, Camera, AlertCircle } from "lucide-react";
+import { Loader2, User, Eye, EyeOff, KeyRound, Camera, AlertCircle, ShieldAlert } from "lucide-react";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -81,13 +81,17 @@ export default function LoginPage() {
   };
 
   const formatAuthError = (error: any) => {
-    if (!error) return "Bessites Access: An unknown error occurred.";
+    if (!error) return "Authorization failed.";
     
-    // Log the actual error for easier debugging in the console
-    console.error("Auth Error Details:", error);
+    console.error("Detailed Auth Error:", error);
 
     const code = error?.code || error?.name || "";
-    const message = error?.message || String(error) || "";
+    const message = error?.message || "";
+
+    // Specific handling for configuration errors
+    if (code.includes('api-key-not-valid') || code.includes('invalid-api-key')) {
+      return "System Setup Required: Your Firebase API Key is invalid or missing. Please check your .env file.";
+    }
 
     switch (code) {
       case 'auth/user-not-found':
@@ -99,27 +103,15 @@ export default function LoginPage() {
       case 'auth/email-already-in-use':
         return "This email is already registered. Try signing in instead!";
       case 'auth/weak-password':
-        return "Security alert: Password is too weak. Please use at least 6 characters.";
+        return "Security alert: Password is too weak (min 6 characters).";
       case 'auth/too-many-requests':
         return "System lockout: Too many attempts. Please try again later.";
       case 'auth/invalid-credential':
         return "Incorrect email or password. Please verify and try again.";
       case 'auth/network-request-failed':
-        return "Connectivity Issue: Please check your internet connection and try again.";
-      case 'auth/operation-not-allowed':
-        return "System configuration error: Email sign-in is currently disabled.";
-      case 'auth/internal-error':
-        return "Authentication service error. Please try again in a few moments.";
-      case 'permission-denied':
-        return "Database Access Denied: We couldn't save your profile data.";
+        return "Connectivity Issue: Please check your internet connection.";
       default:
-        // Provide more info if it's an unhandled but recognized Firebase error
-        if (typeof code === 'string' && code.startsWith('auth/')) {
-          return `Authentication Error (${code.replace('auth/', '')}): ${message}`;
-        }
-        // Fallback to the error message if it's not a recognized code, 
-        // avoiding the generic "glitch" whenever possible.
-        return message || "Bessites Access: An unexpected authorization glitch occurred.";
+        return message || "An unexpected error occurred during authentication.";
     }
   };
 
@@ -130,7 +122,7 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: "Configuration Error",
-        description: "Firebase is not initialized. Please ensure your environment variables are set correctly.",
+        description: "Firebase is not initialized. Please ensure your .env variables are set.",
       });
       return;
     }
@@ -154,25 +146,25 @@ export default function LoginPage() {
         
         const userData = {
           email: user.email,
-          displayName: editName() || user.displayName || email.split('@')[0],
+          displayName: email.split('@')[0],
           photoURL: finalPhotoURL,
           createdAt: serverTimestamp(),
           onboardingComplete: false,
-          interests: []
+          interests: [],
+          walletBalance: 0
         };
 
         const userRef = doc(db, "users", user.uid);
-        try {
-          await setDoc(userRef, userData);
-          router.push("/onboarding");
-        } catch (dbError: any) {
+        await setDoc(userRef, userData).catch((dbError) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: userRef.path,
             operation: 'create',
             requestResourceData: userData
           }));
-          throw dbError; // Rethrow to be caught by outer try/catch
-        }
+          throw dbError;
+        });
+        
+        router.push("/onboarding");
       }
     } catch (error: any) {
       toast({
@@ -182,11 +174,6 @@ export default function LoginPage() {
       });
       setLoading(false);
     }
-  };
-
-  const editName = () => {
-    // Helper to get name from email for signup if not specified
-    return email.split('@')[0];
   };
 
   const handleForgotPassword = async () => {
@@ -217,23 +204,24 @@ export default function LoginPage() {
     }
   };
 
-  // Check if Firebase is available
   const isFirebaseMissing = !auth || !db;
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
       <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center bg-background order-2 md:order-1">
-        <div className="w-full max-md mx-auto">
+        <div className="w-full max-w-md mx-auto">
           <div className="mb-12">
             <span className="text-4xl font-black italic uppercase tracking-tighter block leading-none text-white">Bessites</span>
           </div>
 
           {isFirebaseMissing && (
-            <div className="mb-8 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-start gap-4">
-              <AlertCircle className="w-6 h-6 text-destructive shrink-0 mt-0.5" />
+            <div className="mb-8 p-6 bg-destructive/10 border border-destructive/20 rounded-[2rem] flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+              <ShieldAlert className="w-8 h-8 text-destructive shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <p className="text-sm font-bold text-white">Initialization Failure</p>
-                <p className="text-xs text-muted-foreground">Firebase services are not responding. This usually means the API keys in your .env file are missing or invalid.</p>
+                <p className="text-sm font-black uppercase tracking-widest text-white">Setup Required</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Your application environment is missing Firebase API keys. Please update your <code className="bg-white/5 px-1.5 py-0.5 rounded text-primary">.env</code> file with valid credentials from the Firebase Console to enable authentication.
+                </p>
               </div>
             </div>
           )}
@@ -247,7 +235,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={isFirebaseMissing}
+                disabled={isFirebaseMissing || loading}
                 className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg focus:ring-primary"
               />
             </div>
@@ -260,7 +248,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  disabled={isFirebaseMissing}
+                  disabled={isFirebaseMissing || loading}
                   className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg pr-12 focus:ring-primary"
                 />
                 <button 

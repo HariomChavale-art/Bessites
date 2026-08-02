@@ -20,6 +20,7 @@ import {
   Heart,
   Eye,
   TrendingUp,
+  Sparkles,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";

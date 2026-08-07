@@ -32,15 +32,13 @@ export function initializeFirebase(): {
     
     let firestore: Firestore;
     
-    // In environments like Firebase Studio / Cloud Workstations, 
-    // standard Firestore networking often fails. Long polling is more reliable.
+    // Enforce long polling for stable connections in Cloud/Studio environments
     try {
       firestore = initializeFirestore(firebaseApp, {
         experimentalAutoDetectLongPolling: true,
         experimentalForceLongPolling: true, 
       });
     } catch (e) {
-      // If already initialized (common with HMR), just get the existing instance
       firestore = getFirestore(firebaseApp);
     }
     

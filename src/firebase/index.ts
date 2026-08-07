@@ -14,16 +14,11 @@ export function initializeFirebase(): {
   auth: Auth | null;
   storage: FirebaseStorage | null;
 } {
-  // Guard against missing or placeholder API keys to prevent crashes
   const apiKey = firebaseConfig.apiKey;
-  const isValidConfig = apiKey && 
-                        apiKey !== 'undefined' && 
-                        apiKey !== '' && 
-                        !apiKey.includes('YOUR_') && 
-                        !apiKey.includes('REPLACE_');
+  const isValidConfig = apiKey && apiKey !== 'undefined' && apiKey !== '';
 
   if (!isValidConfig) {
-    console.warn("Firebase configuration is invalid or missing. Please ensure your .env variables are set correctly.");
+    console.error("Firebase configuration is missing! Check your .env file.");
     return { firebaseApp: null, firestore: null, auth: null, storage: null };
   }
 
@@ -34,13 +29,10 @@ export function initializeFirebase(): {
     
     // Check if firestore is already initialized to avoid "Firestore has already been started" errors
     try {
-      // Use initializeFirestore with settings optimized for cloud environments
       firestore = initializeFirestore(firebaseApp, {
         experimentalForceLongPolling: true,
-        experimentalAutoDetectLongPolling: true,
       });
     } catch (e: any) {
-      // If already initialized, get the existing instance
       firestore = getFirestore(firebaseApp);
     }
     

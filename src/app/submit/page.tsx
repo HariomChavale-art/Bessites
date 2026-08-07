@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send, Check, Plus, X, Image as ImageIcon, Globe, Type, FileText, Search } from "lucide-react";
+import { Loader2, Send, Check, Plus, X, Image as ImageIcon, Globe, Type, FileText, Search, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useUser, useFirestore, useStorage } from "@/firebase";
 import { collection, serverTimestamp, addDoc, doc, setDoc } from "firebase/firestore";
@@ -89,7 +89,12 @@ export default function SubmitWebsite() {
   }, [categorySearch]);
 
   const handleFinalSubmit = async () => {
-    if (!db || !url || !name || !description || !user || !storage || !category) {
+    if (!db || !storage) {
+      toast({ variant: "destructive", title: "Connection Error", description: "Firebase is not ready. Please refresh the page." });
+      return;
+    }
+
+    if (!url || !name || !description || !category) {
       toast({ variant: "destructive", title: "Missing Info", description: "Please fill all required fields." });
       return;
     }
@@ -102,13 +107,26 @@ export default function SubmitWebsite() {
     }
     
     setSubmitting(true);
+
+    // Timeout fail-safe: If it takes more than 15 seconds, something is wrong with the network/config
+    const timeoutId = setTimeout(() => {
+      if (submitting) {
+        setSubmitting(false);
+        toast({ 
+          variant: "destructive", 
+          title: "Network Timeout", 
+          description: "The request took too long. Please check your internet connection or try again later." 
+        });
+      }
+    }, 15000);
+
     try {
       let publicLogoUrl = "";
       
       // 1. Upload Logo
       if (logoFile) {
         const fileExt = logoFile.name.split('.').pop();
-        const storageRef = ref(storage, `logos/${user.uid}/${Date.now()}.${fileExt}`);
+        const storageRef = ref(storage, `logos/${user!.uid}/${Date.now()}.${fileExt}`);
         await uploadBytes(storageRef, logoFile);
         publicLogoUrl = await getDownloadURL(storageRef);
       }
@@ -122,8 +140,8 @@ export default function SubmitWebsite() {
         categories: [category, ...tags].filter(Boolean),
         logoUrl: publicLogoUrl,
         pricing,
-        userId: user.uid,
-        userEmail: user.email,
+        userId: user!.uid,
+        userEmail: user!.email,
         status: "pending",
         timestamp: serverTimestamp()
       });
@@ -139,17 +157,18 @@ export default function SubmitWebsite() {
         lastPreviewUpdate: serverTimestamp()
       });
 
+      clearTimeout(timeoutId);
       setSubmitted(true);
       toast({ title: "Submission Received!", description: "Your project is now under review." });
       
-      setTimeout(() => {
-        router.push("/profile");
-      }, 5000);
-
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error("Submission Error:", error);
-      toast({ variant: "destructive", title: "Submission Failed", description: error.message || "An unexpected error occurred." });
-    } finally {
+      toast({ 
+        variant: "destructive", 
+        title: "Submission Failed", 
+        description: error.message || "An unexpected network error occurred. Please check your connection." 
+      });
       setSubmitting(false);
     }
   };

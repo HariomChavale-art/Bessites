@@ -165,7 +165,7 @@ export default function SubmitWebsite() {
             <Check className="w-12 h-12 text-white" strokeWidth={4} />
           </div>
           <div className="space-y-3">
-            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Project Lodged</h2>
+            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Project Submitted</h2>
             <p className="text-muted-foreground font-medium text-lg leading-relaxed">
               Your submission has been entered into the registry. It will go live automatically after administrator approval.
             </p>
@@ -322,7 +322,7 @@ export default function SubmitWebsite() {
             
             <CardFooter className="p-10 pt-0">
               <Button onClick={handleFinalSubmit} disabled={submitting || !url || !name || !description || !category} className="w-full h-20 rounded-[2.5rem] bg-white text-black hover:bg-white/90 text-2xl font-black italic shadow-2xl transition-all active:scale-95 group">
-                {submitting ? <Loader2 className="w-8 h-8 animate-spin" /> : <><Send className="w-6 h-6 mr-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> LODGE IN REGISTRY</>}
+                {submitting ? <Loader2 className="w-8 h-8 animate-spin" /> : <><Send className="w-6 h-6 mr-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> SUBMIT WEBSITE</>}
               </Button>
             </CardFooter>
           </Card>

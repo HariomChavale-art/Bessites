@@ -8,17 +8,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send, Check, Plus, X, Image as ImageIcon, Globe, Type, FileText, Search, Tag, Sparkles } from "lucide-react";
+import { Loader2, Send, Check, Plus, X, Image as ImageIcon, Globe, Type, FileText, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useUser, useFirestore, useStorage } from "@/firebase";
-import { collection, serverTimestamp, doc, setDoc } from "firebase/firestore";
+import { collection, serverTimestamp, addDoc, doc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError } from "@/firebase/errors";
 
 const ALL_CATEGORIES_LIST = [
   "AI", "Gaming", "Entertainment", "Anime", "Android", "Coding", "Design", "Shopping", "Photography", "Video",
@@ -107,7 +105,7 @@ export default function SubmitWebsite() {
     try {
       let publicLogoUrl = "";
       
-      // Upload Logo (Blocking since we need the URL for the document)
+      // 1. Upload Logo
       if (logoFile) {
         const fileExt = logoFile.name.split('.').pop();
         const storageRef = ref(storage, `logos/${user.uid}/${Date.now()}.${fileExt}`);
@@ -115,12 +113,8 @@ export default function SubmitWebsite() {
         publicLogoUrl = await getDownloadURL(storageRef);
       }
 
-      // Generate a client-side ID so we can set related docs immediately
-      const submissionsCollection = collection(db, "submissions");
-      const submissionDocRef = doc(submissionsCollection);
-      const statsDocRef = doc(db, "websiteStats", submissionDocRef.id);
-
-      const submissionData = {
+      // 2. Submit Project
+      const submissionRef = await addDoc(collection(db, "submissions"), {
         url,
         name,
         description,
@@ -132,9 +126,10 @@ export default function SubmitWebsite() {
         userEmail: user.email,
         status: "pending",
         timestamp: serverTimestamp()
-      };
+      });
 
-      const statsData = {
+      // 3. Create Stats placeholder
+      await setDoc(doc(db, "websiteStats", submissionRef.id), {
         logoUrl: publicLogoUrl,
         visitCount: 0,
         likeCount: 0,
@@ -142,30 +137,9 @@ export default function SubmitWebsite() {
         ratingSum: 0,
         ratingCount: 0,
         lastPreviewUpdate: serverTimestamp()
-      };
+      });
 
-      // Non-blocking writes
-      setDoc(submissionDocRef, submissionData)
-        .catch(async (error) => {
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: submissionDocRef.path,
-            operation: 'create',
-            requestResourceData: submissionData
-          }));
-        });
-
-      setDoc(statsDocRef, statsData)
-        .catch(async (error) => {
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: statsDocRef.path,
-            operation: 'create',
-            requestResourceData: statsData
-          }));
-        });
-
-      // Transition to success state immediately
       setSubmitted(true);
-      setSubmitting(false);
       toast({ title: "Submission Received!", description: "Your project is now under review." });
       
       setTimeout(() => {
@@ -173,8 +147,9 @@ export default function SubmitWebsite() {
       }, 3000);
 
     } catch (error: any) {
-      console.error("[Client] Final Submission Error:", error);
+      console.error("Submission Error:", error);
       toast({ variant: "destructive", title: "Submission Failed", description: error.message || "An unexpected error occurred." });
+    } finally {
       setSubmitting(false);
     }
   };
@@ -217,7 +192,6 @@ export default function SubmitWebsite() {
             </CardHeader>
             
             <CardContent className="p-10 pt-0 space-y-10">
-              {/* URL */}
               <div className="space-y-4">
                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Live URL</Label>
                 <div className="relative">
@@ -231,7 +205,6 @@ export default function SubmitWebsite() {
                 </div>
               </div>
 
-              {/* Branding */}
               <div className="space-y-4">
                  <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Branding & Logo</Label>
                  <div onClick={() => fileInputRef.current?.click()} className="group relative w-full h-48 rounded-[2.5rem] border-2 border-dashed border-white/10 hover:border-primary/40 bg-white/5 flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all duration-500">
@@ -240,7 +213,6 @@ export default function SubmitWebsite() {
                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
               </div>
 
-              {/* Title */}
               <div className="space-y-4">
                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Website Title</Label>
                 <div className="relative">
@@ -249,7 +221,6 @@ export default function SubmitWebsite() {
                 </div>
               </div>
 
-              {/* Description */}
               <div className="space-y-4">
                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Description</Label>
                 <div className="relative">
@@ -258,7 +229,6 @@ export default function SubmitWebsite() {
                 </div>
               </div>
 
-              {/* Category & Business Model */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                  <div className="space-y-4">
                     <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Primary Category</Label>

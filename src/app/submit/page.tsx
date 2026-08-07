@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,16 +8,29 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send, Check, Plus, X, Image as ImageIcon, Globe, Type, FileText } from "lucide-react";
+import { Loader2, Send, Check, Plus, X, Image as ImageIcon, Globe, Type, FileText, Search, Tag, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useUser, useFirestore, useStorage } from "@/firebase";
 import { collection, addDoc, serverTimestamp, doc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-const PRIMARY_CATEGORIES = ["AI", "Gaming", "Design", "Developer", "Tools", "Finance", "Education", "Lifestyle", "Fun"];
+const ALL_CATEGORIES_LIST = [
+  "AI", "Gaming", "Entertainment", "Anime", "Android", "Coding", "Design", "Shopping", "Photography", "Video",
+  "Music", "Utilities", "Education", "Jobs", "Finance", "Travel", "Food", "Health", "Sports", "Cybersecurity",
+  "Space", "Earth & Weather", "Brain Games", "Geography", "Fun", "OSINT", "Creative", "Voice", "Reading", "News",
+  "Internet", "SEO", "Startups", "Ideas", "Freelancing", "AI Directories", "Home", "Science", "Physics", "Math",
+  "Movies", "TV Shows", "Fitness", "Nature", "Interesting", "PDF", "Productivity", "History", "Browser Extensions",
+  "Podcasts", "Domain Names", "Infographics", "DNA & Genetics", "Telescopes", "Rocketry", "Architecture", "Cars",
+  "Motorcycles", "Cycling", "Fishing", "Hiking", "Volcanoes", "Oceans", "Birds", "Pets", "Cooking", "Coffee",
+  "Sewing", "Woodworking", "3D Printing", "Satellite Images", "Gemstones", "Board Games", "Tabletop RPG", "Magic Tricks",
+  "Live Cameras", "Watches", "Gifts", "Deals", "Languages", "Dating", "Parenting", "PC Software", "Downloads",
+  "Chat & Community", "Sleep", "Meditation", "Investing", "Competitions", "Password Managers", "File Sharing",
+  "Astronomy", "School", "Hotels", "Trains", "Blogging", "Resume Builders", "Mockups", "Scholarships", "Memes", "Keyboard"
+];
 
 export default function SubmitWebsite() {
   const { user, loading: authLoading } = useUser();
@@ -31,6 +44,8 @@ export default function SubmitWebsite() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
+  const [categorySearch, setCategorySearch] = useState("");
+  const [isCategoryPopoverOpen, setIsCategoryPopoverOpen] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [pricing, setPricing] = useState<"Free" | "Paid" | "Freemium">("Free");
@@ -67,13 +82,18 @@ export default function SubmitWebsite() {
 
   const removeTag = (tagToRemove: string) => setTags(tags.filter(t => t !== tagToRemove));
 
+  const filteredCategories = useMemo(() => {
+    const search = categorySearch.toLowerCase().trim();
+    if (!search) return ALL_CATEGORIES_LIST;
+    return ALL_CATEGORIES_LIST.filter(c => c.toLowerCase().includes(search));
+  }, [categorySearch]);
+
   const handleFinalSubmit = async () => {
-    if (!db || !url || !name || !description || !user || !storage) {
-      toast({ variant: "destructive", title: "Missing Info", description: "Please fill all required fields." });
+    if (!db || !url || !name || !description || !user || !storage || !category) {
+      toast({ variant: "destructive", title: "Missing Info", description: "Please fill all required fields, including Category." });
       return;
     }
 
-    // Basic URL validation
     try {
       new URL(url);
     } catch (e) {
@@ -195,18 +215,66 @@ export default function SubmitWebsite() {
                 </div>
               </div>
 
-              {/* Category & Tags */}
+              {/* Category & Business Model */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                  <div className="space-y-4">
                     <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Primary Category</Label>
-                    <Select value={category} onValueChange={setCategory}>
-                       <SelectTrigger className="h-16 bg-white/5 border-white/10 rounded-2xl font-bold">
-                          <SelectValue placeholder="Select Sector" />
-                       </SelectTrigger>
-                       <SelectContent className="bg-[#121117] border-white/10 text-white rounded-xl">
-                          {PRIMARY_CATEGORIES.map(c => <SelectItem key={c} value={c} className="font-bold">{c}</SelectItem>)}
-                       </SelectContent>
-                    </Select>
+                    <Popover open={isCategoryPopoverOpen} onOpenChange={setIsCategoryPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="w-full h-16 bg-white/5 border-white/10 rounded-2xl font-bold justify-between px-6"
+                        >
+                          <span className={cn(category ? "text-white" : "text-muted-foreground")}>
+                            {category || "Select Sector"}
+                          </span>
+                          <Search className="w-4 h-4 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] bg-[#121117] border-white/10 text-white rounded-2xl p-0 overflow-hidden shadow-2xl" align="start">
+                        <div className="p-4 border-b border-white/5">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input 
+                              placeholder="Search or add category..." 
+                              value={categorySearch} 
+                              onChange={(e) => setCategorySearch(e.target.value)}
+                              className="pl-10 h-11 bg-white/5 border-white/10 rounded-xl text-sm"
+                            />
+                          </div>
+                        </div>
+                        <div className="max-h-64 overflow-y-auto no-scrollbar py-2">
+                          {filteredCategories.length > 0 ? (
+                            filteredCategories.map(c => (
+                              <button 
+                                key={c}
+                                onClick={() => {
+                                  setCategory(c);
+                                  setIsCategoryPopoverOpen(false);
+                                  setCategorySearch("");
+                                }}
+                                className="w-full px-5 py-3 text-left text-sm font-bold hover:bg-primary hover:text-white transition-colors"
+                              >
+                                {c}
+                              </button>
+                            ))
+                          ) : categorySearch.trim() ? (
+                            <button 
+                              onClick={() => {
+                                setCategory(categorySearch.trim());
+                                setIsCategoryPopoverOpen(false);
+                                setCategorySearch("");
+                              }}
+                              className="w-full px-5 py-4 text-left text-sm font-black text-primary hover:bg-white/5 flex items-center gap-3 italic"
+                            >
+                              <Plus className="w-4 h-4" /> Add "{categorySearch}" as new category
+                            </button>
+                          ) : (
+                            <div className="px-5 py-4 text-xs italic text-muted-foreground opacity-40">Start typing to find or add...</div>
+                          )}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                  </div>
                  <div className="space-y-4">
                     <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Business Model</Label>

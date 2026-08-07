@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Navigation } from "@/components/navigation";
@@ -110,7 +109,7 @@ import { doc, collection, query, where } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-const CATEGORIES = [
+const STATIC_CATEGORIES = [
   { name: "AI", icon: Sparkles, color: "text-purple-400" },
   { name: "Gaming", icon: Gamepad2, color: "text-red-400" },
   { name: "Entertainment", icon: Play, color: "text-indigo-400" },
@@ -269,6 +268,26 @@ export default function ExplorePage() {
     return uniquePool;
   }, [submittedSites]);
 
+  // Dynamically calculate the list of all available categories across both mock and submitted sites
+  const dynamicCategoriesList = useMemo(() => {
+    const categoriesSet = new Set<string>();
+    
+    // Add static ones first
+    STATIC_CATEGORIES.forEach(cat => categoriesSet.add(cat.name));
+    
+    // Add from all currently approved websites
+    allWebsites.forEach(site => {
+      site.categories?.forEach(cat => categoriesSet.add(cat));
+    });
+
+    // Map into objects for the UI
+    return Array.from(categoriesSet).map(name => {
+      const existing = STATIC_CATEGORIES.find(c => c.name === name);
+      if (existing) return existing;
+      return { name, icon: Tag, color: "text-primary/60" };
+    }).sort((a, b) => a.name.localeCompare(b.name));
+  }, [allWebsites]);
+
   const filteredResults = useMemo(() => {
     return allWebsites.filter(app => {
       const queryText = searchQuery.toLowerCase().trim();
@@ -286,7 +305,7 @@ export default function ExplorePage() {
   }, [searchQuery, selectedCategory, allWebsites]);
 
   const visibleCategories = useMemo(() => {
-    const relevant = CATEGORIES.filter(c => 
+    const relevant = dynamicCategoriesList.filter(c => 
       TRENDING_CATEGORY_NAMES.includes(c.name) || userInterests.includes(c.name)
     );
     const seen = new Set();
@@ -295,14 +314,14 @@ export default function ExplorePage() {
       seen.add(c.name);
       return true;
     }).slice(0, 20);
-  }, [userInterests]);
+  }, [userInterests, dynamicCategoriesList]);
 
   const filteredModalCategories = useMemo(() => {
-    if (!categorySearchQuery.trim()) return CATEGORIES;
-    return CATEGORIES.filter(cat => 
+    if (!categorySearchQuery.trim()) return dynamicCategoriesList;
+    return dynamicCategoriesList.filter(cat => 
       cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase().trim())
     );
-  }, [categorySearchQuery]);
+  }, [categorySearchQuery, dynamicCategoriesList]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -353,9 +372,12 @@ export default function ExplorePage() {
                     <MoreHorizontal className="w-4 h-4 mr-2" /> More Interests
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-background border-white/10 text-white rounded-[2.5rem] max-w-2xl max-h-[80vh] flex flex-col p-0 overflow-hidden">
+                <DialogContent className="bg-background border-white/10 text-white rounded-[2.5rem] max-w-2xl max-h-[80vh] flex flex-col p-0 overflow-hidden shadow-2xl">
                   <DialogHeader className="p-8 pb-4">
-                    <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">All Discovery Tags</DialogTitle>
+                    <div className="flex items-center gap-3 mb-2">
+                      <Sparkles className="w-6 h-6 text-primary" />
+                      <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">All Discovery Tags</DialogTitle>
+                    </div>
                     <div className="relative mt-6">
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input 
@@ -378,11 +400,11 @@ export default function ExplorePage() {
                               setCategorySearchQuery("");
                             }}
                             className={cn(
-                              "h-16 bg-white/5 border-white/5 hover:bg-white/10 rounded-2xl flex items-center gap-3 px-4 transition-all text-left justify-start",
+                              "h-16 bg-white/5 border-white/5 hover:bg-white/10 rounded-2xl flex items-center gap-3 px-4 transition-all text-left justify-start group",
                               selectedCategory === cat.name && "border-primary bg-primary/10"
                             )}
                           >
-                            <cat.icon className={cn(`w-5 h-5 shrink-0`, cat.color)} />
+                            <cat.icon className={cn(`w-5 h-5 shrink-0 transition-transform group-hover:scale-110`, cat.color)} />
                             <span className="text-[10px] font-black uppercase tracking-widest text-white truncate">{cat.name}</span>
                           </Button>
                         ))

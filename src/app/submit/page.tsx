@@ -17,8 +17,6 @@ import { useRouter } from "next/navigation";
 import { intelligentCategoryTagging } from "@/ai/flows/intelligent-category-tagging";
 import { enrichWebsiteMetadata } from "@/ai/flows/website-enrichment-flow";
 import { verifyWebsite } from "@/ai/flows/verify-website-flow";
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
@@ -113,16 +111,22 @@ export default function SubmitWebsite() {
   const handleMagicTitle = async () => {
     if (!isVerified) return;
     setEnrichingTitle(true);
+    console.log("[Client] Requesting Magic Title...");
     try {
       const res = await enrichWebsiteMetadata({ url, mode: 'title' });
       if (res.title) {
         setName(res.title);
         toast({ title: "Title Generated", description: "SEO-friendly name ready." });
       } else {
-        throw new Error("Empty response");
+        throw new Error("Empty LLM title result");
       }
-    } catch (e) {
-      toast({ variant: "destructive", title: "Could not generate Title.", description: "AI analysis encountered an issue." });
+    } catch (e: any) {
+      console.error("[Client] Magic Title Error:", e);
+      toast({ 
+        variant: "destructive", 
+        title: "Could not generate Title.", 
+        description: e.message || "AI analysis encountered an issue." 
+      });
     } finally {
       setEnrichingTitle(false);
     }
@@ -131,16 +135,22 @@ export default function SubmitWebsite() {
   const handleMagicDescription = async () => {
     if (!isVerified) return;
     setEnrichingDesc(true);
+    console.log("[Client] Requesting Magic Description...");
     try {
       const res = await enrichWebsiteMetadata({ url, mode: 'description' });
       if (res.description) {
         setDescription(res.description);
         toast({ title: "Description Generated", description: "Professional summary ready." });
       } else {
-        throw new Error("Empty response");
+        throw new Error("Empty LLM description result");
       }
-    } catch (e) {
-      toast({ variant: "destructive", title: "Could not generate Description.", description: "AI analysis encountered an issue." });
+    } catch (e: any) {
+      console.error("[Client] Magic Description Error:", e);
+      toast({ 
+        variant: "destructive", 
+        title: "Could not generate Description.", 
+        description: e.message || "AI analysis encountered an issue." 
+      });
     } finally {
       setEnrichingDesc(false);
     }
@@ -149,16 +159,22 @@ export default function SubmitWebsite() {
   const handleSuggestTags = async () => {
     if (!isVerified) return;
     setSuggestingTags(true);
+    console.log("[Client] Requesting Magic Tags...");
     try {
       const result = await intelligentCategoryTagging({ url });
       if (result?.categories && result.categories.length > 0) {
         setTags(prev => Array.from(new Set([...prev, ...result.categories])));
         toast({ title: "Tags Generated", description: "Relevant discovery tags injected." });
       } else {
-        throw new Error("No tags returned");
+        throw new Error("No categories returned by AI");
       }
-    } catch (error) {
-      toast({ variant: "destructive", title: "Could not generate Tags.", description: "AI analysis encountered an issue." });
+    } catch (e: any) {
+      console.error("[Client] Magic Tags Error:", e);
+      toast({ 
+        variant: "destructive", 
+        title: "Could not generate Tags.", 
+        description: e.message || "AI analysis encountered an issue." 
+      });
     } finally {
       setSuggestingTags(false);
     }
@@ -220,6 +236,7 @@ export default function SubmitWebsite() {
       toast({ title: "Submission Received!", description: "Reviewing your project now." });
       setTimeout(() => router.push("/profile"), 2000);
     } catch (error: any) {
+      console.error("[Client] Final Submission Error:", error);
       toast({ variant: "destructive", title: "Submission Failed", description: error.message });
       setSubmitting(false);
     }

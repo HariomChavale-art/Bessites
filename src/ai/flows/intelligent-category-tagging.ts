@@ -1,7 +1,6 @@
-
 'use server';
 /**
- * @fileOverview This file defines a Genkit flow for intelligent category tagging of websites.
+ * @fileOverview This file defines a Genkit flow for intelligent category tagging by analyzing actual website content.
  */
 
 import { ai } from '@/ai/genkit';
@@ -17,15 +16,21 @@ const IntelligentCategoryTaggingOutputSchema = z.object({
 
 const intelligentCategoryTaggingPrompt = ai.definePrompt({
   name: 'intelligentCategoryTaggingPrompt',
-  input: {
-    schema: IntelligentCategoryTaggingInputSchema,
+  input: { 
+    schema: IntelligentCategoryTaggingInputSchema.extend({
+      pageContent: z.string().optional(),
+    })
   },
   output: { schema: IntelligentCategoryTaggingOutputSchema },
-  prompt: `Analyze the following website URL and generate a list of 3-5 relevant Pinterest-style interest tags.
+  prompt: `Analyze the following website and generate a list of 3-5 relevant Pinterest-style interest tags.
   
-  URL: {{{url}}}
-  
-  Please output the categories in a JSON array format.`,
+URL: {{{url}}}
+
+WEBSITE CONTENT SNIPPET:
+{{{pageContent}}}
+
+The tags should represent the niche, technology, and purpose of the website.
+Please output the categories in a JSON array format.`,
 });
 
 const intelligentCategoryTaggingFlow = ai.defineFlow(
@@ -35,7 +40,26 @@ const intelligentCategoryTaggingFlow = ai.defineFlow(
     outputSchema: IntelligentCategoryTaggingOutputSchema,
   },
   async (input) => {
-    const { output } = await intelligentCategoryTaggingPrompt(input);
+    let pageContent = '';
+    try {
+      const response = await fetch(input.url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+      });
+      const html = await response.text();
+      pageContent = html
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .substring(0, 3000);
+    } catch (e) {
+      console.warn("Analysis fetch failed for tags.");
+    }
+
+    const { output } = await intelligentCategoryTaggingPrompt({
+      ...input,
+      pageContent
+    });
     return output!;
   }
 );

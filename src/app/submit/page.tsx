@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send, Check, Plus, X, Sparkles, Image as ImageIcon, Globe, Type, FileText } from "lucide-react";
+import { Loader2, Send, Check, Plus, X, Sparkles, Image as ImageIcon, Globe, Type, FileText, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useUser, useFirestore, useStorage } from "@/firebase";
 import { collection, addDoc, serverTimestamp, doc, setDoc } from "firebase/firestore";
@@ -16,9 +16,11 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import { intelligentCategoryTagging } from "@/ai/flows/intelligent-category-tagging";
 import { enrichWebsiteMetadata } from "@/ai/flows/website-enrichment-flow";
+import { verifyWebsite } from "@/ai/flows/verify-website-flow";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 const PRIMARY_CATEGORIES = ["AI", "Gaming", "Design", "Developer", "Tools", "Finance", "Education", "Lifestyle", "Fun"];
 
@@ -31,6 +33,10 @@ export default function SubmitWebsite() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [url, setUrl] = useState("");
+  const [isVerified, setIsVerified] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verifiedUrl, setVerifiedUrl] = useState("");
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -53,6 +59,47 @@ export default function SubmitWebsite() {
     }
   }, [user, authLoading, router, toast]);
 
+  // Reset verification if URL changes
+  useEffect(() => {
+    if (url !== verifiedUrl) {
+      setIsVerified(false);
+    }
+  }, [url, verifiedUrl]);
+
+  const handleVerify = async () => {
+    if (!url) return toast({ variant: "destructive", title: "URL Required", description: "Please enter a website URL." });
+    
+    setVerifying(true);
+    try {
+      const result = await verifyWebsite({ url });
+      if (result.reachable) {
+        setIsVerified(true);
+        setVerifiedUrl(url);
+        toast({
+          title: "Website Verified Successfully!",
+          description: "Analysis tools are now active.",
+          className: "bg-emerald-600 text-white border-none",
+        });
+      } else {
+        setIsVerified(false);
+        toast({
+          variant: "destructive",
+          title: "Website not found.",
+          description: "Please check the URL and try again.",
+        });
+      }
+    } catch (e) {
+      setIsVerified(false);
+      toast({
+        variant: "destructive",
+        title: "Verification failed.",
+        description: "An unexpected error occurred during verification.",
+      });
+    } finally {
+      setVerifying(false);
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -64,41 +111,54 @@ export default function SubmitWebsite() {
   };
 
   const handleMagicTitle = async () => {
-    if (!url) return toast({ variant: "destructive", title: "URL Required", description: "Enter a URL first." });
+    if (!isVerified) return;
     setEnrichingTitle(true);
     try {
       const res = await enrichWebsiteMetadata({ url, mode: 'title' });
-      if (res.title) setName(res.title);
+      if (res.title) {
+        setName(res.title);
+        toast({ title: "Title Generated", description: "SEO-friendly name ready." });
+      } else {
+        throw new Error("Empty response");
+      }
     } catch (e) {
-      toast({ variant: "destructive", title: "Magic Failed", description: "Could not generate title." });
+      toast({ variant: "destructive", title: "Could not generate Title.", description: "AI analysis encountered an issue." });
     } finally {
       setEnrichingTitle(false);
     }
   };
 
   const handleMagicDescription = async () => {
-    if (!url) return toast({ variant: "destructive", title: "URL Required", description: "Enter a URL first." });
+    if (!isVerified) return;
     setEnrichingDesc(true);
     try {
       const res = await enrichWebsiteMetadata({ url, mode: 'description' });
-      if (res.description) setDescription(res.description);
+      if (res.description) {
+        setDescription(res.description);
+        toast({ title: "Description Generated", description: "Professional summary ready." });
+      } else {
+        throw new Error("Empty response");
+      }
     } catch (e) {
-      toast({ variant: "destructive", title: "Magic Failed", description: "Could not generate description." });
+      toast({ variant: "destructive", title: "Could not generate Description.", description: "AI analysis encountered an issue." });
     } finally {
       setEnrichingDesc(false);
     }
   };
 
   const handleSuggestTags = async () => {
-    if (!url) return toast({ variant: "destructive", title: "URL Required", description: "Enter a URL first." });
+    if (!isVerified) return;
     setSuggestingTags(true);
     try {
       const result = await intelligentCategoryTagging({ url });
-      if (result?.categories) {
+      if (result?.categories && result.categories.length > 0) {
         setTags(prev => Array.from(new Set([...prev, ...result.categories])));
+        toast({ title: "Tags Generated", description: "Relevant discovery tags injected." });
+      } else {
+        throw new Error("No tags returned");
       }
     } catch (error) {
-      toast({ variant: "destructive", title: "Magic Failed", description: "Could not generate tags." });
+      toast({ variant: "destructive", title: "Could not generate Tags.", description: "AI analysis encountered an issue." });
     } finally {
       setSuggestingTags(false);
     }
@@ -133,8 +193,8 @@ export default function SubmitWebsite() {
       const submissionData = {
         url,
         name,
-        description, // Used as short desc
-        longDescription: description, // Used as main content
+        description,
+        longDescription: description,
         categories: [category, ...tags].filter(Boolean),
         logoUrl: publicLogoUrl,
         pricing,
@@ -192,6 +252,41 @@ export default function SubmitWebsite() {
             </CardHeader>
             
             <CardContent className="p-10 pt-0 space-y-10">
+              {/* URL & Verification */}
+              <div className="space-y-4">
+                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Live URL</Label>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="relative flex-1">
+                    <Globe className={cn("absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors", isVerified ? "text-emerald-400" : "text-primary opacity-50")} />
+                    <Input 
+                      placeholder="https://your-project.com" 
+                      value={url} 
+                      onChange={(e) => setUrl(e.target.value)} 
+                      className={cn(
+                        "pl-14 h-16 bg-white/5 border-white/10 rounded-2xl text-lg font-bold transition-all",
+                        isVerified && "border-emerald-500/50 focus:ring-emerald-500"
+                      )} 
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleVerify} 
+                    disabled={verifying || !url} 
+                    className={cn(
+                      "h-16 px-8 rounded-2xl font-black uppercase tracking-widest text-xs gap-2 transition-all",
+                      isVerified ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-white text-black hover:bg-white/90"
+                    )}
+                  >
+                    {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : isVerified ? <Check className="w-4 h-4" /> : <Search className="w-4 h-4" />}
+                    {isVerified ? "VERIFIED" : "VERIFY WEBSITE"}
+                  </Button>
+                </div>
+                {!isVerified && url && (
+                  <p className="text-[10px] font-black uppercase text-amber-500 italic ml-1 flex items-center gap-1.5">
+                    <Sparkles className="w-3 h-3" /> Please verify the website to enable AI analysis tools.
+                  </p>
+                )}
+              </div>
+
               {/* Branding */}
               <div className="space-y-4">
                  <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Branding & Logo</Label>
@@ -201,20 +296,19 @@ export default function SubmitWebsite() {
                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
               </div>
 
-              {/* URL */}
-              <div className="space-y-4">
-                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Live URL</Label>
-                <div className="relative">
-                  <Globe className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-primary opacity-50" />
-                  <Input placeholder="https://your-project.com" value={url} onChange={(e) => setUrl(e.target.value)} className="pl-14 h-16 bg-white/5 border-white/10 rounded-2xl text-lg font-bold" />
-                </div>
-              </div>
-
               {/* Title */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Website Title</Label>
-                  <Button variant="ghost" onClick={handleMagicTitle} disabled={enrichingTitle || !url} className="h-8 px-4 bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-black uppercase italic rounded-full gap-2">
+                  <Button 
+                    variant="ghost" 
+                    onClick={handleMagicTitle} 
+                    disabled={enrichingTitle || !isVerified} 
+                    className={cn(
+                      "h-8 px-4 bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-black uppercase italic rounded-full gap-2 transition-all",
+                      !isVerified && "opacity-20 cursor-not-allowed grayscale"
+                    )}
+                  >
                     {enrichingTitle ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} ✨ Magic Title
                   </Button>
                 </div>
@@ -228,7 +322,15 @@ export default function SubmitWebsite() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Description</Label>
-                  <Button variant="ghost" onClick={handleMagicDescription} disabled={enrichingDesc || !url} className="h-8 px-4 bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-black uppercase italic rounded-full gap-2">
+                  <Button 
+                    variant="ghost" 
+                    onClick={handleMagicDescription} 
+                    disabled={enrichingDesc || !isVerified} 
+                    className={cn(
+                      "h-8 px-4 bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-black uppercase italic rounded-full gap-2 transition-all",
+                      !isVerified && "opacity-20 cursor-not-allowed grayscale"
+                    )}
+                  >
                     {enrichingDesc ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} ✨ Magic Description
                   </Button>
                 </div>
@@ -269,7 +371,15 @@ export default function SubmitWebsite() {
               <div className="space-y-4 pt-4">
                 <div className="flex items-center justify-between">
                    <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Discovery Tags</Label>
-                   <Button variant="ghost" onClick={handleSuggestTags} disabled={suggestingTags || !url} className="h-8 px-4 text-primary hover:bg-primary/10 text-[10px] font-black uppercase italic rounded-full gap-2">
+                   <Button 
+                    variant="ghost" 
+                    onClick={handleSuggestTags} 
+                    disabled={suggestingTags || !isVerified} 
+                    className={cn(
+                      "h-8 px-4 text-primary hover:bg-primary/10 text-[10px] font-black uppercase italic rounded-full gap-2 transition-all",
+                      !isVerified && "opacity-20 cursor-not-allowed grayscale"
+                    )}
+                   >
                       {suggestingTags ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Magic Tags
                    </Button>
                 </div>
@@ -288,7 +398,7 @@ export default function SubmitWebsite() {
             </CardContent>
             
             <CardFooter className="p-10 pt-0">
-              <Button onClick={handleFinalSubmit} disabled={submitting || !url || !name || !description} className="w-full h-20 rounded-[2.5rem] bg-white text-black hover:bg-white/90 text-2xl font-black italic shadow-2xl transition-all active:scale-95 group">
+              <Button onClick={handleFinalSubmit} disabled={submitting || !isVerified || !name || !description} className="w-full h-20 rounded-[2.5rem] bg-white text-black hover:bg-white/90 text-2xl font-black italic shadow-2xl transition-all active:scale-95 group">
                 {submitting ? <Loader2 className="w-8 h-8 animate-spin" /> : <><Send className="w-6 h-6 mr-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> LODGE IN REGISTRY</>}
               </Button>
             </CardFooter>

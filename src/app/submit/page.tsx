@@ -11,12 +11,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Send, Check, Plus, X, Image as ImageIcon, Globe, Type, FileText, Search, Tag, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useUser, useFirestore, useStorage } from "@/firebase";
-import { collection, addDoc, serverTimestamp, doc, setDoc } from "firebase/firestore";
+import { collection, serverTimestamp, doc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 const ALL_CATEGORIES_LIST = [
   "AI", "Gaming", "Entertainment", "Anime", "Android", "Coding", "Design", "Shopping", "Photography", "Video",
@@ -90,7 +92,7 @@ export default function SubmitWebsite() {
 
   const handleFinalSubmit = async () => {
     if (!db || !url || !name || !description || !user || !storage || !category) {
-      toast({ variant: "destructive", title: "Missing Info", description: "Please fill all required fields, including Category." });
+      toast({ variant: "destructive", title: "Missing Info", description: "Please fill all required fields." });
       return;
     }
 
@@ -104,12 +106,19 @@ export default function SubmitWebsite() {
     setSubmitting(true);
     try {
       let publicLogoUrl = "";
+      
+      // Upload Logo (Blocking since we need the URL for the document)
       if (logoFile) {
         const fileExt = logoFile.name.split('.').pop();
         const storageRef = ref(storage, `logos/${user.uid}/${Date.now()}.${fileExt}`);
         await uploadBytes(storageRef, logoFile);
         publicLogoUrl = await getDownloadURL(storageRef);
       }
+
+      // Generate a client-side ID so we can set related docs immediately
+      const submissionsCollection = collection(db, "submissions");
+      const submissionDocRef = doc(submissionsCollection);
+      const statsDocRef = doc(db, "websiteStats", submissionDocRef.id);
 
       const submissionData = {
         url,
@@ -125,9 +134,7 @@ export default function SubmitWebsite() {
         timestamp: serverTimestamp()
       };
 
-      const docRef = await addDoc(collection(db, "submissions"), submissionData);
-      
-      await setDoc(doc(db, "websiteStats", docRef.id), {
+      const statsData = {
         logoUrl: publicLogoUrl,
         visitCount: 0,
         likeCount: 0,
@@ -135,14 +142,39 @@ export default function SubmitWebsite() {
         ratingSum: 0,
         ratingCount: 0,
         lastPreviewUpdate: serverTimestamp()
-      });
+      };
 
+      // Non-blocking writes
+      setDoc(submissionDocRef, submissionData)
+        .catch(async (error) => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: submissionDocRef.path,
+            operation: 'create',
+            requestResourceData: submissionData
+          }));
+        });
+
+      setDoc(statsDocRef, statsData)
+        .catch(async (error) => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: statsDocRef.path,
+            operation: 'create',
+            requestResourceData: statsData
+          }));
+        });
+
+      // Transition to success state immediately
       setSubmitted(true);
-      toast({ title: "Submission Received!", description: "Reviewing your project now." });
-      setTimeout(() => router.push("/profile"), 2000);
+      setSubmitting(false);
+      toast({ title: "Submission Received!", description: "Your project is now under review." });
+      
+      setTimeout(() => {
+        router.push("/profile");
+      }, 3000);
+
     } catch (error: any) {
       console.error("[Client] Final Submission Error:", error);
-      toast({ variant: "destructive", title: "Submission Failed", description: error.message });
+      toast({ variant: "destructive", title: "Submission Failed", description: error.message || "An unexpected error occurred." });
       setSubmitting(false);
     }
   };
@@ -153,10 +185,21 @@ export default function SubmitWebsite() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navigation />
       <main className="flex-1 flex items-center justify-center p-4">
-        <div className="text-center space-y-6 animate-in zoom-in duration-500">
-          <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-green-500/20"><Check className="w-12 h-12 text-white" strokeWidth={4} /></div>
-          <h2 className="text-4xl font-extrabold text-white">Project Lodged</h2>
-          <p className="text-muted-foreground text-lg">Your submission is being reviewed by our team.</p>
+        <div className="max-w-md w-full text-center space-y-8 animate-in zoom-in duration-700">
+          <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/20 ring-8 ring-emerald-500/5">
+            <Check className="w-12 h-12 text-white" strokeWidth={4} />
+          </div>
+          <div className="space-y-3">
+            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Project Lodged</h2>
+            <p className="text-muted-foreground font-medium text-lg leading-relaxed">
+              Your submission has been entered into the registry. It will go live automatically after administrator approval.
+            </p>
+          </div>
+          <div className="pt-6">
+            <Button onClick={() => router.push("/profile")} className="rounded-full px-10 h-14 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold transition-all">
+              Return to Profile
+            </Button>
+          </div>
         </div>
       </main>
     </div>

@@ -24,6 +24,7 @@ import {
   Eye,
   TrendingUp,
   ExternalLink,
+  FileText
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { WebsitePreview } from "@/components/website-preview";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 type AdminSection = 
   | 'overview' 
@@ -172,18 +174,37 @@ export default function AdminDashboard() {
                               <td className="p-5">
                                  <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 overflow-hidden"><WebsitePreview websiteUrl={sub.url} alt={sub.url} className="w-full h-full" /></div>
-                                    <span className="text-sm font-bold truncate">{sub.url?.replace('https://', '')}</span>
+                                    <div className="min-w-0">
+                                       <span className="text-sm font-bold truncate block">{sub.name || sub.url?.replace('https://', '')}</span>
+                                       <span className="text-[10px] text-slate-400 truncate block">{sub.url}</span>
+                                    </div>
                                  </div>
                               </td>
                               <td className="p-5 text-[11px] font-medium text-slate-500">{sub.userEmail}</td>
-                              <td className="p-5"><Badge className={cn("rounded-lg px-3 py-1 text-[9px] font-bold uppercase", sub.status === 'approved' ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700")}>{sub.status}</Badge></td>
+                              <td className="p-5"><Badge className={cn("rounded-lg px-3 py-1 text-[9px] font-bold uppercase", sub.status === 'approved' ? "bg-emerald-100 text-emerald-700" : sub.status === 'rejected' ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700")}>{sub.status}</Badge></td>
                               <td className="p-5 text-right">
-                                 {sub.status === 'pending' && (
-                                   <div className="flex items-center justify-end gap-2">
-                                      <Button onClick={() => handleStatusUpdate(sub.id, 'approved')} className="h-8 px-4 rounded-lg bg-emerald-600 text-white font-bold text-[10px] uppercase">Accept</Button>
-                                      <Button onClick={() => handleStatusUpdate(sub.id, 'rejected')} variant="outline" className="h-8 px-4 rounded-lg border-rose-200 text-rose-600 font-bold text-[10px] uppercase">Decline</Button>
-                                   </div>
-                                 )}
+                                 <div className="flex items-center justify-end gap-2">
+                                    <Dialog>
+                                       <DialogTrigger asChild><Button variant="outline" size="sm" className="h-8 rounded-lg text-[10px] font-bold uppercase"><FileText className="w-3.5 h-3.5 mr-1" /> Details</Button></DialogTrigger>
+                                       <DialogContent className="max-w-2xl bg-white border-none shadow-2xl rounded-2xl">
+                                          <DialogHeader><DialogTitle className="text-2xl font-black tracking-tighter italic uppercase">Review Submission</DialogTitle></DialogHeader>
+                                          <div className="space-y-6 pt-4">
+                                             <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1"><p className="text-[10px] font-black uppercase text-slate-400">Name</p><p className="font-bold text-slate-900">{sub.name}</p></div>
+                                                <div className="space-y-1"><p className="text-[10px] font-black uppercase text-slate-400">Pricing</p><p className="font-bold text-slate-900">{sub.pricing}</p></div>
+                                             </div>
+                                             <div className="space-y-1"><p className="text-[10px] font-black uppercase text-slate-400">Description</p><p className="text-sm text-slate-600 leading-relaxed">{sub.description}</p></div>
+                                             <div className="space-y-1"><p className="text-[10px] font-black uppercase text-slate-400">Tags</p><div className="flex flex-wrap gap-2">{sub.categories?.map((t: string) => <Badge key={t} className="bg-slate-100 text-slate-600 border-none">{t}</Badge>)}</div></div>
+                                          </div>
+                                       </DialogContent>
+                                    </Dialog>
+                                    {sub.status === 'pending' && (
+                                       <>
+                                          <Button onClick={() => handleStatusUpdate(sub.id, 'approved')} className="h-8 px-4 rounded-lg bg-emerald-600 text-white font-bold text-[10px] uppercase">Accept</Button>
+                                          <Button onClick={() => handleStatusUpdate(sub.id, 'rejected')} variant="outline" className="h-8 px-4 rounded-lg border-rose-200 text-rose-600 font-bold text-[10px] uppercase">Decline</Button>
+                                       </>
+                                    )}
+                                 </div>
                               </td>
                            </tr>
                          ))}

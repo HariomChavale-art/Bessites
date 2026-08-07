@@ -32,13 +32,16 @@ export function initializeFirebase(): {
     
     let firestore: Firestore;
     
-    if (getApps().length > 0) {
-      firestore = getFirestore(firebaseApp);
-    } else {
+    // In environments like Firebase Studio / Cloud Workstations, 
+    // standard Firestore networking often fails. Long polling is more reliable.
+    try {
       firestore = initializeFirestore(firebaseApp, {
         experimentalAutoDetectLongPolling: true,
         experimentalForceLongPolling: true, 
       });
+    } catch (e) {
+      // If already initialized (common with HMR), just get the existing instance
+      firestore = getFirestore(firebaseApp);
     }
     
     const auth = getAuth(firebaseApp);

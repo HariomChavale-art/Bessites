@@ -144,7 +144,7 @@ export default function SubmitWebsite() {
       
       setTimeout(() => {
         router.push("/profile");
-      }, 3000);
+      }, 5000);
 
     } catch (error: any) {
       console.error("Submission Error:", error);
@@ -165,9 +165,9 @@ export default function SubmitWebsite() {
             <Check className="w-12 h-12 text-white" strokeWidth={4} />
           </div>
           <div className="space-y-3">
-            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Project Submitted</h2>
+            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Your website is successfully</h2>
             <p className="text-muted-foreground font-medium text-lg leading-relaxed">
-              Your submission has been entered into the registry. It will go live automatically after administrator approval.
+              Wait for the admins approval to get you website live
             </p>
           </div>
           <div className="pt-6">

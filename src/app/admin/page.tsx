@@ -115,7 +115,8 @@ export default function AdminDashboard() {
     if (!db) return;
     const subRef = doc(db, "submissions", subId);
     updateDoc(subRef, { status }).then(() => {
-        toast({ title: `Website ${status.toUpperCase()}`, description: `Registry updated successfully.` });
+        const statusLabel = status === 'approved' ? 'Approved' : 'Not Approved';
+        toast({ title: `Website ${statusLabel}`, description: `Registry updated successfully.` });
     });
   };
 
@@ -181,7 +182,13 @@ export default function AdminDashboard() {
                                  </div>
                               </td>
                               <td className="p-5 text-[11px] font-medium text-slate-500">{sub.userEmail}</td>
-                              <td className="p-5"><Badge className={cn("rounded-lg px-3 py-1 text-[9px] font-bold uppercase", sub.status === 'approved' ? "bg-emerald-100 text-emerald-700" : sub.status === 'rejected' ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700")}>{sub.status}</Badge></td>
+                              <td className="p-5">
+                                <Badge className={cn("rounded-lg px-3 py-1 text-[9px] font-bold uppercase", 
+                                  sub.status === 'approved' ? "bg-emerald-100 text-emerald-700" : 
+                                  sub.status === 'rejected' ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700")}>
+                                  {sub.status === 'approved' ? 'Approved' : sub.status === 'rejected' ? 'Not Approved' : 'Pending'}
+                                </Badge>
+                              </td>
                               <td className="p-5 text-right">
                                  <div className="flex items-center justify-end gap-2">
                                     <Dialog>

@@ -1,5 +1,4 @@
-
-'use client';
+"use client"
 
 import { useMemo, useState } from "react";
 import { useFirestore, useCollection, useUser, useDoc, useAuth } from "@/firebase";
@@ -259,7 +258,7 @@ export default function MyWebsitesPage() {
                             <Badge className={cn("uppercase text-[9px] font-black px-4 py-1 rounded-full border-none", 
                               site.status === 'approved' ? "bg-emerald-500/10 text-emerald-400" : 
                               site.status === 'rejected' ? "bg-red-500/10 text-red-400" : "bg-white/5 text-muted-foreground/30")}>
-                              {site.status || 'pending'}
+                              {site.status === 'approved' ? 'Approved' : site.status === 'rejected' ? 'Not Approved' : 'Pending'}
                             </Badge>
                           </td>
                           <td className="p-8 text-sm font-black italic tracking-tighter text-white">{(views * 4).toLocaleString()}</td>

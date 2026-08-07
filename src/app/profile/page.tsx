@@ -304,8 +304,8 @@ export default function ProfilePage() {
                     <Card key={sub.id} className="bg-white/[0.03] border-white/5 p-6 rounded-3xl group hover:border-primary/20 transition-all shadow-xl">
                       <div className="flex items-start justify-between mb-4">
                         <div className="bg-primary/10 p-3 rounded-2xl text-primary group-hover:scale-110 transition-transform"><ExternalLink className="w-6 h-6" /></div>
-                        <Badge className={cn("uppercase font-black tracking-widest text-[10px] px-3 py-1 rounded-full border-none", sub.status === 'pending' ? "bg-amber-500/10 text-amber-500" : sub.status === 'rejected' ? "bg-red-500/10 text-red-500" : "bg-green-500/10 text-green-500")}>
-                          {sub.status || 'pending'}
+                        <Badge className={cn("uppercase font-black tracking-widest text-[10px] px-3 py-1 rounded-full border-none", sub.status === 'approved' ? "bg-green-500/10 text-green-500" : sub.status === 'rejected' ? "bg-red-500/10 text-red-500" : "bg-amber-500/10 text-amber-500")}>
+                          {sub.status === 'approved' ? 'Approved' : sub.status === 'rejected' ? 'Not Approved' : 'Pending'}
                         </Badge>
                       </div>
                       <h3 className="text-xl font-bold text-white mb-1 truncate group-hover:text-primary transition-colors">{sub.url.replace('https://', '')}</h3>

@@ -521,21 +521,27 @@ function ExploreItemRow({ app }: { app: any }) {
 
         <div className="flex-1 min-w-0 py-2">
           <Link href={`/website/${app.id}`} className="block mb-4">
-            <h4 className="text-xl sm:text-3xl font-extrabold text-white leading-tight tracking-tighter group-hover:text-primary transition-colors whitespace-normal">
+            <h4 className="text-xl sm:text-4xl font-extrabold text-white leading-tight tracking-tighter group-hover:text-primary transition-colors whitespace-normal">
               {brandName}
             </h4>
+            
+            <p className="text-xs sm:text-sm text-primary font-black uppercase tracking-[0.25em] mt-2 mb-1.5">
+              {app.developer}
+            </p>
+
             {discoveryTitle && (
-              <p className="text-sm sm:text-base text-muted-foreground font-medium uppercase tracking-widest opacity-60">
+              <p className="text-sm sm:text-xl text-muted-foreground font-medium uppercase tracking-widest opacity-60 leading-tight">
                 {discoveryTitle}
               </p>
             )}
           </Link>
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-2 mb-6">
             {app.categories?.slice(0, 4).map((cat: string) => (
-              <span key={cat} className="text-[9px] font-black uppercase tracking-widest text-primary/60">{cat}</span>
+              <span key={cat} className="text-[9px] font-black uppercase tracking-widest text-primary/60 border border-primary/10 px-2.5 py-1 rounded-lg">{cat}</span>
             ))}
           </div>
-          <div className="text-[10px] sm:text-xs text-muted-foreground/30 font-medium tracking-widest uppercase">
+          <div className="text-[10px] sm:text-xs text-muted-foreground/30 font-medium tracking-widest uppercase flex items-center gap-2">
+            <Globe className="w-3 h-3" />
             {app.url.replace('https://', '').replace('www.', '').split('/')[0]}
           </div>
         </div>

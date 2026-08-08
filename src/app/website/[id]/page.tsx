@@ -235,8 +235,13 @@ export default function WebsiteDetail() {
               <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tighter italic uppercase leading-none truncate">
                 {brandName}
               </h1>
+              
+              <p className="text-sm sm:text-base text-primary font-black uppercase tracking-[0.3em] italic mb-2">
+                By {dynamicWebsite.developer}
+              </p>
+
               {discoveryTitle && (
-                <p className="text-lg sm:text-2xl text-muted-foreground font-bold uppercase tracking-widest opacity-60 italic">
+                <p className="text-lg sm:text-2xl text-muted-foreground font-bold uppercase tracking-widest opacity-60 italic leading-tight">
                   {discoveryTitle}
                 </p>
               )}
@@ -264,12 +269,18 @@ export default function WebsiteDetail() {
 
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 mb-16">
            <div className="xl:col-span-3 space-y-8">
-              <div className="bg-[#121117] border border-white/5 p-10 rounded-[3.5rem] shadow-2xl space-y-8 relative overflow-hidden group">
+              <div className="bg-[#121117] border border-white/5 p-10 rounded-[3.5rem] shadow-2xl space-y-10 relative overflow-hidden group">
                  <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                  <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter border-b border-white/5 pb-4">About / Discovery</h2>
-                 <p className="text-xl sm:text-2xl text-white font-bold leading-relaxed italic drop-shadow-sm selection:bg-primary selection:text-white">
+                 <p className="text-2xl sm:text-4xl text-white font-black leading-[1.1] italic drop-shadow-lg tracking-tight selection:bg-primary selection:text-white">
                    {dynamicWebsite.description || dynamicWebsite.longDescription}
                  </p>
+                 <div className="pt-6 flex items-center gap-4">
+                    <div className="h-1 flex-1 bg-white/5 rounded-full overflow-hidden">
+                       <div className="h-full w-1/3 bg-primary animate-marquee-slow" />
+                    </div>
+                    <Sparkles className="w-6 h-6 text-primary animate-pulse" />
+                 </div>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

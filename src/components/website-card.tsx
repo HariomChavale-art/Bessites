@@ -2,7 +2,7 @@
 
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
-import { Tag, TrendingUp } from "lucide-react";
+import { Tag, TrendingUp, User as UserIcon } from "lucide-react";
 import { WebsitePreview } from "./website-preview";
 import { useMemo } from "react";
 import { useFirestore, useDoc } from "@/firebase";
@@ -16,7 +16,7 @@ interface WebsiteCardProps {
 /**
  * WebsiteCard refined for Bessites discovery.
  * - Displays Website Name as primary.
- * - Shows Discovery Title (name) separately.
+ * - Shows Developer and Discovery Title (name) separately.
  * - Hides About/Discovery content until clicked.
  */
 export function WebsiteCard({ website }: WebsiteCardProps) {
@@ -81,12 +81,18 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
             <h3 className="font-headline font-bold text-sm sm:text-lg text-white group-hover:text-primary transition-colors whitespace-normal leading-tight">
               {brandName}
             </h3>
+            
+            <p className="text-[8px] sm:text-[10px] text-primary/60 font-black uppercase tracking-[0.2em] mt-1.5 mb-1">
+              {website.developer}
+            </p>
+
             {discoveryTitle && (
-              <p className="text-[10px] sm:text-xs text-muted-foreground font-medium mt-1 uppercase tracking-tighter opacity-80">
+              <p className="text-[10px] sm:text-xs text-muted-foreground font-medium uppercase tracking-tighter opacity-80 leading-tight line-clamp-2">
                 {discoveryTitle}
               </p>
             )}
-            <p className="text-[9px] sm:text-[10px] text-muted-foreground/30 font-medium tracking-widest uppercase mt-2">
+
+            <p className="text-[9px] sm:text-[10px] text-muted-foreground/30 font-medium tracking-widest uppercase mt-3 pt-3 border-t border-white/5">
               {website.url.replace('https://', '').replace('www.', '').split('/')[0]}
             </p>
           </Link>

@@ -247,6 +247,7 @@ export default function ExplorePage() {
     const firestoreSites = (submittedSites || []).map(s => ({
       id: s.id,
       name: s.name || s.url?.split('//')[1]?.split('.')[0] || "New Project",
+      websiteName: s.websiteName || s.name,
       developer: s.userEmail || "Community",
       description: s.description || "User submitted project",
       categories: s.categories || ["Web App"],
@@ -260,7 +261,7 @@ export default function ExplorePage() {
     
     firestoreSites.forEach(s => {
       if (!seenIds.has(s.id)) {
-        uniquePool.push(s);
+        uniquePool.push(s as any);
         seenIds.add(s.id);
       }
     });
@@ -268,19 +269,13 @@ export default function ExplorePage() {
     return uniquePool;
   }, [submittedSites]);
 
-  // Dynamically calculate the list of all available categories across both mock and submitted sites
   const dynamicCategoriesList = useMemo(() => {
     const categoriesSet = new Set<string>();
-    
-    // Add static ones first
     STATIC_CATEGORIES.forEach(cat => categoriesSet.add(cat.name));
-    
-    // Add from all currently approved websites
     allWebsites.forEach(site => {
       site.categories?.forEach(cat => categoriesSet.add(cat));
     });
 
-    // Map into objects for the UI
     return Array.from(categoriesSet).map(name => {
       const existing = STATIC_CATEGORIES.find(c => c.name === name);
       if (existing) return existing;
@@ -292,7 +287,7 @@ export default function ExplorePage() {
     return allWebsites.filter(app => {
       const queryText = searchQuery.toLowerCase().trim();
       const matchesSearch = !searchQuery || 
-        app.name.toLowerCase().includes(queryText) ||
+        (app.websiteName || app.name).toLowerCase().includes(queryText) ||
         app.description.toLowerCase().includes(queryText) ||
         app.url.toLowerCase().includes(queryText) ||
         app.categories.some(cat => cat.toLowerCase().includes(queryText));
@@ -497,8 +492,8 @@ function ExploreItemRow({ app }: { app: any }) {
             <WebsitePreview 
               websiteId={app.id}
               websiteUrl={app.url}
-              fallbackUrl={app.imageUrl || ""}
-              alt={app.name}
+              fallbackUrl={app.logoUrl || app.imageUrl || ""}
+              alt={app.websiteName || app.name}
               width={512}
               height={512}
               className="w-full h-full"
@@ -524,7 +519,7 @@ function ExploreItemRow({ app }: { app: any }) {
         <div className="flex-1 min-w-0 py-2">
           <Link href={`/website/${app.id}`} className="block mb-4">
             <h4 className="text-xl sm:text-3xl font-extrabold text-white leading-tight tracking-tighter group-hover:text-primary transition-colors whitespace-normal">
-              {app.name} • <span className="text-muted-foreground font-normal">{app.description}</span>
+              {app.websiteName || app.name} • <span className="text-muted-foreground font-normal">{app.description}</span>
             </h4>
           </Link>
           <div className="flex flex-wrap gap-2 mb-4">

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -42,7 +41,7 @@ export default function SubmitWebsite() {
   
   const [url, setUrl] = useState("");
   const [websiteName, setWebsiteName] = useState("");
-  const [name, setName] = useState("");
+  const [name, setName] = useState(""); // This is the "Title" field
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [categorySearch, setCategorySearch] = useState("");
@@ -105,11 +104,13 @@ export default function SubmitWebsite() {
       return;
     }
 
+    // STRICT VALIDATION: Website Name, Title, Description, URL, and Category are all required
     if (!url || !websiteName || !name || !description || !category) {
-      toast({ variant: "destructive", title: "Missing Info", description: "Please fill all required fields." });
+      toast({ variant: "destructive", title: "Missing Info", description: "Please fill all required fields, including Website Name and Title." });
       return;
     }
 
+    // STRICT LOGO VALIDATION: Logo is mandatory
     if (!logoFile) {
       toast({ variant: "destructive", title: "Logo Required", description: "Please add a logo before submitting your website." });
       return;
@@ -157,14 +158,14 @@ export default function SubmitWebsite() {
       
       publicLogoUrl = publicUrl;
 
-      // 2. Submit Project to Firestore with Timeout Race
+      // 2. Submit Project to Firestore
       console.log("[Bessites Debug] Initiating Firestore save...");
       
       const firestoreTask = async () => {
         const submissionRef = await addDoc(collection(db, "submissions"), {
           url,
-          websiteName,
-          name, // Discovery Title
+          websiteName, // The Brand Name
+          name, // The Discovery Title
           description,
           longDescription: description,
           categories: [category, ...tags].filter(Boolean),
@@ -176,6 +177,7 @@ export default function SubmitWebsite() {
           timestamp: serverTimestamp()
         });
 
+        // Initialize global stats with the uploaded logo
         await setDoc(doc(db, "websiteStats", submissionRef.id), {
           logoUrl: publicLogoUrl,
           visitCount: 0,
@@ -195,6 +197,7 @@ export default function SubmitWebsite() {
     } catch (error: any) {
       console.error("[Bessites Error] Complete Submission Flow Failure:", error);
       
+      // Cleanup orphaned file if DB save fails
       if (uploadedFilePath) {
         await supabase.storage.from('Website-images').remove([uploadedFilePath]);
       }
@@ -255,6 +258,7 @@ export default function SubmitWebsite() {
             </CardHeader>
             
             <CardContent className="p-10 pt-0 space-y-10">
+              {/* URL SECTION */}
               <div className="space-y-4">
                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Live Website URL</Label>
                 <div className="relative">
@@ -268,8 +272,12 @@ export default function SubmitWebsite() {
                 </div>
               </div>
 
+              {/* LOGO SECTION - REQUIRED */}
               <div className="space-y-4">
-                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Official Logo (Required)</Label>
+                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1 flex items-center justify-between">
+                    Official Logo (Required)
+                    {!logoFile && <span className="text-rose-500 text-[8px] font-black uppercase">* Mandatory</span>}
+                 </Label>
                  <div onClick={() => fileInputRef.current?.click()} className={cn(
                    "group relative w-full h-48 rounded-[2.5rem] border-2 border-dashed bg-white/5 flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all duration-500",
                    logoPreview ? "border-emerald-500/20" : "border-white/10 hover:border-primary/40"
@@ -286,29 +294,33 @@ export default function SubmitWebsite() {
                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
               </div>
 
+              {/* WEBSITE NAME - BRAND */}
               <div className="space-y-4">
                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Website Name</Label>
                 <div className="relative">
                    <Type className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground opacity-30" />
-                   <Input placeholder="e.g. Canva, GitHub, Figma" value={websiteName} onChange={(e) => setWebsiteName(e.target.value)} className="pl-14 h-16 bg-white/5 border-white/10 rounded-2xl text-lg font-bold" />
+                   <Input placeholder="The Brand Name (e.g. Canva, GitHub, Figma)" value={websiteName} onChange={(e) => setWebsiteName(e.target.value)} className="pl-14 h-16 bg-white/5 border-white/10 rounded-2xl text-lg font-bold" />
                 </div>
               </div>
 
+              {/* DISCOVERY TITLE */}
               <div className="space-y-4">
                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Discovery Title</Label>
                 <div className="relative">
                    <FileText className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground opacity-30" />
-                   <Input placeholder="A short descriptive title for search..." value={name} onChange={(e) => setName(e.target.value)} className="pl-14 h-16 bg-white/5 border-white/10 rounded-2xl text-lg font-bold" />
+                   <Input placeholder="Short descriptive title for search (e.g. Free Graphic Design Tool)" value={name} onChange={(e) => setName(e.target.value)} className="pl-14 h-16 bg-white/5 border-white/10 rounded-2xl text-lg font-bold" />
                 </div>
               </div>
 
+              {/* DESCRIPTION */}
               <div className="space-y-4">
                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">About / Discovery Description</Label>
                 <div className="relative">
-                  <Textarea placeholder="Explain what the website does and why it's a hidden gem..." value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[150px] bg-white/5 border-white/10 rounded-[2rem] text-sm font-medium p-6" />
+                  <Textarea placeholder="Explain what the website does and why it's a hidden gem... This will appear in the 'About' section." value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[150px] bg-white/5 border-white/10 rounded-[2rem] text-sm font-medium p-6" />
                 </div>
               </div>
 
+              {/* CATEGORY & PRICING */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                  <div className="space-y-4">
                     <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Primary Sector</Label>
@@ -375,7 +387,7 @@ export default function SubmitWebsite() {
             </CardContent>
             
             <CardFooter className="p-10 pt-0">
-              <Button onClick={handleFinalSubmit} disabled={submitting || !url || !websiteName || !name || !description || !category || !logoFile} className="w-full h-20 rounded-[2.5rem] bg-white text-black hover:bg-white/90 text-2xl font-black italic shadow-2xl transition-all active:scale-95 group">
+              <Button onClick={handleFinalSubmit} disabled={submitting} className="w-full h-20 rounded-[2.5rem] bg-white text-black hover:bg-white/90 text-2xl font-black italic shadow-2xl transition-all active:scale-95 group">
                 {submitting ? <Loader2 className="w-8 h-8 animate-spin" /> : <><Send className="w-6 h-6 mr-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> PUBLISH TO REGISTRY</>}
               </Button>
             </CardFooter>

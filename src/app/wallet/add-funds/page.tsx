@@ -37,7 +37,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-// Updated Official Payment QR Image from Google Drive direct link
+// Updated Official Payment QR Image from direct Google Drive link
 const OFFICIAL_QR_URL = "https://drive.google.com/uc?export=view&id=1ZSk3lrhA9kj6XPfJTCuDKJjVxzaGScKJ";
 
 export default function AddFundsPage() {
@@ -198,10 +198,6 @@ export default function AddFundsPage() {
                           src={OFFICIAL_QR_URL}
                           alt="Official Payment QR"
                           className="w-full h-full object-cover"
-                          onError={(e) => {
-                            // Fallback if the raw URL isn't available yet
-                            (e.target as HTMLImageElement).src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent("upi://pay?pa=hariomchavale@ybl&pn=Bessites&cu=INR")}`;
-                          }}
                         />
                      </div>
                   </div>

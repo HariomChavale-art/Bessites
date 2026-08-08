@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -9,11 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send, Check, Plus, X, Image as ImageIcon, Globe, Type, FileText, Search } from "lucide-react";
+import { Loader2, Send, Check, Plus, X, Image as ImageIcon, Globe, Type, FileText, Search, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useUser, useFirestore } from "@/firebase";
 import { collection, serverTimestamp, addDoc, doc, setDoc } from "firebase/firestore";
-import { supabase } from "@/lib/supabase";
+import { supabase, getSupabaseConfigStatus } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -95,7 +94,16 @@ export default function SubmitWebsite() {
     }
 
     if (!supabase) {
-      toast({ variant: "destructive", title: "Storage Error", description: "Supabase Storage is not configured. Check your environment variables." });
+      const status = getSupabaseConfigStatus();
+      const missing = [];
+      if (!status.hasUrl) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+      if (!status.hasKey) missing.push("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+      
+      toast({ 
+        variant: "destructive", 
+        title: "Configuration Error", 
+        description: `Supabase variables missing: ${missing.join(', ')}. Please update your .env file.` 
+      });
       return;
     }
 
@@ -122,7 +130,6 @@ export default function SubmitWebsite() {
         const fileExt = logoFile.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
         // Path structure: logos/{userId}/{unique-name}
-        // This structure is critical for the RLS policy (storage.foldername(name))[2]
         uploadedFilePath = `logos/${user!.uid}/${fileName}`;
         
         console.log(`[Bessites Debug] Starting upload to Supabase: ${uploadedFilePath}`);

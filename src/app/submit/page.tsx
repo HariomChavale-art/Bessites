@@ -95,7 +95,7 @@ export default function SubmitWebsite() {
     }
 
     if (!supabase) {
-      toast({ variant: "destructive", title: "Storage Error", description: "Supabase Storage is not configured correctly. Check environment variables." });
+      toast({ variant: "destructive", title: "Storage Error", description: "Supabase Storage is not configured. Check your environment variables." });
       return;
     }
 
@@ -252,7 +252,7 @@ export default function SubmitWebsite() {
               </div>
 
               <div className="space-y-4">
-                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Branding & Logo (Supabase Storage)</Label>
+                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Branding & Logo</Label>
                  <div onClick={() => fileInputRef.current?.click()} className="group relative w-full h-48 rounded-[2.5rem] border-2 border-dashed border-white/10 hover:border-primary/40 bg-white/5 flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all duration-500">
                   {logoPreview ? <img src={logoPreview} alt="Logo Preview" className="w-full h-full object-cover" /> : <><ImageIcon className="w-12 h-12 text-muted-foreground group-hover:text-primary transition-colors" /><span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 mt-3 italic">Upload Property Mark</span></>}
                  </div>
@@ -271,7 +271,7 @@ export default function SubmitWebsite() {
                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Description</Label>
                 <div className="relative">
                   <FileText className="absolute left-5 top-6 w-5 h-5 text-muted-foreground opacity-30" />
-                  <Textarea placeholder="Explain what the website does and why users should visit..." value={description} onChange={(e) => setDescription(e.target.value)} className="pl-14 min-h-[150px] bg-white/5 border-white/10 rounded-[2rem] text-sm font-medium pt-5" />
+                  <Textarea placeholder="Explain what the website does..." value={description} onChange={(e) => setDescription(e.target.value)} className="pl-14 min-h-[150px] bg-white/5 border-white/10 rounded-[2rem] text-sm font-medium pt-5" />
                 </div>
               </div>
 

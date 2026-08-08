@@ -1,5 +1,6 @@
+
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { initializeFirestore, getFirestore, Firestore, terminate } from 'firebase/firestore';
+import { initializeFirestore, getFirestore, Firestore } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { firebaseConfig } from './config';
@@ -27,12 +28,15 @@ export function initializeFirebase(): {
     
     let firestore: Firestore;
     
-    // Check if firestore is already initialized to avoid "Firestore has already been started" errors
+    // Check if firestore is already initialized to avoid errors
+    // We force long polling to bypass potential WebSocket blocks in cloud environments
     try {
       firestore = initializeFirestore(firebaseApp, {
         experimentalForceLongPolling: true,
       });
+      console.log("[Bessites] Firestore initialized with long polling.");
     } catch (e: any) {
+      // If already initialized, we just retrieve the existing instance
       firestore = getFirestore(firebaseApp);
     }
     

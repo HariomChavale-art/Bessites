@@ -99,7 +99,7 @@ export default function SubmitWebsite() {
       toast({ 
         variant: "destructive", 
         title: "Configuration Missing", 
-        description: `Please check your .env file. Missing: ${!configStatus.hasUrl ? 'URL' : ''} ${!configStatus.hasKey ? 'Key' : ''}` 
+        description: `Supabase variables are not detected correctly. URL: ${configStatus.hasUrl ? 'OK' : 'MISSING'}, Key: ${configStatus.hasKey ? 'OK' : 'MISSING'}` 
       });
       return;
     }
@@ -119,14 +119,18 @@ export default function SubmitWebsite() {
     setSubmitting(true);
     let uploadedFilePath = "";
 
+    // 15-second fail-safe timeout
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("NETWORK_TIMEOUT")), 15000)
+    );
+
     try {
       let publicLogoUrl = "";
       
-      // 1. Upload Logo to Supabase Storage Bucket 'Website-images'
+      // 1. Upload Logo to Supabase
       if (logoFile) {
         const fileExt = logoFile.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        // Path structure: logos/{userId}/{unique-name}
         uploadedFilePath = `logos/${user!.uid}/${fileName}`;
         
         console.log(`[Bessites Debug] Starting upload to Supabase: ${uploadedFilePath}`);
@@ -143,18 +147,17 @@ export default function SubmitWebsite() {
           throw new Error(`Logo upload failed: ${uploadError.message}`);
         }
 
-        console.log("[Bessites Debug] Supabase Upload Success:", uploadData);
-
         const { data: { publicUrl } } = supabase.storage
           .from('Website-images')
           .getPublicUrl(uploadedFilePath);
         
         publicLogoUrl = publicUrl;
-        console.log("[Bessites Debug] Public URL retrieved:", publicLogoUrl);
       }
 
-      // 2. Submit Project to Firestore
-      try {
+      // 2. Submit Project to Firestore with Timeout Race
+      console.log("[Bessites Debug] Initiating Firestore save...");
+      
+      const firestoreTask = async () => {
         const submissionRef = await addDoc(collection(db, "submissions"), {
           url,
           name,
@@ -169,7 +172,6 @@ export default function SubmitWebsite() {
           timestamp: serverTimestamp()
         });
 
-        // 3. Create Stats placeholder
         await setDoc(doc(db, "websiteStats", submissionRef.id), {
           logoUrl: publicLogoUrl,
           visitCount: 0,
@@ -179,26 +181,36 @@ export default function SubmitWebsite() {
           ratingCount: 0,
           lastPreviewUpdate: serverTimestamp()
         });
+      };
 
-        setSubmitted(true);
-        toast({ title: "Submission Received!", description: "Your project is now under review." });
-      } catch (dbError: any) {
-        console.error("[Bessites Error] Firestore Save Failed:", dbError);
-        // CLEANUP: If DB save fails, remove the orphaned file from Supabase
-        if (uploadedFilePath) {
-          console.log("[Bessites Debug] Cleaning up orphaned Supabase file...");
-          await supabase.storage.from('Website-images').remove([uploadedFilePath]);
-        }
-        throw dbError;
-      }
+      // Race the firestore task against the 15s timeout
+      await Promise.race([firestoreTask(), timeoutPromise]);
+
+      setSubmitted(true);
+      toast({ title: "Submission Received!", description: "Your project is now under review." });
       
     } catch (error: any) {
       console.error("[Bessites Error] Complete Submission Flow Failure:", error);
-      toast({ 
-        variant: "destructive", 
-        title: "Submission Failed", 
-        description: error.message || "An unexpected error occurred. Please try again." 
-      });
+      
+      // Cleanup Supabase if we uploaded but then failed
+      if (uploadedFilePath) {
+        console.log("[Bessites Debug] Cleaning up orphaned Supabase file...");
+        await supabase.storage.from('Website-images').remove([uploadedFilePath]);
+      }
+
+      if (error.message === "NETWORK_TIMEOUT") {
+        toast({ 
+          variant: "destructive", 
+          title: "Network Timeout", 
+          description: "The database is taking too long to respond. Please check your internet and try again." 
+        });
+      } else {
+        toast({ 
+          variant: "destructive", 
+          title: "Submission Failed", 
+          description: error.message || "An unexpected error occurred. Please try again." 
+        });
+      }
     } finally {
       setSubmitting(false);
     }
@@ -215,9 +227,9 @@ export default function SubmitWebsite() {
             <Check className="w-12 h-12 text-white" strokeWidth={4} />
           </div>
           <div className="space-y-3">
-            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Your website is successfully</h2>
+            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Website Submitted!</h2>
             <p className="text-muted-foreground font-medium text-lg leading-relaxed">
-              Wait for the admins approval to get you website live
+              Our admins will review your asset. Once approved, it will go live in the discovery pipeline.
             </p>
           </div>
           <div className="pt-6">
@@ -381,4 +393,3 @@ export default function SubmitWebsite() {
     </div>
   );
 }
-

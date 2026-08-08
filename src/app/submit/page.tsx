@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -94,7 +95,7 @@ export default function SubmitWebsite() {
     }
 
     if (!supabase) {
-      toast({ variant: "destructive", title: "Storage Error", description: "Supabase Storage is not configured correctly." });
+      toast({ variant: "destructive", title: "Storage Error", description: "Supabase Storage is not configured correctly. Check environment variables." });
       return;
     }
 
@@ -116,7 +117,7 @@ export default function SubmitWebsite() {
     try {
       let publicLogoUrl = "";
       
-      // 1. Upload Logo to Supabase Storage
+      // 1. Upload Logo to Supabase Storage Bucket 'Website-images'
       if (logoFile) {
         const fileExt = logoFile.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;

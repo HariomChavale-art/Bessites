@@ -122,6 +122,7 @@ export default function SubmitWebsite() {
         const fileExt = logoFile.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
         // Path structure: logos/{userId}/{unique-name}
+        // This structure is critical for the RLS policy (storage.foldername(name))[2]
         uploadedFilePath = `logos/${user!.uid}/${fileName}`;
         
         console.log(`[Bessites Debug] Starting upload to Supabase: ${uploadedFilePath}`);

@@ -484,6 +484,9 @@ function ExploreItemRow({ app }: { app: any }) {
   const totalVisits = stats?.visitCount || 0;
   const isTrending = totalVisits > 50 || totalLikes > 10;
 
+  const brandName = app.websiteName || app.name;
+  const discoveryTitle = app.websiteName ? app.name : "";
+
   return (
     <div className="group relative">
       <div className="flex flex-col md:flex-row items-start gap-6 sm:gap-12 p-5 sm:p-8 rounded-3xl sm:rounded-[3.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-500 overflow-hidden min-h-fit">
@@ -493,7 +496,7 @@ function ExploreItemRow({ app }: { app: any }) {
               websiteId={app.id}
               websiteUrl={app.url}
               fallbackUrl={app.logoUrl || app.imageUrl || ""}
-              alt={app.websiteName || app.name}
+              alt={brandName}
               width={512}
               height={512}
               className="w-full h-full"
@@ -519,8 +522,13 @@ function ExploreItemRow({ app }: { app: any }) {
         <div className="flex-1 min-w-0 py-2">
           <Link href={`/website/${app.id}`} className="block mb-4">
             <h4 className="text-xl sm:text-3xl font-extrabold text-white leading-tight tracking-tighter group-hover:text-primary transition-colors whitespace-normal">
-              {app.websiteName || app.name} • <span className="text-muted-foreground font-normal">{app.description}</span>
+              {brandName}
             </h4>
+            {discoveryTitle && (
+              <p className="text-sm sm:text-base text-muted-foreground font-medium uppercase tracking-widest opacity-60">
+                {discoveryTitle}
+              </p>
+            )}
           </Link>
           <div className="flex flex-wrap gap-2 mb-4">
             {app.categories?.slice(0, 4).map((cat: string) => (

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Website } from "@/lib/mock-data";
@@ -17,7 +16,8 @@ interface WebsiteCardProps {
 /**
  * WebsiteCard refined for Bessites discovery.
  * - Displays Website Name as primary.
- * - Prioritizes submitted logo.
+ * - Shows Discovery Title (name) separately.
+ * - Hides About/Discovery content until clicked.
  */
 export function WebsiteCard({ website }: WebsiteCardProps) {
   const db = useFirestore();
@@ -42,7 +42,8 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   const totalVisits = stats?.visitCount || 0;
   const isTrending = totalVisits > 50 || totalLikes > 10;
 
-  const displayName = website.websiteName || website.name;
+  const brandName = website.websiteName || website.name;
+  const discoveryTitle = website.websiteName ? website.name : "";
 
   return (
     <div className="block break-inside-avoid mb-4 sm:mb-6 group">
@@ -53,7 +54,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
             websiteId={website.id}
             websiteUrl={website.url}
             fallbackUrl={stats?.logoUrl || website.imageUrl}
-            alt={displayName}
+            alt={brandName}
             width={400}
             height={400}
             className="w-full h-full transition-transform duration-700 group-hover:scale-110"
@@ -78,9 +79,14 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
         <div className="p-3 sm:p-6 pt-2 sm:pt-4">
           <Link href={`/website/${website.id}`} className="text-center block">
             <h3 className="font-headline font-bold text-sm sm:text-lg text-white group-hover:text-primary transition-colors whitespace-normal leading-tight">
-              {displayName} • <span className="text-muted-foreground font-normal">{website.description}</span>
+              {brandName}
             </h3>
-            <p className="text-[10px] sm:text-xs text-muted-foreground/30 font-medium tracking-widest uppercase mt-2">
+            {discoveryTitle && (
+              <p className="text-[10px] sm:text-xs text-muted-foreground font-medium mt-1 uppercase tracking-tighter opacity-80">
+                {discoveryTitle}
+              </p>
+            )}
+            <p className="text-[9px] sm:text-[10px] text-muted-foreground/30 font-medium tracking-widest uppercase mt-2">
               {website.url.replace('https://', '').replace('www.', '').split('/')[0]}
             </p>
           </Link>

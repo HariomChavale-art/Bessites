@@ -213,6 +213,9 @@ export default function WebsiteDetail() {
   const likeCount = stats?.likeCount || 0;
   const isTrending = visitCount > 100 || likeCount > 20;
 
+  const brandName = dynamicWebsite.websiteName || dynamicWebsite.name;
+  const discoveryTitle = dynamicWebsite.websiteName ? dynamicWebsite.name : "";
+
   return (
     <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30">
       <Navigation />
@@ -223,21 +226,26 @@ export default function WebsiteDetail() {
             <WebsitePreview 
               websiteUrl={dynamicWebsite.url}
               fallbackUrl={dynamicWebsite.logoUrl || dynamicWebsite.imageUrl}
-              alt={dynamicWebsite.websiteName || dynamicWebsite.name}
+              alt={brandName}
               className="w-full h-full group-hover:scale-110 transition-transform duration-700"
             />
           </div>
-          <div className="flex-1 min-w-0 space-y-6">
-            <div className="space-y-2">
+          <div className="flex-1 min-w-0 space-y-4">
+            <div className="space-y-1">
               <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tighter italic uppercase leading-none truncate">
-                {dynamicWebsite.websiteName || dynamicWebsite.name}
+                {brandName}
               </h1>
-              <div className="flex flex-wrap items-center gap-4">
+              {discoveryTitle && (
+                <p className="text-lg sm:text-2xl text-muted-foreground font-bold uppercase tracking-widest opacity-60 italic">
+                  {discoveryTitle}
+                </p>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-4">
                  <p className="text-primary font-bold text-xl flex items-center gap-2 italic">
                    <Globe className="w-5 h-5" /> {dynamicWebsite.url.replace('https://', '').replace('www.', '').split('/')[0]}
                  </p>
                  <Badge variant="outline" className="border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest px-3 py-1 italic">{dynamicWebsite.pricing || 'Free'}</Badge>
-              </div>
             </div>
             <div className="flex flex-wrap gap-2">
               {dynamicWebsite.categories?.map((cat: string) => (
@@ -251,25 +259,15 @@ export default function WebsiteDetail() {
                 </Badge>
               )}
             </div>
-
-            <div className="flex items-center gap-4 pt-2">
-               <div className="flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-white/5 border border-white/5">
-                  <UserIcon className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-[10px] font-black text-white uppercase tracking-widest italic">{dynamicWebsite.userEmail ? `LODGED BY ${dynamicWebsite.userEmail.split('@')[0]}` : 'CURATED BY BESSITES'}</span>
-               </div>
-               <div className="flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-white/5 border border-white/5">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-[10px] font-black text-white uppercase tracking-widest italic">VERSION 1.0</span>
-               </div>
-            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 mb-16">
            <div className="xl:col-span-3 space-y-8">
-              <div className="bg-[#121117] border border-white/5 p-10 rounded-[3.5rem] shadow-2xl space-y-6">
-                 <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">About / Discovery</h2>
-                 <p className="text-lg text-muted-foreground font-medium leading-relaxed italic">
+              <div className="bg-[#121117] border border-white/5 p-10 rounded-[3.5rem] shadow-2xl space-y-8 relative overflow-hidden group">
+                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                 <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter border-b border-white/5 pb-4">About / Discovery</h2>
+                 <p className="text-xl sm:text-2xl text-white font-bold leading-relaxed italic drop-shadow-sm selection:bg-primary selection:text-white">
                    {dynamicWebsite.description || dynamicWebsite.longDescription}
                  </p>
               </div>

@@ -2,9 +2,9 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Load Supabase URL and Publishable (Anon) Key from environment variables.
-// These are safe to expose in the browser and should match the 'sb_publishable_...' key in your dashboard.
+// These match the 'sb_publishable_...' key in your dashboard.
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '';
 
 // Defensive check to prevent application crashes if environment variables are missing.
 const isConfigValid = 

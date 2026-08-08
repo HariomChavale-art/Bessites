@@ -121,9 +121,10 @@ export default function SubmitWebsite() {
       if (logoFile) {
         const fileExt = logoFile.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        // Path structure: logos/{userId}/{unique-name}
         uploadedFilePath = `logos/${user!.uid}/${fileName}`;
         
-        console.log(`Uploading to Supabase: ${uploadedFilePath}...`);
+        console.log(`[Bessites Debug] Starting upload to Supabase: ${uploadedFilePath}`);
         
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('Website-images')
@@ -133,15 +134,18 @@ export default function SubmitWebsite() {
           });
 
         if (uploadError) {
-          console.error("Supabase Upload Error:", uploadError);
+          console.error("[Bessites Error] Supabase Upload Failed:", uploadError);
           throw new Error(`Logo upload failed: ${uploadError.message}`);
         }
+
+        console.log("[Bessites Debug] Supabase Upload Success:", uploadData);
 
         const { data: { publicUrl } } = supabase.storage
           .from('Website-images')
           .getPublicUrl(uploadedFilePath);
         
         publicLogoUrl = publicUrl;
+        console.log("[Bessites Debug] Public URL retrieved:", publicLogoUrl);
       }
 
       // 2. Submit Project to Firestore
@@ -174,15 +178,17 @@ export default function SubmitWebsite() {
         setSubmitted(true);
         toast({ title: "Submission Received!", description: "Your project is now under review." });
       } catch (dbError: any) {
+        console.error("[Bessites Error] Firestore Save Failed:", dbError);
         // CLEANUP: If DB save fails, remove the orphaned file from Supabase
         if (uploadedFilePath) {
+          console.log("[Bessites Debug] Cleaning up orphaned Supabase file...");
           await supabase.storage.from('Website-images').remove([uploadedFilePath]);
         }
         throw dbError;
       }
       
     } catch (error: any) {
-      console.error("Final Submission Error:", error);
+      console.error("[Bessites Error] Complete Submission Flow Failure:", error);
       toast({ 
         variant: "destructive", 
         title: "Submission Failed", 

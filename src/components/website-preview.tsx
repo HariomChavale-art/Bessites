@@ -19,11 +19,7 @@ interface WebsitePreviewProps {
 
 /**
  * WebsitePreview component with a self-healing fallback chain.
- * Tier 1: Manual Upload (Supabase/Firestore)
- * Tier 2: Clearbit (High-res Logo)
- * Tier 3: Google Favicon (256px)
- * Tier 4: Unavatar (Social Aggregator)
- * Tier 5: Identicon (Never blank)
+ * Prioritizes user-provided Supabase URLs.
  */
 export function WebsitePreview({ 
   websiteUrl, 
@@ -38,7 +34,6 @@ export function WebsitePreview({
   const [retryCount, setRetryCount] = useState(0);
   const [error, setError] = useState(false);
 
-  // Extract domain once
   const domain = useMemo(() => {
     try {
       const url = new URL(websiteUrl);
@@ -48,13 +43,13 @@ export function WebsitePreview({
     }
   }, [websiteUrl]);
 
-  // The Fallback Chain
   const imageSrc = useMemo(() => {
-    // If we have a manual upload, use it first
+    // Priority 1: Use user-uploaded logo (Supabase URL)
     if (fallbackUrl && fallbackUrl.startsWith('http') && retryCount === 0) {
       return fallbackUrl;
     }
 
+    // Fallback chain for mock data or missing logos
     const tiers = [
       `https://logo.clearbit.com/${domain}`,
       `https://www.google.com/s2/favicons?domain=${domain}&sz=256`,
@@ -62,7 +57,6 @@ export function WebsitePreview({
       `https://api.dicebear.com/7.x/initials/svg?seed=${domain}&backgroundColor=7B33FF&fontFamily=Arial&bold=true`
     ];
 
-    // Select the current tier based on failures
     const index = fallbackUrl ? Math.max(0, retryCount - 1) : retryCount;
     return tiers[Math.min(index, tiers.length - 1)];
   }, [domain, fallbackUrl, retryCount]);
@@ -87,7 +81,7 @@ export function WebsitePreview({
           onError={handleError}
           className={cn(
             "w-full h-full transition-opacity duration-700 opacity-100",
-            "object-cover"
+            "object-contain p-2"
           )}
           unoptimized={true}
         />

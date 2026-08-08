@@ -1,6 +1,7 @@
 export interface Website {
   id: string;
   name: string;
+  websiteName?: string;
   developer: string;
   description: string;
   longDescription: string;
@@ -200,6 +201,7 @@ export const MOCK_WEBSITES: Website[] = Array.from(new Set(RAW_SITES.map(s => s.
     return {
       id: `site-${index}`,
       name: site.name,
+      websiteName: site.name,
       developer: "Bessites Curator",
       description: site.desc,
       longDescription: `${site.name} is a leading platform for ${site.cat.join(" and ")}. It provides high-quality resources and tools for the niche community. This project was hand-picked for its zero-padding utility and commitment to quality web standards.`,

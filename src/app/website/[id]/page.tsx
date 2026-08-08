@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useParams } from "next/navigation";
@@ -35,8 +36,6 @@ import { cn } from "@/lib/utils";
 import { WebsitePreview } from "@/components/website-preview";
 import { WebsiteCard } from "@/components/website-card";
 import { useToast } from "@/hooks/use-toast";
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function WebsiteDetail() {
   const { id } = useParams();
@@ -50,7 +49,6 @@ export default function WebsiteDetail() {
   const [comment, setComment] = useState("");
   const [ratingValue, setRatingValue] = useState(0);
 
-  // Fetch website info from mock or firestore
   useEffect(() => {
     const fetchWebsite = async () => {
       if (!id || !db) return;
@@ -147,7 +145,6 @@ export default function WebsiteDetail() {
     if (isLiked) {
       await deleteDoc(userLikeRef);
       await updateDoc(globalStatsRef, { likeCount: increment(-1) });
-      toast({ title: "Removed Like", description: "Community pulse updated." });
     } else {
       await setDoc(userLikeRef, { likedAt: serverTimestamp() });
       await updateDoc(globalStatsRef, { likeCount: increment(1) });
@@ -164,7 +161,6 @@ export default function WebsiteDetail() {
     const saveRef = doc(db, "users", user.uid, "likedWebsites", id as string);
     if (isSaved) {
       await deleteDoc(saveRef);
-      toast({ title: "Removed", description: "Site removed from collection." });
     } else {
       await setDoc(saveRef, { id, timestamp: serverTimestamp() });
       toast({ title: "Saved!", description: "Added to your collection." });
@@ -173,7 +169,7 @@ export default function WebsiteDetail() {
 
   const handleShare = async () => {
     if (!db || !id || !dynamicWebsite) return;
-    const shareData = { title: `Bessites | ${dynamicWebsite.name}`, url: window.location.href };
+    const shareData = { title: `Bessites | ${dynamicWebsite.websiteName || dynamicWebsite.name}`, url: window.location.href };
     try {
       if (navigator.share) {
         await navigator.share(shareData);
@@ -223,22 +219,23 @@ export default function WebsiteDetail() {
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-5xl px-4 py-12">
-        {/* Hero Section */}
         <div className="flex flex-col md:flex-row gap-10 items-start mb-12">
           <div className="w-full md:w-56 aspect-square rounded-[3rem] overflow-hidden bg-card border border-white/10 shrink-0 shadow-2xl relative group">
             <WebsitePreview 
               websiteUrl={dynamicWebsite.url}
               fallbackUrl={dynamicWebsite.logoUrl || dynamicWebsite.imageUrl}
-              alt={dynamicWebsite.name}
+              alt={dynamicWebsite.websiteName || dynamicWebsite.name}
               className="w-full h-full group-hover:scale-110 transition-transform duration-700"
             />
           </div>
           <div className="flex-1 min-w-0 space-y-6">
             <div className="space-y-2">
-              <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tighter italic uppercase leading-none truncate">{dynamicWebsite.name}</h1>
+              <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tighter italic uppercase leading-none truncate">
+                {dynamicWebsite.websiteName || dynamicWebsite.name}
+              </h1>
               <div className="flex flex-wrap items-center gap-4">
                  <p className="text-primary font-bold text-xl flex items-center gap-2 italic">
-                   <Globe className="w-5 h-5" /> {dynamicWebsite.url.replace('https://', '').split('/')[0]}
+                   <Globe className="w-5 h-5" /> {dynamicWebsite.url.replace('https://', '').replace('www.', '').split('/')[0]}
                  </p>
                  <Badge variant="outline" className="border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest px-3 py-1 italic">{dynamicWebsite.pricing || 'Free'}</Badge>
               </div>
@@ -269,13 +266,12 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Action Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 mb-16">
            <div className="xl:col-span-3 space-y-8">
               <div className="bg-[#121117] border border-white/5 p-10 rounded-[3.5rem] shadow-2xl space-y-6">
-                 <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">About Discovery</h2>
+                 <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">About / Discovery</h2>
                  <p className="text-lg text-muted-foreground font-medium leading-relaxed italic">
-                   {dynamicWebsite.longDescription || dynamicWebsite.description}
+                   {dynamicWebsite.description || dynamicWebsite.longDescription}
                  </p>
               </div>
 
@@ -290,7 +286,7 @@ export default function WebsiteDetail() {
            <div className="space-y-4">
               <Button onClick={handleVisitClick} asChild className="w-full h-24 bg-white text-black hover:bg-white/90 rounded-[2.5rem] text-2xl font-black italic gap-4 shadow-2xl hover:scale-[1.02] transition-all">
                 <a href={dynamicWebsite.url} target="_blank" rel="noopener noreferrer">
-                  <Globe className="w-8 h-8" /> VISIT NOW
+                  <Globe className="w-8 h-8" /> VISIT WEBSITE
                 </a>
               </Button>
               <div className="grid grid-cols-3 gap-3">
@@ -310,7 +306,6 @@ export default function WebsiteDetail() {
            </div>
         </div>
 
-        {/* Technical & Review Section */}
         <section className="space-y-12 mb-24">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
             <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Review <span className="text-primary">Registry</span></h2>
@@ -370,7 +365,6 @@ export default function WebsiteDetail() {
           </div>
         </section>
 
-        {/* Technical Benchmarks */}
         <section className="mb-24 space-y-8">
            <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Digital Benchmarks</h2>
            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-10 rounded-[3rem] bg-[#121117] border border-white/5">

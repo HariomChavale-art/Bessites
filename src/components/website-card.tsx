@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Website } from "@/lib/mock-data";
@@ -15,10 +16,8 @@ interface WebsiteCardProps {
 
 /**
  * WebsiteCard refined for Bessites discovery.
- * - Displays full title + description without truncation.
- * - Zero-padding logos (object-cover).
- * - Removes engagement icons (moved to checkout/detail).
- * - Dynamic height to prevent text clipping.
+ * - Displays Website Name as primary.
+ * - Prioritizes submitted logo.
  */
 export function WebsiteCard({ website }: WebsiteCardProps) {
   const db = useFirestore();
@@ -43,6 +42,8 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   const totalVisits = stats?.visitCount || 0;
   const isTrending = totalVisits > 50 || totalLikes > 10;
 
+  const displayName = website.websiteName || website.name;
+
   return (
     <div className="block break-inside-avoid mb-4 sm:mb-6 group">
       <div className="relative rounded-2xl sm:rounded-[2.5rem] overflow-hidden bg-card/40 border border-white/5 transition-all duration-500 group-hover:border-primary/40 group-hover:bg-card/60 shadow-xl">
@@ -52,7 +53,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
             websiteId={website.id}
             websiteUrl={website.url}
             fallbackUrl={stats?.logoUrl || website.imageUrl}
-            alt={website.name}
+            alt={displayName}
             width={400}
             height={400}
             className="w-full h-full transition-transform duration-700 group-hover:scale-110"
@@ -67,7 +68,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
               <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider">{website.pricing}</span>
             </div>
             {isTrending && (
-              <div className="flex items-center gap-1 bg-primary text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter italic shadow-lg">
+              <div className="flex items-center gap-1 bg-primary text-white px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter italic shadow-lg">
                 <TrendingUp className="w-2.5 h-2.5" /> Community Pick
               </div>
             )}
@@ -76,9 +77,8 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
 
         <div className="p-3 sm:p-6 pt-2 sm:pt-4">
           <Link href={`/website/${website.id}`} className="text-center block">
-            {/* Title formatted as Name • Description. No truncation to allow cards to expand vertically. */}
             <h3 className="font-headline font-bold text-sm sm:text-lg text-white group-hover:text-primary transition-colors whitespace-normal leading-tight">
-              {website.name} • <span className="text-muted-foreground font-normal">{website.description}</span>
+              {displayName} • <span className="text-muted-foreground font-normal">{website.description}</span>
             </h3>
             <p className="text-[10px] sm:text-xs text-muted-foreground/30 font-medium tracking-widest uppercase mt-2">
               {website.url.replace('https://', '').replace('www.', '').split('/')[0]}

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
@@ -48,17 +49,18 @@ export default function Home() {
   const allAvailableWebsites = useMemo(() => {
     const firestoreSites = (submittedSites || []).map(s => ({
       id: s.id,
+      websiteName: s.websiteName || s.name,
       name: s.name || s.url?.split('//')[1]?.split('.')[0] || "New Project",
       developer: s.userEmail || "Community",
       description: s.description || "User submitted project",
-      longDescription: s.longDescription || "A new project shared via Bessites.",
+      longDescription: s.longDescription || s.description || "A new project shared via Bessites.",
       rating: 0,
       reviewCount: 0,
       categories: s.categories || ["Web App"],
       imageUrl: s.logoUrl || "",
       screenshots: [],
       url: s.url,
-      pricing: "Free" as const,
+      pricing: s.pricing || "Free",
       updatedAt: "2024",
       size: "N/A",
       version: "1.0",
@@ -78,14 +80,12 @@ export default function Home() {
     return uniquePool;
   }, [submittedSites]);
 
-  // Featured websites for the marquee based on ratings
   const featuredWebsites = useMemo(() => {
     return allAvailableWebsites.filter(w => w.rating > 4.4).slice(0, 15);
   }, [allAvailableWebsites]);
 
   const filteredWebsites = useMemo(() => {
     const featuredIds = new Set(featuredWebsites.map(w => w.id));
-    // Exclude marquee items from the main masonry feed to prevent redundancy
     const mainList = allAvailableWebsites.filter(w => !featuredIds.has(w.id));
     let results = [...mainList];
     
@@ -105,14 +105,9 @@ export default function Home() {
         break;
       case "foryou":
       default:
-        // Prioritize matches, then randomize the rest
         const matches = results.filter(w => w.categories.some(c => userInterests.includes(c)));
         const nonMatches = results.filter(w => !w.categories.some(c => userInterests.includes(c)));
-        
-        // Shuffle non-matches for a "random" discovery experience
         const shuffledNonMatches = [...nonMatches].sort(() => Math.random() - 0.5);
-        
-        // Sort matches by most interest overlap
         matches.sort((a, b) => {
           const aCount = a.categories.filter(c => userInterests.includes(c)).length;
           const bCount = b.categories.filter(c => userInterests.includes(c)).length;

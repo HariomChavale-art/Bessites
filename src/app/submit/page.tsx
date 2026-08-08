@@ -41,6 +41,7 @@ export default function SubmitWebsite() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [url, setUrl] = useState("");
+  const [websiteName, setWebsiteName] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -99,13 +100,18 @@ export default function SubmitWebsite() {
       toast({ 
         variant: "destructive", 
         title: "Configuration Missing", 
-        description: `Supabase variables are not detected correctly. URL: ${configStatus.hasUrl ? 'OK' : 'MISSING'}, Key: ${configStatus.hasKey ? 'OK' : 'MISSING'}` 
+        description: "Supabase configuration is not valid." 
       });
       return;
     }
 
-    if (!url || !name || !description || !category) {
+    if (!url || !websiteName || !name || !description || !category) {
       toast({ variant: "destructive", title: "Missing Info", description: "Please fill all required fields." });
+      return;
+    }
+
+    if (!logoFile) {
+      toast({ variant: "destructive", title: "Logo Required", description: "Please add a logo before submitting your website." });
       return;
     }
 
@@ -119,7 +125,6 @@ export default function SubmitWebsite() {
     setSubmitting(true);
     let uploadedFilePath = "";
 
-    // 15-second fail-safe timeout
     const timeoutPromise = new Promise((_, reject) => 
       setTimeout(() => reject(new Error("NETWORK_TIMEOUT")), 15000)
     );
@@ -128,31 +133,29 @@ export default function SubmitWebsite() {
       let publicLogoUrl = "";
       
       // 1. Upload Logo to Supabase
-      if (logoFile) {
-        const fileExt = logoFile.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        uploadedFilePath = `logos/${user!.uid}/${fileName}`;
-        
-        console.log(`[Bessites Debug] Starting upload to Supabase: ${uploadedFilePath}`);
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('Website-images')
-          .upload(uploadedFilePath, logoFile, {
-            cacheControl: '3600',
-            upsert: false
-          });
+      const fileExt = logoFile.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      uploadedFilePath = `logos/${user!.uid}/${fileName}`;
+      
+      console.log(`[Bessites Debug] Starting upload to Supabase: ${uploadedFilePath}`);
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('Website-images')
+        .upload(uploadedFilePath, logoFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-        if (uploadError) {
-          console.error("[Bessites Error] Supabase Upload Failed:", uploadError);
-          throw new Error(`Logo upload failed: ${uploadError.message}`);
-        }
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('Website-images')
-          .getPublicUrl(uploadedFilePath);
-        
-        publicLogoUrl = publicUrl;
+      if (uploadError) {
+        console.error("[Bessites Error] Supabase Upload Failed:", uploadError);
+        throw new Error(`Logo upload failed: ${uploadError.message}`);
       }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('Website-images')
+        .getPublicUrl(uploadedFilePath);
+      
+      publicLogoUrl = publicUrl;
 
       // 2. Submit Project to Firestore with Timeout Race
       console.log("[Bessites Debug] Initiating Firestore save...");
@@ -160,7 +163,8 @@ export default function SubmitWebsite() {
       const firestoreTask = async () => {
         const submissionRef = await addDoc(collection(db, "submissions"), {
           url,
-          name,
+          websiteName,
+          name, // Discovery Title
           description,
           longDescription: description,
           categories: [category, ...tags].filter(Boolean),
@@ -183,7 +187,6 @@ export default function SubmitWebsite() {
         });
       };
 
-      // Race the firestore task against the 15s timeout
       await Promise.race([firestoreTask(), timeoutPromise]);
 
       setSubmitted(true);
@@ -192,9 +195,7 @@ export default function SubmitWebsite() {
     } catch (error: any) {
       console.error("[Bessites Error] Complete Submission Flow Failure:", error);
       
-      // Cleanup Supabase if we uploaded but then failed
       if (uploadedFilePath) {
-        console.log("[Bessites Debug] Cleaning up orphaned Supabase file...");
         await supabase.storage.from('Website-images').remove([uploadedFilePath]);
       }
 
@@ -250,16 +251,16 @@ export default function SubmitWebsite() {
           <Card className="bg-card/40 backdrop-blur-xl border-white/5 shadow-2xl rounded-[3rem] overflow-hidden">
             <CardHeader className="p-10 pb-6 text-center space-y-2">
               <CardTitle className="text-5xl font-black text-white tracking-tighter italic uppercase">Registry <span className="text-primary">Submission</span></CardTitle>
-              <CardDescription className="text-lg font-medium opacity-60">Manual onboard for your digital property.</CardDescription>
+              <CardDescription className="text-lg font-medium opacity-60">Onboard your digital property to the discovery pipeline.</CardDescription>
             </CardHeader>
             
             <CardContent className="p-10 pt-0 space-y-10">
               <div className="space-y-4">
-                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Live URL</Label>
+                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Live Website URL</Label>
                 <div className="relative">
                   <Globe className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-primary opacity-50" />
                   <Input 
-                    placeholder="https://your-project.com" 
+                    placeholder="https://your-brand.com" 
                     value={url} 
                     onChange={(e) => setUrl(e.target.value)} 
                     className="pl-14 h-16 bg-white/5 border-white/10 rounded-2xl text-lg font-bold"
@@ -268,32 +269,49 @@ export default function SubmitWebsite() {
               </div>
 
               <div className="space-y-4">
-                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Branding & Logo</Label>
-                 <div onClick={() => fileInputRef.current?.click()} className="group relative w-full h-48 rounded-[2.5rem] border-2 border-dashed border-white/10 hover:border-primary/40 bg-white/5 flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all duration-500">
-                  {logoPreview ? <img src={logoPreview} alt="Logo Preview" className="w-full h-full object-cover" /> : <><ImageIcon className="w-12 h-12 text-muted-foreground group-hover:text-primary transition-colors" /><span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 mt-3 italic">Upload Property Mark</span></>}
+                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Official Logo (Required)</Label>
+                 <div onClick={() => fileInputRef.current?.click()} className={cn(
+                   "group relative w-full h-48 rounded-[2.5rem] border-2 border-dashed bg-white/5 flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all duration-500",
+                   logoPreview ? "border-emerald-500/20" : "border-white/10 hover:border-primary/40"
+                 )}>
+                  {logoPreview ? (
+                    <img src={logoPreview} alt="Logo Preview" className="w-full h-full object-contain p-4" />
+                  ) : (
+                    <>
+                      <ImageIcon className="w-12 h-12 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 mt-3 italic">Upload Property Brand Mark</span>
+                    </>
+                  )}
                  </div>
                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
               </div>
 
               <div className="space-y-4">
-                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Website Title</Label>
+                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Website Name</Label>
                 <div className="relative">
                    <Type className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground opacity-30" />
-                   <Input placeholder="Enter professional name" value={name} onChange={(e) => setName(e.target.value)} className="pl-14 h-16 bg-white/5 border-white/10 rounded-2xl text-lg font-bold" />
+                   <Input placeholder="e.g. Canva, GitHub, Figma" value={websiteName} onChange={(e) => setWebsiteName(e.target.value)} className="pl-14 h-16 bg-white/5 border-white/10 rounded-2xl text-lg font-bold" />
                 </div>
               </div>
 
               <div className="space-y-4">
-                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Description</Label>
+                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Discovery Title</Label>
                 <div className="relative">
-                  <FileText className="absolute left-5 top-6 w-5 h-5 text-muted-foreground opacity-30" />
-                  <Textarea placeholder="Explain what the website does..." value={description} onChange={(e) => setDescription(e.target.value)} className="pl-14 min-h-[150px] bg-white/5 border-white/10 rounded-[2rem] text-sm font-medium pt-5" />
+                   <FileText className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground opacity-30" />
+                   <Input placeholder="A short descriptive title for search..." value={name} onChange={(e) => setName(e.target.value)} className="pl-14 h-16 bg-white/5 border-white/10 rounded-2xl text-lg font-bold" />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">About / Discovery Description</Label>
+                <div className="relative">
+                  <Textarea placeholder="Explain what the website does and why it's a hidden gem..." value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[150px] bg-white/5 border-white/10 rounded-[2rem] text-sm font-medium p-6" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                  <div className="space-y-4">
-                    <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Primary Category</Label>
+                    <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Primary Sector</Label>
                     <Popover open={isCategoryPopoverOpen} onOpenChange={setIsCategoryPopoverOpen}>
                       <PopoverTrigger asChild>
                         <Button 
@@ -301,7 +319,7 @@ export default function SubmitWebsite() {
                           className="w-full h-16 bg-white/5 border-white/10 rounded-2xl font-bold justify-between px-6"
                         >
                           <span className={cn(category ? "text-white" : "text-muted-foreground")}>
-                            {category || "Select Sector"}
+                            {category || "Select Category"}
                           </span>
                           <Search className="w-4 h-4 opacity-50" />
                         </Button>
@@ -311,7 +329,7 @@ export default function SubmitWebsite() {
                           <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <Input 
-                              placeholder="Search or add category..." 
+                              placeholder="Filter sectors..." 
                               value={categorySearch} 
                               onChange={(e) => setCategorySearch(e.target.value)}
                               className="pl-10 h-11 bg-white/5 border-white/10 rounded-xl text-sm"
@@ -333,58 +351,32 @@ export default function SubmitWebsite() {
                                 {c}
                               </button>
                             ))
-                          ) : categorySearch.trim() ? (
-                            <button 
-                              onClick={() => {
-                                setCategory(categorySearch.trim());
-                                setIsCategoryPopoverOpen(false);
-                                setCategorySearch("");
-                              }}
-                              className="w-full px-5 py-4 text-left text-sm font-black text-primary hover:bg-white/5 flex items-center gap-3 italic"
-                            >
-                              <Plus className="w-4 h-4" /> Add "{categorySearch}" as new category
-                            </button>
                           ) : (
-                            <div className="px-5 py-4 text-xs italic text-muted-foreground opacity-40">Start typing to find or add...</div>
+                            <div className="px-5 py-4 text-xs italic text-muted-foreground opacity-40">No matches found.</div>
                           )}
                         </div>
                       </PopoverContent>
                     </Popover>
                  </div>
                  <div className="space-y-4">
-                    <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Business Model</Label>
+                    <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Access Model</Label>
                     <Select value={pricing} onValueChange={(v: any) => setPricing(v)}>
                        <SelectTrigger className="h-16 bg-white/5 border-white/10 rounded-2xl font-bold">
                           <SelectValue />
                        </SelectTrigger>
                        <SelectContent className="bg-[#121117] border-white/10 text-white rounded-xl">
-                          <SelectItem value="Free" className="font-bold">100% Free</SelectItem>
+                          <SelectItem value="Free" className="font-bold">Free to Use</SelectItem>
                           <SelectItem value="Freemium" className="font-bold">Freemium</SelectItem>
-                          <SelectItem value="Paid" className="font-bold">Premium / Paid</SelectItem>
+                          <SelectItem value="Paid" className="font-bold">Paid / Premium</SelectItem>
                        </SelectContent>
                     </Select>
                  </div>
               </div>
-
-              <div className="space-y-4 pt-4">
-                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Discovery Tags</Label>
-                <div className="flex gap-4">
-                  <Input placeholder="e.g. OSINT, Minimalist, Indie" value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddTag()} className="flex-1 h-14 bg-white/5 border-white/10 rounded-2xl text-sm font-bold" />
-                  <Button onClick={() => handleAddTag()} variant="outline" className="h-14 px-8 rounded-2xl border-white/10 bg-white/5 font-black uppercase text-xs">Add Tag</Button>
-                </div>
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {tags.map((tag, idx) => (
-                    <Badge key={idx} className="bg-primary/20 text-primary border-none py-2 px-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 group">
-                      {tag} <X className="w-3 h-3 cursor-pointer group-hover:scale-125 transition-transform" onClick={() => removeTag(tag)} />
-                    </Badge>
-                  ))}
-                </div>
-              </div>
             </CardContent>
             
             <CardFooter className="p-10 pt-0">
-              <Button onClick={handleFinalSubmit} disabled={submitting || !url || !name || !description || !category} className="w-full h-20 rounded-[2.5rem] bg-white text-black hover:bg-white/90 text-2xl font-black italic shadow-2xl transition-all active:scale-95 group">
-                {submitting ? <Loader2 className="w-8 h-8 animate-spin" /> : <><Send className="w-6 h-6 mr-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> SUBMIT WEBSITE</>}
+              <Button onClick={handleFinalSubmit} disabled={submitting || !url || !websiteName || !name || !description || !category || !logoFile} className="w-full h-20 rounded-[2.5rem] bg-white text-black hover:bg-white/90 text-2xl font-black italic shadow-2xl transition-all active:scale-95 group">
+                {submitting ? <Loader2 className="w-8 h-8 animate-spin" /> : <><Send className="w-6 h-6 mr-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> PUBLISH TO REGISTRY</>}
               </Button>
             </CardFooter>
           </Card>

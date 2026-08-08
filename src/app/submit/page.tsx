@@ -8,11 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send, Check, Plus, X, Image as ImageIcon, Globe, Type, FileText, Search, AlertCircle } from "lucide-react";
+import { Loader2, Send, Check, Plus, X, Image as ImageIcon, Globe, Type, FileText, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useUser, useFirestore, useStorage } from "@/firebase";
+import { useUser, useFirestore } from "@/firebase";
 import { collection, serverTimestamp, addDoc, doc, setDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -35,7 +35,6 @@ const ALL_CATEGORIES_LIST = [
 export default function SubmitWebsite() {
   const { user, loading: authLoading } = useUser();
   const db = useFirestore();
-  const storage = useStorage();
   const router = useRouter();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -89,8 +88,13 @@ export default function SubmitWebsite() {
   }, [categorySearch]);
 
   const handleFinalSubmit = async () => {
-    if (!db || !storage) {
-      toast({ variant: "destructive", title: "Connection Error", description: "Firebase is not ready. Please refresh the page." });
+    if (!db) {
+      toast({ variant: "destructive", title: "Connection Error", description: "Database is not ready. Please refresh." });
+      return;
+    }
+
+    if (!supabase) {
+      toast({ variant: "destructive", title: "Storage Error", description: "Supabase Storage is not configured correctly." });
       return;
     }
 
@@ -107,68 +111,83 @@ export default function SubmitWebsite() {
     }
     
     setSubmitting(true);
-
-    // Timeout fail-safe: If it takes more than 15 seconds, something is wrong with the network/config
-    const timeoutId = setTimeout(() => {
-      if (submitting) {
-        setSubmitting(false);
-        toast({ 
-          variant: "destructive", 
-          title: "Network Timeout", 
-          description: "The request took too long. Please check your internet connection or try again later." 
-        });
-      }
-    }, 15000);
+    let uploadedFilePath = "";
 
     try {
       let publicLogoUrl = "";
       
-      // 1. Upload Logo
+      // 1. Upload Logo to Supabase Storage
       if (logoFile) {
         const fileExt = logoFile.name.split('.').pop();
-        const storageRef = ref(storage, `logos/${user!.uid}/${Date.now()}.${fileExt}`);
-        await uploadBytes(storageRef, logoFile);
-        publicLogoUrl = await getDownloadURL(storageRef);
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        uploadedFilePath = `logos/${user!.uid}/${fileName}`;
+        
+        console.log(`Uploading to Supabase: ${uploadedFilePath}...`);
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('Website-images')
+          .upload(uploadedFilePath, logoFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) {
+          console.error("Supabase Upload Error:", uploadError);
+          throw new Error(`Logo upload failed: ${uploadError.message}`);
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('Website-images')
+          .getPublicUrl(uploadedFilePath);
+        
+        publicLogoUrl = publicUrl;
       }
 
-      // 2. Submit Project
-      const submissionRef = await addDoc(collection(db, "submissions"), {
-        url,
-        name,
-        description,
-        longDescription: description,
-        categories: [category, ...tags].filter(Boolean),
-        logoUrl: publicLogoUrl,
-        pricing,
-        userId: user!.uid,
-        userEmail: user!.email,
-        status: "pending",
-        timestamp: serverTimestamp()
-      });
+      // 2. Submit Project to Firestore
+      try {
+        const submissionRef = await addDoc(collection(db, "submissions"), {
+          url,
+          name,
+          description,
+          longDescription: description,
+          categories: [category, ...tags].filter(Boolean),
+          logoUrl: publicLogoUrl,
+          pricing,
+          userId: user!.uid,
+          userEmail: user!.email,
+          status: "pending",
+          timestamp: serverTimestamp()
+        });
 
-      // 3. Create Stats placeholder
-      await setDoc(doc(db, "websiteStats", submissionRef.id), {
-        logoUrl: publicLogoUrl,
-        visitCount: 0,
-        likeCount: 0,
-        shareCount: 0,
-        ratingSum: 0,
-        ratingCount: 0,
-        lastPreviewUpdate: serverTimestamp()
-      });
+        // 3. Create Stats placeholder
+        await setDoc(doc(db, "websiteStats", submissionRef.id), {
+          logoUrl: publicLogoUrl,
+          visitCount: 0,
+          likeCount: 0,
+          shareCount: 0,
+          ratingSum: 0,
+          ratingCount: 0,
+          lastPreviewUpdate: serverTimestamp()
+        });
 
-      clearTimeout(timeoutId);
-      setSubmitted(true);
-      toast({ title: "Submission Received!", description: "Your project is now under review." });
+        setSubmitted(true);
+        toast({ title: "Submission Received!", description: "Your project is now under review." });
+      } catch (dbError: any) {
+        // CLEANUP: If DB save fails, remove the orphaned file from Supabase
+        if (uploadedFilePath) {
+          await supabase.storage.from('Website-images').remove([uploadedFilePath]);
+        }
+        throw dbError;
+      }
       
     } catch (error: any) {
-      clearTimeout(timeoutId);
-      console.error("Submission Error:", error);
+      console.error("Final Submission Error:", error);
       toast({ 
         variant: "destructive", 
         title: "Submission Failed", 
-        description: error.message || "An unexpected network error occurred. Please check your connection." 
+        description: error.message || "An unexpected error occurred. Please try again." 
       });
+    } finally {
       setSubmitting(false);
     }
   };
@@ -225,7 +244,7 @@ export default function SubmitWebsite() {
               </div>
 
               <div className="space-y-4">
-                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Branding & Logo</Label>
+                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Branding & Logo (Supabase Storage)</Label>
                  <div onClick={() => fileInputRef.current?.click()} className="group relative w-full h-48 rounded-[2.5rem] border-2 border-dashed border-white/10 hover:border-primary/40 bg-white/5 flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all duration-500">
                   {logoPreview ? <img src={logoPreview} alt="Logo Preview" className="w-full h-full object-cover" /> : <><ImageIcon className="w-12 h-12 text-muted-foreground group-hover:text-primary transition-colors" /><span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 mt-3 italic">Upload Property Mark</span></>}
                  </div>

@@ -37,8 +37,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-// Official Payment QR Image (Place this in your public folder or use a hosted link)
-const OFFICIAL_QR_URL = "https://raw.githubusercontent.com/HariomChavale-art/Webdock/main/public/payment-qr.png";
+// Updated Official Payment QR Image from Google Drive direct link
+const OFFICIAL_QR_URL = "https://drive.google.com/uc?export=view&id=1ZSk3lrhA9kj6XPfJTCuDKJjVxzaGScKJ";
 
 export default function AddFundsPage() {
   const { user, loading: authLoading } = useUser();

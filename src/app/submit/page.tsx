@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -93,16 +94,12 @@ export default function SubmitWebsite() {
       return;
     }
 
-    if (!supabase) {
-      const status = getSupabaseConfigStatus();
-      const missing = [];
-      if (!status.hasUrl) missing.push("NEXT_PUBLIC_SUPABASE_URL");
-      if (!status.hasKey) missing.push("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
-      
+    const configStatus = getSupabaseConfigStatus();
+    if (!supabase || !configStatus.isConfigured) {
       toast({ 
         variant: "destructive", 
-        title: "Configuration Error", 
-        description: `Supabase variables missing: ${missing.join(', ')}. Please update your .env file.` 
+        title: "Configuration Missing", 
+        description: `Please check your .env file. Missing: ${!configStatus.hasUrl ? 'URL' : ''} ${!configStatus.hasKey ? 'Key' : ''}` 
       });
       return;
     }
@@ -384,3 +381,4 @@ export default function SubmitWebsite() {
     </div>
   );
 }
+

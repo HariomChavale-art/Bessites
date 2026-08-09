@@ -88,6 +88,9 @@ const RAW_SITES = [
   { name: "Fontjoy", title: "Deep Learning Font Pairings", url: "https://fontjoy.com", cat: ["Design", "Creative", "AI"], desc: "Struggling to find fonts that look good together? Fontjoy uses deep learning to generate balanced font pairings, helping you find the perfect typographic match for your brand." },
   { name: "Khroma", title: "AI Personalized Color Palette", url: "https://khroma.co", cat: ["Design", "AI", "Creative"], desc: "Need a color palette tailored to your taste? Khroma is an AI tool that learns which colors you like and generates personalized combinations for you to use in your designs." },
   { name: "Lapa Ninja", title: "Curated Landing Page Showcase", url: "https://lapa.ninja", cat: ["Design", "Creative"], desc: "Designing a new landing page? Lapa Ninja is a curated library showcasing the best examples of landing page design from across the web to help you find creative inspiration." },
+
+  // --- E-COMMERCE & SHOPPING ---
+  { name: "CJdropshipping", title: "Global Dropshipping & Fulfillment Platform", url: "https://cjdropshipping.com/", cat: ["Shopping", "Startups", "Utilities"], desc: "Looking to start or scale a dropshipping store? CJdropshipping helps sellers discover products, source them, connect their stores, manage orders, and fulfill shipments to customers worldwide from one platform." },
 ];
 
 export const MOCK_WEBSITES: Website[] = Array.from(new Set(RAW_SITES.map(s => s.url)))

@@ -241,7 +241,7 @@ export default function WebsiteDetail() {
               </p>
 
               {discoveryTitle && (
-                <p className="text-lg sm:text-2xl text-white font-bold uppercase tracking-widest opacity-60 italic leading-tight">
+                <p className="text-lg sm:text-2xl text-white font-headline font-black uppercase tracking-widest italic opacity-60 leading-tight">
                   {discoveryTitle}
                 </p>
               )}

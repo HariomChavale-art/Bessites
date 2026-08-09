@@ -530,7 +530,7 @@ function ExploreItemRow({ app }: { app: any }) {
             </p>
 
             {discoveryTitle && (
-              <p className="text-sm sm:text-xl text-white font-bold uppercase tracking-widest opacity-60 leading-tight">
+              <p className="text-sm sm:text-xl text-white font-headline font-black uppercase tracking-widest italic opacity-60 leading-tight">
                 {discoveryTitle}
               </p>
             )}

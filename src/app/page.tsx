@@ -1,13 +1,11 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
 import { Navigation } from "@/components/navigation";
-import { MarqueeBanner } from "@/components/marquee-banner";
 import { MasonryFeed } from "@/components/masonry-feed";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, TrendingUp, Clock, Loader2, Award } from "lucide-react";
+import { Sparkles, TrendingUp, Clock, Loader2 } from "lucide-react";
 import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -80,14 +78,8 @@ export default function Home() {
     return uniquePool;
   }, [submittedSites]);
 
-  const featuredWebsites = useMemo(() => {
-    return allAvailableWebsites.filter(w => w.rating > 4.4).slice(0, 15);
-  }, [allAvailableWebsites]);
-
   const filteredWebsites = useMemo(() => {
-    const featuredIds = new Set(featuredWebsites.map(w => w.id));
-    const mainList = allAvailableWebsites.filter(w => !featuredIds.has(w.id));
-    let results = [...mainList];
+    let results = [...allAvailableWebsites];
     
     switch (activeTab) {
       case "trending":
@@ -119,7 +111,7 @@ export default function Home() {
     }
     
     return results;
-  }, [activeTab, userInterests, featuredWebsites, allAvailableWebsites, globalStats]);
+  }, [activeTab, userInterests, allAvailableWebsites, globalStats]);
 
   if (authLoading) {
     return (
@@ -136,16 +128,6 @@ export default function Home() {
       <Navigation />
       
       <main className="flex-1">
-        <section className="mt-4">
-          <div className="container mx-auto px-4 mb-4">
-            <h2 className="text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] text-muted-foreground flex items-center gap-2 italic">
-              <Award className="w-3.5 h-3.5 text-primary" />
-              Creator Studio Staff Picks
-            </h2>
-          </div>
-          <MarqueeBanner items={featuredWebsites} />
-        </section>
-
         <section className="container mx-auto px-4 mt-8 sm:mt-16 mb-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="space-y-2">

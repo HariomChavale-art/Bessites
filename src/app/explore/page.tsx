@@ -520,8 +520,8 @@ function ExploreItemRow({ app }: { app: any }) {
         </Link>
 
         <div className="flex-1 min-w-0 py-2">
-          <Link href={`/website/${app.id}`} className="block mb-4">
-            <h4 className="text-xl sm:text-4xl font-extrabold text-white leading-tight tracking-tighter group-hover:text-primary transition-colors whitespace-normal">
+          <div className="block mb-4">
+            <h4 className="text-xl sm:text-4xl font-extrabold text-white leading-tight tracking-tighter whitespace-normal">
               {brandName}
             </h4>
             
@@ -534,16 +534,15 @@ function ExploreItemRow({ app }: { app: any }) {
                 {discoveryTitle}
               </p>
             )}
-          </Link>
+          </div>
           <div className="flex flex-wrap gap-2 mb-6">
             {app.categories?.slice(0, 4).map((cat: string) => (
               <span key={cat} className="text-[9px] font-black uppercase tracking-widest text-primary/60 border border-primary/10 px-2.5 py-1 rounded-lg">{cat}</span>
             ))}
           </div>
-          <div className="text-[10px] sm:text-xs text-muted-foreground/30 font-medium tracking-widest uppercase flex items-center gap-2">
-            <Globe className="w-3 h-3" />
-            {app.url.replace('https://', '').replace('www.', '').split('/')[0]}
-          </div>
+          <Link href={`/website/${app.id}`}>
+            <Button className="rounded-xl h-10 px-6 bg-primary text-white font-bold uppercase text-[10px] italic">View Insight</Button>
+          </Link>
         </div>
       </div>
     </div>

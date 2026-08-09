@@ -272,7 +272,7 @@ export default function WebsiteDetail() {
               <div className="bg-[#121117] border border-white/5 p-10 rounded-[3.5rem] shadow-2xl space-y-10 relative overflow-hidden group">
                  <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                  <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter border-b border-white/5 pb-4">About / Discovery</h2>
-                 <p className="text-2xl sm:text-4xl text-white font-black leading-[1.1] italic drop-shadow-lg tracking-tight selection:bg-primary selection:text-white">
+                 <p className="text-2xl sm:text-4xl text-white font-black leading-[1.2] italic drop-shadow-lg tracking-tight selection:bg-primary selection:text-white">
                    {dynamicWebsite.description || dynamicWebsite.longDescription}
                  </p>
                  <div className="pt-6 flex items-center gap-4">

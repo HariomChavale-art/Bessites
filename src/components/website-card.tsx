@@ -15,8 +15,8 @@ interface WebsiteCardProps {
 
 /**
  * WebsiteCard refined for Bessites discovery.
- * - Displays Website Name as primary.
- * - Shows Developer and Discovery Title (name) separately.
+ * - Displays Website Name as primary brand.
+ * - Shows Developer and Discovery Title (name) in hierarchy.
  * - Hides About/Discovery content until clicked.
  */
 export function WebsiteCard({ website }: WebsiteCardProps) {
@@ -77,7 +77,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
         </Link>
 
         <div className="p-3 sm:p-6 pt-2 sm:pt-4">
-          <Link href={`/website/${website.id}`} className="text-center block">
+          <div className="text-center">
             <h3 className="font-headline font-bold text-sm sm:text-lg text-white group-hover:text-primary transition-colors whitespace-normal leading-tight">
               {brandName}
             </h3>
@@ -95,7 +95,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
             <p className="text-[9px] sm:text-[10px] text-muted-foreground/30 font-medium tracking-widest uppercase mt-3 pt-3 border-t border-white/5">
               {website.url.replace('https://', '').replace('www.', '').split('/')[0]}
             </p>
-          </Link>
+          </div>
         </div>
       </div>
     </div>

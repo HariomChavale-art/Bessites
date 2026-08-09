@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -104,13 +105,11 @@ export default function SubmitWebsite() {
       return;
     }
 
-    // STRICT VALIDATION: Website Name, Title, Description, URL, and Category are all required
     if (!url || !websiteName || !name || !description || !category) {
       toast({ variant: "destructive", title: "Missing Info", description: "Please fill all required fields, including Website Name and Title." });
       return;
     }
 
-    // STRICT LOGO VALIDATION: Logo is mandatory
     if (!logoFile) {
       toast({ variant: "destructive", title: "Logo Required", description: "Please add a logo before submitting your website." });
       return;
@@ -161,6 +160,9 @@ export default function SubmitWebsite() {
       // 2. Submit Project to Firestore
       console.log("[Bessites Debug] Initiating Firestore save...");
       
+      // Ensure unique categories for cleaner data
+      const uniqueCategories = Array.from(new Set([category, ...tags].filter(Boolean)));
+
       const firestoreTask = async () => {
         const submissionRef = await addDoc(collection(db, "submissions"), {
           url,
@@ -168,7 +170,7 @@ export default function SubmitWebsite() {
           name, // The Discovery Title
           description,
           longDescription: description,
-          categories: [category, ...tags].filter(Boolean),
+          categories: uniqueCategories,
           logoUrl: publicLogoUrl,
           pricing,
           userId: user!.uid,
@@ -197,7 +199,6 @@ export default function SubmitWebsite() {
     } catch (error: any) {
       console.error("[Bessites Error] Complete Submission Flow Failure:", error);
       
-      // Cleanup orphaned file if DB save fails
       if (uploadedFilePath) {
         await supabase.storage.from('Website-images').remove([uploadedFilePath]);
       }

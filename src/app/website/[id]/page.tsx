@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useParams } from "next/navigation";
@@ -216,6 +217,9 @@ export default function WebsiteDetail() {
   const brandName = dynamicWebsite.websiteName || dynamicWebsite.name;
   const discoveryTitle = dynamicWebsite.websiteName ? dynamicWebsite.name : "";
 
+  // De-duplicate categories to avoid key collisions
+  const uniqueCategories = Array.from(new Set(dynamicWebsite.categories || []));
+
   return (
     <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30">
       <Navigation />
@@ -253,7 +257,7 @@ export default function WebsiteDetail() {
                  <Badge variant="outline" className="border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest px-3 py-1 italic">{dynamicWebsite.pricing || 'Free'}</Badge>
             </div>
             <div className="flex flex-wrap gap-2">
-              {dynamicWebsite.categories?.map((cat: string) => (
+              {uniqueCategories.map((cat: string) => (
                 <Badge key={cat} className="bg-primary/10 text-primary border-none uppercase text-[9px] font-black tracking-widest px-3 py-1.5 italic">
                   {cat}
                 </Badge>

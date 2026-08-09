@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Navigation } from "@/components/navigation";
@@ -487,6 +488,9 @@ function ExploreItemRow({ app }: { app: any }) {
   const brandName = app.websiteName || app.name;
   const discoveryTitle = app.websiteName ? app.name : "";
 
+  // De-duplicate categories to avoid key collisions
+  const uniqueCategories = Array.from(new Set(app.categories || [])).slice(0, 4);
+
   return (
     <div className="group relative">
       <div className="flex flex-col md:flex-row items-start gap-6 sm:gap-12 p-5 sm:p-8 rounded-3xl sm:rounded-[3.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-500 overflow-hidden min-h-fit">
@@ -536,7 +540,7 @@ function ExploreItemRow({ app }: { app: any }) {
             )}
           </div>
           <div className="flex flex-wrap gap-2 mb-6">
-            {app.categories?.slice(0, 4).map((cat: string) => (
+            {uniqueCategories.map((cat: string) => (
               <span key={cat} className="text-[9px] font-black uppercase tracking-widest text-primary/60 border border-primary/10 px-2.5 py-1 rounded-lg">{cat}</span>
             ))}
           </div>

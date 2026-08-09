@@ -10,7 +10,7 @@ interface WebsitePreviewProps {
   websiteId?: string;
   websiteUrl: string;
   fallbackUrl?: string; 
-  alt: string;
+  alt?: string;
   className?: string;
   width?: number;
   height?: number;
@@ -24,7 +24,7 @@ interface WebsitePreviewProps {
 export function WebsitePreview({ 
   websiteUrl, 
   fallbackUrl,
-  alt, 
+  alt = "Website Preview", 
   className,
   width = 512,
   height = 512,
@@ -74,7 +74,7 @@ export function WebsitePreview({
       {!error ? (
         <Image 
           src={imageSrc} 
-          alt={alt}
+          alt={alt || "Website Preview"}
           width={width}
           height={height}
           priority={priority}

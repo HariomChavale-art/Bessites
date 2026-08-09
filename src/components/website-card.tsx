@@ -87,7 +87,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
             </p>
 
             {discoveryTitle && (
-              <p className="text-[10px] sm:text-xs text-muted-foreground font-medium uppercase tracking-tighter opacity-80 leading-tight line-clamp-2">
+              <p className="text-[10px] sm:text-xs text-white font-medium uppercase tracking-tighter opacity-80 leading-tight line-clamp-2">
                 {discoveryTitle}
               </p>
             )}

@@ -22,7 +22,7 @@ service cloud.firestore {
 
     // User Profile Rules
     match /users/{userId} {
-      // Users can read profiles for creator attribution. Admin can read any profile.
+      // Users can read other profiles for creator attribution. 
       allow read: if request.auth != null; 
       allow write: if isOwner(userId);
       
@@ -52,7 +52,7 @@ service cloud.firestore {
       // Publicly readable
       allow read: if true;
       
-      // Allow creation during the submission process (usually handled by the uploader)
+      // Allow creation during the submission process
       allow create: if request.auth != null;
 
       // Restricted updates: Only admins and owners have full access.
@@ -69,7 +69,7 @@ service cloud.firestore {
       function isEngagementUpdate() {
         let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
         
-        // Ensure NO other fields (like logoUrl) are being touched
+        // Ensure ONLY specific engagement fields are being touched
         return affectedKeys.hasOnly(['visitCount', 'likeCount', 'shareCount', 'ratingSum', 'ratingCount']) &&
           
           // visitCount: must increment by exactly 1
@@ -97,6 +97,7 @@ service cloud.firestore {
       // Community Reviews/Ratings
       match /userRatings/{userId} {
         allow read: if true;
+        // userId as doc ID prevents multiple ratings from one user
         allow write: if isOwner(userId);
       }
     }

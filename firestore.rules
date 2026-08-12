@@ -1,45 +1,68 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Helper function to check if the user is an admin
+    function isAdmin() {
+      return request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Helper function to check if the user is the owner of the document
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
     // User Profile Rules
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      // Users can read their own profile. Admin can read any profile.
+      // Basic profile info might need to be readable for "Creator" display in cards.
+      allow read: if request.auth != null; 
+      allow write: if isOwner(userId);
       
-      // Transactions Sub-collection
+      // Transactions Sub-collection (Financial data)
       match /transactions/{transactionId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isOwner(userId);
       }
 
-      // Social Interactions Sub-collections
-      match /likedWebsites/{id} { allow read, write: if request.auth != null && request.auth.uid == userId; }
-      match /userLikes/{id} { allow read, write: if request.auth != null && request.auth.uid == userId; }
-      match /userShares/{id} { allow read, write: if request.auth != null && request.auth.uid == userId; }
+      // Social Interactions (Private saves/likes lists)
+      match /likedWebsites/{id} { allow read, write: if isOwner(userId); }
+      match /userLikes/{id} { allow read, write: if isOwner(userId); }
+      match /userShares/{id} { allow read, write: if isOwner(userId); }
     }
 
-    // Submissions Rules
+    // Submissions Rules (The Website Directory)
     match /submissions/{submissionId} {
+      // Publicly readable for the discovery feed
       allow read: if true;
+      // Authenticated users can submit their websites
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && (resource.data.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true);
+      // Only the uploader or an admin can update or delete a submission
+      allow update, delete: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
-    // Website Stats Rules
+    // Website Stats Rules (Engagement metrics)
     match /websiteStats/{websiteId} {
+      // Publicly readable
       allow read: if true;
-      allow write: if request.auth != null; // Allow increments for likes/visits
+      // Authenticated users can increment visit/like/share counts
+      allow write: if request.auth != null; 
 
+      // Community Reviews/Ratings
       match /userRatings/{userId} {
         allow read: if true;
-        allow write: if request.auth != null && request.auth.uid == userId;
+        allow write: if isOwner(userId);
       }
     }
 
-    // Promotions Rules
+    // Promotions Rules (Ad campaigns)
     match /promotions/{promoId} {
-      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true);
+      // Only the campaign owner or an admin can see campaign details
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
+      // Authenticated users can create campaigns
       allow create: if request.auth != null;
-      allow update: if request.auth != null && (resource.data.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true);
+      // Only the owner or admin can update status
+      allow update: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
     }
   }
 }

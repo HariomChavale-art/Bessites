@@ -9,7 +9,6 @@ import {
   Loader2, 
   BarChart3, 
   Users, 
-  Flame, 
   LogOut, 
   Heart,
   Bookmark,
@@ -18,7 +17,6 @@ import {
   Menu,
   Smartphone,
   Activity,
-  Map,
   Sparkles,
   Chrome,
   Settings,
@@ -32,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Logo } from "@/components/logo";
 import { 
   XAxis, 
   YAxis, 
@@ -117,12 +116,19 @@ export default function AudiencePage() {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      <div className="mb-10 px-2"><Link href="/" className="group block"><div className="flex flex-col items-start gap-1"><span className="text-2xl font-black italic uppercase tracking-tighter text-white">Bessites</span><span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60">Creator Studio</span></div></Link></div>
+      <div className="mb-10 px-2">
+        <Link href="/" className="group block">
+          <div className="flex flex-col items-start gap-1">
+            <Logo className="w-10 h-10 mb-1" />
+            <span className="text-2xl font-black italic uppercase tracking-tighter text-white">Bessites</span>
+            <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60">Creator Studio</span>
+          </div>
+        </Link>
+      </div>
       <nav className="flex-1 space-y-1.5 overflow-y-auto no-scrollbar">
         <SidebarItem icon={Globe} label="My Websites" active={pathname === '/my-websites'} onClick={() => router.push('/my-websites')} />
         <SidebarItem icon={BarChart3} label="Analytics" active={pathname === '/analytics'} onClick={() => router.push('/analytics')} />
         <SidebarItem icon={Users} label="Audience" active={pathname === '/audience'} onClick={() => router.push('/audience')} />
-        <SidebarItem icon={Flame} label="Promotions" active={pathname === '/promotions'} onClick={() => router.push('/promotions')} />
         <div className="pt-4 mt-4 border-t border-white/5 space-y-1.5">
           <SidebarItem icon={Settings} label="Settings" active={pathname === '/profile'} onClick={() => router.push('/profile')} />
           <SidebarItem icon={HelpCircle} label="Support" active={pathname === '/support'} onClick={() => router.push('/support')} />
@@ -139,7 +145,10 @@ export default function AudiencePage() {
       <aside className="hidden lg:flex w-72 h-screen sticky top-0 p-8 flex-col border-r border-white/5 bg-[#0D0C12] z-50"><SidebarContent /></aside>
       <main className="flex-1 flex flex-col min-w-0 bg-[#0B0A0F]">
         <header className="lg:hidden flex items-center justify-between p-4 sticky top-0 bg-[#0B0A0F]/80 backdrop-blur-xl z-50 border-b border-white/5">
-          <Link href="/" className="text-xl font-black italic uppercase tracking-tighter text-white">Bessites</Link>
+          <Link href="/" className="flex items-center gap-2">
+            <Logo className="w-8 h-8" />
+            <span className="text-xl font-black italic uppercase tracking-tighter text-white">Bessites</span>
+          </Link>
           <Sheet><SheetTrigger asChild><Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl bg-white/5"><Menu className="w-5 h-5" /></Button></SheetTrigger><SheetContent side="left" className="bg-[#0D0C12] p-6 w-80"><SidebarContent /></SheetContent></Sheet>
         </header>
 
@@ -208,7 +217,7 @@ export default function AudiencePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-             <DemographicCard title="Top Countries" items={['India (42%)', 'USA (28%)', 'UK (12%)']} icon={Map} />
+             <DemographicCard title="Top Countries" items={['India (42%)', 'USA (28%)', 'UK (12%)']} icon={Activity} />
              <DemographicCard title="Devices" items={['Mobile (68%)', 'Desktop (32%)']} icon={Smartphone} />
              <DemographicCard title="Peak Hours" items={['7 PM - 10 PM', '1 PM - 3 PM']} icon={Activity} />
              <DemographicCard title="Browsers" items={['Chrome (62%)', 'Safari (22%)']} icon={Chrome} />

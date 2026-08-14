@@ -8,6 +8,10 @@ import { Analytics } from "@vercel/analytics/react";
 export const metadata: Metadata = {
   title: 'Bessites | Discover Web Apps',
   description: 'A professional directory for modern webs and digital tools.',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({

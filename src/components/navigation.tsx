@@ -9,21 +9,17 @@ import {
   Globe, 
   BarChart3, 
   Users, 
-  Star, 
-  Flame, 
-  DollarSign, 
-  Bell, 
   Mic, 
   Settings, 
   HelpCircle, 
-  LogOut,
-  Wallet
+  LogOut
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { cn } from "@/lib/utils";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
+import { Logo } from "./logo";
 
 const SUGGESTIONS = [
   "Try searching 'AI' to find new tools.",
@@ -62,8 +58,6 @@ export function Navigation() {
     { label: 'My Websites', icon: Globe, href: '/my-websites' },
     { label: 'Analytics', icon: BarChart3, href: '/analytics' },
     { label: 'Audience', icon: Users, href: '/audience' },
-    { label: 'Promotions', icon: Flame, href: '/promotions' },
-    { label: 'Wallet', icon: Wallet, href: '/wallet' },
     { label: 'AI Assistant', icon: Mic, href: '/ai-assistant' },
     { label: 'Settings', icon: Settings, href: '/settings' },
     { label: 'Support', icon: HelpCircle, href: '/support' },
@@ -74,7 +68,10 @@ export function Navigation() {
       <div className="container mx-auto px-4 h-20 sm:h-24 flex items-center justify-between gap-4">
         
         <div className="flex flex-col items-start gap-1 shrink-0">
-          <Link href="/" className="text-xl font-black italic uppercase tracking-tighter text-white leading-none">Bessites</Link>
+          <Link href="/" className="flex items-center gap-2 group">
+            <Logo className="w-8 h-8 sm:w-10 sm:h-10 transition-transform group-hover:scale-110" />
+            <span className="text-xl font-black italic uppercase tracking-tighter text-white leading-none hidden sm:inline">Bessites</span>
+          </Link>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="w-10 h-8 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-all flex items-center justify-center">
@@ -85,6 +82,7 @@ export function Navigation() {
                <SheetHeader className="p-8 pb-4">
                   <SheetTitle className="text-white font-black uppercase tracking-widest text-[10px] italic text-left opacity-40">Bessites Creator Menu</SheetTitle>
                   <div className="mt-4 flex flex-col items-start gap-1">
+                    <Logo className="w-10 h-10 mb-2" />
                     <span className="text-2xl font-black italic uppercase tracking-tighter block leading-none text-white">Bessites</span>
                   </div>
                </SheetHeader>

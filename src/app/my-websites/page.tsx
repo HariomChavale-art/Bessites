@@ -9,22 +9,14 @@ import {
   Loader2, 
   BarChart3, 
   Users, 
-  Star, 
-  Flame, 
-  DollarSign, 
-  Bell, 
-  Mic, 
   Settings, 
   HelpCircle, 
   LogOut, 
   Plus,
-  Eye,
   TrendingUp,
   Search as SearchIcon,
-  ChevronRight,
   Menu,
   Check,
-  X,
   Trash2,
   ExternalLink,
   Share2
@@ -42,6 +34,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
+import { Logo } from "@/components/logo";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -141,6 +134,7 @@ export default function MyWebsitesPage() {
       <div className="mb-10 px-2">
          <Link href="/" className="group block">
             <div className="flex flex-col items-start gap-1">
+              <Logo className="w-10 h-10 mb-1" />
               <span className="text-2xl font-black italic uppercase tracking-tighter block leading-none text-white">Bessites</span>
               <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60 mt-1 block">Creator Studio</span>
             </div>
@@ -150,7 +144,6 @@ export default function MyWebsitesPage() {
         <SidebarItem icon={Globe} label="My Websites" active={pathname === '/my-websites'} onClick={() => router.push('/my-websites')} badge={stats.total} />
         <SidebarItem icon={BarChart3} label="Analytics" active={pathname === '/analytics'} onClick={() => router.push('/analytics')} />
         <SidebarItem icon={Users} label="Audience" active={pathname === '/audience'} onClick={() => router.push('/audience')} />
-        <SidebarItem icon={Flame} label="Promotions" active={pathname === '/promotions'} onClick={() => router.push('/promotions')} />
         <div className="pt-4 mt-4 border-t border-white/5 space-y-1.5">
           <SidebarItem icon={Settings} label="Settings" active={pathname === '/profile'} onClick={() => router.push('/profile')} />
           <SidebarItem icon={HelpCircle} label="Support" active={pathname === '/support'} onClick={() => router.push('/support')} />
@@ -168,7 +161,10 @@ export default function MyWebsitesPage() {
       <aside className="hidden lg:flex w-72 h-screen sticky top-0 p-8 flex-col border-r border-white/5 bg-[#0D0C12] z-50"><SidebarContent /></aside>
       <main className="flex-1 flex flex-col min-w-0 bg-[#0B0A0F]">
         <header className="lg:hidden flex items-center justify-between p-4 sticky top-0 bg-[#0B0A0F]/80 backdrop-blur-xl z-50 border-b border-white/5">
-          <Link href="/" className="text-xl font-black italic uppercase tracking-tighter text-white">Bessites</Link>
+          <Link href="/" className="flex items-center gap-2">
+            <Logo className="w-8 h-8" />
+            <span className="text-xl font-black italic uppercase tracking-tighter text-white">Bessites</span>
+          </Link>
           <Sheet><SheetTrigger asChild><Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl bg-white/5"><Menu className="w-5 h-5" /></Button></SheetTrigger><SheetContent side="left" className="bg-[#0D0C12] border-r border-white/5 p-6 w-80"><SidebarContent /></SheetContent></Sheet>
         </header>
 

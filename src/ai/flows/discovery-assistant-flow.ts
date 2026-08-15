@@ -1,12 +1,11 @@
 'use server';
 /**
  * @fileOverview Astra Discovery - AI search engine for Bessites.
- * Migrated to the current Interactions API architecture using Gemini 2.0 Flash-Lite.
+ * Migrated to the modern Interactions API architecture using Gemini 2.0 Flash.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { googleAI } from '@genkit-ai/google-genai';
 import { searchWebsitesTool } from '../tools/search-websites';
 
 const DiscoveryInputSchema = z.object({
@@ -30,36 +29,32 @@ const DiscoveryOutputSchema = z.object({
 
 export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
 
-const discoveryPrompt = ai.definePrompt({
-  name: 'discoveryPrompt',
-  model: googleAI.model('gemini-2.0-flash-lite-preview-02-05'),
-  input: { schema: DiscoveryInputSchema },
-  output: { schema: DiscoveryOutputSchema },
-  tools: [searchWebsitesTool],
-  prompt: `You are Astra, the Bessites Discovery AI.
-Your goal is to find tools from the registry using the searchWebsites tool.
-
-RULES:
-1. ONLY recommend websites returned by the tool.
-2. If the tool returns nothing, tell the user you couldn't find matches in the registry and ask them to refine their request.
-3. Be professional and tech-focused.
-4. Always return valid JSON matching the output schema.
-5. Do NOT invent URLs, ratings, or features that are not explicitly provided by the tool.
-
-USER: {{{message}}}
-
-{{#if history}}
-CONTEXT:
-{{#each history}}
-{{role}}: {{content}}
-{{/each}}
-{{/if}}`,
-});
-
+/**
+ * Core interaction logic using the Genkit Chat API (Interactions Architecture).
+ */
 export async function askDiscoveryAssistant(input: { message: string, history?: any[] }) {
   try {
-    // Generate interaction using the newest SDK architecture
-    const { output } = await discoveryPrompt(input);
+    // Initialize a chat session to leverage the modern Interactions API path
+    const chat = ai.chat({
+      model: 'googleai/gemini-2.0-flash',
+      system: `You are Astra, the Bessites Discovery AI. 
+      Your goal is to find tools from the registry using the searchWebsites tool.
+
+      RULES:
+      1. ONLY recommend websites returned by the tool.
+      2. If the tool returns nothing, tell the user you couldn't find matches in the registry and ask them to refine their request.
+      3. Be professional and tech-focused.
+      4. Always return structured data matching the output schema.
+      5. Do NOT invent URLs, ratings, or features that are not explicitly provided by the tool.`,
+      tools: [searchWebsitesTool],
+      history: input.history,
+    });
+
+    // Execute the interaction
+    const { output } = await chat.send({
+      text: input.message,
+      output: { schema: DiscoveryOutputSchema }
+    });
     
     if (!output) {
       throw new Error("Interaction completed but returned empty output.");
@@ -67,12 +62,22 @@ export async function askDiscoveryAssistant(input: { message: string, history?: 
     
     return output;
   } catch (error: any) {
-    // Report actual underlying error for development visibility
-    const errorDetail = error.message || "Unknown API interference.";
-    console.error("[Astra API Error]", errorDetail);
+    // Detect specific Gemini API access issues
+    const errorMessage = error.message || "";
+    let userDisplayError = "Discovery link failure.";
+
+    if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
+      userDisplayError = "[Astra Access Error] Your API key does not have permission to use Gemini 2.0 Flash.";
+    } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
+      userDisplayError = "[Astra Model Error] The selected Gemini 2.0 model is not available in your region/project.";
+    } else if (errorMessage.includes("429") || errorMessage.includes("QUOTA")) {
+      userDisplayError = "[Astra Quota Error] Discovery speed limit reached. Please wait a moment.";
+    }
+
+    console.error("[Astra System Error]", errorMessage);
     
     return { 
-      response: `[Astra System Alert] Discovery link failure: ${errorDetail}`,
+      response: userDisplayError,
       recommendations: [] 
     };
   }

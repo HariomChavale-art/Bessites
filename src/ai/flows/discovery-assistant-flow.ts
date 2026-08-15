@@ -1,6 +1,7 @@
 'use server';
 /**
  * @fileOverview Astra Discovery - AI search engine for Bessites.
+ * Migrated to the current Interactions API architecture using Gemini 2.0 Flash-Lite.
  */
 
 import { ai } from '@/ai/genkit';
@@ -31,7 +32,7 @@ export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
 
 const discoveryPrompt = ai.definePrompt({
   name: 'discoveryPrompt',
-  model: googleAI.model('gemini-2.0-flash'), // Updated to current recommended model
+  model: googleAI.model('gemini-2.0-flash-lite-preview-02-05'),
   input: { schema: DiscoveryInputSchema },
   output: { schema: DiscoveryOutputSchema },
   tools: [searchWebsitesTool],
@@ -57,20 +58,21 @@ CONTEXT:
 
 export async function askDiscoveryAssistant(input: { message: string, history?: any[] }) {
   try {
+    // Generate interaction using the newest SDK architecture
     const { output } = await discoveryPrompt(input);
-    if (!output) throw new Error("Astra returned null output.");
+    
+    if (!output) {
+      throw new Error("Interaction completed but returned empty output.");
+    }
+    
     return output;
   } catch (error: any) {
-    const msg = error.message || "Unknown interference.";
-    console.error("[Astra Discovery Error]", msg);
+    // Report actual underlying error for development visibility
+    const errorDetail = error.message || "Unknown API interference.";
+    console.error("[Astra API Error]", errorDetail);
     
-    // Check for 404 or Model errors to provide better diagnostic in server logs
-    if (msg.includes('404') || msg.includes('not found')) {
-      console.error("[Astra System] Critical: Model 'gemini-2.0-flash' unreachable. Verify API key and region.");
-    }
-
     return { 
-      response: `[Astra System Alert] Discovery link failure: ${msg}.`,
+      response: `[Astra System Alert] Discovery link failure: ${errorDetail}`,
       recommendations: [] 
     };
   }

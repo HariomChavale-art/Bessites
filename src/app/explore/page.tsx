@@ -374,7 +374,7 @@ export default function ExplorePage() {
                       <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">All Discovery Tags</DialogTitle>
                     </div>
                     <DialogDescription className="text-muted-foreground text-xs uppercase tracking-widest font-black opacity-40 italic">
-                      Browse our complete collection of digital property categories.
+                      Explore all categories in the digital property registry.
                     </DialogDescription>
                     <div className="relative mt-6">
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

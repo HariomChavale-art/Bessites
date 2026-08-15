@@ -328,7 +328,7 @@ export default function WebsiteDetail() {
                 <DialogHeader className="space-y-2">
                   <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter text-center">Lodge <span className="text-primary">Insight</span></DialogTitle>
                   <DialogDescription className="text-muted-foreground text-xs text-center uppercase tracking-widest font-black opacity-40 italic">
-                    Share your experience with this digital property to help the community.
+                    Share your experience with this property to help others in the registry.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-8 pt-6">
@@ -380,28 +380,6 @@ export default function WebsiteDetail() {
             )}
           </div>
         </section>
-
-        <section className="mb-24 space-y-8">
-           <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Digital Benchmarks</h2>
-           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-10 rounded-[3rem] bg-[#121117] border border-white/5">
-              <TechStat label="Load Time" value="0.8s" icon={Zap} color="text-emerald-400" />
-              <TechStat label="SSL" value="Verified" icon={ShieldCheck} color="text-primary" />
-              <TechStat label="Optimized" value="98%" icon={Smartphone} color="text-amber-400" />
-              <TechStat label="Edge Node" value="Global" icon={Globe} color="text-blue-400" />
-           </div>
-        </section>
-
-        {relatedWebsites.length > 0 && (
-          <section className="space-y-10 pt-24 border-t border-white/5">
-            <div className="flex items-center gap-4">
-              <Sparkles className="w-8 h-8 text-primary" />
-              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Related <span className="text-primary">Discovery</span></h2>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {relatedWebsites.map((site) => (<WebsiteCard key={site.id} website={site} />))}
-            </div>
-          </section>
-        )}
       </main>
     </div>
   );
@@ -414,15 +392,6 @@ function MetricBox({ label, value, sub, icon: Icon, color }: { label: string, va
        <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest">{label}</p>
        <h4 className={cn("text-3xl font-black italic tracking-tighter", color)}>{value}</h4>
        <p className="text-[8px] font-black uppercase text-muted-foreground/20">{sub}</p>
-    </div>
-  );
-}
-
-function TechStat({ label, value, icon: Icon, color }: { label: string, value: string, icon: any, color: string }) {
-  return (
-    <div className="flex items-center gap-5 border-r border-white/5 last:border-none group">
-       <div className={cn("p-4 rounded-2xl bg-white/5 group-hover:scale-110 transition-transform", color)}><Icon className="w-6 h-6" /></div>
-       <div><p className="text-[9px] font-black uppercase text-muted-foreground/30 mb-0.5">{label}</p><h5 className="text-lg font-black italic text-white uppercase">{value}</h5></div>
     </div>
   );
 }

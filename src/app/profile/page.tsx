@@ -107,7 +107,6 @@ export default function ProfilePage() {
 
   const likedWebsitesList = useMemo(() => {
     if (!likedDocs) return [];
-    const likedIds = likedDocs.map(doc => likedIds.includes(doc.id));
     return MOCK_WEBSITES.filter(w => likedDocs.some(ld => ld.id === w.id));
   }, [likedDocs]);
 
@@ -224,7 +223,7 @@ export default function ProfilePage() {
                 <DialogHeader>
                   <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">Edit Info</DialogTitle>
                   <DialogDescription className="text-muted-foreground text-xs uppercase tracking-widest font-black opacity-40 italic">
-                    Update your public profile information and display name.
+                    Update your display name and public bio.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-6 pt-4">

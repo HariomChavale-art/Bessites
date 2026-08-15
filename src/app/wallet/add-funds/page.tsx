@@ -283,7 +283,7 @@ export default function AddFundsPage() {
                 <div className="text-center sm:text-left space-y-2">
                    <h4 className="text-2xl font-black italic uppercase tracking-tighter text-emerald-400">Payment Submitted Successfully!</h4>
                    <p className="text-sm font-medium text-emerald-400/60 leading-relaxed">
-                     Verification usually takes <span className="text-emerald-400 font-black">less than 6 hours</span>. You will receive an email and your balance will update automatically once approved by our finance nodes.
+                     Verification usually takes <span className="text-emerald-400 font-black">less than 6 hours</span>. Your balance will update automatically once approved.
                    </p>
                 </div>
              </Card>

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -255,7 +254,7 @@ export default function SubmitWebsite() {
           <Card className="bg-card/40 backdrop-blur-xl border-white/5 shadow-2xl rounded-[3rem] overflow-hidden">
             <CardHeader className="p-10 pb-6 text-center space-y-2">
               <CardTitle className="text-5xl font-black text-white tracking-tighter italic uppercase">Registry <span className="text-primary">Submission</span></CardTitle>
-              <CardDescription className="text-lg font-medium opacity-60">Onboard your digital property to the discovery pipeline.</CardDescription>
+              <CardDescription className="text-lg font-medium opacity-60">Upload your digital property to the discovery pipeline.</CardDescription>
             </CardHeader>
             
             <CardContent className="p-10 pt-0 space-y-10">
@@ -338,6 +337,9 @@ export default function SubmitWebsite() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-[var(--radix-popover-trigger-width)] bg-[#121117] border-white/10 text-white rounded-2xl p-0 overflow-hidden shadow-2xl" align="start">
+                        <DialogDescription className="sr-only">
+                          Select the primary category for your website submission.
+                        </DialogDescription>
                         <div className="p-4 border-b border-white/5">
                           <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

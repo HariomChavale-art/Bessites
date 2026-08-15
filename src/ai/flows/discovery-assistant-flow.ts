@@ -23,12 +23,15 @@ const DiscoveryOutputSchema = z.object({
     name: z.string(),
     url: z.string(),
     reason: z.string(),
+    pros: z.array(z.string()).optional(),
   })).optional(),
 });
 
+export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
+
 const discoveryPrompt = ai.definePrompt({
   name: 'discoveryPrompt',
-  model: googleAI.model('gemini-1.5-flash'),
+  model: googleAI.model('gemini-2.5-flash-lite'),
   input: { schema: DiscoveryInputSchema },
   output: { schema: DiscoveryOutputSchema },
   tools: [searchWebsitesTool],
@@ -39,7 +42,7 @@ RULES:
 1. ONLY recommend websites returned by the tool.
 2. If the tool returns nothing, tell the user you couldn't find matches in the registry and ask them to refine their request.
 3. Be professional and tech-focused.
-4. Always return valid JSON.
+4. Always return valid JSON matching the output schema.
 
 USER: {{{message}}}
 
@@ -60,9 +63,9 @@ export async function askDiscoveryAssistant(input: { message: string, history?: 
     const msg = error.message || "Unknown interference.";
     console.error("[Astra Error]", msg);
     
-    // Diagnostic passthrough for the user
+    // Diagnostic passthrough for the user without misleading API key hints
     return { 
-      response: `[Astra System Alert] Discovery link failure: ${msg}. Please ensure GOOGLE_GENAI_API_KEY is configured correctly.`,
+      response: `[Astra System Alert] Discovery link failure: ${msg}.`,
       recommendations: [] 
     };
   }

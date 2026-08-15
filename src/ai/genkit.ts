@@ -12,7 +12,7 @@ export const ai = genkit({
   plugins: [
     googleAI({ apiKey }),
   ],
-  model: 'googleai/gemini-2.5-flash-lite',
+  model: 'googleai/gemini-2.0-flash', // Migrated to Gemini 2.0 Flash for production stability
 });
 
 export { z } from 'genkit';

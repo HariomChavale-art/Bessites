@@ -31,7 +31,7 @@ export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
 
 const discoveryPrompt = ai.definePrompt({
   name: 'discoveryPrompt',
-  model: googleAI.model('gemini-2.5-flash-lite'),
+  model: googleAI.model('gemini-2.0-flash'), // Updated to current recommended model
   input: { schema: DiscoveryInputSchema },
   output: { schema: DiscoveryOutputSchema },
   tools: [searchWebsitesTool],
@@ -43,6 +43,7 @@ RULES:
 2. If the tool returns nothing, tell the user you couldn't find matches in the registry and ask them to refine their request.
 3. Be professional and tech-focused.
 4. Always return valid JSON matching the output schema.
+5. Do NOT invent URLs, ratings, or features that are not explicitly provided by the tool.
 
 USER: {{{message}}}
 
@@ -61,9 +62,13 @@ export async function askDiscoveryAssistant(input: { message: string, history?: 
     return output;
   } catch (error: any) {
     const msg = error.message || "Unknown interference.";
-    console.error("[Astra Error]", msg);
+    console.error("[Astra Discovery Error]", msg);
     
-    // Diagnostic passthrough for the user without misleading API key hints
+    // Check for 404 or Model errors to provide better diagnostic in server logs
+    if (msg.includes('404') || msg.includes('not found')) {
+      console.error("[Astra System] Critical: Model 'gemini-2.0-flash' unreachable. Verify API key and region.");
+    }
+
     return { 
       response: `[Astra System Alert] Discovery link failure: ${msg}.`,
       recommendations: [] 

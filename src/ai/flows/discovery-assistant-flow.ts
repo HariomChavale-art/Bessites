@@ -1,97 +1,143 @@
 'use server';
 /**
  * @fileOverview Astra Discovery - AI search engine for Bessites.
- * Migrated to the modern Interactions API architecture using Gemini 2.0 Flash.
- * Hardened with diagnostic logging and detailed error reporting.
+ * Migrated to the official @google/genai SDK for robust performance.
+ * Uses gemini-3.6-flash and GEMINI_API_KEY.
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-import { searchWebsitesTool } from '../tools/search-websites';
+import { initializeFirebase } from '@/firebase/init';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { MOCK_WEBSITES } from '@/lib/mock-data';
+import { createGoogleAI } from '@google/genai';
 
-const DiscoveryInputSchema = z.object({
-  message: z.string(),
-  history: z.array(z.object({
-    role: z.enum(['user', 'assistant']),
-    content: z.string()
-  })).optional(),
-});
-
-const DiscoveryOutputSchema = z.object({
-  response: z.string(),
-  recommendations: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    url: z.string(),
-    reason: z.string(),
-    pros: z.array(z.string()).optional(),
-  })).optional(),
-});
-
-export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
+export type DiscoveryOutput = {
+  response: string;
+  recommendations?: {
+    id: string;
+    name: string;
+    url: string;
+    reason: string;
+    pros?: string[];
+  }[];
+};
 
 /**
- * Core interaction logic using the Genkit Chat API (Interactions Architecture).
+ * Core discovery logic using the official Google GenAI SDK.
+ * Searches Firestore registry and uses Gemini for intelligent matching.
  */
-export async function askDiscoveryAssistant(input: { message: string, history?: any[] }) {
-  console.log(`[Astra] Interaction initiated: "${input.message}"`);
+export async function askDiscoveryAssistant(input: { message: string, history?: {role: 'user' | 'assistant', content: string}[] }) {
+  console.log(`[Astra] Discovery interaction initiated: "${input.message}"`);
   
-  try {
-    // Initialize a chat session to leverage the modern Interactions API path
-    const chat = ai.chat({
-      model: 'googleai/gemini-2.0-flash',
-      system: `You are Astra, the Bessites Discovery AI. 
-      Your goal is to find tools from the registry using the searchWebsites tool.
-
-      RULES:
-      1. ONLY recommend websites returned by the tool.
-      2. If the tool returns nothing, tell the user you couldn't find matches in the registry and ask them to refine their request.
-      3. Be professional and tech-focused.
-      4. Always return structured data matching the output schema.
-      5. Do NOT invent URLs, ratings, or features that are not explicitly provided by the tool.`,
-      tools: [searchWebsitesTool],
-      history: input.history,
-    });
-
-    // Execute the interaction
-    const { output } = await chat.send({
-      text: input.message,
-      output: { schema: DiscoveryOutputSchema }
-    });
-    
-    if (!output) {
-      throw new Error("Interaction completed but returned empty output.");
-    }
-    
-    return output;
-  } catch (error: any) {
-    // Log complete error object for server-side diagnosis
-    console.error("[Astra System Error] Full Trace:", error);
-    
-    const errorMessage = error.message || "Unknown Genkit/Gemini failure.";
-    let userDisplayError = `[Astra Error] ${errorMessage}`;
-
-    // Map specific technical codes to helpful messages
-    if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
-      userDisplayError = "[Astra Access Error] Permission denied. Verify your API Key permissions for Gemini 2.0 Flash.";
-    } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
-      userDisplayError = "[Astra Model Error] The Gemini 2.0 model is not found. Verify model availability in your region.";
-    } else if (errorMessage.includes("429") || errorMessage.includes("QUOTA")) {
-      userDisplayError = "[Astra Quota Error] Speed limit reached. Please wait a moment before trying again.";
-    }
-
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    console.error("[Astra Error] GEMINI_API_KEY is missing from environment variables.");
     return { 
-      response: userDisplayError,
+      response: "[Astra Error] System configuration error: API Key (GEMINI_API_KEY) not found.",
       recommendations: [] 
     };
   }
-}
 
-export const discoveryAssistantFlow = ai.defineFlow(
-  {
-    name: 'discoveryAssistantFlow',
-    inputSchema: DiscoveryInputSchema,
-    outputSchema: DiscoveryOutputSchema,
-  },
-  async (input) => askDiscoveryAssistant(input)
-);
+  try {
+    // 1. Initialize the official SDK
+    const aiClient = createGoogleAI({ apiKey });
+
+    // 2. Fetch approved websites from Firestore for context
+    const { firestore } = initializeFirebase();
+    let registryData: any[] = [];
+
+    if (firestore) {
+      try {
+        const q = query(collection(firestore, 'submissions'), where('status', '==', 'approved'), limit(50));
+        const snapshot = await getDocs(q);
+        snapshot.forEach((doc) => {
+          const d = doc.data();
+          registryData.push({
+            id: doc.id,
+            name: d.websiteName || d.name || 'Unknown',
+            url: d.url || '',
+            description: d.description || '',
+            categories: d.categories || []
+          });
+        });
+      } catch (dbErr) {
+        console.warn("[Astra] Firestore query failed, falling back to mock data.", dbErr);
+      }
+    }
+
+    // 3. Fallback to mock data if registry is empty
+    if (registryData.length === 0) {
+      registryData = MOCK_WEBSITES.map(s => ({
+        id: s.id,
+        name: s.websiteName || s.name,
+        url: s.url,
+        description: s.description,
+        categories: s.categories
+      }));
+    }
+
+    // 4. Construct Instructions and Data Context
+    const systemPrompt = `You are Astra, the official discovery AI for Bessites. 
+    Your mission is to help users find tools from the provided REGISTRY.
+
+    STRICT RULES:
+    1. ONLY recommend websites listed in the REGISTRY below.
+    2. Do NOT invent URLs, features, prices, or websites.
+    3. If no suitable match exists, tell the user you couldn't find a match in the registry and ask for more details.
+    4. Provide the response as a valid JSON object.
+
+    OUTPUT SCHEMA:
+    {
+      "response": "Conversational text for the user",
+      "recommendations": [
+        { "id": "ID from registry", "name": "Name", "url": "URL", "reason": "Why it fits", "pros": ["advantage 1", "advantage 2"] }
+      ]
+    }
+
+    REGISTRY:
+    ${JSON.stringify(registryData.slice(0, 40))}
+    `;
+
+    // 5. Call the model using generateContent
+    const result = await aiClient.models.generateContent({
+      model: 'gemini-3.6-flash',
+      contents: [
+        { role: 'user', parts: [{ text: systemPrompt }] },
+        ...(input.history || []).map(h => ({
+          role: h.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: h.content }]
+        })),
+        { role: 'user', parts: [{ text: input.message }] }
+      ],
+      config: {
+        responseMimeType: 'application/json'
+      }
+    });
+
+    const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    const parsedData = JSON.parse(responseText);
+
+    return {
+      response: parsedData.response || "I've analyzed the registry for your request.",
+      recommendations: parsedData.recommendations || []
+    } as DiscoveryOutput;
+
+  } catch (error: any) {
+    console.error("[Astra System Failure]", error);
+    
+    let userMsg = "[Astra Error] I encountered a synchronization error in the discovery pipeline.";
+    
+    // Check for common API errors
+    if (error.message?.includes('404')) {
+      userMsg = "[Astra Error] Model 'gemini-3.6-flash' is not currently reachable or is invalid.";
+    } else if (error.message?.includes('401') || error.message?.includes('403')) {
+      userMsg = "[Astra Error] Access denied. Verify GEMINI_API_KEY permissions.";
+    } else if (error.message?.includes('429')) {
+      userMsg = "[Astra Error] Quota exceeded. Please wait a moment.";
+    }
+
+    return { 
+      response: userMsg,
+      recommendations: [] 
+    } as DiscoveryOutput;
+  }
+}

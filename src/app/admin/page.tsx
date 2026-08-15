@@ -35,7 +35,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { WebsitePreview } from "@/components/website-preview";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 
 type AdminSection = 
   | 'overview' 
@@ -194,7 +194,10 @@ export default function AdminDashboard() {
                                     <Dialog>
                                        <DialogTrigger asChild><Button variant="outline" size="sm" className="h-8 rounded-lg text-[10px] font-bold uppercase"><FileText className="w-3.5 h-3.5 mr-1" /> Details</Button></DialogTrigger>
                                        <DialogContent className="max-w-2xl bg-white border-none shadow-2xl rounded-2xl">
-                                          <DialogHeader><DialogTitle className="text-2xl font-black tracking-tighter italic uppercase">Review Submission</DialogTitle></DialogHeader>
+                                          <DialogHeader>
+                                             <DialogTitle className="text-2xl font-black tracking-tighter italic uppercase">Review Submission</DialogTitle>
+                                             <DialogDescription className="text-xs uppercase tracking-widest font-bold opacity-40">Analyze digital property details for moderation.</DialogDescription>
+                                          </DialogHeader>
                                           <div className="space-y-6 pt-4">
                                              <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-1"><p className="text-[10px] font-black uppercase text-slate-400">Name</p><p className="font-bold text-slate-900">{sub.name}</p></div>

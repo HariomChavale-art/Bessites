@@ -3,10 +3,10 @@ import { googleAI } from '@genkit-ai/google-genai';
 
 /**
  * Genkit instance configuration.
- * Using the stable Gemini 2.0 Flash model for high-performance discovery.
+ * Hardened to use GEMINI_API_KEY as the primary credential.
  */
 
-const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY;
 
 export const ai = genkit({
   plugins: [

@@ -7,6 +7,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { searchWebsitesTool } from '../tools/search-websites';
+import { googleAI } from '@genkit-ai/google-genai';
 
 const DiscoveryInputSchema = z.object({
   message: z.string().describe('The user\'s discovery request.'),
@@ -32,6 +33,7 @@ export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
 
 const discoveryPrompt = ai.definePrompt({
   name: 'discoveryPrompt',
+  model: googleAI.model('gemini-1.5-flash'),
   input: { schema: DiscoveryInputSchema },
   output: { schema: DiscoveryOutputSchema },
   tools: [searchWebsitesTool],
@@ -59,17 +61,31 @@ CONTEXT:
 
 /**
  * Main exported function for client-side consumption.
- * Includes graceful error handling to prevent blank screens.
+ * This runs exclusively on the server.
  */
 export async function askDiscoveryAssistant(input: { message: string, history?: any[] }) {
   try {
+    console.log(`[Astra] Processing discovery request: "${input.message}"`);
+    
     const { output } = await discoveryPrompt(input);
-    if (!output) throw new Error("AI returned empty output");
+    
+    if (!output) {
+      console.error("[Astra] Model returned empty output.");
+      throw new Error("AI returned empty output");
+    }
+
+    console.log(`[Astra] Successfully generated response with ${output.recommendations?.length || 0} recommendations.`);
     return output;
   } catch (error: any) {
-    console.error("[Bessites Flow] Discovery Assistant Error:", error);
+    // Detailed server-side logging without exposing secrets
+    console.error("[Bessites AI Error] Discovery Assistant Failure:", {
+      message: error.message,
+      stack: error.stack,
+      input: input.message
+    });
+
     return {
-      response: "I apologize, but my discovery link is currently experiencing interference. Please try rephrasing your request.",
+      response: "I apologize, but my discovery link is currently experiencing interference. Please check your network connection or try rephrasing your request.",
       recommendations: []
     };
   }

@@ -33,12 +33,13 @@ export const searchWebsitesTool = ai.defineTool(
   async (input) => {
     const { firestore } = initializeFirebase();
     if (!firestore) {
-      console.error("[Bessites Tool] Firestore not available for AI search.");
+      console.error("[searchWebsitesTool] Firestore not available for AI search.");
       return [];
     }
 
     try {
-      // Fetch approved submissions
+      console.log(`[searchWebsitesTool] Querying Firestore for: "${input.query}"`);
+      
       const submissionsRef = collection(firestore, 'submissions');
       const q = query(
         submissionsRef, 
@@ -55,7 +56,6 @@ export const searchWebsitesTool = ai.defineTool(
         const data = doc.data();
         const content = `${data.websiteName} ${data.name} ${data.description} ${data.categories?.join(' ')}`.toLowerCase();
         
-        // Match if any search term is present (broader discovery)
         const matchesQuery = searchTerms.length === 0 || searchTerms.some(term => content.includes(term));
         const matchesCategory = !input.category || data.categories?.includes(input.category);
         const matchesPricing = !input.pricing || data.pricing === input.pricing;
@@ -73,9 +73,10 @@ export const searchWebsitesTool = ai.defineTool(
         }
       });
 
+      console.log(`[searchWebsitesTool] Found ${results.length} matching results.`);
       return results.slice(0, 10);
     } catch (error) {
-      console.error('[Bessites Tool] Error searching websites:', error);
+      console.error('[searchWebsitesTool] Error searching websites:', error);
       return [];
     }
   }

@@ -1,7 +1,6 @@
 'use server';
 /**
- * @fileOverview Astra Discovery - The AI search engine for Bessites.
- * Handles natural language discovery requests by calling Firestore tools.
+ * @fileOverview Astra Discovery - AI search engine for Bessites.
  */
 
 import { ai } from '@/ai/genkit';
@@ -10,7 +9,7 @@ import { googleAI } from '@genkit-ai/google-genai';
 import { searchWebsitesTool } from '../tools/search-websites';
 
 const DiscoveryInputSchema = z.object({
-  message: z.string().describe('The user\'s discovery request.'),
+  message: z.string(),
   history: z.array(z.object({
     role: z.enum(['user', 'assistant']),
     content: z.string()
@@ -18,18 +17,14 @@ const DiscoveryInputSchema = z.object({
 });
 
 const DiscoveryOutputSchema = z.object({
-  response: z.string().describe('The conversational response from the assistant.'),
+  response: z.string(),
   recommendations: z.array(z.object({
     id: z.string(),
     name: z.string(),
     url: z.string(),
-    reason: z.string().describe('Why this matches the user request.'),
-    pros: z.array(z.string()).optional(),
-    cons: z.array(z.string()).optional(),
+    reason: z.string(),
   })).optional(),
 });
-
-export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
 
 const discoveryPrompt = ai.definePrompt({
   name: 'discoveryPrompt',
@@ -37,17 +32,16 @@ const discoveryPrompt = ai.definePrompt({
   input: { schema: DiscoveryInputSchema },
   output: { schema: DiscoveryOutputSchema },
   tools: [searchWebsitesTool],
-  prompt: `You are Astra, the Bessites Discovery Assistant. Your mission is to find the most useful web tools from our curated registry.
+  prompt: `You are Astra, the Bessites Discovery AI.
+Your goal is to find tools from the registry using the searchWebsites tool.
 
-CORE RULES:
-1. ONLY recommend websites found using the searchWebsites tool. 
-2. Use the tool results to populate the recommendations array.
-3. If no websites are found via the tool, provide a helpful response and ask for more details.
-4. DO NOT invent websites, ratings, or features that do not exist in the provided tool data.
-5. Keep reasoning concise and professional ("tech-noir" style).
-6. Ensure your response is valid JSON matching the schema.
+RULES:
+1. ONLY recommend websites returned by the tool.
+2. If the tool returns nothing, tell the user you couldn't find matches in the registry and ask them to refine their request.
+3. Be professional and tech-focused.
+4. Always return valid JSON.
 
-USER REQUEST: {{{message}}}
+USER: {{{message}}}
 
 {{#if history}}
 CONTEXT:
@@ -57,56 +51,19 @@ CONTEXT:
 {{/if}}`,
 });
 
-/**
- * Main exported function for client-side consumption.
- */
 export async function askDiscoveryAssistant(input: { message: string, history?: any[] }) {
   try {
-    console.log(`[Astra] Processing discovery request: "${input.message}"`);
-    
-    // Check for API key availability
-    const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      console.error("[Astra] Model call aborted: Missing Gemini API Key.");
-      return {
-        response: "I apologize, but my intelligence core is not powered. Please configure the GOOGLE_GENAI_API_KEY.",
-        recommendations: []
-      };
-    }
-
     const { output } = await discoveryPrompt(input);
-    
-    if (!output) {
-      console.error("[Astra] Model returned empty output.");
-      throw new Error("AI returned empty output");
-    }
-
+    if (!output) throw new Error("Astra returned null output.");
     return output;
   } catch (error: any) {
-    // Advanced diagnostic logging
-    const errorType = error.constructor.name;
-    const errorMessage = error.message || "Unknown error";
+    const msg = error.message || "Unknown interference.";
+    console.error("[Astra Error]", msg);
     
-    console.error("[Bessites AI Error]", {
-      type: errorType,
-      message: errorMessage,
-      stack: error.stack?.split('\n').slice(0, 2).join('\n')
-    });
-
-    // Detect common issues
-    if (errorMessage.includes('429')) {
-      return { response: "I am receiving too many discovery requests at once. Please try again in a minute.", recommendations: [] };
-    }
-    if (errorMessage.includes('SAFETY') || errorMessage.includes('blocked')) {
-      return { response: "I apologize, but I cannot process that request due to my safety protocols. Please try a different query.", recommendations: [] };
-    }
-    if (errorMessage.includes('401') || errorMessage.includes('API_KEY')) {
-      return { response: "I am unable to authenticate with the discovery network. Please verify system credentials.", recommendations: [] };
-    }
-    
-    return {
-      response: "I apologize, but my discovery link is currently experiencing interference. This usually happens during high network load or if the request is ambiguous. Please try rephrasing your request.",
-      recommendations: []
+    // Diagnostic passthrough for the user
+    return { 
+      response: `[Astra System Alert] Discovery link failure: ${msg}. Please ensure GOOGLE_GENAI_API_KEY is configured correctly.`,
+      recommendations: [] 
     };
   }
 }
@@ -117,7 +74,5 @@ export const discoveryAssistantFlow = ai.defineFlow(
     inputSchema: DiscoveryInputSchema,
     outputSchema: DiscoveryOutputSchema,
   },
-  async (input) => {
-    return askDiscoveryAssistant(input);
-  }
+  async (input) => askDiscoveryAssistant(input)
 );

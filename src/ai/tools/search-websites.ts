@@ -6,7 +6,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { initializeFirebase } from '@/firebase';
+import { initializeFirebase } from '@/firebase/init';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 
 const SearchWebsitesInputSchema = z.object({
@@ -32,7 +32,10 @@ export const searchWebsitesTool = ai.defineTool(
   },
   async (input) => {
     const { firestore } = initializeFirebase();
-    if (!firestore) return [];
+    if (!firestore) {
+      console.error("[Bessites Tool] Firestore not available for AI search.");
+      return [];
+    }
 
     try {
       // Fetch approved submissions
@@ -40,20 +43,20 @@ export const searchWebsitesTool = ai.defineTool(
       const q = query(
         submissionsRef, 
         where('status', '==', 'approved'),
-        limit(50) // Reasonable limit for the LLM to process
+        limit(100) 
       );
       
       const querySnapshot = await getDocs(q);
       const results: any[] = [];
       
-      const searchTerms = input.query.toLowerCase().split(' ');
+      const searchTerms = input.query.toLowerCase().split(' ').filter(t => t.length > 2);
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         const content = `${data.websiteName} ${data.name} ${data.description} ${data.categories?.join(' ')}`.toLowerCase();
         
-        // Simple keyword matching for prototype efficiency
-        const matchesQuery = searchTerms.every(term => content.includes(term));
+        // Match if any search term is present (broader discovery)
+        const matchesQuery = searchTerms.length === 0 || searchTerms.some(term => content.includes(term));
         const matchesCategory = !input.category || data.categories?.includes(input.category);
         const matchesPricing = !input.pricing || data.pricing === input.pricing;
 
@@ -70,9 +73,9 @@ export const searchWebsitesTool = ai.defineTool(
         }
       });
 
-      return results.slice(0, 10); // Return top 10 matches
+      return results.slice(0, 10);
     } catch (error) {
-      console.error('Error searching websites:', error);
+      console.error('[Bessites Tool] Error searching websites:', error);
       return [];
     }
   }

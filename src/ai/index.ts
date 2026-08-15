@@ -1,4 +1,8 @@
-import './genkit.js';
-import './tools/search-websites.ts';
-import './flows/discovery-assistant-flow.ts';
-import './flows/assistant-chat-flow.ts';
+/**
+ * Registry for Genkit AI flows and tools.
+ * Using relative imports without .js extensions for standard TS resolution.
+ */
+import './genkit';
+import './tools/search-websites';
+import './flows/discovery-assistant-flow';
+import './flows/assistant-chat-flow';

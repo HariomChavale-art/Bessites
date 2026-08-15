@@ -57,9 +57,22 @@ CONTEXT:
 {{/if}}`,
 });
 
+/**
+ * Main exported function for client-side consumption.
+ * Includes graceful error handling to prevent blank screens.
+ */
 export async function askDiscoveryAssistant(input: { message: string, history?: any[] }) {
-  const { output } = await discoveryPrompt(input);
-  return output!;
+  try {
+    const { output } = await discoveryPrompt(input);
+    if (!output) throw new Error("AI returned empty output");
+    return output;
+  } catch (error: any) {
+    console.error("[Bessites Flow] Discovery Assistant Error:", error);
+    return {
+      response: "I apologize, but my discovery link is currently experiencing interference. Please try rephrasing your request.",
+      recommendations: []
+    };
+  }
 }
 
 export const discoveryAssistantFlow = ai.defineFlow(
@@ -69,7 +82,6 @@ export const discoveryAssistantFlow = ai.defineFlow(
     outputSchema: DiscoveryOutputSchema,
   },
   async (input) => {
-    const { output } = await discoveryPrompt(input);
-    return output!;
+    return askDiscoveryAssistant(input);
   }
 );

@@ -7,7 +7,6 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { searchWebsitesTool } from '../tools/search-websites';
-import { googleAI } from '@genkit-ai/google-genai';
 
 const DiscoveryInputSchema = z.object({
   message: z.string().describe('The user\'s discovery request.'),
@@ -33,7 +32,7 @@ export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
 
 const discoveryPrompt = ai.definePrompt({
   name: 'discoveryPrompt',
-  model: googleAI.model('gemini-1.5-flash'),
+  model: 'googleai/gemini-1.5-flash',
   input: { schema: DiscoveryInputSchema },
   output: { schema: DiscoveryOutputSchema },
   tools: [searchWebsitesTool],
@@ -45,6 +44,7 @@ CORE RULES:
 3. DO NOT invent ratings, features, or websites that do not exist in the database.
 4. Keep match reasoning concise and insightful.
 5. Identify pros (advantages) and cons (limitations) based ONLY on the provided description.
+6. Always return a valid JSON object matching the requested schema.
 
 TONE: 
 Professional, "tech-noir", helpful, and concise.
@@ -61,12 +61,22 @@ CONTEXT:
 
 /**
  * Main exported function for client-side consumption.
- * This runs exclusively on the server.
+ * This runs exclusively on the server as a Next.js Server Action.
  */
 export async function askDiscoveryAssistant(input: { message: string, history?: any[] }) {
   try {
     console.log(`[Astra] Processing discovery request: "${input.message}"`);
     
+    // Check for API key availability before calling the model to provide better error feedback
+    const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error("[Astra] Model call aborted: Missing Gemini API Key.");
+      return {
+        response: "I apologize, but my intelligence core is not currently powered. Please ensure the GOOGLE_GENAI_API_KEY is configured in the environment.",
+        recommendations: []
+      };
+    }
+
     const { output } = await discoveryPrompt(input);
     
     if (!output) {
@@ -77,15 +87,20 @@ export async function askDiscoveryAssistant(input: { message: string, history?: 
     console.log(`[Astra] Successfully generated response with ${output.recommendations?.length || 0} recommendations.`);
     return output;
   } catch (error: any) {
-    // Detailed server-side logging without exposing secrets
+    // Detailed server-side logging for diagnosis
     console.error("[Bessites AI Error] Discovery Assistant Failure:", {
       message: error.message,
-      stack: error.stack,
+      stack: error.stack?.split('\n').slice(0, 3).join('\n'), // Log only the top of the stack for brevity
       input: input.message
     });
 
+    // Provide a slightly more descriptive error if it's a known configuration issue
+    const isAuthError = error.message?.includes('401') || error.message?.includes('API_KEY_INVALID');
+    
     return {
-      response: "I apologize, but my discovery link is currently experiencing interference. Please check your network connection or try rephrasing your request.",
+      response: isAuthError 
+        ? "I am currently unable to authenticate with the discovery network. Please verify the system credentials."
+        : "I apologize, but my discovery link is currently experiencing interference. Please check your connection or try again in a moment.",
       recommendations: []
     };
   }

@@ -33,18 +33,20 @@ export const searchWebsitesTool = ai.defineTool(
   async (input) => {
     const { firestore } = initializeFirebase();
     if (!firestore) {
-      console.error("[searchWebsitesTool] Firestore not available for AI search.");
+      console.error("[searchWebsitesTool] Firestore not available on the server. Check environment variables.");
       return [];
     }
 
     try {
-      console.log(`[searchWebsitesTool] Querying Firestore for: "${input.query}"`);
+      console.log(`[searchWebsitesTool] Querying Firestore for keyword: "${input.query}"`);
       
       const submissionsRef = collection(firestore, 'submissions');
+      // We query for approved status. In a larger dataset, we would use vector search, 
+      // but for an MVP, we retrieve the latest approved and filter by keywords.
       const q = query(
         submissionsRef, 
         where('status', '==', 'approved'),
-        limit(100) 
+        limit(200) // Increase scan limit to find more relevant matches
       );
       
       const querySnapshot = await getDocs(q);
@@ -73,10 +75,10 @@ export const searchWebsitesTool = ai.defineTool(
         }
       });
 
-      console.log(`[searchWebsitesTool] Found ${results.length} matching results.`);
-      return results.slice(0, 10);
+      console.log(`[searchWebsitesTool] Found ${results.length} matching digital properties.`);
+      return results.slice(0, 10); // Return top 10 most relevant
     } catch (error) {
-      console.error('[searchWebsitesTool] Error searching websites:', error);
+      console.error('[searchWebsitesTool] Firestore query error:', error);
       return [];
     }
   }

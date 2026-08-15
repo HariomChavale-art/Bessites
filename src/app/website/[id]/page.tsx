@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useParams } from "next/navigation";
@@ -28,7 +27,7 @@ import {
   Clock
 } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
@@ -326,7 +325,12 @@ export default function WebsiteDetail() {
                 <Button className="rounded-full h-14 px-10 bg-primary hover:bg-primary/90 text-white font-black italic uppercase text-xs tracking-widest shadow-xl">WRITE EXPERIENCE</Button>
               </DialogTrigger>
               <DialogContent className="bg-[#121117] border-white/10 text-white rounded-[3rem] sm:max-w-md p-10">
-                <DialogHeader className="space-y-2"><DialogTitle className="text-3xl font-black italic uppercase tracking-tighter text-center">Lodge <span className="text-primary">Insight</span></DialogTitle></DialogHeader>
+                <DialogHeader className="space-y-2">
+                  <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter text-center">Lodge <span className="text-primary">Insight</span></DialogTitle>
+                  <DialogDescription className="text-muted-foreground text-xs text-center uppercase tracking-widest font-black opacity-40 italic">
+                    Share your experience with this digital property to help the community.
+                  </DialogDescription>
+                </DialogHeader>
                 <div className="space-y-8 pt-6">
                   <div className="flex justify-center gap-5">
                     {[1, 2, 3, 4, 5].map((s) => (

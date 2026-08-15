@@ -2,6 +2,7 @@
 /**
  * @fileOverview Astra Discovery - AI search engine for Bessites.
  * Migrated to the modern Interactions API architecture using Gemini 2.0 Flash.
+ * Hardened with diagnostic logging and detailed error reporting.
  */
 
 import { ai } from '@/ai/genkit';
@@ -33,6 +34,8 @@ export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
  * Core interaction logic using the Genkit Chat API (Interactions Architecture).
  */
 export async function askDiscoveryAssistant(input: { message: string, history?: any[] }) {
+  console.log(`[Astra] Interaction initiated: "${input.message}"`);
+  
   try {
     // Initialize a chat session to leverage the modern Interactions API path
     const chat = ai.chat({
@@ -62,20 +65,21 @@ export async function askDiscoveryAssistant(input: { message: string, history?: 
     
     return output;
   } catch (error: any) {
-    // Detect specific Gemini API access issues
-    const errorMessage = error.message || "";
-    let userDisplayError = "Discovery link failure.";
+    // Log complete error object for server-side diagnosis
+    console.error("[Astra System Error] Full Trace:", error);
+    
+    const errorMessage = error.message || "Unknown Genkit/Gemini failure.";
+    let userDisplayError = `[Astra Error] ${errorMessage}`;
 
+    // Map specific technical codes to helpful messages
     if (errorMessage.includes("403") || errorMessage.includes("PERMISSION_DENIED")) {
-      userDisplayError = "[Astra Access Error] Your API key does not have permission to use Gemini 2.0 Flash.";
+      userDisplayError = "[Astra Access Error] Permission denied. Verify your API Key permissions for Gemini 2.0 Flash.";
     } else if (errorMessage.includes("404") || errorMessage.includes("NOT_FOUND")) {
-      userDisplayError = "[Astra Model Error] The selected Gemini 2.0 model is not available in your region/project.";
+      userDisplayError = "[Astra Model Error] The Gemini 2.0 model is not found. Verify model availability in your region.";
     } else if (errorMessage.includes("429") || errorMessage.includes("QUOTA")) {
-      userDisplayError = "[Astra Quota Error] Discovery speed limit reached. Please wait a moment.";
+      userDisplayError = "[Astra Quota Error] Speed limit reached. Please wait a moment before trying again.";
     }
 
-    console.error("[Astra System Error]", errorMessage);
-    
     return { 
       response: userDisplayError,
       recommendations: [] 

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Navigation } from "@/components/navigation";
@@ -108,7 +107,7 @@ import { useState, useMemo } from "react";
 import { useFirestore, useDoc, useUser, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 
 const STATIC_CATEGORIES = [
   { name: "AI", icon: Sparkles, color: "text-purple-400" },
@@ -374,6 +373,9 @@ export default function ExplorePage() {
                       <Sparkles className="w-6 h-6 text-primary" />
                       <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">All Discovery Tags</DialogTitle>
                     </div>
+                    <DialogDescription className="text-muted-foreground text-xs uppercase tracking-widest font-black opacity-40 italic">
+                      Browse our complete collection of digital property categories.
+                    </DialogDescription>
                     <div className="relative mt-6">
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input 

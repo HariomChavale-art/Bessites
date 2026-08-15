@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview A Genkit tool to search the Bessites registry.
- * Features a fallback to mock data to ensure the AI is never "empty handed".
+ * Hardened with execution logging for diagnostics.
  */
 
 import { ai } from '@/ai/genkit';
@@ -30,16 +30,18 @@ export const searchWebsitesTool = ai.defineTool(
     })),
   },
   async (input) => {
+    console.log(`[Astra Tool] Execution started for query: "${input.query}"`);
     const { firestore } = initializeFirebase();
     let results: any[] = [];
 
     // 1. Try to fetch from Firestore
     if (firestore) {
       try {
-        console.log(`[Astra Tool] Querying Firestore for: "${input.query}"`);
         const q = query(collection(firestore, 'submissions'), where('status', '==', 'approved'), limit(100));
         const snapshot = await getDocs(q);
         
+        console.log(`[Astra Tool] Firestore snapshot received. Processing ${snapshot.size} approved items...`);
+
         snapshot.forEach((doc) => {
           const data = doc.data();
           const content = `${data.websiteName} ${data.name} ${data.description} ${data.categories?.join(' ')}`.toLowerCase();
@@ -56,9 +58,13 @@ export const searchWebsitesTool = ai.defineTool(
             });
           }
         });
+        
+        console.log(`[Astra Tool] Firestore matches found: ${results.length}`);
       } catch (err) {
-        console.error("[Astra Tool] Firestore Error:", err);
+        console.error("[Astra Tool] Firestore Query Error:", err);
       }
+    } else {
+      console.warn("[Astra Tool] Firestore instance not initialized.");
     }
 
     // 2. Fallback to Mock Data if no results found in Firestore
@@ -79,6 +85,7 @@ export const searchWebsitesTool = ai.defineTool(
           });
         }
       });
+      console.log(`[Astra Tool] Mock matches found: ${results.length}`);
     }
 
     return results.slice(0, 8);

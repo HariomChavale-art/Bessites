@@ -35,6 +35,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription
 } from "@/components/ui/dialog";
 
 // Updated Official Payment QR Image from direct Google Drive link
@@ -213,7 +214,7 @@ export default function AddFundsPage() {
                      <div className="p-10 space-y-8">
                         <div className="space-y-2">
                            <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">Submit <span className="text-primary">Receipt</span></DialogTitle>
-                           <p className="text-sm text-muted-foreground font-medium">Verify your transaction to credit your wallet.</p>
+                           <DialogDescription className="text-sm text-muted-foreground font-medium">Verify your transaction to credit your wallet balance.</DialogDescription>
                         </div>
 
                         <div className="space-y-6">

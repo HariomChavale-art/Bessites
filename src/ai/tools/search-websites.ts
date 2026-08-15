@@ -33,31 +33,32 @@ export const searchWebsitesTool = ai.defineTool(
   async (input) => {
     const { firestore } = initializeFirebase();
     if (!firestore) {
-      console.error("[searchWebsitesTool] Firestore not available on the server. Check environment variables.");
+      console.error("[searchWebsitesTool] Firestore not available on the server.");
       return [];
     }
 
     try {
-      console.log(`[searchWebsitesTool] Querying Firestore for keyword: "${input.query}"`);
+      console.log(`[searchWebsitesTool] Searching for: "${input.query}"`);
       
       const submissionsRef = collection(firestore, 'submissions');
-      // We query for approved status. In a larger dataset, we would use vector search, 
-      // but for an MVP, we retrieve the latest approved and filter by keywords.
+      // We pull the latest approved items
       const q = query(
         submissionsRef, 
         where('status', '==', 'approved'),
-        limit(200) // Increase scan limit to find more relevant matches
+        limit(150)
       );
       
       const querySnapshot = await getDocs(q);
       const results: any[] = [];
       
-      const searchTerms = input.query.toLowerCase().split(' ').filter(t => t.length > 2);
+      // Allow terms as short as 2 characters (e.g. "AI", "UI", "OS")
+      const searchTerms = input.query.toLowerCase().split(' ').filter(t => t.length >= 2);
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         const content = `${data.websiteName} ${data.name} ${data.description} ${data.categories?.join(' ')}`.toLowerCase();
         
+        // Match if any search term is found in content
         const matchesQuery = searchTerms.length === 0 || searchTerms.some(term => content.includes(term));
         const matchesCategory = !input.category || data.categories?.includes(input.category);
         const matchesPricing = !input.pricing || data.pricing === input.pricing;
@@ -75,8 +76,8 @@ export const searchWebsitesTool = ai.defineTool(
         }
       });
 
-      console.log(`[searchWebsitesTool] Found ${results.length} matching digital properties.`);
-      return results.slice(0, 10); // Return top 10 most relevant
+      console.log(`[searchWebsitesTool] Found ${results.length} results.`);
+      return results.slice(0, 8); // Return top 8 most relevant to stay within context limits
     } catch (error) {
       console.error('[searchWebsitesTool] Firestore query error:', error);
       return [];

@@ -6,6 +6,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 import { searchWebsitesTool } from '../tools/search-websites';
 
 const DiscoveryInputSchema = z.object({
@@ -32,22 +33,19 @@ export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
 
 const discoveryPrompt = ai.definePrompt({
   name: 'discoveryPrompt',
-  model: 'googleai/gemini-1.5-flash',
+  model: googleAI.model('gemini-1.5-flash'),
   input: { schema: DiscoveryInputSchema },
   output: { schema: DiscoveryOutputSchema },
   tools: [searchWebsitesTool],
-  prompt: `You are Astra, the Bessites Discovery Assistant. Your goal is to help users find the perfect web tools from our curated registry.
+  prompt: `You are Astra, the Bessites Discovery Assistant. Your mission is to find the most useful web tools from our curated registry.
 
 CORE RULES:
-1. ONLY recommend websites found using the searchWebsites tool.
-2. If no websites are found, politely inform the user and suggest broader search terms.
-3. DO NOT invent ratings, features, or websites that do not exist in the database.
-4. Keep match reasoning concise and insightful.
-5. Identify pros (advantages) and cons (limitations) based ONLY on the provided description.
-6. Always return a valid JSON object matching the requested schema.
-
-TONE: 
-Professional, "tech-noir", helpful, and concise.
+1. ONLY recommend websites found using the searchWebsites tool. 
+2. Use the tool results to populate the recommendations array.
+3. If no websites are found via the tool, provide a helpful response and ask for more details.
+4. DO NOT invent websites, ratings, or features that do not exist in the provided tool data.
+5. Keep reasoning concise and professional ("tech-noir" style).
+6. Ensure your response is valid JSON matching the schema.
 
 USER REQUEST: {{{message}}}
 
@@ -61,18 +59,17 @@ CONTEXT:
 
 /**
  * Main exported function for client-side consumption.
- * This runs exclusively on the server as a Next.js Server Action.
  */
 export async function askDiscoveryAssistant(input: { message: string, history?: any[] }) {
   try {
     console.log(`[Astra] Processing discovery request: "${input.message}"`);
     
-    // Check for API key availability before calling the model to provide better error feedback
+    // Check for API key availability
     const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
       console.error("[Astra] Model call aborted: Missing Gemini API Key.");
       return {
-        response: "I apologize, but my intelligence core is not currently powered. Please ensure the GOOGLE_GENAI_API_KEY is configured in the environment.",
+        response: "I apologize, but my intelligence core is not powered. Please configure the GOOGLE_GENAI_API_KEY.",
         recommendations: []
       };
     }
@@ -84,23 +81,31 @@ export async function askDiscoveryAssistant(input: { message: string, history?: 
       throw new Error("AI returned empty output");
     }
 
-    console.log(`[Astra] Successfully generated response with ${output.recommendations?.length || 0} recommendations.`);
     return output;
   } catch (error: any) {
-    // Detailed server-side logging for diagnosis
-    console.error("[Bessites AI Error] Discovery Assistant Failure:", {
-      message: error.message,
-      stack: error.stack?.split('\n').slice(0, 3).join('\n'), // Log only the top of the stack for brevity
-      input: input.message
+    // Advanced diagnostic logging
+    const errorType = error.constructor.name;
+    const errorMessage = error.message || "Unknown error";
+    
+    console.error("[Bessites AI Error]", {
+      type: errorType,
+      message: errorMessage,
+      stack: error.stack?.split('\n').slice(0, 2).join('\n')
     });
 
-    // Provide a slightly more descriptive error if it's a known configuration issue
-    const isAuthError = error.message?.includes('401') || error.message?.includes('API_KEY_INVALID');
+    // Detect common issues
+    if (errorMessage.includes('429')) {
+      return { response: "I am receiving too many discovery requests at once. Please try again in a minute.", recommendations: [] };
+    }
+    if (errorMessage.includes('SAFETY') || errorMessage.includes('blocked')) {
+      return { response: "I apologize, but I cannot process that request due to my safety protocols. Please try a different query.", recommendations: [] };
+    }
+    if (errorMessage.includes('401') || errorMessage.includes('API_KEY')) {
+      return { response: "I am unable to authenticate with the discovery network. Please verify system credentials.", recommendations: [] };
+    }
     
     return {
-      response: isAuthError 
-        ? "I am currently unable to authenticate with the discovery network. Please verify the system credentials."
-        : "I apologize, but my discovery link is currently experiencing interference. Please check your connection or try again in a moment.",
+      response: "I apologize, but my discovery link is currently experiencing interference. This usually happens during high network load or if the request is ambiguous. Please try rephrasing your request.",
       recommendations: []
     };
   }

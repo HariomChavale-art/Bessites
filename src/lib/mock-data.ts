@@ -14,7 +14,10 @@ export interface Website {
   size: string;
   version: string;
   updatedAt: string;
-  pricing: "Free" | "Paid" | "Freemium";
+  pricing: "Free" | "Paid" | "Freemium" | "Unknown";
+  pros?: string[];
+  cons?: string[];
+  bestFor?: string;
 }
 
 const RAW_SITES = [
@@ -40,6 +43,18 @@ const RAW_SITES = [
   { name: "DeepL", title: "Advanced Neural Translation", url: "https://deepl.com", cat: ["AI", "Education", "Languages"], desc: "Want translations that actually sound natural? DeepL uses advanced neural networks to provide context-aware translations that outperform generic tools for professional and creative writing." },
   { name: "Synthesia", title: "AI Video Avatar Generator", url: "https://synthesia.io", cat: ["AI", "Video"], desc: "Creating training or marketing videos? Synthesia lets you generate professional video content with realistic AI avatars that speak 120+ languages, removing the need for cameras or actors." },
   { name: "Midjourney", title: "Premium AI Visual Artistry", url: "https://midjourney.com", cat: ["AI", "Design", "Creative"], desc: "Looking for the highest tier of AI artistry? Midjourney is a premier generative tool famous for creating stunning, award-winning visuals through a vibrant community-driven interface." },
+  
+  // --- NEW UTILITY TOOLS BATCH (VERIFIED) ---
+  { name: "LightPDF", title: "Complete Cloud PDF Editor & Converter", url: "https://lightpdf.com", cat: ["PDF", "Utilities"], desc: "A powerful web-based PDF toolkit that allows users to edit, convert, sign, and OCR PDF documents without installing software. It features high-speed processing and strict data privacy standards.", pros: ["No installation required", "Supports OCR", "Secure processing"], cons: ["Daily limits on free tier"], bestFor: "Users needing quick PDF edits or document conversions." },
+  { name: "GetConverter", title: "Universal Media & Document Converter", url: "https://getconverter.com", cat: ["Utilities"], desc: "A versatile online conversion tool that handles documents, images, and audio files. It is designed for simplicity, allowing users to drag and drop files for immediate processing across hundreds of formats.", pros: ["Simple interface", "Wide format support"], cons: ["Basic feature set"], bestFor: "Fast conversion between common and obscure file formats." },
+  { name: "MrFreeTools", title: "Curation of Premium Free Web Tools", url: "https://mrfreetools.com", cat: ["Utilities"], desc: "An extensive directory of hand-picked web tools that are free to use. It covers everything from design and development to SEO and productivity, acting as a gateway to high-quality software alternatives.", pros: ["Well-curated", "Covers many niches"], cons: ["Directory only, not a tool itself"], bestFor: "Discovering high-quality free alternatives to expensive professional software." },
+  { name: "123Apps", title: "Web-Based Video, Audio & PDF Suite", url: "https://123apps.com", cat: ["Utilities", "Creative"], desc: "A comprehensive collection of web apps for editing video, audio, and PDF files. Each tool runs directly in the browser, providing functions like trimming, merging, and format conversion without complex interfaces.", pros: ["All-in-one suite", "No signup required"], cons: ["Ad-supported interface"], bestFor: "Occasional media editing tasks that don't justify heavy software." },
+  { name: "PrePostSEO", title: "Comprehensive Content & SEO Analysis Toolkit", url: "https://www.prepostseo.com", cat: ["SEO", "Writing"], desc: "A professional-grade suite for content creators and SEO experts. Includes plagiarism checkers, article rewriters, and domain authority checkers to ensure content is unique and optimized for search engines.", pros: ["Deep SEO metrics", "Multiple tool categories"], cons: ["Interface can be cluttered"], bestFor: "Content writers and marketers ensuring high-quality, unique content." },
+  { name: "TinyWow", title: "Zero-Hassle Free Online Tool Collection", url: "https://tinywow.com", cat: ["Utilities", "Privacy"], desc: "Offers a massive library of tools for PDF, video, and image processing. TinyWow is unique for its commitment to privacy, deleting files shortly after processing and offering all features completely free.", pros: ["Privacy focused", "Completely free", "No registration"], cons: ["Occasional processing queues"], bestFor: "Privacy-conscious users who want powerful tools without accounts or costs." },
+  { name: "Tooools", title: "Professional Design & Creative Resources Directory", url: "https://tooools.app", cat: ["Design", "Creative"], desc: "A highly curated directory of the best tools and resources for designers and creators. It organizes thousands of assets including fonts, mockups, and inspirations into an easily searchable index.", pros: ["Beautiful design", "Top-tier curation"], cons: ["Link directory, not a SaaS"], bestFor: "Designers looking for high-quality creative assets and inspiration." },
+  { name: "Ninite", title: "Automated Bulk Software Installer for Windows", url: "https://ninite.com", cat: ["PC Software", "Utilities"], desc: "The easiest way to install and update software on Windows. Users select the apps they want from a list, and Ninite handles the installation of all of them at once, skipping all toolbars and junkware.", pros: ["Saves hours of setup", "Clean installations", "Safe and verified"], cons: ["Windows only"], bestFor: "System administrators and home users setting up new PCs." },
+  { name: "CalSolver", title: "Advanced Mathematical Problem Solver & Calculators", url: "https://calsolver.net", cat: ["Math", "Education"], desc: "A specialized math portal providing step-by-step solutions for algebra, calculus, and engineering problems. It includes various specialized calculators for financial and scientific applications.", pros: ["Step-by-step guides", "Free access"], cons: ["Focused on academics"], bestFor: "Students and engineers solving complex mathematical equations." },
+  { name: "Replit", title: "Collaborative Cloud IDE & Deployment Platform", url: "https://replit.com", cat: ["Coding", "Developer"], desc: "An instant coding environment that lives in the browser. Replit allows developers to code in 50+ languages, collaborate in real-time, and host web applications with one click, removing all local setup hurdles.", pros: ["Zero setup", "Live collaboration", "Instant deployment"], cons: ["Free tier has resource limits"], bestFor: "Developers prototyping apps or learning new programming languages collaboratively." },
   
   // --- GAMING & ENTERTAINMENT ---
   { name: "Game Jolt", title: "Indie Game Community Playground", url: "https://gamejolt.com", cat: ["Gaming", "Entertainment", "Fun"], desc: "Looking for the next big indie hit? Game Jolt is a social playground where you can play thousands of unique games and join communities dedicated to your favorite creators." },
@@ -116,5 +131,8 @@ export const MOCK_WEBSITES: Website[] = Array.from(new Set(RAW_SITES.map(s => s.
       version: "1.0",
       updatedAt: "2024",
       pricing: pricing,
+      pros: (site as any).pros || [],
+      cons: (site as any).cons || [],
+      bestFor: (site as any).bestFor || ""
     };
   });

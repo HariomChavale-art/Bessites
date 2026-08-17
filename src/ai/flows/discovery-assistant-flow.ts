@@ -28,11 +28,15 @@ export type DiscoveryOutput = {
 export async function askDiscoveryAssistant(input: { message: string, history?: {role: 'user' | 'assistant', content: string}[] }) {
   console.log(`[Astra] Discovery interaction initiated: "${input.message}"`);
   
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY;
-  if (!apiKey) {
-    console.error("[Astra Error] GEMINI_API_KEY is missing from environment variables.");
+  // Check multiple possible env var names for robustness
+  const apiKey = process.env.GEMINI_API_KEY || 
+                 process.env.GOOGLE_GENAI_API_KEY || 
+                 process.env.GOOGLE_API_KEY;
+
+  if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY_HERE' || apiKey === 'undefined') {
+    console.error("[Astra Error] GEMINI_API_KEY is missing or unconfigured.");
     return { 
-      response: "[Astra Error] System configuration error: API Key (GEMINI_API_KEY) not found. Please update your environment variables.",
+      response: "[Astra Error] System configuration error: API Key not found. Please add your GEMINI_API_KEY to the .env file and restart the server.",
       recommendations: [] 
     };
   }
@@ -98,7 +102,6 @@ export async function askDiscoveryAssistant(input: { message: string, history?: 
     `;
 
     // 5. Call the model using generateContent
-    // Using gemini-2.0-flash as it is the current stable standard.
     const result = await aiClient.models.generateContent({
       model: 'gemini-2.0-flash',
       contents: [
@@ -129,9 +132,9 @@ export async function askDiscoveryAssistant(input: { message: string, history?: 
     
     // Check for common API errors
     if (error.message?.includes('404')) {
-      userMsg = "[Astra Error] The requested Gemini model is not currently reachable or is invalid.";
+      userMsg = "[Astra Error] Model not found or unavailable. Please verify API access.";
     } else if (error.message?.includes('401') || error.message?.includes('403')) {
-      userMsg = "[Astra Error] Access denied. Verify GEMINI_API_KEY permissions.";
+      userMsg = "[Astra Error] Access denied. Your API key might be invalid or restricted.";
     } else if (error.message?.includes('429')) {
       userMsg = "[Astra Error] Quota exceeded. Please wait a moment.";
     }

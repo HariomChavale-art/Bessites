@@ -8,6 +8,8 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
   sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -23,18 +25,14 @@ import {
   User, 
   Eye, 
   EyeOff, 
-  Camera, 
-  ShieldAlert, 
   Sparkles, 
-  Github, 
-  Chrome,
   ShieldCheck,
+  Chrome
 } from "lucide-react";
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import { cn } from "@/lib/utils";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { WebsitePreview } from "@/components/website-preview";
+import { Logo } from "@/components/logo";
 
 // Modern Avatar Options
 const PRESET_AVATARS = [
@@ -55,6 +53,7 @@ interface Particle {
   website: any;
   size: number;
   rotation: number;
+  tilt: number;
 }
 
 export default function LoginPage() {
@@ -68,50 +67,52 @@ export default function LoginPage() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [loading, setLoading] = useState(false);
-  const [resetLoading, setResetLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(PRESET_AVATARS[0]);
 
-  // --- INTERACTIVE BACKGROUND LOGIC ---
+  // --- HIGH DENSITY FALLING BACKGROUND PHYSICS ---
   const [particles, setParticles] = useState<Particle[]>([]);
-  const mousePos = useRef({ x: 0, y: 0 });
-  const isInteracting = useRef(false);
+  const mousePos = useRef({ x: -1000, y: -1000 });
+  const lastMousePos = useRef({ x: -1000, y: -1000 });
+  const mouseVelocity = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
-    // Initialize particles from registry
-    const initialParticles: Particle[] = Array.from({ length: 15 }).map((_, i) => ({
+    // High density particle count
+    const particleCount = 32;
+    const initialParticles: Particle[] = Array.from({ length: particleCount }).map((_, i) => ({
       id: `p-${i}`,
       x: Math.random() * 100,
-      y: Math.random() * -100,
+      y: (Math.random() * 140) - 20, // Spread them out vertically initially
       vx: 0,
-      vy: 0.05 + Math.random() * 0.1, // 15s avg fall
-      website: MOCK_WEBSITES[Math.floor(Math.random() * MOCK_WEBSITES.length)],
-      size: 80 + Math.random() * 60,
-      rotation: Math.random() * 360
+      vy: 0.04 + Math.random() * 0.08, // Base fall speed (12-15s avg)
+      website: MOCK_WEBSITES[i % MOCK_WEBSITES.length],
+      size: 100 + Math.random() * 80,
+      rotation: Math.random() * 360,
+      tilt: 0
     }));
     setParticles(initialParticles);
 
     let animationFrame: number;
     const animate = () => {
+      // Calculate mouse velocity for swirl physics
+      mouseVelocity.current = {
+        x: (mousePos.current.x - lastMousePos.current.x) * 0.1,
+        y: (mousePos.current.y - lastMousePos.current.y) * 0.1
+      };
+      lastMousePos.current = { ...mousePos.current };
+
       setParticles(prev => prev.map(p => {
-        let { x, y, vx, vy } = p;
+        let { x, y, vx, vy, rotation, tilt } = p;
         
-        // Vertical Fall
+        // 1. Core Gravity Fall
         y += vy;
         
-        // Wrap around
-        if (y > 110) {
-          y = -20;
-          x = Math.random() * 100;
-        }
-
-        // Interaction physics
-        if (isInteracting.current && containerRef.current) {
+        // 2. Interactive Swirl / Vortex Logic
+        if (containerRef.current) {
           const rect = containerRef.current.getBoundingClientRect();
           const mx = (mousePos.current.x / rect.width) * 100;
           const my = (mousePos.current.y / rect.height) * 100;
@@ -120,19 +121,39 @@ export default function LoginPage() {
           const dy = my - y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           
-          if (dist < 30) {
-            const force = (30 - dist) / 30;
-            vx += dx * force * 0.02;
-            vy += dy * force * 0.02;
+          // Influence zone
+          if (dist < 25) {
+            const power = (25 - dist) / 25;
+            // Drag towards cursor
+            vx += dx * power * 0.015;
+            vy += dy * power * 0.015;
+            
+            // Add swirl from mouse velocity
+            vx += mouseVelocity.current.x * power * 0.5;
+            vy += mouseVelocity.current.y * power * 0.5;
+
+            // Tilt effect
+            tilt = (vx * 20);
           }
         }
 
-        // Friction and recovery
-        vx *= 0.95;
-        vy = vy * 0.95 + (0.1) * 0.05; // Return to base fall speed
+        // 3. Friction & Recovery
+        vx *= 0.94;
+        vy = vy * 0.95 + (p.vy) * 0.05; // Return to original fall speed
+        tilt *= 0.9;
+        
         x += vx;
 
-        return { ...p, x, y, vx, vy };
+        // Wrap around logic
+        if (y > 115) {
+          y = -20;
+          x = Math.random() * 100;
+          vx = 0;
+        }
+        if (x < -10) x = 110;
+        if (x > 110) x = -10;
+
+        return { ...p, x, y, vx, vy, rotation: rotation + 0.05, tilt };
       }));
       animationFrame = requestAnimationFrame(animate);
     };
@@ -141,27 +162,11 @@ export default function LoginPage() {
     return () => cancelAnimationFrame(animationFrame);
   }, []);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handlePointerMove = (e: React.PointerEvent) => {
     mousePos.current = { x: e.clientX, y: e.clientY };
-    isInteracting.current = true;
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    mousePos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    isInteracting.current = true;
-  };
-
-  useEffect(() => {
-    const handleStop = () => isInteracting.current = false;
-    window.addEventListener('mouseup', handleStop);
-    window.addEventListener('touchend', handleStop);
-    return () => {
-      window.removeEventListener('mouseup', handleStop);
-      window.removeEventListener('touchend', handleStop);
-    };
-  }, []);
-
-  // --- AUTH LOGIC PRESERVED ---
+  // --- AUTH LOGIC ---
   useEffect(() => {
     if (currentUser && !authLoading && db) {
       const userRef = doc(db, "users", currentUser.uid);
@@ -177,43 +182,6 @@ export default function LoginPage() {
     }
   }, [currentUser, db, router, authLoading]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setSelectedAvatar(null);
-      const reader = new FileReader();
-      reader.onloadend = () => setPhotoPreview(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const uploadToFirebase = async (file: File, userId: string) => {
-    if (!storage) return null;
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `profiles/${userId}-${Date.now()}.${fileExt}`;
-      const storageRef = ref(storage, fileName);
-      await uploadBytes(storageRef, file);
-      return await getDownloadURL(storageRef);
-    } catch (err) {
-      console.error("Firebase Storage Error:", err);
-      return null;
-    }
-  };
-
-  const formatAuthError = (error: any) => {
-    const code = error?.code || "";
-    switch (code) {
-      case 'auth/user-not-found': return "Account not found. Check your email!";
-      case 'auth/wrong-password': return "Incorrect password. Please try again.";
-      case 'auth/invalid-email': return "Please enter a valid email.";
-      case 'auth/email-already-in-use': return "Email already in use. Try signing in!";
-      case 'auth/weak-password': return "Password too weak. (Min 6 chars)";
-      default: return error?.message || "Authentication failed.";
-    }
-  };
-
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth || !db) return;
@@ -227,14 +195,13 @@ export default function LoginPage() {
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-        let finalPhotoURL = selectedAvatar;
-        if (selectedFile) finalPhotoURL = await uploadToFirebase(selectedFile, user.uid);
-        if (finalPhotoURL) await updateProfile(user, { photoURL: finalPhotoURL });
+        
+        if (selectedAvatar) await updateProfile(user, { photoURL: selectedAvatar });
         
         const userData = {
           email: user.email,
           displayName: email.split('@')[0],
-          photoURL: finalPhotoURL,
+          photoURL: selectedAvatar,
           createdAt: serverTimestamp(),
           onboardingComplete: false,
           interests: [],
@@ -244,24 +211,53 @@ export default function LoginPage() {
         router.push("/onboarding");
       }
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Auth Error", description: formatAuthError(error) });
+      toast({ variant: "destructive", title: "Auth Error", description: error.message });
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (!auth || !db) return;
+    setGoogleLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      const userRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userRef);
+      
+      if (!docSnap.exists()) {
+        await setDoc(userRef, {
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          createdAt: serverTimestamp(),
+          onboardingComplete: false,
+          interests: [],
+          walletBalance: 0
+        });
+        router.push("/onboarding");
+      } else {
+        router.push(docSnap.data().onboardingComplete ? "/" : "/onboarding");
+      }
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Sign In Failed", description: error.message });
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
   const handleForgotPassword = async () => {
     if (!auth || !email) {
-      toast({ variant: "destructive", title: "Support", description: "Enter email first." });
+      toast({ variant: "destructive", title: "Reset Failed", description: "Please enter your email address first." });
       return;
     }
-    setResetLoading(true);
     try {
       await sendPasswordResetEmail(auth, email);
-      toast({ title: "Reset Sent", description: "Check your inbox." });
+      toast({ title: "Reset Sent", description: "Check your email for the password reset link." });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: formatAuthError(error) });
-    } finally {
-      setResetLoading(false);
+      toast({ variant: "destructive", title: "Error", description: error.message });
     }
   };
 
@@ -270,126 +266,113 @@ export default function LoginPage() {
   return (
     <div 
       ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onTouchMove={handleTouchMove}
-      className="min-h-screen relative bg-[#0B0A0F] text-white flex flex-col items-center justify-center overflow-hidden selection:bg-primary/30 font-body"
+      onPointerMove={handlePointerMove}
+      className="min-h-screen relative bg-[#0B0A0E] text-white flex flex-col items-center justify-center overflow-hidden selection:bg-primary/40 font-body"
     >
-      {/* 1. DYNAMIC FALLING BACKGROUND */}
-      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-30">
+      {/* 1. DENSE DYNAMIC BACKGROUND */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         {particles.map(p => (
           <div 
             key={p.id}
-            className="absolute transition-transform duration-75"
+            className="absolute will-change-transform"
             style={{
               left: `${p.x}%`,
               top: `${p.y}%`,
               width: `${p.size}px`,
               height: `${p.size}px`,
-              transform: `translate(-50%, -50%) rotate(${p.rotation}deg)`,
+              transform: `translate(-50%, -50%) rotate(${p.rotation}deg) skewX(${p.tilt}deg)`,
+              opacity: 0.8,
             }}
           >
-            <div className="w-full h-full rounded-2xl border border-white/5 bg-white/[0.02] overflow-hidden shadow-2xl backdrop-blur-sm">
-              <WebsitePreview websiteUrl={p.website.url} className="w-full h-full opacity-40" />
+            <div className="w-full h-full rounded-2xl border border-white/10 bg-card/80 overflow-hidden shadow-[0_0_20px_rgba(123,51,255,0.15)] backdrop-blur-sm ring-1 ring-white/5 transition-opacity">
+              <WebsitePreview 
+                websiteUrl={p.website.url} 
+                className="w-full h-full object-cover scale-110" 
+              />
             </div>
           </div>
         ))}
       </div>
 
-      {/* 2. GLOBAL HEADER PILL */}
-      <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-4 duration-1000">
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 px-6 py-2.5 rounded-full flex items-center gap-3 shadow-2xl ring-1 ring-white/5 group hover:border-primary/40 transition-all">
-          <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-            <User className="w-3 h-3 text-primary" />
-          </div>
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 group-hover:text-white transition-colors">alexkyr.com</span>
-        </div>
-      </div>
-
-      {/* 3. MAIN CONTENT CONTAINER */}
-      <main className="w-full max-w-7xl mx-auto px-4 z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-screen">
+      {/* 2. MAIN CONTENT GRID */}
+      <main className="w-full max-w-7xl mx-auto px-6 z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center min-h-screen py-12">
         
         {/* DESKTOP LEFT PANEL: VALUE PROP */}
-        <div className="hidden lg:flex flex-col space-y-8 animate-in fade-in slide-in-from-left-8 duration-1000">
-          <div className="space-y-4">
-             <div className="flex items-center gap-3 mb-6">
-               <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(123,51,255,0.4)]">
-                 <Sparkles className="w-6 h-6 text-white" />
-               </div>
-               <span className="text-3xl font-black italic uppercase tracking-tighter text-white">Bessites</span>
-             </div>
-             <h1 className="text-7xl xl:text-8xl font-black text-white tracking-tighter uppercase italic leading-[0.85]">
+        <div className="hidden lg:flex lg:col-span-6 flex-col space-y-10 animate-in fade-in slide-in-from-left-12 duration-1000">
+          <div className="space-y-6">
+             <Logo showText className="scale-125 origin-left" />
+             <h1 className="text-8xl xl:text-9xl font-black text-white tracking-tighter uppercase italic leading-[0.85] drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
                 Unlock a <br />
-                <span className="text-primary text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">World of</span> <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-400 to-cyan-400">World of</span> <br />
                 Modern Webs.
              </h1>
-             <p className="text-xl text-muted-foreground font-medium max-w-md italic opacity-60 leading-relaxed pt-4">
+             <p className="text-2xl text-muted-foreground font-medium max-w-lg italic opacity-70 leading-relaxed pt-4 border-l-4 border-primary pl-6">
                 Discover curated tools, apps, and games before the masses. Join the Bessites community and start your discovery pipeline today.
              </p>
           </div>
         </div>
 
-        {/* AUTH PANEL: THE GLASSMORPHIC CARD */}
-        <div className="flex justify-center items-center py-20 lg:py-0 w-full animate-in fade-in zoom-in-95 duration-1000">
-          <Card className="w-full max-w-[480px] bg-white/[0.03] backdrop-blur-[40px] border border-white/10 rounded-[3.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.5)] overflow-hidden relative group transition-all duration-500 hover:border-primary/20">
-            {/* Inner Gradient Glows */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] -mr-32 -mt-32 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 blur-[100px] -ml-32 -mb-32 pointer-events-none" />
+        {/* AUTH PANEL: THE DARK PURPLE GLASS CARD */}
+        <div className="lg:col-span-6 flex justify-center items-center w-full animate-in fade-in zoom-in-95 duration-1000">
+          <Card className="w-full max-w-md bg-[#121026]/75 backdrop-blur-[24px] border border-primary/30 rounded-[3rem] shadow-[0_0_50px_rgba(123,51,255,0.15)] overflow-hidden relative group transition-all duration-700 hover:border-primary/50">
+            {/* Soft Internal Glows */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[80px] -mr-32 -mt-32 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 blur-[80px] -ml-32 -mb-32 pointer-events-none" />
             
             <div className="p-8 sm:p-12 relative z-10 flex flex-col">
               
-              <header className="text-center mb-10 space-y-2">
+              <header className="text-center mb-10 space-y-3">
+                <div className="lg:hidden flex justify-center mb-6">
+                  <Logo showText />
+                </div>
                 <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">
                   {mode === 'login' ? 'Welcome Back!' : 'Start Building.'}
                 </h2>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 italic">
-                  Enter Your Details Below
+                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 italic">
+                  {mode === 'login' ? 'Enter your details to explore the modern web.' : 'Join the global discovery registry.'}
                 </p>
               </header>
 
               <form onSubmit={handleAuth} className="space-y-6">
                 
                 {mode === 'signup' && (
-                  <div className="space-y-6 mb-8 animate-in fade-in slide-in-from-top-4">
-                    {/* AVATAR SELECTOR */}
-                    <div className="space-y-4">
-                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 ml-1">Choose Profile Mark</Label>
-                       <div className="grid grid-cols-6 gap-2">
-                          {PRESET_AVATARS.map((avatar, idx) => (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => {
-                                setSelectedAvatar(avatar);
-                                setPhotoPreview(null);
-                              }}
-                              className={cn(
-                                "aspect-square rounded-xl border-2 transition-all p-1 hover:scale-110 flex items-center justify-center",
-                                selectedAvatar === avatar ? "border-primary bg-primary/10" : "border-white/5 bg-white/5 opacity-40 hover:opacity-100"
-                              )}
-                            >
-                              <img src={avatar} alt="Avatar" className="w-full h-full" />
-                            </button>
-                          ))}
-                       </div>
+                  <div className="space-y-4 mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-primary/60 ml-2">Identify Your Curator Avatar</Label>
+                    <div className="flex justify-between gap-2 bg-white/5 p-2 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar">
+                       {PRESET_AVATARS.map((avatar, idx) => (
+                         <button
+                           key={idx}
+                           type="button"
+                           onClick={() => setSelectedAvatar(avatar)}
+                           className={cn(
+                             "w-12 h-12 rounded-xl transition-all shrink-0 p-1 relative",
+                             selectedAvatar === avatar 
+                               ? "bg-primary/20 ring-2 ring-primary shadow-[0_0_15px_rgba(123,51,255,0.5)]" 
+                               : "bg-white/5 opacity-50 hover:opacity-100 hover:bg-white/10"
+                           )}
+                         >
+                           <img src={avatar} alt="Avatar" className="w-full h-full object-cover rounded-lg" />
+                         </button>
+                       ))}
                     </div>
                   </div>
                 )}
 
                 <div className="space-y-5">
-                  <div className="space-y-1.5 group">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 ml-1 group-focus-within:text-primary transition-colors">Email Address</Label>
+                  <div className="space-y-2 group">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 ml-2 group-focus-within:text-primary transition-colors">Email Address</Label>
                     <Input 
                       type="email" 
-                      placeholder="hello.alex@gmail.com" 
+                      placeholder="alex.kyr@example.com" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-white/5 border-white/5 rounded-2xl h-14 text-sm font-bold focus:ring-primary/40 focus:border-primary transition-all shadow-inner placeholder:text-white/10"
+                      className="bg-white/[0.05] border-white/10 rounded-2xl h-14 text-sm font-bold focus:ring-primary/50 focus:border-primary/50 transition-all shadow-inner placeholder:text-white/10"
                     />
                   </div>
 
-                  <div className="space-y-1.5 group">
-                    <div className="flex justify-between items-center px-1">
+                  <div className="space-y-2 group">
+                    <div className="flex justify-between items-center px-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 group-focus-within:text-primary transition-colors">Password</Label>
                       {mode === 'login' && (
                         <button 
@@ -408,7 +391,7 @@ export default function LoginPage() {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         placeholder="••••••••"
-                        className="bg-white/5 border-white/5 rounded-2xl h-14 text-sm pr-12 focus:ring-primary/40 focus:border-primary transition-all shadow-inner font-mono"
+                        className="bg-white/[0.05] border-white/10 rounded-2xl h-14 text-sm pr-12 focus:ring-primary/50 focus:border-primary/50 transition-all shadow-inner font-mono"
                       />
                       <button 
                         type="button"
@@ -422,8 +405,8 @@ export default function LoginPage() {
                 </div>
 
                 {mode === 'login' && (
-                  <div className="flex items-center space-x-2 px-1">
-                    <Checkbox id="remember" className="rounded-md border-white/10 data-[state=checked]:bg-primary" />
+                  <div className="flex items-center space-x-2 px-2">
+                    <Checkbox id="remember" className="rounded-md border-white/20 data-[state=checked]:bg-primary" />
                     <label htmlFor="remember" className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest cursor-pointer select-none">Remember this device</label>
                   </div>
                 )}
@@ -431,30 +414,32 @@ export default function LoginPage() {
                 <Button 
                   type="submit" 
                   disabled={loading || isFirebaseMissing}
-                  className="w-full bg-primary hover:bg-primary/90 text-white rounded-2xl h-16 text-sm font-black shadow-[0_20px_40px_rgba(123,51,255,0.3)] uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-3"
+                  className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 text-white rounded-2xl h-16 text-sm font-black shadow-[0_15px_35px_rgba(123,51,255,0.3)] uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-3 border-none"
                 >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (mode === 'login' ? 'Sign In' : 'Join Discovery')}
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (mode === 'login' ? 'Sign In' : 'Join Registry')}
                   {!loading && <Sparkles className="w-4 h-4" />}
                 </Button>
                 
                 <div className="relative py-2">
                   <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/5" /></div>
-                  <div className="relative flex justify-center text-[10px]"><span className="bg-[#121117]/80 backdrop-blur-md px-4 text-muted-foreground/20 font-black uppercase tracking-[0.4em]">OR</span></div>
+                  <div className="relative flex justify-center text-[10px]"><span className="bg-[#121026]/80 backdrop-blur-md px-4 text-muted-foreground/30 font-black uppercase tracking-[0.4em]">OR</span></div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                   <Button type="button" variant="outline" className="h-14 rounded-2xl border-white/5 bg-white/5 hover:bg-white/10 text-[9px] font-black uppercase tracking-widest gap-3 transition-all">
-                     <Chrome className="w-4 h-4 text-primary" /> Log in with Google
-                   </Button>
-                   <Button type="button" variant="outline" className="h-14 rounded-2xl border-white/5 bg-white/5 hover:bg-white/10 text-[9px] font-black uppercase tracking-widest gap-3 transition-all">
-                     <Github className="w-4 h-4" /> Log in with GitHub
-                   </Button>
-                </div>
+                <Button 
+                  type="button" 
+                  onClick={handleGoogleSignIn}
+                  disabled={googleLoading || isFirebaseMissing}
+                  variant="outline" 
+                  className="w-full h-14 rounded-2xl border-white/10 bg-white/5 hover:bg-white/10 text-xs font-black uppercase tracking-widest gap-4 transition-all"
+                >
+                   {googleLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Chrome className="w-4 h-4 text-[#4285F4]" />}
+                   Continue with Google
+                </Button>
               </form>
 
               <div className="mt-10 text-center space-y-6">
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
-                  {mode === 'login' ? "Don't have an account?" : "Already part of the flow?"}
+                  {mode === 'login' ? "Don't have an account?" : "Already part of the registry?"}
                   <button 
                     type="button"
                     onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
@@ -464,23 +449,17 @@ export default function LoginPage() {
                   </button>
                 </p>
                 
-                <div className="pt-6 border-t border-white/5 flex flex-col items-center gap-3">
-                  <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/20 italic">
-                    <ShieldCheck className="w-3.5 h-3.5" /> Secure & Private. No spam, ever.
+                <div className="pt-6 border-t border-white/5 flex flex-col items-center gap-2">
+                  <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground/40 italic">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Secure & Private. No spam, ever.
                   </div>
-                  <p className="text-[8px] font-bold text-muted-foreground/10 uppercase tracking-widest">Your data stays yours. Built for discovery.</p>
+                  <p className="text-[8px] font-bold text-muted-foreground/20 uppercase tracking-[0.2em]">Your data stays yours. Built for discovery.</p>
                 </div>
               </div>
             </div>
           </Card>
         </div>
       </main>
-
-      {/* FOOTER ACCENT: MOBILE ONLY BRAND */}
-      <div className="lg:hidden absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-20 pointer-events-none">
-        <Sparkles className="w-6 h-6 text-primary" />
-        <span className="text-xl font-black italic uppercase tracking-tighter">Bessites</span>
-      </div>
     </div>
   );
 }

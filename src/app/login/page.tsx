@@ -7,12 +7,9 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
   updateProfile,
-  sendPasswordResetEmail,
-  GoogleAuthProvider,
-  signInWithPopup
+  sendPasswordResetEmail
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,12 +19,10 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Loader2, 
-  User, 
   Eye, 
   EyeOff, 
   Sparkles, 
-  ShieldCheck,
-  Chrome
+  ShieldCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
@@ -63,11 +58,9 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { user: currentUser, loading: authLoading } = useUser();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -81,14 +74,13 @@ export default function LoginPage() {
   const mouseVelocity = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
-    // High density particle count
     const particleCount = 32;
     const initialParticles: Particle[] = Array.from({ length: particleCount }).map((_, i) => ({
       id: `p-${i}`,
       x: Math.random() * 100,
-      y: (Math.random() * 140) - 20, // Spread them out vertically initially
+      y: (Math.random() * 140) - 20,
       vx: 0,
-      vy: 0.04 + Math.random() * 0.08, // Base fall speed (12-15s avg)
+      vy: 0.04 + Math.random() * 0.08,
       website: MOCK_WEBSITES[i % MOCK_WEBSITES.length],
       size: 100 + Math.random() * 80,
       rotation: Math.random() * 360,
@@ -98,7 +90,6 @@ export default function LoginPage() {
 
     let animationFrame: number;
     const animate = () => {
-      // Calculate mouse velocity for swirl physics
       mouseVelocity.current = {
         x: (mousePos.current.x - lastMousePos.current.x) * 0.1,
         y: (mousePos.current.y - lastMousePos.current.y) * 0.1
@@ -108,10 +99,8 @@ export default function LoginPage() {
       setParticles(prev => prev.map(p => {
         let { x, y, vx, vy, rotation, tilt } = p;
         
-        // 1. Core Gravity Fall
         y += vy;
         
-        // 2. Interactive Swirl / Vortex Logic
         if (containerRef.current) {
           const rect = containerRef.current.getBoundingClientRect();
           const mx = (mousePos.current.x / rect.width) * 100;
@@ -121,30 +110,22 @@ export default function LoginPage() {
           const dy = my - y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           
-          // Influence zone
           if (dist < 25) {
             const power = (25 - dist) / 25;
-            // Drag towards cursor
             vx += dx * power * 0.015;
             vy += dy * power * 0.015;
-            
-            // Add swirl from mouse velocity
             vx += mouseVelocity.current.x * power * 0.5;
             vy += mouseVelocity.current.y * power * 0.5;
-
-            // Tilt effect
             tilt = (vx * 20);
           }
         }
 
-        // 3. Friction & Recovery
         vx *= 0.94;
-        vy = vy * 0.95 + (p.vy) * 0.05; // Return to original fall speed
+        vy = vy * 0.95 + (p.vy) * 0.05;
         tilt *= 0.9;
         
         x += vx;
 
-        // Wrap around logic
         if (y > 115) {
           y = -20;
           x = Math.random() * 100;
@@ -166,7 +147,6 @@ export default function LoginPage() {
     mousePos.current = { x: e.clientX, y: e.clientY };
   };
 
-  // --- AUTH LOGIC ---
   useEffect(() => {
     if (currentUser && !authLoading && db) {
       const userRef = doc(db, "users", currentUser.uid);
@@ -213,38 +193,6 @@ export default function LoginPage() {
     } catch (error: any) {
       toast({ variant: "destructive", title: "Auth Error", description: error.message });
       setLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    if (!auth || !db) return;
-    setGoogleLoading(true);
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      
-      const userRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(userRef);
-      
-      if (!docSnap.exists()) {
-        await setDoc(userRef, {
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          createdAt: serverTimestamp(),
-          onboardingComplete: false,
-          interests: [],
-          walletBalance: 0
-        });
-        router.push("/onboarding");
-      } else {
-        router.push(docSnap.data().onboardingComplete ? "/" : "/onboarding");
-      }
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Sign In Failed", description: error.message });
-    } finally {
-      setGoogleLoading(false);
     }
   };
 
@@ -312,7 +260,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* AUTH PANEL: THE DARK PURPLE GLASS CARD */}
+        {/* AUTH PANEL: THE DARK BLUISH-PURPLE GLASS CARD */}
         <div className="lg:col-span-6 flex justify-center items-center w-full animate-in fade-in zoom-in-95 duration-1000">
           <Card className="w-full max-w-md bg-[#121026]/75 backdrop-blur-[24px] border border-primary/30 rounded-[3rem] shadow-[0_0_50px_rgba(123,51,255,0.15)] overflow-hidden relative group transition-all duration-700 hover:border-primary/50">
             {/* Soft Internal Glows */}
@@ -418,22 +366,6 @@ export default function LoginPage() {
                 >
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (mode === 'login' ? 'Sign In' : 'Join Registry')}
                   {!loading && <Sparkles className="w-4 h-4" />}
-                </Button>
-                
-                <div className="relative py-2">
-                  <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/5" /></div>
-                  <div className="relative flex justify-center text-[10px]"><span className="bg-[#121026]/80 backdrop-blur-md px-4 text-muted-foreground/30 font-black uppercase tracking-[0.4em]">OR</span></div>
-                </div>
-
-                <Button 
-                  type="button" 
-                  onClick={handleGoogleSignIn}
-                  disabled={googleLoading || isFirebaseMissing}
-                  variant="outline" 
-                  className="w-full h-14 rounded-2xl border-white/10 bg-white/5 hover:bg-white/10 text-xs font-black uppercase tracking-widest gap-4 transition-all"
-                >
-                   {googleLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Chrome className="w-4 h-4 text-[#4285F4]" />}
-                   Continue with Google
                 </Button>
               </form>
 

@@ -15,10 +15,36 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Eye, EyeOff, KeyRound, Camera, AlertCircle, ShieldAlert } from "lucide-react";
+import { 
+  Loader2, 
+  User, 
+  Eye, 
+  EyeOff, 
+  KeyRound, 
+  Camera, 
+  ShieldAlert, 
+  Sparkles, 
+  Globe, 
+  Github, 
+  Chrome,
+  ShieldCheck,
+  CheckCircle2
+} from "lucide-react";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { cn } from "@/lib/utils";
+
+// Modern Avatar Options
+const PRESET_AVATARS = [
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Astra",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Nala",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Shadow",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Luna",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Nova"
+];
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -37,6 +63,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
 
   useEffect(() => {
     if (currentUser && !authLoading && db) {
@@ -57,6 +84,7 @@ export default function LoginPage() {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
+      setSelectedAvatar(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoPreview(reader.result as string);
@@ -83,50 +111,27 @@ export default function LoginPage() {
 
   const formatAuthError = (error: any) => {
     if (!error) return "Authorization failed.";
-    
-    console.error("Detailed Auth Error:", error);
-
     const code = error?.code || error?.name || "";
     const message = error?.message || "";
 
-    // Specific handling for configuration errors
     if (code.includes('api-key-not-valid') || code.includes('invalid-api-key')) {
-      return "System Setup Required: Your Firebase API Key is invalid or missing. Please check your .env file.";
+      return "System Setup Required: Your Firebase API Key is invalid or missing.";
     }
 
     switch (code) {
-      case 'auth/user-not-found':
-        return "Account not found. Check your email or join the community!";
-      case 'auth/wrong-password':
-        return "Access denied: Incorrect password for this account.";
-      case 'auth/invalid-email':
-        return "Please enter a valid email address.";
-      case 'auth/email-already-in-use':
-        return "This email is already registered. Try signing in instead!";
-      case 'auth/weak-password':
-        return "Security alert: Password is too weak (min 6 characters).";
-      case 'auth/too-many-requests':
-        return "System lockout: Too many attempts. Please try again later.";
-      case 'auth/invalid-credential':
-        return "Incorrect email or password. Please verify and try again.";
-      case 'auth/network-request-failed':
-        return "Connectivity Issue: Please check your internet connection.";
-      default:
-        return message || "An unexpected error occurred during authentication.";
+      case 'auth/user-not-found': return "Account not found. Check your email or join the community!";
+      case 'auth/wrong-password': return "Access denied: Incorrect password for this account.";
+      case 'auth/invalid-email': return "Please enter a valid email address.";
+      case 'auth/email-already-in-use': return "This email is already registered. Try signing in!";
+      case 'auth/weak-password': return "Security alert: Password is too weak (min 6 characters).";
+      case 'auth/invalid-credential': return "Incorrect email or password. Please verify.";
+      default: return message || "An unexpected error occurred.";
     }
   };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!auth || !db) {
-      toast({
-        variant: "destructive",
-        title: "Configuration Error",
-        description: "Firebase is not initialized. Please ensure your .env variables are set.",
-      });
-      return;
-    }
+    if (!auth || !db) return;
     
     setLoading(true);
     try {
@@ -139,7 +144,11 @@ export default function LoginPage() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         
-        const finalPhotoURL = selectedFile ? await uploadToFirebase(selectedFile, user.uid) : null;
+        let finalPhotoURL = selectedAvatar;
+        
+        if (selectedFile) {
+          finalPhotoURL = await uploadToFirebase(selectedFile, user.uid);
+        }
         
         if (finalPhotoURL) {
           await updateProfile(user, { photoURL: finalPhotoURL });
@@ -168,38 +177,22 @@ export default function LoginPage() {
         router.push("/onboarding");
       }
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Bessites Access",
-        description: formatAuthError(error),
-      });
+      toast({ variant: "destructive", title: "Bessites Access", description: formatAuthError(error) });
       setLoading(false);
     }
   };
 
   const handleForgotPassword = async () => {
     if (!auth || !email) {
-      toast({
-        variant: "destructive",
-        title: "Bessites Support",
-        description: "Please enter your email address to receive a recovery link.",
-      });
+      toast({ variant: "destructive", title: "Bessites Support", description: "Please enter your email to receive a recovery link." });
       return;
     }
-
     setResetLoading(true);
     try {
       await sendPasswordResetEmail(auth, email);
-      toast({
-        title: "Recovery Sent",
-        description: "A secure reset link has been sent to your inbox.",
-      });
+      toast({ title: "Recovery Sent", description: "A secure reset link has been sent to your inbox." });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Recovery Error",
-        description: formatAuthError(error),
-      });
+      toast({ variant: "destructive", title: "Recovery Error", description: formatAuthError(error) });
     } finally {
       setResetLoading(false);
     }
@@ -208,125 +201,232 @@ export default function LoginPage() {
   const isFirebaseMissing = !auth || !db;
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-background">
-      <div className="flex-1 p-8 sm:p-16 flex flex-col justify-center bg-background order-2 md:order-1">
-        <div className="w-full max-w-md mx-auto">
+    <div className="min-h-screen flex flex-col md:flex-row bg-[#0B0A0F] selection:bg-primary/30">
+      
+      {/* LEFT SIDE: Value Panel (Value Proposition) */}
+      <div className="flex-1 bg-gradient-to-br from-primary/10 via-background to-transparent p-8 sm:p-16 flex flex-col justify-between border-b md:border-b-0 md:border-r border-white/5 order-2 md:order-1 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none">
+           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 blur-[120px] rounded-full" />
+           <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full" />
+        </div>
+
+        <div className="relative z-10">
           <div className="mb-12">
-            <span className="text-4xl font-black italic uppercase tracking-tighter block leading-none text-white">Bessites</span>
+            <span className="text-3xl font-black italic uppercase tracking-tighter text-white flex items-center gap-2">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg"><Sparkles className="w-5 h-5 text-white" /></div>
+              Bessites
+            </span>
           </div>
 
-          {isFirebaseMissing && (
-            <div className="mb-8 p-6 bg-destructive/10 border border-destructive/20 rounded-[2rem] flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
-              <ShieldAlert className="w-8 h-8 text-destructive shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <p className="text-sm font-black uppercase tracking-widest text-white">Setup Required</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Your application environment is missing Firebase API keys. Please update your <code className="bg-white/5 px-1.5 py-0.5 rounded text-primary">.env</code> file with valid credentials from the Firebase Console to enable authentication.
-                </p>
-              </div>
-            </div>
-          )}
-          
-          <form onSubmit={handleAuth} className="space-y-6">
-            <div className="space-y-2">
-              <Label className="text-white font-bold text-xs ml-1 uppercase tracking-widest opacity-60">Email Address</Label>
-              <Input 
-                type="email" 
-                placeholder="you@example.com" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isFirebaseMissing || loading}
-                className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg focus:ring-primary"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white font-bold text-xs ml-1 uppercase tracking-widest opacity-60">Password</Label>
-              <div className="relative">
-                <Input 
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={isFirebaseMissing || loading}
-                  className="bg-white/5 border-white/10 rounded-2xl h-14 text-lg pr-12 focus:ring-primary"
-                />
-                <button 
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isFirebaseMissing}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-              <div className="flex justify-end">
-                <button 
-                  type="button"
-                  onClick={handleForgotPassword}
-                  disabled={resetLoading || isFirebaseMissing}
-                  className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors mt-2 flex items-center gap-1.5"
-                >
-                  {resetLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <KeyRound className="w-3 h-3" />}
-                  Forgot Password?
-                </button>
-              </div>
-            </div>
-
-            <Button 
-              type="submit" 
-              disabled={loading || isFirebaseMissing}
-              className="w-full bg-primary hover:bg-primary/90 text-white rounded-full h-16 text-xl font-black shadow-xl glow-primary transition-all active:scale-95"
-            >
-              {loading ? <Loader2 className="animate-spin" /> : mode === 'login' ? 'SIGN IN' : 'JOIN THE FLOW'}
-            </Button>
-            
-            <p className="text-center text-muted-foreground font-medium pt-4">
-              {mode === 'login' ? "New here? " : "Already part of the flow? "}
-              <button 
-                type="button"
-                onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                disabled={isFirebaseMissing}
-                className="text-primary font-bold hover:underline"
-              >
-                {mode === 'login' ? 'Create Account' : 'Sign In'}
-              </button>
+          <div className="space-y-6 max-w-xl">
+            <h1 className="text-5xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-[0.9]">
+              Unlock a World of <br />
+              <span className="text-primary">Modern Webs.</span>
+            </h1>
+            <p className="text-muted-foreground font-medium text-lg leading-relaxed italic opacity-60">
+              Discover curated tools, apps, and games before the masses. Join the Bessites community and start your discovery pipeline today.
             </p>
-          </form>
+          </div>
+        </div>
+
+        <div className="relative z-10 mt-12 md:mt-0">
+          <div className="flex items-center gap-6 p-8 rounded-[3rem] bg-white/[0.02] border border-white/5 backdrop-blur-sm w-fit group hover:bg-white/[0.04] transition-all">
+             <div className="flex -space-x-3">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="w-10 h-10 rounded-full border-2 border-[#0B0A0F] bg-muted overflow-hidden">
+                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i * 123}`} alt="User" className="w-full h-full object-cover" />
+                  </div>
+                ))}
+             </div>
+             <div>
+                <p className="text-white font-black italic uppercase tracking-tighter text-xl leading-none">Join 280+ Creators</p>
+                <p className="text-[10px] text-primary font-black uppercase tracking-widest mt-1 opacity-60">Curating the future web</p>
+             </div>
+          </div>
+          
+          <div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 italic">
+            <ShieldCheck className="w-3 h-3" /> 280+ Curated Modern Sites and Counting...
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 bg-gradient-to-br from-primary/15 to-transparent p-8 sm:p-16 flex flex-col items-center justify-center space-y-12 border-b md:border-b-0 md:border-l border-white/5 order-1 md:order-2">
-        <div className="space-y-4 text-center">
-          <h1 className="text-5xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-tight">
-            Welcome to <br />
-            <span className="text-primary">Bessites!</span>
-          </h1>
-          <p className="text-muted-foreground font-medium text-xl max-w-md mx-auto">
-            The world's most curated directory for web tools, games, and modern webs.
-          </p>
-        </div>
-
-        <div className="relative">
-          <div className="w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-muted border-4 border-white/10 overflow-hidden relative shadow-2xl flex items-center justify-center">
-            {photoPreview ? (
-              <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
-            ) : (
-              <User className="w-24 h-24 sm:w-32 sm:h-32 text-white/10" />
-            )}
+      {/* RIGHT SIDE: Auth Panel */}
+      <div className="flex-1 p-4 sm:p-8 md:p-16 flex flex-col items-center justify-center bg-[#0B0A0F] order-1 md:order-2 relative">
+        <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-right-4 duration-700">
+          
+          <div className="text-center space-y-2">
+             <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">
+                {mode === 'login' ? 'Welcome Back!' : 'Start Building.'}
+             </h2>
+             <p className="text-sm text-muted-foreground font-medium italic opacity-60">
+                {mode === 'login' ? 'Enter your credentials to access the registry.' : 'Create your curator account in seconds.'}
+             </p>
           </div>
-          {mode === 'signup' && (
-            <button 
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isFirebaseMissing}
-              className="absolute bottom-2 right-2 bg-primary p-4 rounded-full text-white shadow-xl glow-primary hover:scale-110 transition-transform active:scale-95 z-10 border-4 border-background"
-            >
-              <Camera className="w-6 h-6" strokeWidth={3} />
-            </button>
-          )}
-          <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+
+          <Card className="bg-white/[0.03] border-white/10 p-8 sm:p-10 rounded-[3rem] shadow-2xl backdrop-blur-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl -mr-16 -mt-16" />
+            
+            {isFirebaseMissing && (
+              <div className="mb-8 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-start gap-3">
+                <ShieldAlert className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                <p className="text-[10px] text-muted-foreground leading-relaxed uppercase font-bold">
+                  Setup Required: Missing Firebase API keys in your environment.
+                </p>
+              </div>
+            )}
+
+            <form onSubmit={handleAuth} className="space-y-6">
+              {mode === 'signup' && (
+                <div className="space-y-6 mb-8">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="relative group">
+                      <div className="w-24 h-24 rounded-full bg-white/5 border-2 border-white/10 overflow-hidden relative shadow-xl transition-all group-hover:scale-105">
+                        {photoPreview || selectedAvatar ? (
+                          <img src={photoPreview || selectedAvatar!} alt="Preview" className="w-full h-full object-cover p-2" />
+                        ) : (
+                          <User className="w-10 h-10 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-muted-foreground/30" />
+                        )}
+                        {loading && (
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                            <Loader2 className="w-6 h-6 animate-spin text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute bottom-0 right-0 bg-primary p-2.5 rounded-full text-white shadow-xl hover:scale-110 transition-all border-2 border-[#121217]"
+                      >
+                        <Camera className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 ml-1">Or Pick an Avatar</Label>
+                    <div className="grid grid-cols-6 gap-2">
+                       {PRESET_AVATARS.map((avatar, idx) => (
+                         <button
+                           key={idx}
+                           type="button"
+                           onClick={() => {
+                             setSelectedAvatar(avatar);
+                             setPhotoPreview(null);
+                             setSelectedFile(null);
+                           }}
+                           className={cn(
+                             "w-full aspect-square rounded-xl border transition-all p-1 hover:scale-110 bg-white/5",
+                             selectedAvatar === avatar ? "border-primary bg-primary/10 shadow-lg" : "border-white/5 opacity-40 hover:opacity-100"
+                           )}
+                         >
+                           <img src={avatar} alt="Avatar" className="w-full h-full object-contain" />
+                         </button>
+                       ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 ml-1">Email Address</Label>
+                  <Input 
+                    type="email" 
+                    placeholder="name@company.com" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={isFirebaseMissing || loading}
+                    className="bg-white/5 border-white/10 rounded-2xl h-12 text-sm font-bold focus:ring-primary placeholder:opacity-20"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center px-1">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Password</Label>
+                    {mode === 'login' && (
+                      <button 
+                        type="button"
+                        onClick={handleForgotPassword}
+                        disabled={resetLoading || isFirebaseMissing}
+                        className="text-[9px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors"
+                      >
+                        Forgot?
+                      </button>
+                    )}
+                  </div>
+                  <div className="relative group">
+                    <Input 
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      placeholder="••••••••"
+                      disabled={isFirebaseMissing || loading}
+                      className="bg-white/5 border-white/10 rounded-2xl h-12 text-sm pr-12 focus:ring-primary placeholder:opacity-20 font-mono"
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/30 hover:text-white"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {mode === 'login' && (
+                <div className="flex items-center space-x-2 px-1">
+                  <Checkbox id="remember" className="rounded-md border-white/10 data-[state=checked]:bg-primary" />
+                  <label htmlFor="remember" className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest cursor-pointer select-none">Remember this device</label>
+                </div>
+              )}
+
+              <Button 
+                type="submit" 
+                disabled={loading || isFirebaseMissing}
+                className="w-full bg-primary hover:bg-primary/90 text-white rounded-2xl h-14 text-sm font-black shadow-xl shadow-primary/10 uppercase tracking-widest transition-all active:scale-95 glow-primary"
+              >
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : mode === 'login' ? 'Enter Discovery' : 'Join the Flow'}
+              </Button>
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/5" /></div>
+                <div className="relative flex justify-center text-[10px]"><span className="bg-transparent px-4 text-muted-foreground/20 font-black uppercase tracking-[0.3em]">OR</span></div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                 <Button type="button" variant="outline" className="h-12 rounded-2xl border-white/5 bg-white/5 hover:bg-white/10 text-[9px] font-black uppercase tracking-widest gap-2">
+                   <Chrome className="w-3.5 h-3.5 text-primary" /> Google
+                 </Button>
+                 <Button type="button" variant="outline" className="h-12 rounded-2xl border-white/5 bg-white/5 hover:bg-white/10 text-[9px] font-black uppercase tracking-widest gap-2">
+                   <Github className="w-3.5 h-3.5" /> GitHub
+                 </Button>
+              </div>
+            </form>
+          </Card>
+
+          <div className="text-center space-y-6">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
+              {mode === 'login' ? 'Are You a New Member?' : 'Already part of the flow?'}
+              <button 
+                type="button"
+                onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                className="text-primary font-black ml-2 hover:underline decoration-2 underline-offset-4"
+              >
+                {mode === 'login' ? 'SIGN UP' : 'SIGN IN'}
+              </button>
+            </p>
+            
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/20 italic">
+                <ShieldCheck className="w-3 h-3" /> Secure & Private. No spam, ever.
+              </div>
+              <p className="text-[8px] font-bold text-muted-foreground/10 uppercase tracking-widest">Your data stays yours. Built for discovery.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

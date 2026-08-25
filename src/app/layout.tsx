@@ -23,15 +23,10 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://bessites.store'),
   icons: {
     icon: [
-      { url: '/logo.png', sizes: '16x16', type: 'image/png' },
-      { url: '/logo.png', sizes: '32x32', type: 'image/png' },
-      { url: '/logo.png', sizes: '192x192', type: 'image/png' },
-      { url: '/logo.png', sizes: '512x512', type: 'image/png' },
+      { url: 'https://i.imgur.com/3STBHNy.png', sizes: 'any', type: 'image/png' },
     ],
-    shortcut: '/logo.png',
-    apple: [
-      { url: '/logo.png', sizes: '180x180', type: 'image/png' },
-    ],
+    shortcut: 'https://i.imgur.com/3STBHNy.png',
+    apple: 'https://i.imgur.com/3STBHNy.png',
   },
   openGraph: {
     title: 'Bessites | Global Discovery',
@@ -40,7 +35,7 @@ export const metadata: Metadata = {
     siteName: 'Bessites',
     images: [
       {
-        url: '/logo.png',
+        url: 'https://i.imgur.com/3STBHNy.png',
         width: 1200,
         height: 1200,
         alt: 'Bessites Official Logo',
@@ -53,7 +48,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Bessites | Global Discovery',
     description: 'A professional directory for modern webs and digital tools.',
-    images: ['/logo.png'],
+    images: ['https://i.imgur.com/3STBHNy.png'],
     creator: '@bessites',
   },
 };

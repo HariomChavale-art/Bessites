@@ -17,7 +17,7 @@ interface WebsiteCardProps {
  * WebsiteCard refined for Bessites discovery.
  * - Displays Website Name as primary brand.
  * - Shows Developer and Discovery Title (name) in hierarchy.
- * - Discovery Title font updated to white and Poppins italic.
+ * - Discovery Title font updated to white and Poppins italic bold.
  */
 export function WebsiteCard({ website }: WebsiteCardProps) {
   const db = useFirestore();
@@ -78,7 +78,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
 
         <div className="p-3 sm:p-6 pt-2 sm:pt-4">
           <div className="text-center">
-            <h3 className="font-headline font-bold text-sm sm:text-lg text-white group-hover:text-primary transition-colors whitespace-normal leading-tight">
+            <h3 className="font-headline font-bold italic text-sm sm:text-lg text-white group-hover:text-primary transition-colors whitespace-normal leading-tight">
               {brandName}
             </h3>
             

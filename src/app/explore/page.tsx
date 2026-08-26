@@ -527,7 +527,7 @@ function ExploreItemRow({ app }: { app: any }) {
 
         <div className="flex-1 min-w-0 py-2">
           <div className="block mb-4">
-            <h4 className="text-xl sm:text-4xl font-extrabold text-white leading-tight tracking-tighter whitespace-normal">
+            <h4 className="text-xl sm:text-4xl font-headline font-bold italic text-white leading-tight tracking-tighter whitespace-normal">
               {brandName}
             </h4>
             
@@ -536,7 +536,7 @@ function ExploreItemRow({ app }: { app: any }) {
             </p>
 
             {discoveryTitle && (
-              <p className="text-sm sm:text-xl text-white font-headline font-black uppercase tracking-widest italic opacity-60 leading-tight">
+              <p className="text-sm sm:text-xl text-white font-headline font-bold uppercase tracking-widest italic opacity-60 leading-tight">
                 {discoveryTitle}
               </p>
             )}

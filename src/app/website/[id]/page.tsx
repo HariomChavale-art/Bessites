@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams } from "next/navigation";
-import { MOCK_WEBSITES } from "@/lib/mock-data";
+import { MOCK_WEBSITES, Website } from "@/lib/mock-data";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +24,8 @@ import {
   Flag,
   AlertTriangle,
   User as UserIcon,
-  Clock
+  Clock,
+  ArrowRight
 } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
@@ -241,7 +242,7 @@ export default function WebsiteDetail() {
           </div>
           <div className="flex-1 min-w-0 space-y-4">
             <div className="space-y-1">
-              <h1 className="text-4xl sm:text-6xl font-headline font-black text-white tracking-tighter italic uppercase leading-none truncate">
+              <h1 className="text-4xl sm:text-6xl font-headline font-bold italic text-white tracking-tighter uppercase leading-none truncate">
                 {brandName}
               </h1>
               
@@ -325,14 +326,14 @@ export default function WebsiteDetail() {
 
         <section className="space-y-12 mb-24">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Review <span className="text-primary">Registry</span></h2>
+            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Review <span className="text-primary">Website</span></h2>
             <Dialog>
               <DialogTrigger asChild>
-                <Button className="rounded-full h-14 px-10 bg-primary hover:bg-primary/90 text-white font-black italic uppercase text-xs tracking-widest shadow-xl">WRITE EXPERIENCE</Button>
+                <Button className="rounded-full h-14 px-10 bg-primary hover:bg-primary/90 text-white font-black italic uppercase text-xs tracking-widest shadow-xl">WRITE REVIEW</Button>
               </DialogTrigger>
               <DialogContent className="bg-[#121117] border-white/10 text-white rounded-[3rem] sm:max-w-md p-10">
                 <DialogHeader className="space-y-2">
-                  <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter text-center">Lodge <span className="text-primary">Insight</span></DialogTitle>
+                  <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter text-center">Lodge <span className="text-primary">Review</span></DialogTitle>
                   <DialogDescription className="text-muted-foreground text-xs text-center uppercase tracking-widest font-black opacity-40 italic">
                     Share your experience with this property to help others in the registry.
                   </DialogDescription>
@@ -347,7 +348,7 @@ export default function WebsiteDetail() {
                   </div>
                   <Textarea placeholder="How did this asset perform?" value={comment} onChange={(e) => setComment(e.target.value)} className="bg-white/5 border-white/10 rounded-[2rem] min-h-[120px] p-6 text-sm font-medium" />
                   <Button onClick={submitRating} disabled={ratingLoading || ratingValue === 0} className="w-full bg-primary hover:bg-primary/90 h-16 rounded-2xl font-black italic text-lg shadow-xl">
-                    {ratingLoading ? <Loader2 className="animate-spin" /> : "POST TO REGISTRY"}
+                    {ratingLoading ? <Loader2 className="animate-spin" /> : "POST REVIEW"}
                   </Button>
                 </div>
               </DialogContent>
@@ -381,11 +382,33 @@ export default function WebsiteDetail() {
             ) : (
               <div className="col-span-full bg-white/[0.01] border border-dashed border-white/5 p-20 rounded-[3.5rem] text-center space-y-4">
                 <MessageSquare className="w-16 h-16 text-muted-foreground/10 mx-auto" />
-                <p className="font-black italic uppercase text-muted-foreground/20 tracking-[0.3em]">Registry Currently Silent</p>
+                <p className="font-black italic uppercase text-muted-foreground/20 tracking-[0.3em]">No Reviews Yet</p>
               </div>
             )}
           </div>
         </section>
+
+        {relatedWebsites.length > 0 && (
+          <section className="space-y-12">
+            <div className="flex items-center justify-between">
+              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Related <span className="text-primary">Discoveries</span></h2>
+              <div className="flex items-center gap-2 text-primary animate-pulse">
+                <Sparkles className="w-4 h-4" />
+                <span className="text-[10px] font-black uppercase tracking-widest italic">Astra Intelligence Match</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {relatedWebsites.map((site) => (
+                <WebsiteCard key={site.id} website={site} />
+              ))}
+            </div>
+            <div className="pt-8 text-center">
+              <Button variant="outline" className="rounded-full px-12 h-14 bg-white/5 border-white/10 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest italic gap-3 group">
+                EXPLORE ALL SIMILAR <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
+              </Button>
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

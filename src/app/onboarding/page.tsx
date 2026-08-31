@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { BROAD_CATEGORIES } from "@/lib/category-mapping";
+import { INTERESTS, BROAD_CATEGORIES } from "@/lib/category-mapping";
 
 export default function OnboardingPage() {
   const { user, loading: userLoading } = useUser();
@@ -35,7 +35,7 @@ export default function OnboardingPage() {
   const [selected, setSelected] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [visibleCount, setVisibleCount] = useState(10);
+  const [visibleCount, setVisibleCount] = useState(15);
 
   useEffect(() => {
     if (!userLoading && !user) {
@@ -49,12 +49,23 @@ export default function OnboardingPage() {
     }
   }, [profile]);
 
+  const sortedInterests = useMemo(() => {
+    // Sort logic: Popular/Top Level items first
+    return [...INTERESTS].sort((a, b) => {
+      const aIsTop = ["AI Tools", "Games", "Programming", "Graphic Design"].includes(a.name);
+      const bIsTop = ["AI Tools", "Games", "Programming", "Graphic Design"].includes(b.name);
+      if (aIsTop && !bIsTop) return -1;
+      if (!aIsTop && bIsTop) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, []);
+
   const filteredInterests = useMemo(() => {
-    if (!searchQuery.trim()) return BROAD_CATEGORIES;
-    return BROAD_CATEGORIES.filter(i => 
+    if (!searchQuery.trim()) return sortedInterests;
+    return sortedInterests.filter(i => 
       i.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery]);
+  }, [searchQuery, sortedInterests]);
 
   const displayedInterests = useMemo(() => {
     if (searchQuery.trim()) return filteredInterests;
@@ -94,7 +105,7 @@ export default function OnboardingPage() {
   };
 
   const loadMore = () => {
-    setVisibleCount(prev => prev + 10);
+    setVisibleCount(prev => prev + 15);
   };
 
   if (userLoading) {
@@ -115,18 +126,18 @@ export default function OnboardingPage() {
             {isExistingUser ? "Discovery" : "Welcome to"} <span className="text-primary">{isExistingUser ? "Preferences" : "Bessites"}</span>
           </h1>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium">
-            Pick at least <span className="text-white font-bold underline decoration-primary underline-offset-4">3 categories</span> to personalize your discovery feed.
+            Pick at least <span className="text-white font-bold underline decoration-primary underline-offset-4">3 interests</span> to personalize your discovery feed.
           </p>
         </div>
 
         <div className="relative max-w-md mx-auto group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
-            placeholder="Search every interest..." 
+            placeholder="Search all 100+ interests..." 
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              setVisibleCount(10);
+              setVisibleCount(15);
             }}
             className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-lg font-bold focus:ring-primary shadow-xl"
           />
@@ -142,10 +153,11 @@ export default function OnboardingPage() {
             {displayedInterests.length > 0 ? displayedInterests.map((interest) => {
               const isSelected = selected.includes(interest.name);
               const Icon = interest.icon;
+              const sector = BROAD_CATEGORIES.find(b => b.id === interest.group);
               
               return (
                 <Card 
-                  key={interest.id}
+                  key={interest.name}
                   onClick={() => toggleInterest(interest.name)}
                   className={cn(
                     "relative group cursor-pointer border-2 p-6 sm:p-8 transition-all duration-500 rounded-[2rem] sm:rounded-[3rem] overflow-hidden flex flex-col items-center gap-4 sm:gap-6 shadow-xl active:scale-95 animate-in fade-in slide-in-from-bottom-2",
@@ -155,14 +167,16 @@ export default function OnboardingPage() {
                   )}
                 >
                   <div className={cn(
-                    "p-4 sm:p-6 rounded-full transition-all duration-500",
-                    interest.bg,
-                    interest.color,
-                    isSelected && "scale-110 rotate-6"
+                    "p-4 sm:p-6 rounded-full transition-all duration-500 bg-white/5",
+                    sector?.color || "text-white",
+                    isSelected && "scale-110 rotate-6 bg-primary/10"
                   )}>
                     <Icon className="w-8 h-8 sm:w-10 sm:h-10" />
                   </div>
-                  <span className="font-bold text-white text-[10px] sm:text-xs uppercase tracking-widest text-center leading-tight">{interest.name}</span>
+                  <div className="space-y-1 text-center">
+                    <span className="font-bold text-white text-[10px] sm:text-xs uppercase tracking-widest leading-tight block">{interest.name}</span>
+                    <span className="text-[8px] font-black uppercase tracking-tighter opacity-30 block">{sector?.name}</span>
+                  </div>
                   
                   {isSelected && (
                     <div className="absolute top-4 right-4 bg-primary rounded-full p-1.5 shadow-xl animate-in zoom-in spin-in-12 duration-500">
@@ -173,7 +187,7 @@ export default function OnboardingPage() {
               );
             }) : (
               <div className="col-span-full py-12 text-center text-muted-foreground italic font-medium opacity-40">
-                No categories match your search.
+                No interests match your search.
               </div>
             )}
           </div>

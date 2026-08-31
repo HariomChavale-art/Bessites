@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { BROAD_CATEGORIES } from "@/lib/category-mapping";
+import { INTERESTS, BROAD_CATEGORIES } from "@/lib/category-mapping";
 
 export default function SubmitWebsite() {
   const { user, loading: authLoading } = useUser();
@@ -30,7 +30,7 @@ export default function SubmitWebsite() {
   const [websiteName, setWebsiteName] = useState("");
   const [name, setName] = useState(""); 
   const [description, setDescription] = useState("");
-  const [primarySector, setPrimarySector] = useState("");
+  const [selectedInterest, setSelectedInterest] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [pricing, setPricing] = useState<"Free" | "Paid" | "Freemium">("Free");
@@ -72,7 +72,7 @@ export default function SubmitWebsite() {
     const configStatus = getSupabaseConfigStatus();
     if (!supabase || !configStatus.isConfigured) return;
 
-    if (!url || !websiteName || !name || !description || !primarySector) {
+    if (!url || !websiteName || !name || !description || !selectedInterest) {
       toast({ variant: "destructive", title: "Missing Info", description: "Please fill all required fields." });
       return;
     }
@@ -100,7 +100,7 @@ export default function SubmitWebsite() {
         .from('Website-images')
         .getPublicUrl(uploadedFilePath);
       
-      const finalTags = Array.from(new Set([primarySector, ...tags].filter(Boolean)));
+      const finalTags = Array.from(new Set([selectedInterest, ...tags].filter(Boolean)));
 
       const submissionRef = await addDoc(collection(db, "submissions"), {
         url,
@@ -185,13 +185,17 @@ export default function SubmitWebsite() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                  <div className="space-y-4">
-                   <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Primary Sector</Label>
-                   <Select value={primarySector} onValueChange={setPrimarySector}>
+                   <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Primary Interest</Label>
+                   <Select value={selectedInterest} onValueChange={setSelectedInterest}>
                       <SelectTrigger className="h-16 bg-white/5 border-white/10 rounded-2xl font-bold">
-                         <SelectValue placeholder="Select Category" />
+                         <SelectValue placeholder="Select Interest" />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#121117] border-white/10 text-white rounded-xl">
-                         {BROAD_CATEGORIES.map(cat => <SelectItem key={cat.id} value={cat.name} className="font-bold">{cat.name}</SelectItem>)}
+                      <SelectContent className="bg-[#121117] border-white/10 text-white rounded-xl max-h-[400px]">
+                         {INTERESTS.map(interest => (
+                           <SelectItem key={interest.name} value={interest.name} className="font-bold">
+                             {interest.name}
+                           </SelectItem>
+                         ))}
                       </SelectContent>
                    </Select>
                  </div>
@@ -216,7 +220,7 @@ export default function SubmitWebsite() {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Detailed Tags (Optional)</Label>
+                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Detailed Tags (Metadata)</Label>
                 <div className="flex gap-2">
                    <Input placeholder="Press enter to add (e.g. UI/UX, Vector)" value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddTag()} className="h-14 bg-white/5 border-white/10 rounded-xl text-sm" />
                    <Button onClick={() => handleAddTag()} variant="outline" className="h-14 w-14 rounded-xl border-white/10 bg-white/5"><Plus className="w-5 h-5" /></Button>

@@ -20,11 +20,12 @@ import { useFirestore, useDoc, useUser, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
-import { BROAD_CATEGORIES, getBroadCategoriesForTag } from "@/lib/category-mapping";
+import { BROAD_CATEGORIES, INTERESTS, getInterestsForTag } from "@/lib/category-mapping";
 
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
+  const [selectedSector, setSelectedSector] = useState<string | null>(null);
   const { user } = useUser();
   const db = useFirestore();
 
@@ -34,7 +35,6 @@ export default function ExplorePage() {
   }, [user, db]);
 
   const { data: profile } = useDoc(userDocRef);
-  const userInterests = profile?.interests || [];
 
   const submissionsRef = useMemo(() => {
     if (!db) return null;
@@ -78,20 +78,14 @@ export default function ExplorePage() {
         app.url.toLowerCase().includes(queryText) ||
         app.categories.some(cat => cat.toLowerCase().includes(queryText));
       
-      const matchesCategory = !selectedCategory || 
-        app.categories.some(tag => {
-          const mappedBroads = getBroadCategoriesForTag(tag);
-          return mappedBroads.includes(selectedCategory);
-        });
+      const mappedInterests = app.categories.flatMap(tag => getInterestsForTag(tag));
+      const matchesInterest = !selectedInterest || mappedInterests.includes(selectedInterest);
+      
+      const matchesSector = !selectedSector || INTERESTS.some(i => i.group === selectedSector && mappedInterests.includes(i.name));
         
-      return matchesSearch && matchesCategory;
+      return matchesSearch && matchesInterest && matchesSector;
     });
-  }, [searchQuery, selectedCategory, allWebsites]);
-
-  const visibleCategories = useMemo(() => {
-    // Show top broad categories
-    return BROAD_CATEGORIES.slice(0, 20);
-  }, []);
+  }, [searchQuery, selectedInterest, selectedSector, allWebsites]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -103,7 +97,7 @@ export default function ExplorePage() {
           <div className="relative group">
             <Search className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input 
-              placeholder="Search hidden gems..." 
+              placeholder="Search 250+ hidden gems..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 sm:pl-16 bg-white/5 border-white/10 rounded-2xl sm:rounded-[2.5rem] h-14 sm:h-20 text-base sm:text-xl font-bold focus:ring-primary focus:border-primary transition-all shadow-xl"
@@ -123,51 +117,61 @@ export default function ExplorePage() {
           <div className="flex items-center justify-between mb-8 sm:mb-10">
             <h2 className="text-xl sm:text-3xl font-bold text-white flex items-center gap-3 sm:gap-4 tracking-tighter">
               <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              Broad Categories
+              Broad Sectors
             </h2>
             <div className="flex gap-2">
-              {selectedCategory && (
+              {(selectedInterest || selectedSector) && (
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  onClick={() => setSelectedCategory(null)}
+                  onClick={() => { setSelectedInterest(null); setSelectedSector(null); }}
                   className="text-primary font-bold hover:bg-white/5"
                 >
-                  <X className="w-4 h-4 mr-2" /> Clear
+                  <X className="w-4 h-4 mr-2" /> Clear Filters
                 </Button>
               )}
               <Dialog>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="rounded-full bg-white/5 border-white/10 hover:bg-white/10 font-bold">
-                    <MoreHorizontal className="w-4 h-4 mr-2" /> View All
+                    <MoreHorizontal className="w-4 h-4 mr-2" /> All Interests
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-background border-white/10 text-white rounded-[2.5rem] max-w-2xl max-h-[80vh] flex flex-col p-0 overflow-hidden shadow-2xl">
+                <DialogContent className="bg-background border-white/10 text-white rounded-[2.5rem] max-w-4xl max-h-[80vh] flex flex-col p-0 overflow-hidden shadow-2xl">
                   <DialogHeader className="p-8 pb-4">
                     <div className="flex items-center gap-3 mb-2">
                       <Sparkles className="w-6 h-6 text-primary" />
                       <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">Discovery Index</DialogTitle>
                     </div>
                     <DialogDescription className="text-muted-foreground text-xs uppercase tracking-widest font-black opacity-40 italic">
-                      Choose a broad category to browse the digital registry.
+                      Explore over 100 human-friendly interests categorized by sector.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="flex-1 overflow-y-auto p-8 pt-4 no-scrollbar">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      {BROAD_CATEGORIES.map((cat) => (
-                        <Button 
-                          key={cat.id} 
-                          variant="outline" 
-                          onClick={() => setSelectedCategory(cat.name)}
-                          className={cn(
-                            "h-16 bg-white/5 border-white/5 hover:bg-white/10 rounded-2xl flex items-center gap-3 px-4 transition-all text-left justify-start group",
-                            selectedCategory === cat.name && "border-primary bg-primary/10"
-                          )}
-                        >
-                          <cat.icon className={cn(`w-5 h-5 shrink-0 transition-transform group-hover:scale-110`, cat.color)} />
-                          <span className="text-[10px] font-black uppercase tracking-widest text-white truncate">{cat.name}</span>
-                        </Button>
-                      ))}
+                    <div className="space-y-12">
+                       {BROAD_CATEGORIES.map(sector => (
+                         <div key={sector.id} className="space-y-6">
+                            <div className="flex items-center gap-3 border-l-2 border-primary pl-4">
+                               <sector.icon className={cn("w-5 h-5", sector.color)} />
+                               <h4 className="text-sm font-black uppercase tracking-widest text-white/60">{sector.name}</h4>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                               {INTERESTS.filter(i => i.group === sector.id).map(interest => (
+                                 <Button 
+                                   key={interest.name}
+                                   variant="outline"
+                                   onClick={() => { setSelectedInterest(interest.name); setSelectedSector(null); }}
+                                   className={cn(
+                                     "h-12 bg-white/5 border-white/5 hover:bg-white/10 rounded-xl justify-start px-4 text-left transition-all group",
+                                     selectedInterest === interest.name && "border-primary bg-primary/10"
+                                   )}
+                                 >
+                                    <interest.icon className="w-3.5 h-3.5 mr-2.5 text-primary/40 group-hover:text-primary transition-colors" />
+                                    <span className="text-[10px] font-bold uppercase truncate">{interest.name}</span>
+                                 </Button>
+                               ))}
+                            </div>
+                         </div>
+                       ))}
                     </div>
                   </div>
                 </DialogContent>
@@ -175,14 +179,14 @@ export default function ExplorePage() {
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-6">
-            {visibleCategories.map((cat) => (
+            {BROAD_CATEGORIES.map((cat) => (
               <Button 
                 key={cat.id} 
                 variant="outline" 
-                onClick={() => setSelectedCategory(cat.name === selectedCategory ? null : cat.name)}
+                onClick={() => setSelectedSector(cat.id === selectedSector ? null : cat.id)}
                 className={cn(
                   "h-16 sm:h-24 bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 rounded-2xl sm:rounded-3xl flex items-center justify-start gap-3 sm:gap-4 px-4 sm:px-6 transition-all hover:scale-[1.02]",
-                  selectedCategory === cat.name && "border-primary bg-primary/10"
+                  selectedSector === cat.id && "border-primary bg-primary/10"
                 )}
               >
                 <cat.icon className={cn(`w-6 h-6 sm:w-10 sm:h-10 shrink-0`, cat.color)} />
@@ -195,13 +199,13 @@ export default function ExplorePage() {
         <section className="space-y-8 sm:space-y-12">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tighter">
-              {selectedCategory || searchQuery ? "Matching Results" : "Discovery Feed"}
+              {selectedInterest || selectedSector || searchQuery ? "Matching Results" : "Discovery Feed"}
               <span className="ml-4 text-sm font-medium text-muted-foreground">({filteredResults.length})</span>
             </h2>
-            {(selectedCategory || searchQuery) && (
+            {(selectedInterest || selectedSector || searchQuery) && (
               <Button 
                 variant="link" 
-                onClick={() => { setSelectedCategory(null); setSearchQuery(""); }}
+                onClick={() => { setSelectedInterest(null); setSelectedSector(null); setSearchQuery(""); }}
                 className="text-primary font-black uppercase italic tracking-widest text-xs"
               >
                 Reset Feed
@@ -219,9 +223,9 @@ export default function ExplorePage() {
                 <LayoutGrid className="w-16 h-16 text-muted-foreground mx-auto opacity-20" />
                 <div className="space-y-1">
                   <p className="text-xl text-white font-bold italic tracking-tighter uppercase">Zero Matches Found</p>
-                  <p className="text-muted-foreground font-medium text-sm">Astra couldn't find any digital properties matching this interest.</p>
+                  <p className="text-muted-foreground font-medium text-sm">Astra couldn't find any digital properties matching this filter.</p>
                 </div>
-                <Button variant="outline" onClick={() => { setSelectedCategory(null); setSearchQuery(""); }} className="rounded-full h-12 px-8 bg-white/5 border-white/10">Show All Websites</Button>
+                <Button variant="outline" onClick={() => { setSelectedInterest(null); setSelectedSector(null); setSearchQuery(""); }} className="rounded-full h-12 px-8 bg-white/5 border-white/10">Show All Websites</Button>
               </div>
             )}
           </div>
@@ -246,8 +250,6 @@ function ExploreItemRow({ app }: { app: any }) {
 
   const brandName = app.websiteName || app.name;
   const discoveryTitle = app.websiteName ? app.name : "";
-
-  const uniqueCategories = Array.from(new Set(app.categories || [])).slice(0, 4);
 
   return (
     <div className="group relative">
@@ -298,7 +300,7 @@ function ExploreItemRow({ app }: { app: any }) {
             )}
           </div>
           <div className="flex flex-wrap gap-2 mb-6">
-            {uniqueCategories.map((cat: string) => (
+            {app.categories?.slice(0, 4).map((cat: string) => (
               <span key={cat} className="text-[9px] font-black uppercase tracking-widest text-primary/60 border border-primary/10 px-2.5 py-1 rounded-lg">{cat}</span>
             ))}
           </div>

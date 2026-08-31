@@ -5,100 +5,12 @@ import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { 
   Search, 
-  LayoutGrid, 
-  Sparkles, 
-  Gamepad2, 
-  Wrench, 
-  Cpu, 
-  Palette, 
-  Zap, 
-  X, 
   TrendingUp, 
+  X, 
   Tag, 
   MoreHorizontal, 
-  Laptop, 
-  BookOpen, 
-  Music, 
-  Camera, 
-  ShieldCheck, 
-  FileText, 
-  Globe,
-  PenTool,
-  Code,
-  Rocket,
-  Cloud,
-  Brain,
-  Map,
-  PartyPopper,
-  Paintbrush,
-  Mic,
-  Newspaper,
-  Hammer,
-  BarChart3,
-  Lightbulb,
-  Briefcase,
-  List,
-  Home,
-  FlaskConical,
-  Atom,
-  Calculator,
-  Film,
-  Tv,
-  Plane,
-  Utensils,
-  Dumbbell,
-  Leaf,
-  Info,
-  History,
-  Layers,
-  Headphones,
-  Dna,
-  Binoculars,
-  Building2,
-  Car,
-  Bike,
-  Fish,
-  Footprints,
-  Mountain,
-  Waves,
-  Bird,
-  PawPrint,
-  Coffee,
-  Scissors,
-  Printer,
-  Satellite,
-  Gem,
-  Dices,
-  Sword,
-  Wand2,
-  Video,
-  Watch,
-  Gift,
-  ShoppingBag,
-  Smartphone,
-  Play,
-  HeartPulse,
-  Languages,
-  DollarSign,
-  Shield,
-  Star,
-  Download,
-  Terminal,
-  MessagesSquare,
-  Sparkle,
-  Moon,
-  Trophy,
-  KeyRound,
-  Share2,
-  Orbit,
-  School,
-  Hotel,
-  Train,
-  Pen,
-  FileUser,
-  Layout,
-  GraduationCap,
-  Heart
+  Sparkles,
+  LayoutGrid
 } from "lucide-react";
 import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
@@ -108,122 +20,10 @@ import { useFirestore, useDoc, useUser, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
-
-const STATIC_CATEGORIES = [
-  { name: "AI", icon: Sparkles, color: "text-purple-400" },
-  { name: "Gaming", icon: Gamepad2, color: "text-red-400" },
-  { name: "Entertainment", icon: Play, color: "text-indigo-400" },
-  { name: "Anime", icon: Sparkle, color: "text-pink-400" },
-  { name: "Android", icon: Smartphone, color: "text-green-400" },
-  { name: "Coding", icon: Code, color: "text-blue-400" },
-  { name: "Design", icon: Palette, color: "text-pink-400" },
-  { name: "Shopping", icon: ShoppingBag, color: "text-amber-400" },
-  { name: "Photography", icon: Camera, color: "text-blue-300" },
-  { name: "Video", icon: Video, color: "text-red-400" },
-  { name: "Music", icon: Music, color: "text-blue-300" },
-  { name: "Utilities", icon: Hammer, color: "text-stone-400" },
-  { name: "Education", icon: BookOpen, color: "text-emerald-400" },
-  { name: "Jobs", icon: Briefcase, color: "text-teal-400" },
-  { name: "Finance", icon: DollarSign, color: "text-green-500" },
-  { name: "Travel", icon: Plane, color: "text-cyan-500" },
-  { name: "Food", icon: Utensils, color: "text-yellow-500" },
-  { name: "Health", icon: HeartPulse, color: "text-rose-500" },
-  { name: "Sports", icon: Star, color: "text-orange-500" },
-  { name: "Cybersecurity", icon: Shield, color: "text-red-500" },
-  { name: "Space", icon: Rocket, color: "text-indigo-400" },
-  { name: "Earth & Weather", icon: Cloud, color: "text-cyan-400" },
-  { name: "Brain Games", icon: Brain, color: "text-amber-400" },
-  { name: "Geography", icon: Map, color: "text-green-400" },
-  { name: "Fun", icon: PartyPopper, color: "text-yellow-400" },
-  { name: "OSINT", icon: Search, color: "text-slate-400" },
-  { name: "Creative", icon: Paintbrush, color: "text-rose-400" },
-  { name: "Voice", icon: Mic, color: "text-violet-400" },
-  { name: "Reading", icon: BookOpen, color: "text-emerald-400" },
-  { name: "News", icon: Newspaper, color: "text-orange-400" },
-  { name: "Internet", icon: Globe, color: "text-sky-400" },
-  { name: "SEO", icon: BarChart3, color: "text-lime-400" },
-  { name: "Startups", icon: Rocket, color: "text-red-300" },
-  { name: "Ideas", icon: Lightbulb, color: "text-yellow-300" },
-  { name: "Freelancing", icon: Briefcase, color: "text-teal-400" },
-  { name: "AI Directories", icon: List, color: "text-fuchsia-400" },
-  { name: "Home", icon: Home, color: "text-orange-300" },
-  { name: "Science", icon: FlaskConical, color: "text-blue-500" },
-  { name: "Physics", icon: Atom, color: "text-purple-500" },
-  { name: "Math", icon: Calculator, color: "text-green-500" },
-  { name: "Movies", icon: Film, color: "text-red-500" },
-  { name: "TV Shows", icon: Tv, color: "text-orange-500" },
-  { name: "Fitness", icon: Dumbbell, color: "text-rose-500" },
-  { name: "Nature", icon: Leaf, color: "text-emerald-500" },
-  { name: "Interesting", icon: Info, color: "text-zinc-400" },
-  { name: "PDF", icon: FileText, color: "text-red-300" },
-  { name: "Productivity", icon: Laptop, color: "text-indigo-400" },
-  { name: "History", icon: History, color: "text-amber-600" },
-  { name: "Browser Extensions", icon: Layers, color: "text-blue-400" },
-  { name: "Podcasts", icon: Headphones, color: "text-pink-400" },
-  { name: "Domain Names", icon: Globe, color: "text-green-400" },
-  { name: "Infographics", icon: BarChart3, color: "text-orange-400" },
-  { name: "DNA & Genetics", icon: Dna, color: "text-purple-400" },
-  { name: "Telescopes", icon: Binoculars, color: "text-slate-400" },
-  { name: "Rocketry", icon: Rocket, color: "text-red-400" },
-  { name: "Architecture", icon: Building2, color: "text-stone-400" },
-  { name: "Cars", icon: Car, color: "text-blue-500" },
-  { name: "Motorcycles", icon: Bike, color: "text-orange-500" },
-  { name: "Cycling", icon: Bike, color: "text-green-500" },
-  { name: "Fishing", icon: Fish, color: "text-blue-300" },
-  { name: "Hiking", icon: Footprints, color: "text-amber-600" },
-  { name: "Volcanoes", icon: Mountain, color: "text-red-600" },
-  { name: "Oceans", icon: Waves, color: "text-cyan-500" },
-  { name: "Birds", icon: Bird, color: "text-emerald-500" },
-  { name: "Pets", icon: PawPrint, color: "text-orange-400" },
-  { name: "Cooking", icon: Utensils, color: "text-amber-500" },
-  { name: "Coffee", icon: Coffee, color: "text-amber-800" },
-  { name: "Sewing", icon: Scissors, color: "text-pink-500" },
-  { name: "Woodworking", icon: Hammer, color: "text-stone-500" },
-  { name: "3D Printing", icon: Printer, color: "text-blue-600" },
-  { name: "Satellite Images", icon: Satellite, color: "text-indigo-500" },
-  { name: "Gemstones", icon: Gem, color: "text-emerald-400" },
-  { name: "Board Games", icon: Dices, color: "text-amber-400" },
-  { name: "Tabletop RPG", icon: Sword, color: "text-red-400" },
-  { name: "Magic Tricks", icon: Wand2, color: "text-purple-500" },
-  { name: "Live Cameras", icon: Video, color: "text-rose-500" },
-  { name: "Watches", icon: Watch, color: "text-slate-500" },
-  { name: "Gifts", icon: Gift, color: "text-red-500" },
-  { name: "Deals", icon: Zap, color: "text-yellow-500" },
-  { name: "Languages", icon: Languages, color: "text-blue-400" },
-  { name: "Dating", icon: HeartPulse, color: "text-pink-500" },
-  { name: "Parenting", icon: Home, color: "text-indigo-400" },
-  { name: "PC Software", icon: Laptop, color: "text-slate-400" },
-  { name: "Downloads", icon: Download, color: "text-blue-500" },
-  { name: "Chat & Community", icon: MessagesSquare, color: "text-emerald-400" },
-  { name: "Sleep", icon: Moon, color: "text-indigo-300" },
-  { name: "Meditation", icon: HeartPulse, color: "text-rose-400" },
-  { name: "Investing", icon: TrendingUp, color: "text-green-500" },
-  { name: "Competitions", icon: Trophy, color: "text-yellow-500" },
-  { name: "Password Managers", icon: KeyRound, color: "text-slate-400" },
-  { name: "File Sharing", icon: Share2, color: "text-blue-500" },
-  { name: "Astronomy", icon: Orbit, color: "text-purple-400" },
-  { name: "School", icon: School, color: "text-emerald-500" },
-  { name: "Hotels", icon: Hotel, color: "text-blue-400" },
-  { name: "Trains", icon: Train, color: "text-orange-500" },
-  { name: "Blogging", icon: Pen, color: "text-teal-400" },
-  { name: "Resume Builders", icon: FileUser, color: "text-blue-500" },
-  { name: "Mockups", icon: Layout, color: "text-pink-500" },
-  { name: "Scholarships", icon: GraduationCap, color: "text-yellow-600" },
-  { name: "Memes", icon: PartyPopper, color: "text-yellow-400" },
-  { name: "Keyboard", icon: LayoutGrid, color: "text-slate-400" },
-];
-
-const TRENDING_CATEGORY_NAMES = [
-  "AI", "Gaming", "Entertainment", "Anime", "Android", 
-  "Coding", "Design", "Shopping", "Photography", "Video",
-  "Music", "Utilities", "Education", "Jobs", "Finance",
-  "Travel", "Food", "Health", "Sports", "Cybersecurity",
-  "Investing", "Meditation", "Sleep", "Science", "PC Software"
-];
+import { BROAD_CATEGORIES, getBroadCategoriesForTag } from "@/lib/category-mapping";
 
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [categorySearchQuery, setCategorySearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const { user } = useUser();
   const db = useFirestore();
@@ -269,20 +69,6 @@ export default function ExplorePage() {
     return uniquePool;
   }, [submittedSites]);
 
-  const dynamicCategoriesList = useMemo(() => {
-    const categoriesSet = new Set<string>();
-    STATIC_CATEGORIES.forEach(cat => categoriesSet.add(cat.name));
-    allWebsites.forEach(site => {
-      site.categories?.forEach(cat => categoriesSet.add(cat));
-    });
-
-    return Array.from(categoriesSet).map(name => {
-      const existing = STATIC_CATEGORIES.find(c => c.name === name);
-      if (existing) return existing;
-      return { name, icon: Tag, color: "text-primary/60" };
-    }).sort((a, b) => a.name.localeCompare(b.name));
-  }, [allWebsites]);
-
   const filteredResults = useMemo(() => {
     return allWebsites.filter(app => {
       const queryText = searchQuery.toLowerCase().trim();
@@ -293,30 +79,19 @@ export default function ExplorePage() {
         app.categories.some(cat => cat.toLowerCase().includes(queryText));
       
       const matchesCategory = !selectedCategory || 
-        app.categories.some(cat => cat.toLowerCase() === selectedCategory.toLowerCase() || cat.toLowerCase().includes(selectedCategory.toLowerCase()));
+        app.categories.some(tag => {
+          const mappedBroads = getBroadCategoriesForTag(tag);
+          return mappedBroads.includes(selectedCategory);
+        });
         
       return matchesSearch && matchesCategory;
     });
   }, [searchQuery, selectedCategory, allWebsites]);
 
   const visibleCategories = useMemo(() => {
-    const relevant = dynamicCategoriesList.filter(c => 
-      TRENDING_CATEGORY_NAMES.includes(c.name) || userInterests.includes(c.name)
-    );
-    const seen = new Set();
-    return relevant.filter(c => {
-      if (seen.has(c.name)) return false;
-      seen.add(c.name);
-      return true;
-    }).slice(0, 20);
-  }, [userInterests, dynamicCategoriesList]);
-
-  const filteredModalCategories = useMemo(() => {
-    if (!categorySearchQuery.trim()) return dynamicCategoriesList;
-    return dynamicCategoriesList.filter(cat => 
-      cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase().trim())
-    );
-  }, [categorySearchQuery, dynamicCategoriesList]);
+    // Show top broad categories
+    return BROAD_CATEGORIES.slice(0, 20);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -348,7 +123,7 @@ export default function ExplorePage() {
           <div className="flex items-center justify-between mb-8 sm:mb-10">
             <h2 className="text-xl sm:text-3xl font-bold text-white flex items-center gap-3 sm:gap-4 tracking-tighter">
               <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              Popular Interests
+              Broad Categories
             </h2>
             <div className="flex gap-2">
               {selectedCategory && (
@@ -361,56 +136,38 @@ export default function ExplorePage() {
                   <X className="w-4 h-4 mr-2" /> Clear
                 </Button>
               )}
-              <Dialog onOpenChange={(open) => !open && setCategorySearchQuery("")}>
+              <Dialog>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="rounded-full bg-white/5 border-white/10 hover:bg-white/10 font-bold">
-                    <MoreHorizontal className="w-4 h-4 mr-2" /> More Interests
+                    <MoreHorizontal className="w-4 h-4 mr-2" /> View All
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-background border-white/10 text-white rounded-[2.5rem] max-w-2xl max-h-[80vh] flex flex-col p-0 overflow-hidden shadow-2xl">
                   <DialogHeader className="p-8 pb-4">
                     <div className="flex items-center gap-3 mb-2">
                       <Sparkles className="w-6 h-6 text-primary" />
-                      <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">All Discovery Tags</DialogTitle>
+                      <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter">Discovery Index</DialogTitle>
                     </div>
                     <DialogDescription className="text-muted-foreground text-xs uppercase tracking-widest font-black opacity-40 italic">
-                      Explore all categories in the digital property registry.
+                      Choose a broad category to browse the digital registry.
                     </DialogDescription>
-                    <div className="relative mt-6">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input 
-                        placeholder="Filter categories..." 
-                        value={categorySearchQuery}
-                        onChange={(e) => setCategorySearchQuery(e.target.value)}
-                        className="pl-10 bg-white/5 border-white/10 rounded-xl h-12 text-sm font-bold focus:ring-primary"
-                      />
-                    </div>
                   </DialogHeader>
                   <div className="flex-1 overflow-y-auto p-8 pt-4 no-scrollbar">
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      {filteredModalCategories.length > 0 ? (
-                        filteredModalCategories.map((cat) => (
-                          <Button 
-                            key={cat.name} 
-                            variant="outline" 
-                            onClick={() => {
-                              setSelectedCategory(cat.name);
-                              setCategorySearchQuery("");
-                            }}
-                            className={cn(
-                              "h-16 bg-white/5 border-white/5 hover:bg-white/10 rounded-2xl flex items-center gap-3 px-4 transition-all text-left justify-start group",
-                              selectedCategory === cat.name && "border-primary bg-primary/10"
-                            )}
-                          >
-                            <cat.icon className={cn(`w-5 h-5 shrink-0 transition-transform group-hover:scale-110`, cat.color)} />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-white truncate">{cat.name}</span>
-                          </Button>
-                        ))
-                      ) : (
-                        <div className="col-span-full py-12 text-center text-muted-foreground font-medium italic">
-                          No categories match your search.
-                        </div>
-                      )}
+                      {BROAD_CATEGORIES.map((cat) => (
+                        <Button 
+                          key={cat.id} 
+                          variant="outline" 
+                          onClick={() => setSelectedCategory(cat.name)}
+                          className={cn(
+                            "h-16 bg-white/5 border-white/5 hover:bg-white/10 rounded-2xl flex items-center gap-3 px-4 transition-all text-left justify-start group",
+                            selectedCategory === cat.name && "border-primary bg-primary/10"
+                          )}
+                        >
+                          <cat.icon className={cn(`w-5 h-5 shrink-0 transition-transform group-hover:scale-110`, cat.color)} />
+                          <span className="text-[10px] font-black uppercase tracking-widest text-white truncate">{cat.name}</span>
+                        </Button>
+                      ))}
                     </div>
                   </div>
                 </DialogContent>
@@ -420,7 +177,7 @@ export default function ExplorePage() {
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-6">
             {visibleCategories.map((cat) => (
               <Button 
-                key={cat.name} 
+                key={cat.id} 
                 variant="outline" 
                 onClick={() => setSelectedCategory(cat.name === selectedCategory ? null : cat.name)}
                 className={cn(
@@ -490,7 +247,6 @@ function ExploreItemRow({ app }: { app: any }) {
   const brandName = app.websiteName || app.name;
   const discoveryTitle = app.websiteName ? app.name : "";
 
-  // De-duplicate categories to avoid key collisions
   const uniqueCategories = Array.from(new Set(app.categories || [])).slice(0, 4);
 
   return (

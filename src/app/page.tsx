@@ -9,6 +9,7 @@ import { Sparkles, TrendingUp, Clock, Loader2 } from "lucide-react";
 import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import { getBroadCategoriesForTag } from "@/lib/category-mapping";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
@@ -28,7 +29,7 @@ export default function Home() {
   }, [user, db]);
 
   const { data: profile } = useDoc(userDocRef);
-  const userInterests = profile?.interests || [];
+  const userBroadInterests = profile?.interests || [];
 
   const submissionsRef = useMemo(() => {
     if (!db) return null;
@@ -97,12 +98,19 @@ export default function Home() {
         break;
       case "foryou":
       default:
-        const matches = results.filter(w => w.categories.some(c => userInterests.includes(c)));
-        const nonMatches = results.filter(w => !w.categories.some(c => userInterests.includes(c)));
+        // Logic: Filter based on whether any tag maps to the user's selected broad categories
+        const matches = results.filter(w => 
+          w.categories.some(tag => {
+            const mappedBroads = getBroadCategoriesForTag(tag);
+            return mappedBroads.some(b => userBroadInterests.includes(b));
+          })
+        );
+        const nonMatches = results.filter(w => !matches.includes(w));
         const shuffledNonMatches = [...nonMatches].sort(() => Math.random() - 0.5);
+        
         matches.sort((a, b) => {
-          const aCount = a.categories.filter(c => userInterests.includes(c)).length;
-          const bCount = b.categories.filter(c => userInterests.includes(c)).length;
+          const aCount = a.categories.filter(tag => getBroadCategoriesForTag(tag).some(b => userBroadInterests.includes(b))).length;
+          const bCount = b.categories.filter(tag => getBroadCategoriesForTag(tag).some(b => userBroadInterests.includes(b))).length;
           return bCount - aCount;
         });
 
@@ -111,17 +119,9 @@ export default function Home() {
     }
     
     return results;
-  }, [activeTab, userInterests, allAvailableWebsites, globalStats]);
+  }, [activeTab, userBroadInterests, allAvailableWebsites, globalStats]);
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-12 h-12 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!user) return null;
+  if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -140,24 +140,11 @@ export default function Home() {
             </div>
             
             <div className="flex items-center gap-4 bg-white/[0.02] p-1.5 rounded-[1.5rem] border border-white/5 overflow-x-auto no-scrollbar">
-              <Tabs 
-                defaultValue="foryou" 
-                className="w-full"
-                onValueChange={(value) => setActiveTab(value)}
-              >
+              <Tabs defaultValue="foryou" className="w-full" onValueChange={setActiveTab}>
                 <TabsList className="bg-transparent h-auto gap-1">
-                  <TabsTrigger value="foryou" className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center gap-2 italic">
-                    <Sparkles className="w-4 h-4" />
-                    For You
-                  </TabsTrigger>
-                  <TabsTrigger value="trending" className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white flex items-center gap-2 italic">
-                    <TrendingUp className="w-4 h-4" />
-                    Trending
-                  </TabsTrigger>
-                  <TabsTrigger value="new" className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white flex items-center gap-2 italic">
-                    <Clock className="w-4 h-4" />
-                    New
-                  </TabsTrigger>
+                  <TabsTrigger value="foryou" className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary transition-all flex items-center gap-2 italic"><Sparkles className="w-4 h-4" /> For You</TabsTrigger>
+                  <TabsTrigger value="trending" className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary flex items-center gap-2 italic"><TrendingUp className="w-4 h-4" /> Trending</TabsTrigger>
+                  <TabsTrigger value="new" className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary flex items-center gap-2 italic"><Clock className="w-4 h-4" /> New</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
@@ -165,29 +152,19 @@ export default function Home() {
         </section>
 
         <section className="container mx-auto px-2">
-          {activeTab === 'trending' && (
-            <div className="container mx-auto px-4 mb-10">
-               <div className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-primary/10 border border-primary/20 shadow-xl shadow-primary/5">
-                  <TrendingUp className="w-4 h-4 text-primary" />
-                  <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] italic">Top 50 Performance Cluster</span>
-               </div>
-            </div>
-          )}
-          <MasonryFeed key={activeTab + userInterests.join(',') + filteredWebsites.length} initialWebsites={filteredWebsites} hideEndMessage={true} />
+          <MasonryFeed key={activeTab + userBroadInterests.join(',') + filteredWebsites.length} initialWebsites={filteredWebsites} hideEndMessage={true} />
         </section>
       </main>
 
       <footer className="bg-card/50 border-t border-white/5 py-16">
         <div className="container mx-auto px-4 text-center space-y-6">
-          <div className="flex flex-wrap justify-center gap-8 text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/40 mb-4 italic">
+          <div className="flex flex-wrap justify-center gap-8 text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/40 italic">
             <a href="/about" className="hover:text-primary transition-colors">About Us</a>
             <a href="/contact" className="hover:text-primary transition-colors">Contact</a>
             <a href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</a>
             <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
           </div>
-          <p className="text-xs text-muted-foreground opacity-20 font-black uppercase tracking-widest">
-            © 2024 Bessites Studio. Absolute Discovery.
-          </p>
+          <p className="text-xs text-muted-foreground opacity-20 font-black uppercase tracking-widest">© 2024 Bessites Studio. Absolute Discovery.</p>
         </div>
       </footer>
     </div>

@@ -1,6 +1,7 @@
 'use server';
 /**
  * @fileOverview Astra Discovery - AI search engine for Bessites.
+ * Updated to understand the broad category hierarchy.
  */
 
 import { ai, z } from '@/ai/genkit';
@@ -29,13 +30,7 @@ const DiscoveryOutputSchema = z.object({
 
 export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
 
-/**
- * Astra Discovery Flow
- * Searches Firestore registry and uses Genkit for intelligent matching.
- */
 export async function askDiscoveryAssistant(input: { message: string, history?: {role: 'user' | 'assistant', content: string}[] }) {
-  // We removed the manual API key check here to allow Genkit to handle the execution.
-  // Standard error handling in the UI will catch any missing key issues.
   return discoveryFlow(input);
 }
 
@@ -46,10 +41,15 @@ const discoveryPrompt = ai.definePrompt({
   prompt: `You are Astra, the official discovery AI for Bessites. 
   Your mission is to help users find tools from the provided REGISTRY.
 
+  BESSITES CATEGORY ARCHITECTURE:
+  We use 26 broad public categories (AI, Tech, Gaming, Design, etc.) which act as high-level folders for over 200 technical sub-tags. 
+  When a user asks for something broad like "Gaming," you should look at items with tags related to games.
+  When a user asks for something specific like "Chess," you should find items with that exact tag.
+
   STRICT RULES:
   1. ONLY recommend websites listed in the REGISTRY below.
-  2. Do NOT invent URLs, features, prices, or websites.
-  3. If no suitable match exists, tell the user you couldn't find a exact match in the registry and suggest the closest alternative.
+  2. If no suitable match exists, suggest the closest broad category alternative.
+  3. Be sophisticated and helpful in your explanations.
 
   CONTEXT:
   Registry Data:
@@ -75,7 +75,7 @@ const discoveryFlow = ai.defineFlow(
 
     if (firestore) {
       try {
-        const q = query(collection(firestore, 'submissions'), where('status', '==', 'approved'), limit(50));
+        const q = query(collection(firestore, 'submissions'), where('status', '==', 'approved'), limit(60));
         const snapshot = await getDocs(q);
         snapshot.forEach((doc) => {
           const d = doc.data();
@@ -104,7 +104,7 @@ const discoveryFlow = ai.defineFlow(
 
     const { output } = await discoveryPrompt({
       ...input,
-      registry: JSON.stringify(registryData.slice(0, 40))
+      registry: JSON.stringify(registryData.slice(0, 50))
     });
 
     return output!;

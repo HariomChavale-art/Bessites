@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -29,7 +30,42 @@ const ALL_CATEGORIES_LIST = [
   "Sewing", "Woodworking", "3D Printing", "Satellite Images", "Gemstones", "Board Games", "Tabletop RPG", "Magic Tricks",
   "Live Cameras", "Watches", "Gifts", "Deals", "Languages", "Dating", "Parenting", "PC Software", "Downloads",
   "Chat & Community", "Sleep", "Meditation", "Investing", "Competitions", "Password Managers", "File Sharing",
-  "Astronomy", "School", "Hotel", "Train", "Pen", "FileUser", "Layout", "GraduationCap", "Heart"
+  "Astronomy", "School", "Hotel", "Train", "Pen", "FileUser", "Layout", "GraduationCap", "Heart", "Keyboard",
+  "Developer Tools & UI Kits", "3D Design & Web Graphics", "Design Inspiration & Curation", "Interactive Web & Audio",
+  "Generative AI & Image Generation", "Browser Games & Simulators", "Productivity & Project Management", 
+  "Creative Experiments & Mini Games", "Open Source CSS & Frontend Assets", "UI/UX Research & App Architecture",
+  "AI Development & Generative Code", "Voice AI & Audio Synthesis", "Cloud Backend & Database Infrastructure",
+  "Developer APIs & Infrastructure", "Visual Workspace & Whiteboarding", "Content Creation & Social Growth",
+  "Analytics & User Behavior", "Portfolios & Professional Networking", "Developer Tools & AI IDEs", 
+  "AI Search & Research Engines", "Generative AI & Concept Art", "Generative AI Video & 3D", 
+  "No-Code & Web Architecture", "Video Editing & Content Creation", "Game Development & Interactive Tech",
+  "AI Assistants & LLM Interfaces", "Audio Production & Podcasting", "Web Animation & Creative Coding",
+  "Developer Utilities & Code Presentation", "Design Awards & Creative Inspiration", "Landing Page & Conversion Design",
+  "Color Tools & UI Design Systems", "Cloud Hosting & Deployment Infrastructure", "Product UI/UX & Vector Design",
+  "Vector Graphics & Iconography", "Developer Education & Career Learning", "Generative Vector & Brand Illustration",
+  "Editorial & Creative Web Publishing", "Design Assets & Icon Systems", "UI Kits & Design Systems", 
+  "Component Libraries & Design Systems", "Animation & Frontend Frameworks", "Frontend Frameworks & State Architecture",
+  "No-Code Databases & Workflow Automation", "Productivity & Time Management", "Knowledge Graphs & Personal Productivity",
+  "CAD Engineering & Industrial Design", "Payments & Global Commerce", "Edge Computing & Web Security",
+  "Backend Orchestration & Microservices", "DevOps & Continuous Delivery", "Application Monitoring & Observability",
+  "Identity & Enterprise Authentication", "Backend APIs & Python Development", "SEO Analytics & Organic Search",
+  "Identity & User Authentication", "Serverless Data & Edge Caching", "Cloud Databases & Data Infrastructure",
+  "Backend Tooling & Database ORMs", "Developer Utilities & Code Quality", "Developer Tooling & JavaScript Runtimes",
+  "Developer Documentation & Knowledge Bases", "AI Models & Open-Source Machine Learning", 
+  "Frontend Frameworks & Component Blocks", "Video Production & Screen Recording", "Local AI & Machine Learning Tools",
+  "Developer Tooling & Desktop Ecosystems", "Backend APIs & Data Orchestration", "Typography & Font Discovery",
+  "Frontend Frameworks & Styling Tooling", "Design Assets & Graphic Elements", "Frontend Frameworks & Full-Stack Systems",
+  "Design Assets & Brand Logos", "Stock Photography & Visual Assets", "Cloud Infrastructure & Background Tasks",
+  "Chess & Board Games", "Tabletop & Board Games", "Music Production & Audio Creation", 
+  "3D Printing & Electronics Tinkering", "3D Printing & Maker Projects", "DIY Crafting & Maker Projects",
+  "Electronics & Hardware Hacking", "Astronomy & Stargazing", "Astronomy & Astrophotography",
+  "Birdwatching & Nature Exploration", "Nature & Wildlife Observation", "Hiking & Outdoor Recreation",
+  "Outdoor Exploration & Geocaching", "Language Learning", "Reading & Book Collecting", "Vinyl & Music Collecting",
+  "Craft Brewing & Beverage Tasting", "Wine Tasting & Sommelier Skills", "Cooking & Culinary Arts",
+  "Baking & Sourdough Craft", "Knitting & Fiber Arts", "Sewing & Garment Craft", "Tabletop RPGs & Storytelling",
+  "Gardening & Plant Care", "Musical Instruments & Guitar", "Music Theory & Composition", "Puzzles & Trivia",
+  "Geography & Map Games", "Origami & Papercraft", "LEGO Building & Model Collecting", "Aviation & Plane Spotting",
+  "Maritime & Ship Spotting", "Film & Cinema Appreciation"
 ];
 
 export default function SubmitWebsite() {
@@ -41,7 +77,7 @@ export default function SubmitWebsite() {
   
   const [url, setUrl] = useState("");
   const [websiteName, setWebsiteName] = useState("");
-  const [name, setName] = useState(""); // This is the "Title" field
+  const [name, setName] = useState(""); 
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [categorySearch, setCategorySearch] = useState("");
@@ -131,7 +167,6 @@ export default function SubmitWebsite() {
     try {
       let publicLogoUrl = "";
       
-      // 1. Upload Logo to Supabase
       const fileExt = logoFile.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       uploadedFilePath = `logos/${user!.uid}/${fileName}`;
@@ -151,7 +186,6 @@ export default function SubmitWebsite() {
       
       publicLogoUrl = publicUrl;
 
-      // 2. Submit Project to Firestore
       const uniqueCategories = Array.from(new Set([category, ...tags].filter(Boolean)));
 
       const firestoreTask = async () => {
@@ -170,7 +204,6 @@ export default function SubmitWebsite() {
           timestamp: serverTimestamp()
         });
 
-        // Initialize global stats with updated tracking fields
         await setDoc(doc(db, "websiteStats", submissionRef.id), {
           logoUrl: publicLogoUrl,
           visitCount: 0,

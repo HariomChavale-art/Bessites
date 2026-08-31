@@ -34,22 +34,8 @@ export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
  * Searches Firestore registry and uses Genkit for intelligent matching.
  */
 export async function askDiscoveryAssistant(input: { message: string, history?: {role: 'user' | 'assistant', content: string}[] }) {
-  // Use the standardized key from process.env
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY;
-  
-  if (!apiKey) {
-    return {
-      response: "I am currently running on specialized cached logic because the system API key is not yet fully synchronized. Once a valid key is provided in the configuration, I can provide deep neural discovery across our entire registry.",
-      recommendations: MOCK_WEBSITES.slice(0, 2).map(s => ({
-        id: s.id,
-        name: s.websiteName || s.name,
-        url: s.url,
-        reason: "This is a high-performance featured tool from our discovery pipeline.",
-        pros: s.pros
-      }))
-    } as DiscoveryOutput;
-  }
-
+  // We removed the manual API key check here to allow Genkit to handle the execution.
+  // Standard error handling in the UI will catch any missing key issues.
   return discoveryFlow(input);
 }
 

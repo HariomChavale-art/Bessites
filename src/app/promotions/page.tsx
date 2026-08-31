@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useEffect } from "react";
@@ -52,6 +51,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
+import { Logo } from "@/components/logo";
 
 const CAMPAIGN_OBJECTIVES = [
   { id: 'visits', name: 'Website Visits', desc: 'Direct high-intent users to your URL.', icon: MousePointer2, color: 'text-blue-400' },
@@ -223,7 +223,14 @@ export default function PromotionsPage() {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      <div className="mb-10 px-2"><Link href="/" className="group block"><div className="flex flex-col items-start gap-1"><span className="text-2xl font-black italic uppercase tracking-tighter text-white">Bessites</span><span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60">Creator Studio</span></div></Link></div>
+      <div className="mb-10 px-2">
+        <Link href="/" className="group block">
+          <div className="flex flex-col items-start">
+            <Logo className="text-3xl" />
+            <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60 mt-1">Creator Studio</span>
+          </div>
+        </Link>
+      </div>
       <nav className="flex-1 space-y-1.5 overflow-y-auto no-scrollbar">
         <SidebarItem icon={Globe} label="My Websites" active={pathname === '/my-websites'} onClick={() => router.push('/my-websites')} />
         <SidebarItem icon={BarChart3} label="Analytics" active={pathname === '/analytics'} onClick={() => router.push('/analytics')} />
@@ -246,7 +253,9 @@ export default function PromotionsPage() {
       <aside className="hidden lg:flex w-72 h-screen sticky top-0 p-8 flex-col border-r border-white/5 bg-[#0D0C12] z-50"><SidebarContent /></aside>
       <main className="flex-1 flex flex-col min-w-0 bg-[#0B0A0F]">
         <header className="lg:hidden flex items-center justify-between p-4 sticky top-0 bg-[#0B0A0F]/80 backdrop-blur-xl z-50 border-b border-white/5">
-          <Link href="/" className="text-xl font-black italic uppercase tracking-tighter text-white">Bessites</Link>
+          <Link href="/" className="flex items-center gap-2">
+            <Logo className="text-2xl" />
+          </Link>
           <Sheet><SheetTrigger asChild><Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl bg-white/5"><Menu className="w-5 h-5" /></Button></SheetTrigger><SheetContent side="left" className="bg-[#0D0C12] p-6 w-80"><SidebarContent /></SheetContent></Sheet>
         </header>
 

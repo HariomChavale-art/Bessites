@@ -35,7 +35,7 @@ export default function OnboardingPage() {
   const [selected, setSelected] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [visibleCount, setVisibleCount] = useState(15);
+  const [visibleCount, setVisibleCount] = useState(20);
 
   useEffect(() => {
     if (!userLoading && !user) {
@@ -50,10 +50,12 @@ export default function OnboardingPage() {
   }, [profile]);
 
   const sortedInterests = useMemo(() => {
-    // Sort logic: Popular/Top Level items first
+    // Sort logic: Popular/Top Level items first based on common discovery patterns
+    const topInterests = ["AI Tools", "Games", "Programming", "Graphic Design", "Video Editing", "Education", "Travel", "Business", "Music Discovery", "Health & Fitness"];
+    
     return [...INTERESTS].sort((a, b) => {
-      const aIsTop = ["AI Tools", "Games", "Programming", "Graphic Design"].includes(a.name);
-      const bIsTop = ["AI Tools", "Games", "Programming", "Graphic Design"].includes(b.name);
+      const aIsTop = topInterests.includes(a.name);
+      const bIsTop = topInterests.includes(b.name);
       if (aIsTop && !bIsTop) return -1;
       if (!aIsTop && bIsTop) return 1;
       return a.name.localeCompare(b.name);
@@ -94,7 +96,7 @@ export default function OnboardingPage() {
           title: isExistingUser ? "Preferences updated!" : "Profile setup!",
           description: isExistingUser 
             ? "Your discovery feed has been refreshed." 
-            : "Welcome to Bessites. We've personalized your feed.",
+            : "Welcome to BESSITES. We've personalized your feed.",
         });
         router.push("/");
       })
@@ -105,7 +107,7 @@ export default function OnboardingPage() {
   };
 
   const loadMore = () => {
-    setVisibleCount(prev => prev + 15);
+    setVisibleCount(prev => Math.min(prev + 20, 100));
   };
 
   if (userLoading) {
@@ -123,7 +125,7 @@ export default function OnboardingPage() {
       <div className="max-w-6xl w-full space-y-12 text-center relative z-10">
         <div className="space-y-4">
           <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase italic leading-none">
-            {isExistingUser ? "Discovery" : "Welcome to"} <span className="text-primary">{isExistingUser ? "Preferences" : "Bessites"}</span>
+            {isExistingUser ? "Discovery" : "Welcome to"} <span className="text-secondary">BES</span><span className="text-primary">SITES</span>
           </h1>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium">
             Pick at least <span className="text-white font-bold underline decoration-primary underline-offset-4">3 interests</span> to personalize your discovery feed.
@@ -133,11 +135,11 @@ export default function OnboardingPage() {
         <div className="relative max-w-md mx-auto group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
-            placeholder="Search all 100+ interests..." 
+            placeholder="Search 100 premium interests..." 
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              setVisibleCount(15);
+              setVisibleCount(20);
             }}
             className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-lg font-bold focus:ring-primary shadow-xl"
           />
@@ -219,7 +221,7 @@ export default function OnboardingPage() {
                 : "bg-white/10 text-muted-foreground opacity-50"
             )}
           >
-            {saving ? <Loader2 className="w-8 h-8 animate-spin" /> : selected.length < 3 ? `Pick ${3 - selected.length} more` : isExistingUser ? "Save Changes" : "Enter Bessites"}
+            {saving ? <Loader2 className="w-8 h-8 animate-spin" /> : selected.length < 3 ? `Pick ${3 - selected.length} more` : isExistingUser ? "Save Changes" : "Enter Registry"}
           </Button>
         </div>
       </div>

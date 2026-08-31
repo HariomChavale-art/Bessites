@@ -20,3 +20,4 @@ git remote set-url origin https://github.com/HariomChavale-art/Webdock.git
 - `npm run sync`: Commit and push changes to GitHub (Webdock repository)
 - `npm run check-git`: Verify the remote Git URL
 - `npm run auth-git`: Setup credential storage for GitHub
+7

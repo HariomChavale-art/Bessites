@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -248,7 +247,7 @@ export default function LoginPage() {
         {/* DESKTOP LEFT PANEL: VALUE PROP */}
         <div className="hidden lg:flex lg:col-span-6 flex-col space-y-10 animate-in fade-in slide-in-from-left-12 duration-1000">
           <div className="space-y-6">
-             <Logo showText className="scale-125 origin-left" />
+             <Logo className="text-6xl xl:text-8xl scale-125 origin-left" />
              <h1 className="text-8xl xl:text-9xl font-black text-white tracking-tighter uppercase italic leading-[0.85] drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
                 Unlock a <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-400 to-cyan-400">World of</span> <br />
@@ -271,7 +270,7 @@ export default function LoginPage() {
               
               <header className="text-center mb-10 space-y-3">
                 <div className="lg:hidden flex justify-center mb-6">
-                  <Logo showText />
+                  <Logo className="text-3xl" />
                 </div>
                 <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">
                   {mode === 'login' ? 'Welcome Back!' : 'Start Building.'}

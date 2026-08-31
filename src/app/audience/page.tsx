@@ -118,10 +118,9 @@ export default function AudiencePage() {
     <div className="flex flex-col h-full">
       <div className="mb-10 px-2">
         <Link href="/" className="group block">
-          <div className="flex flex-col items-start gap-1">
-            <Logo className="w-10 h-10 mb-1" />
-            <span className="text-2xl font-black italic uppercase tracking-tighter text-white">Bessites</span>
-            <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60">Creator Studio</span>
+          <div className="flex flex-col items-start">
+            <Logo className="text-3xl" />
+            <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-60 mt-1">Creator Studio</span>
           </div>
         </Link>
       </div>
@@ -146,8 +145,7 @@ export default function AudiencePage() {
       <main className="flex-1 flex flex-col min-w-0 bg-[#0B0A0F]">
         <header className="lg:hidden flex items-center justify-between p-4 sticky top-0 bg-[#0B0A0F]/80 backdrop-blur-xl z-50 border-b border-white/5">
           <Link href="/" className="flex items-center gap-2">
-            <Logo className="w-8 h-8" />
-            <span className="text-xl font-black italic uppercase tracking-tighter text-white">Bessites</span>
+            <Logo className="text-2xl" />
           </Link>
           <Sheet><SheetTrigger asChild><Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl bg-white/5"><Menu className="w-5 h-5" /></Button></SheetTrigger><SheetContent side="left" className="bg-[#0D0C12] p-6 w-80"><SidebarContent /></SheetContent></Sheet>
         </header>

@@ -8,15 +8,13 @@ interface LogoProps {
 }
 
 /**
- * Brand Logo component updated to use text-only branding.
- * Features Poppins Black Italic styling for a premium look.
+ * Brand Logo component updated to use unified text branding.
+ * Features BESS (white) ITES (primary) with Poppins Black Italic styling.
  */
 export function Logo({ className, showText = true }: LogoProps) {
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      <span className="text-2xl font-headline font-black text-white tracking-tighter uppercase italic selection:bg-primary selection:text-white">
-        BESSITES
-      </span>
-    </div>
+    <span className={cn("font-headline font-black text-white tracking-tighter uppercase italic selection:bg-primary selection:text-white leading-none", className)}>
+      BESS<span className="text-primary">ITES</span>
+    </span>
   );
 }

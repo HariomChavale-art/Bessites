@@ -68,9 +68,8 @@ export function Navigation() {
       <div className="container mx-auto px-4 h-20 sm:h-24 flex items-center justify-between gap-4">
         
         <div className="flex flex-col items-start gap-1 shrink-0">
-          <Link href="/" className="flex items-center gap-2 group">
-            <Logo className="w-8 h-8 sm:w-10 sm:h-10 transition-transform group-hover:scale-110" />
-            <span className="text-xl font-black italic uppercase tracking-tighter text-white leading-none hidden sm:inline">Bessites</span>
+          <Link href="/" className="group">
+            <Logo className="text-2xl sm:text-4xl transition-transform group-hover:scale-105" />
           </Link>
           <Sheet>
             <SheetTrigger asChild>
@@ -81,9 +80,8 @@ export function Navigation() {
             <SheetContent side="left" className="bg-[#0B0A0F] border-r border-white/5 p-0 w-80 overflow-hidden shadow-[20px_0_50px_rgba(123,51,255,0.1)]">
                <SheetHeader className="p-8 pb-4">
                   <SheetTitle className="text-white font-black uppercase tracking-widest text-[10px] italic text-left opacity-40">Bessites Creator Menu</SheetTitle>
-                  <div className="mt-4 flex flex-col items-start gap-1">
-                    <Logo className="w-10 h-10 mb-2" />
-                    <span className="text-2xl font-black italic uppercase tracking-tighter block leading-none text-white">Bessites</span>
+                  <div className="mt-4">
+                    <Logo className="text-3xl" />
                   </div>
                </SheetHeader>
                <div className="flex flex-col h-full">

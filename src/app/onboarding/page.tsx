@@ -29,7 +29,74 @@ import {
   Camera, 
   Search, 
   X, 
-  ChevronDown 
+  ChevronDown,
+  Code,
+  Smartphone,
+  Video,
+  DollarSign,
+  Plane,
+  Star,
+  Shield,
+  Rocket,
+  Cloud,
+  Brain,
+  PartyPopper,
+  Paintbrush,
+  Mic,
+  Newspaper,
+  Hammer,
+  BarChart3,
+  Lightbulb,
+  List,
+  Home,
+  FlaskConical,
+  Atom,
+  Calculator,
+  Film,
+  Tv,
+  Dumbbell,
+  Leaf,
+  Info,
+  History,
+  Layers,
+  Headphones,
+  Dna,
+  Binoculars,
+  Building2,
+  Car,
+  Bike,
+  Fish,
+  Footprints,
+  Mountain,
+  Waves,
+  Bird,
+  PawPrint,
+  Coffee,
+  Scissors,
+  Printer,
+  Satellite,
+  Gem,
+  Dices,
+  Sword,
+  Wand2,
+  Watch,
+  Gift,
+  Languages,
+  Download,
+  Terminal,
+  MessagesSquare,
+  Sparkle,
+  Moon,
+  Trophy,
+  KeyRound,
+  Share2,
+  Orbit,
+  School,
+  Hotel,
+  Train,
+  Pen,
+  FileUser,
+  Tag
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -38,65 +105,148 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 
 /**
- * Derives all unique categories from the massive mock-data registry.
- * Provides an exhaustive list of interests for onboarding.
+ * High-quality category definitions matching the Explore page.
  */
-const DERIVED_CATEGORIES = Array.from(new Set(MOCK_WEBSITES.flatMap(w => w.categories))).sort();
+const STATIC_CATEGORIES = [
+  { name: "AI", icon: Sparkles, color: "text-purple-400", bg: "bg-purple-500/10" },
+  { name: "Gaming", icon: Gamepad2, color: "text-red-400", bg: "bg-red-500/10" },
+  { name: "Entertainment", icon: PlayIcon, color: "text-indigo-400", bg: "bg-indigo-500/10" },
+  { name: "Anime", icon: Sparkle, color: "text-pink-400", bg: "bg-pink-500/10" },
+  { name: "Android", icon: Smartphone, color: "text-green-400", bg: "bg-green-500/10" },
+  { name: "Coding", icon: Code, color: "text-blue-400", bg: "bg-blue-500/10" },
+  { name: "Design", icon: Palette, color: "text-pink-400", bg: "bg-pink-500/10" },
+  { name: "Shopping", icon: ShoppingBag, color: "text-amber-400", bg: "bg-amber-500/10" },
+  { name: "Photography", icon: Camera, color: "text-blue-300", bg: "bg-blue-500/10" },
+  { name: "Video", icon: Video, color: "text-red-400", bg: "bg-red-500/10" },
+  { name: "Music", icon: Music, color: "text-blue-300", bg: "bg-blue-500/10" },
+  { name: "Utilities", icon: Hammer, color: "text-stone-400", bg: "bg-stone-500/10" },
+  { name: "Education", icon: BookOpenIcon, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+  { name: "Jobs", icon: Briefcase, color: "text-teal-400", bg: "bg-teal-500/10" },
+  { name: "Finance", icon: DollarSign, color: "text-green-500", bg: "bg-green-500/10" },
+  { name: "Travel", icon: Plane, color: "text-cyan-500", bg: "bg-cyan-500/10" },
+  { name: "Food", icon: Utensils, color: "text-yellow-500", bg: "bg-yellow-500/10" },
+  { name: "Health", icon: HeartPulse, color: "text-rose-500", bg: "bg-rose-500/10" },
+  { name: "Sports", icon: Star, color: "text-orange-500", bg: "bg-orange-500/10" },
+  { name: "Cybersecurity", icon: Shield, color: "text-red-500", bg: "bg-red-500/10" },
+  { name: "Space", icon: Rocket, color: "text-indigo-400", bg: "bg-indigo-500/10" },
+  { name: "Earth & Weather", icon: Cloud, color: "text-cyan-400", bg: "bg-cyan-500/10" },
+  { name: "Brain Games", icon: Brain, color: "text-amber-400", bg: "bg-amber-500/10" },
+  { name: "Geography", icon: Map, color: "text-green-400", bg: "bg-green-500/10" },
+  { name: "Fun", icon: PartyPopper, color: "text-yellow-400", bg: "bg-yellow-500/10" },
+  { name: "OSINT", icon: Search, color: "text-slate-400", bg: "bg-slate-500/10" },
+  { name: "Creative", icon: Paintbrush, color: "text-rose-400", bg: "bg-rose-500/10" },
+  { name: "Voice", icon: Mic, color: "text-violet-400", bg: "bg-violet-500/10" },
+  { name: "Reading", icon: BookOpenIcon, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+  { name: "News", icon: Newspaper, color: "text-orange-400", bg: "bg-orange-500/10" },
+  { name: "Internet", icon: Globe, color: "text-sky-400", bg: "bg-sky-500/10" },
+  { name: "SEO", icon: BarChart3, color: "text-lime-400", bg: "bg-lime-500/10" },
+  { name: "Startups", icon: Rocket, color: "text-red-300", bg: "bg-red-500/10" },
+  { name: "Ideas", icon: Lightbulb, color: "text-yellow-300", bg: "bg-yellow-500/10" },
+  { name: "Freelancing", icon: Briefcase, color: "text-teal-400", bg: "bg-teal-500/10" },
+  { name: "AI Directories", icon: List, color: "text-fuchsia-400", bg: "bg-fuchsia-500/10" },
+  { name: "Home", icon: Home, color: "text-orange-300", bg: "bg-orange-500/10" },
+  { name: "Science", icon: FlaskConical, color: "text-blue-500", bg: "bg-blue-500/10" },
+  { name: "Physics", icon: Atom, color: "text-purple-500", bg: "bg-purple-500/10" },
+  { name: "Math", icon: Calculator, color: "text-green-500", bg: "bg-green-500/10" },
+  { name: "Movies", icon: Film, color: "text-red-500", bg: "bg-red-500/10" },
+  { name: "TV Shows", icon: Tv, color: "text-orange-500", bg: "bg-orange-500/10" },
+  { name: "Fitness", icon: Dumbbell, color: "text-rose-500", bg: "bg-rose-500/10" },
+  { name: "Nature", icon: Leaf, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  { name: "Interesting", icon: Info, color: "text-zinc-400", bg: "bg-zinc-500/10" },
+  { name: "PDF", icon: FileText, color: "text-red-300", bg: "bg-red-500/10" },
+  { name: "Productivity", icon: LaptopIcon, color: "text-indigo-400", bg: "bg-indigo-500/10" },
+  { name: "History", icon: History, color: "text-amber-600", bg: "bg-amber-500/10" },
+  { name: "Browser Extensions", icon: Layers, color: "text-blue-400", bg: "bg-blue-500/10" },
+  { name: "Podcasts", icon: Headphones, color: "text-pink-400", bg: "bg-pink-500/10" },
+  { name: "Domain Names", icon: Globe, color: "text-green-400", bg: "bg-green-500/10" },
+  { name: "Infographics", icon: BarChart3, color: "text-orange-400", bg: "bg-orange-500/10" },
+  { name: "DNA & Genetics", icon: Dna, color: "text-purple-400", bg: "bg-purple-500/10" },
+  { name: "Telescopes", icon: Binoculars, color: "text-slate-400", bg: "bg-slate-500/10" },
+  { name: "Rocketry", icon: Rocket, color: "text-red-400", bg: "bg-red-500/10" },
+  { name: "Architecture", icon: Building2, color: "text-stone-400", bg: "bg-stone-500/10" },
+  { name: "Cars", icon: Car, color: "text-blue-500", bg: "bg-blue-500/10" },
+  { name: "Motorcycles", icon: Bike, color: "text-orange-500", bg: "bg-orange-500/10" },
+  { name: "Cycling", icon: Bike, color: "text-green-500", bg: "bg-green-500/10" },
+  { name: "Fishing", icon: Fish, color: "text-blue-300", bg: "bg-blue-500/10" },
+  { name: "Hiking", icon: Footprints, color: "text-amber-600", bg: "bg-amber-500/10" },
+  { name: "Volcanoes", icon: Mountain, color: "text-red-600", bg: "bg-red-500/10" },
+  { name: "Oceans", icon: Waves, color: "text-cyan-500", bg: "bg-cyan-500/10" },
+  { name: "Birds", icon: Bird, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  { name: "Pets", icon: PawPrint, color: "text-orange-400", bg: "bg-orange-500/10" },
+  { name: "Cooking", icon: Utensils, color: "text-amber-500", bg: "bg-amber-500/10" },
+  { name: "Coffee", icon: Coffee, color: "text-amber-800", bg: "bg-amber-900/10" },
+  { name: "Sewing", icon: Scissors, color: "text-pink-500", bg: "bg-pink-500/10" },
+  { name: "Woodworking", icon: Hammer, color: "text-stone-500", bg: "bg-stone-500/10" },
+  { name: "3D Printing", icon: Printer, color: "text-blue-600", bg: "bg-blue-500/10" },
+  { name: "Satellite Images", icon: Satellite, color: "text-indigo-500", bg: "bg-indigo-500/10" },
+  { name: "Gemstones", icon: Gem, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+  { name: "Board Games", icon: Dices, color: "text-amber-400", bg: "bg-amber-500/10" },
+  { name: "Tabletop RPG", icon: Sword, color: "text-red-400", bg: "bg-red-500/10" },
+  { name: "Magic Tricks", icon: Wand2, color: "text-purple-500", bg: "bg-purple-500/10" },
+  { name: "Live Cameras", icon: Video, color: "text-rose-500", bg: "bg-rose-500/10" },
+  { name: "Watches", icon: Watch, color: "text-slate-500", bg: "bg-slate-500/10" },
+  { name: "Gifts", icon: Gift, color: "text-red-500", bg: "bg-red-500/10" },
+  { name: "Languages", icon: Languages, color: "text-blue-400", bg: "bg-blue-500/10" },
+  { name: "Parenting", icon: Home, color: "text-indigo-400", bg: "bg-indigo-500/10" },
+  { name: "Downloads", icon: Download, color: "text-blue-500", bg: "bg-blue-500/10" },
+  { name: "Chat & Community", icon: MessagesSquare, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+  { name: "Sleep", icon: Moon, color: "text-indigo-300", bg: "bg-indigo-500/10" },
+  { name: "Investing", icon: BarChart3, color: "text-green-500", bg: "bg-green-500/10" },
+  { name: "Competitions", icon: Trophy, color: "text-yellow-500", bg: "bg-yellow-500/10" },
+  { name: "Password Managers", icon: KeyRound, color: "text-slate-400", bg: "bg-slate-500/10" },
+  { name: "File Sharing", icon: Share2, color: "text-blue-500", bg: "bg-blue-500/10" },
+  { name: "Astronomy", icon: Orbit, color: "text-purple-400", bg: "bg-purple-500/10" },
+  { name: "School", icon: School, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  { name: "Hotels", icon: Hotel, color: "text-blue-400", bg: "bg-blue-500/10" },
+  { name: "Trains", icon: Train, color: "text-orange-500", bg: "bg-orange-500/10" },
+  { name: "Blogging", icon: Pen, color: "text-teal-400", bg: "bg-teal-500/10" },
+  { name: "Resume Builders", icon: FileUser, color: "text-blue-500", bg: "bg-blue-500/10" },
+  { name: "Mockups", icon: Layout, color: "text-pink-500", bg: "bg-pink-500/10" },
+  { name: "Scholarships", icon: GraduationCap, color: "text-yellow-600", bg: "bg-yellow-500/10" },
+];
 
-const getIconForCategory = (cat: string) => {
-  const lower = cat.toLowerCase();
-  if (lower.includes('ai')) return Sparkles;
-  if (lower.includes('game') || lower.includes('gaming')) return Gamepad2;
-  if (lower.includes('tool') || lower.includes('utility') || lower.includes('utilities')) return Wrench;
-  if (lower.includes('dev') || lower.includes('code') || lower.includes('software') || lower.includes('api') || lower.includes('infrastructure')) return Cpu;
-  if (lower.includes('design') || lower.includes('art') || lower.includes('creative') || lower.includes('branding')) return Palette;
-  if (lower.includes('edu') || lower.includes('learn') || lower.includes('study') || lower.includes('roadmap') || lower.includes('language')) return GraduationCap;
-  if (lower.includes('health') || lower.includes('pulse')) return HeartPulse;
-  if (lower.includes('food') || lower.includes('cook') || lower.includes('recipe') || lower.includes('culinary')) return Utensils;
-  if (lower.includes('map') || lower.includes('travel') || lower.includes('astronomy') || lower.includes('location') || lower.includes('geography')) return Map;
-  if (lower.includes('shop') || lower.includes('commerce') || lower.includes('pay')) return ShoppingBag;
-  if (lower.includes('music') || lower.includes('audio') || lower.includes('voice') || lower.includes('sound')) return Music;
-  if (lower.includes('productivity') || lower.includes('work') || lower.includes('job') || lower.includes('management')) return Briefcase;
-  if (lower.includes('photo') || lower.includes('video') || lower.includes('camera') || lower.includes('motion')) return Camera;
-  if (lower.includes('security') || lower.includes('privacy') || lower.includes('web') || lower.includes('osint')) return Globe;
-  if (lower.includes('3d') || lower.includes('vr') || lower.includes('automotive') || lower.includes('cad')) return Layout;
-  return Zap; 
-};
+// Helper icons for dynamic components
+function PlayIcon(props: any) { return <Film {...props} /> }
+function BookOpenIcon(props: any) { return <Newspaper {...props} /> }
+function LaptopIcon(props: any) { return <Cpu {...props} /> }
 
-const getStylesForCategory = (cat: string) => {
-  const colors = [
-    "text-purple-400 bg-purple-500/10",
-    "text-red-400 bg-red-500/10",
-    "text-blue-400 bg-blue-500/10",
-    "text-green-400 bg-green-500/10",
-    "text-pink-400 bg-pink-500/10",
-    "text-orange-400 bg-orange-500/10",
-    "text-rose-400 bg-rose-500/10",
-    "text-amber-400 bg-amber-500/10",
-    "text-indigo-400 bg-indigo-500/10",
-    "text-cyan-400 bg-cyan-500/10",
-    "text-emerald-400 bg-emerald-500/10",
-    "text-yellow-400 bg-yellow-500/10",
-  ];
-  let hash = 0;
-  for (let i = 0; i < cat.length; i++) {
-    hash = cat.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const style = colors[Math.abs(hash) % colors.length];
-  const [color, bg] = style.split(' ');
-  return { color, bg };
-};
+const TRENDING_CATEGORY_NAMES = [
+  "AI", "Gaming", "Entertainment", "Anime", "Android", 
+  "Coding", "Design", "Shopping", "Photography", "Video",
+  "Music", "Utilities", "Education", "Jobs", "Finance",
+  "Travel", "Food", "Health", "Sports", "Cybersecurity",
+  "Investing", "Meditation", "Sleep", "Science", "PC Software"
+];
 
-const ALL_INTERESTS = DERIVED_CATEGORIES.map(name => {
-  const { color, bg } = getStylesForCategory(name);
-  return {
-    id: name,
-    label: name,
-    icon: getIconForCategory(name),
-    color,
-    bg
-  };
-});
+/**
+ * Derives and sorts all unique categories from the registry.
+ * Prioritizes trending names at the top.
+ */
+const DERIVED_INTERESTS = (() => {
+  const registryCats = Array.from(new Set(MOCK_WEBSITES.flatMap(w => w.categories)));
+  
+  const items = registryCats.map(name => {
+    const staticDef = STATIC_CATEGORIES.find(c => c.name.toLowerCase() === name.toLowerCase());
+    if (staticDef) return { ...staticDef, id: name, label: name };
+    
+    return {
+      id: name,
+      label: name,
+      icon: Tag,
+      color: "text-primary/60",
+      bg: "bg-white/5"
+    };
+  });
+
+  // Sort: Trending first, then alphabetical
+  return items.sort((a, b) => {
+    const aTrending = TRENDING_CATEGORY_NAMES.includes(a.label);
+    const bTrending = TRENDING_CATEGORY_NAMES.includes(b.label);
+    if (aTrending && !bTrending) return -1;
+    if (!aTrending && bTrending) return 1;
+    return a.label.localeCompare(b.label);
+  });
+})();
 
 export default function OnboardingPage() {
   const { user, loading: userLoading } = useUser();
@@ -130,10 +280,9 @@ export default function OnboardingPage() {
   }, [profile]);
 
   const filteredInterests = useMemo(() => {
-    if (!searchQuery.trim()) return ALL_INTERESTS;
-    return ALL_INTERESTS.filter(i => 
-      i.label.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      i.id.toLowerCase().includes(searchQuery.toLowerCase())
+    if (!searchQuery.trim()) return DERIVED_INTERESTS;
+    return DERIVED_INTERESTS.filter(i => 
+      i.label.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [searchQuery]);
 
@@ -207,7 +356,7 @@ export default function OnboardingPage() {
         <div className="relative max-w-md mx-auto group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
-            placeholder="Search all interests..." 
+            placeholder="Search every interest..." 
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -297,3 +446,4 @@ export default function OnboardingPage() {
     </div>
   );
 }
+

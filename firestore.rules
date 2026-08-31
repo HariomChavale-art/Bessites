@@ -31,10 +31,11 @@ service cloud.firestore {
         allow read, write: if isOwner(userId);
       }
 
-      // Social Interactions (Private saves/likes lists)
+      // Social Interactions (Private lists)
       match /likedWebsites/{id} { allow read, write: if isOwner(userId); }
       match /userLikes/{id} { allow read, write: if isOwner(userId); }
       match /userShares/{id} { allow read, write: if isOwner(userId); }
+      match /userVisits/{id} { allow read, write: if isOwner(userId); }
     }
 
     // Submissions Rules (The Website Directory)
@@ -56,7 +57,7 @@ service cloud.firestore {
       allow create: if request.auth != null;
 
       // Restricted updates: Only admins and owners have full access.
-      // Other users can ONLY perform atomic engagement increments.
+      // Other users can ONLY perform atomic engagement increments/decrements.
       allow update: if request.auth != null && (
         isAdmin() || 
         isSubmissionOwner(websiteId) ||
@@ -65,15 +66,18 @@ service cloud.firestore {
       
       allow delete: if isAdmin();
 
-      // Enforces that non-owners can only update engagement fields with valid increments
+      // Enforces that non-owners can only update engagement fields with valid increments (+1 or -1)
       function isEngagementUpdate() {
         let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
         
         // Ensure ONLY specific engagement fields are being touched
         return affectedKeys.hasOnly(['visitCount', 'likeCount', 'saveCount', 'shareCount', 'ratingSum', 'ratingCount']) &&
           
-          // visitCount: must increment by exactly 1
-          (!affectedKeys.contains('visitCount') || request.resource.data.visitCount == resource.data.visitCount + 1) &&
+          // visitCount: must increment or decrement by exactly 1
+          (!affectedKeys.contains('visitCount') || (
+            request.resource.data.visitCount == resource.data.visitCount + 1 || 
+            request.resource.data.visitCount == resource.data.visitCount - 1
+          )) &&
           
           // likeCount: must increment or decrement by exactly 1
           (!affectedKeys.contains('likeCount') || (
@@ -87,8 +91,11 @@ service cloud.firestore {
             request.resource.data.saveCount == resource.data.saveCount - 1
           )) &&
           
-          // shareCount: must increment by exactly 1
-          (!affectedKeys.contains('shareCount') || request.resource.data.shareCount == resource.data.shareCount + 1) &&
+          // shareCount: must increment or decrement by exactly 1
+          (!affectedKeys.contains('shareCount') || (
+            request.resource.data.shareCount == resource.data.shareCount + 1 || 
+            request.resource.data.shareCount == resource.data.shareCount - 1
+          )) &&
           
           // ratingCount: must increment by exactly 1
           (!affectedKeys.contains('ratingCount') || request.resource.data.ratingCount == resource.data.ratingCount + 1) &&

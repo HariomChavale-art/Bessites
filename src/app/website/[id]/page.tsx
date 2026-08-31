@@ -83,11 +83,11 @@ export default function WebsiteDetail() {
 
   const { data: stats } = useDoc(statsRef);
 
+  // Engagement States (Toggle Logic)
   const saveDocRef = useMemo(() => {
     if (!user || !db || !id) return null;
     return doc(db, "users", user.uid, "likedWebsites", id as string);
   }, [user, db, id]);
-
   const { data: saveData } = useDoc(saveDocRef);
   const isSaved = !!saveData;
 
@@ -95,9 +95,22 @@ export default function WebsiteDetail() {
     if (!user || !db || !id) return null;
     return doc(db, "users", user.uid, "userLikes", id as string);
   }, [user, db, id]);
-
   const { data: likeData } = useDoc(likeDocRef);
   const isLiked = !!likeData;
+
+  const visitDocRef = useMemo(() => {
+    if (!user || !db || !id) return null;
+    return doc(db, "users", user.uid, "userVisits", id as string);
+  }, [user, db, id]);
+  const { data: visitData } = useDoc(visitDocRef);
+  const isVisited = !!visitData;
+
+  const shareDocRef = useMemo(() => {
+    if (!user || !db || !id) return null;
+    return doc(db, "users", user.uid, "userShares", id as string);
+  }, [user, db, id]);
+  const { data: shareData } = useDoc(shareDocRef);
+  const isShared = !!shareData;
 
   const ratingsQuery = useMemo(() => {
     if (!db || !id) return null;
@@ -118,12 +131,27 @@ export default function WebsiteDetail() {
     ).slice(0, 4);
   }, [dynamicWebsite]);
 
-  const handleVisitClick = () => {
-    if (!db || !id) return;
-    const ref = doc(db, "websiteStats", id as string);
-    updateDoc(ref, { visitCount: increment(1) }).catch(() => {
-      setDoc(ref, { visitCount: 1, likeCount: 0, saveCount: 0, shareCount: 0 }, { merge: true });
-    });
+  // Toggle Handlers
+  const handleVisitClick = async () => {
+    if (!user || !db || !id) {
+      window.open(dynamicWebsite.url, '_blank');
+      return;
+    }
+
+    const globalStatsRef = doc(db, "websiteStats", id as string);
+    try {
+      if (isVisited) {
+        await deleteDoc(visitDocRef!);
+        await updateDoc(globalStatsRef, { visitCount: increment(-1) });
+      } else {
+        await setDoc(visitDocRef!, { visitedAt: serverTimestamp() });
+        await updateDoc(globalStatsRef, { visitCount: increment(1) }, { merge: true });
+        toast({ title: "Visit Logged!", description: "Interaction verified in registry." });
+      }
+      window.open(dynamicWebsite.url, '_blank');
+    } catch (e) {
+      console.error("Visit Error", e);
+    }
   };
 
   const handleLike = async () => {
@@ -133,14 +161,12 @@ export default function WebsiteDetail() {
     }
     
     const globalStatsRef = doc(db, "websiteStats", id as string);
-    const userLikeRef = doc(db, "users", user.uid, "userLikes", id as string);
-
     try {
       if (isLiked) {
-        await deleteDoc(userLikeRef);
+        await deleteDoc(likeDocRef!);
         await updateDoc(globalStatsRef, { likeCount: increment(-1) });
       } else {
-        await setDoc(userLikeRef, { likedAt: serverTimestamp() });
+        await setDoc(likeDocRef!, { likedAt: serverTimestamp() });
         await updateDoc(globalStatsRef, { likeCount: increment(1) });
         toast({ title: "Liked!", description: "Boosted discovery rank." });
       }
@@ -155,15 +181,13 @@ export default function WebsiteDetail() {
       return;
     }
     
-    const saveRef = doc(db, "users", user.uid, "likedWebsites", id as string);
     const globalStatsRef = doc(db, "websiteStats", id as string);
-
     try {
       if (isSaved) {
-        await deleteDoc(saveRef);
+        await deleteDoc(saveDocRef!);
         await updateDoc(globalStatsRef, { saveCount: increment(-1) });
       } else {
-        await setDoc(saveRef, { id, timestamp: serverTimestamp() });
+        await setDoc(saveDocRef!, { id, timestamp: serverTimestamp() });
         await updateDoc(globalStatsRef, { saveCount: increment(1) });
         toast({ title: "Saved!", description: "Added to your collection." });
       }
@@ -173,17 +197,30 @@ export default function WebsiteDetail() {
   };
 
   const handleShare = async () => {
-    if (!db || !id || !dynamicWebsite) return;
-    const shareData = { title: `Bessites | ${dynamicWebsite.websiteName || dynamicWebsite.name}`, url: window.location.href };
+    if (!user || !db || !id) {
+      toast({ title: "Bessites Access", description: "Please sign in to share projects." });
+      return;
+    }
+
+    const globalStatsRef = doc(db, "websiteStats", id as string);
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
+      if (isShared) {
+        await deleteDoc(shareDocRef!);
+        await updateDoc(globalStatsRef, { shareCount: increment(-1) });
       } else {
-        await navigator.clipboard.writeText(window.location.href);
-        toast({ title: "Copied!", description: "Discovery link ready." });
+        const shareDataObj = { title: `Bessites | ${dynamicWebsite.websiteName || dynamicWebsite.name}`, url: window.location.href };
+        if (navigator.share) {
+          await navigator.share(shareDataObj);
+        } else {
+          await navigator.clipboard.writeText(window.location.href);
+          toast({ title: "Copied!", description: "Discovery link ready." });
+        }
+        await setDoc(shareDocRef!, { sharedAt: serverTimestamp() });
+        await updateDoc(globalStatsRef, { shareCount: increment(1) });
       }
-      await updateDoc(doc(db, "websiteStats", id as string), { shareCount: increment(1) });
-    } catch (e) {}
+    } catch (e) {
+      console.error("Share Error", e);
+    }
   };
 
   const submitRating = async () => {
@@ -302,10 +339,11 @@ export default function WebsiteDetail() {
            </div>
 
            <div className="space-y-4">
-              <Button onClick={handleVisitClick} asChild className="w-full h-24 bg-white text-black hover:bg-white/90 rounded-[2.5rem] text-2xl font-black italic gap-4 shadow-2xl hover:scale-[1.02] transition-all">
-                <a href={dynamicWebsite.url} target="_blank" rel="noopener noreferrer">
-                  <Globe className="w-8 h-8" /> VISIT WEBSITE
-                </a>
+              <Button onClick={handleVisitClick} className={cn(
+                "w-full h-24 rounded-[2.5rem] text-2xl font-black italic gap-4 shadow-2xl transition-all hover:scale-[1.02]",
+                isVisited ? "bg-blue-500 text-white shadow-blue-500/20" : "bg-white text-black hover:bg-white/90"
+              )}>
+                <Globe className="w-8 h-8" /> {isVisited ? 'VISITED' : 'VISIT WEBSITE'}
               </Button>
               <div className="grid grid-cols-3 gap-3">
                  <Button variant="outline" onClick={handleLike} className={cn("h-20 rounded-[2rem] border-white/5 bg-white/5 group transition-all duration-300", isLiked && "border-pink-500/20 bg-pink-500/5 text-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.1)]")}>
@@ -314,7 +352,7 @@ export default function WebsiteDetail() {
                  <Button variant="outline" onClick={handleSave} className={cn("h-20 rounded-[2rem] border-white/5 bg-white/5 group transition-all duration-300", isSaved && "border-amber-500/20 bg-amber-500/5 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.1)]")}>
                     <Bookmark className={cn("w-6 h-6 transition-transform group-active:scale-125", isSaved && "fill-current")} />
                  </Button>
-                 <Button variant="outline" onClick={handleShare} className="h-20 rounded-[2rem] border-white/5 bg-white/5 group hover:text-emerald-400 transition-all">
+                 <Button variant="outline" onClick={handleShare} className={cn("h-20 rounded-[2rem] border-white/5 bg-white/5 group transition-all duration-300", isShared && "border-emerald-500/20 bg-emerald-500/5 text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]")}>
                     <Share2 className="w-6 h-6" />
                  </Button>
               </div>

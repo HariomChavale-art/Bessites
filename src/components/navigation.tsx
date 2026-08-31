@@ -22,12 +22,12 @@ import { signOut } from "firebase/auth";
 import { Logo } from "./logo";
 
 const SUGGESTIONS = [
-  "Try searching 'AI' to find new tools.",
-  "Tip: Save apps to build your collection.",
-  "Check the 'Trending' tab for what's hot.",
-  "Submit your own web app via Profile.",
-  "Use 'Magic Categorize' for fast uploads.",
-  "Bessites: Discover 100+ unique web apps.",
+  "Bessites: High-fidelity discovery for the modern web.",
+  "Tip: Your Interaction Ledger tracks real-time engagement.",
+  "Check the 'Trending' tab for verified high-impact assets.",
+  "Submit your digital property via the Creator Hub.",
+  "Absolute Discovery: Zero Padding. Zero Duplication.",
+  "Verify your wallet to launch global ad campaigns.",
 ];
 
 export function Navigation() {

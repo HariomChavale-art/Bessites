@@ -19,7 +19,8 @@ import {
   Check,
   Trash2,
   ExternalLink,
-  Share2
+  Share2,
+  Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -90,12 +91,14 @@ export default function MyWebsitesPage() {
   }, [rawSubmissions, searchQuery, statusFilter]);
 
   const stats = useMemo(() => {
-    if (!rawSubmissions || !globalStats) return { total: 0, approved: 0, momentum: "0%" };
+    if (!rawSubmissions || !globalStats) return { total: 0, approved: 0, totalImpact: 0 };
     const approved = rawSubmissions.filter(s => s.status === 'approved').length;
+    const myIds = rawSubmissions.map(s => s.id);
+    const impact = globalStats.filter(gs => myIds.includes(gs.id)).reduce((acc, curr) => acc + (curr.visitCount || 0), 0);
     return {
       total: rawSubmissions.length,
       approved,
-      momentum: approved > 0 ? "94%" : "0%"
+      totalImpact: impact
     };
   }, [rawSubmissions, globalStats]);
 
@@ -169,32 +172,32 @@ export default function MyWebsitesPage() {
         <div className="p-4 sm:p-8 md:p-12 space-y-12">
           <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8">
             <div className="space-y-1">
-              <h1 className="text-3xl font-black italic uppercase tracking-tighter">Digital Property Manager</h1>
+              <h1 className="text-3xl font-black italic uppercase tracking-tighter">Digital Asset Hub</h1>
               <div className="flex items-center gap-2">
-                <Badge className="bg-primary/20 text-primary border-none text-[9px] font-black uppercase tracking-widest px-2 py-0.5 italic">🥇 Rising Creator</Badge>
-                <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest opacity-40">Registry Overview</p>
+                <Badge className="bg-primary/20 text-primary border-none text-[9px] font-black uppercase tracking-widest px-2 py-0.5 italic">🥇 Absolute Discovery</Badge>
+                <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest opacity-40">Creator Ledger</p>
               </div>
             </div>
             <div className="flex items-center gap-4 w-full xl:w-auto">
-              <Link href="/submit" className="w-full sm:w-auto"><Button className="w-full h-12 bg-white text-black hover:bg-white/90 rounded-2xl px-8 font-black uppercase tracking-widest text-xs italic shadow-xl shadow-white/5 transition-all hover:scale-105"><Plus className="w-4 h-4 mr-2" /> Submit New Project</Button></Link>
+              <Link href="/submit" className="w-full sm:w-auto"><Button className="w-full h-12 bg-white text-black hover:bg-white/90 rounded-2xl px-8 font-black uppercase tracking-widest text-xs italic shadow-xl shadow-white/5 transition-all hover:scale-105"><Plus className="w-4 h-4 mr-2" /> Submit Project</Button></Link>
               <Avatar className="w-12 h-12 ring-2 ring-primary/20 cursor-pointer" onClick={() => router.push('/profile')}><AvatarImage src={profile?.photoURL} /><AvatarFallback>{profile?.displayName?.charAt(0)}</AvatarFallback></Avatar>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <GlassStat label="Total Properties" value={stats.total} icon={Globe} />
-            <GlassStat label="Approval Rate" value={stats.total > 0 ? `${Math.round((stats.approved / stats.total) * 100)}%` : "0%"} icon={Check} color="text-emerald-500" />
-            <GlassStat label="Discovery Momentum" value={stats.momentum} icon={TrendingUp} color="text-primary" />
+            <GlassStat label="Approved Assets" value={stats.approved} icon={Globe} />
+            <GlassStat label="Discovery Impact" value={stats.totalImpact.toLocaleString()} icon={Zap} color="text-emerald-500" />
+            <GlassStat label="Review Queue" value={stats.total - stats.approved} icon={Check} color="text-amber-500" />
           </div>
 
           <div className="bg-[#121117] border border-white/5 rounded-[3.5rem] overflow-hidden shadow-2xl">
             <div className="p-8 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6">
-               <h3 className="text-xl font-black italic uppercase tracking-tighter shrink-0">The Master Ledger</h3>
+               <h3 className="text-xl font-black italic uppercase tracking-tighter shrink-0">The Registry</h3>
                <div className="flex flex-1 max-w-2xl items-center gap-4">
                   <div className="relative flex-1">
                     <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input 
-                      placeholder="Search registry..." 
+                      placeholder="Filter by URL..." 
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-12 bg-white/5 border-white/10 rounded-2xl h-12 text-xs font-bold"
@@ -213,23 +216,21 @@ export default function MyWebsitesPage() {
                 <thead className="bg-white/5 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">
                   <tr>
                     <th className="p-8">Digital Property</th>
-                    <th className="p-8">Momentum (Live)</th>
                     <th className="p-8 text-center">Status</th>
-                    <th className="p-8">Views</th>
-                    <th className="p-8">Clicks</th>
-                    <th className="p-8">CTR</th>
+                    <th className="p-8">Impact (Visits)</th>
+                    <th className="p-8">Appreciations</th>
+                    <th className="p-8">Registry Date</th>
                     <th className="p-8 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {submissionsLoading ? (
-                    <tr><td colSpan={7} className="p-32 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" /></td></tr>
+                    <tr><td colSpan={6} className="p-32 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" /></td></tr>
                   ) : filteredSubmissions.length > 0 ? (
                     filteredSubmissions.map((site: any) => {
                       const siteStats = globalStats?.find(gs => gs.id === site.id);
-                      const views = siteStats?.visitCount || 0;
-                      const clicks = Math.floor(views * 0.15); // Mocked for demonstration since visitCount is total clicks in your schema
-                      const ctr = views > 0 ? "15.0%" : "0.0%";
+                      const impact = siteStats?.visitCount || 0;
+                      const likes = siteStats?.likeCount || 0;
                       return (
                         <tr key={site.id} className="group hover:bg-white/[0.02] transition-colors">
                           <td className="p-8">
@@ -243,11 +244,6 @@ export default function MyWebsitesPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="p-8">
-                             <div className="h-10 w-32 opacity-30 group-hover:opacity-100 transition-opacity">
-                                <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 40"><path d="M0,35 Q10,5 20,25 T40,15 T60,30 T80,10 T100,20" fill="none" stroke={site.status === 'approved' ? "#7B33FF" : "#ffffff20"} strokeWidth="3" /></svg>
-                             </div>
-                          </td>
                           <td className="p-8 text-center">
                             <Badge className={cn("uppercase text-[9px] font-black px-4 py-1 rounded-full border-none", 
                               site.status === 'approved' ? "bg-emerald-500/10 text-emerald-400" : 
@@ -255,9 +251,9 @@ export default function MyWebsitesPage() {
                               {site.status === 'approved' ? 'Approved' : site.status === 'rejected' ? 'Not Approved' : 'Pending'}
                             </Badge>
                           </td>
-                          <td className="p-8 text-sm font-black italic tracking-tighter text-white">{(views * 4).toLocaleString()}</td>
-                          <td className="p-8 text-sm font-black italic tracking-tighter text-white">{views.toLocaleString()}</td>
-                          <td className="p-8 text-sm font-black italic tracking-tighter text-primary">{ctr}</td>
+                          <td className="p-8 text-sm font-black italic tracking-tighter text-white">{impact.toLocaleString()}</td>
+                          <td className="p-8 text-sm font-black italic tracking-tighter text-white">{likes.toLocaleString()}</td>
+                          <td className="p-8 text-xs font-bold text-white/40">{site.timestamp ? new Date(site.timestamp.toDate()).toLocaleDateString() : 'Syncing...'}</td>
                           <td className="p-8">
                              <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button size="icon" variant="ghost" onClick={() => router.push(`/website/${site.id}`)} className="h-10 w-10 hover:bg-white/10 rounded-xl" title="View Public Page"><ExternalLink className="w-4 h-4" /></Button>
@@ -269,7 +265,7 @@ export default function MyWebsitesPage() {
                                   <AlertDialogContent className="bg-[#121019] border-white/10 text-white rounded-[2rem]">
                                     <AlertDialogHeader>
                                       <AlertDialogTitle className="text-2xl font-black italic uppercase tracking-tighter">Confirm Deletion</AlertDialogTitle>
-                                      <AlertDialogDescription className="text-muted-foreground font-medium">This will permanently remove {site.url} from the Bessites registry. This action cannot be undone.</AlertDialogDescription>
+                                      <AlertDialogDescription className="text-muted-foreground font-medium">This will permanently remove {site.url} from the Bessites registry.</AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                       <AlertDialogCancel className="bg-white/5 border-none text-white hover:bg-white/10 rounded-xl">Cancel</AlertDialogCancel>
@@ -283,7 +279,7 @@ export default function MyWebsitesPage() {
                       );
                     })
                   ) : (
-                    <tr><td colSpan={7} className="p-32 text-center text-muted-foreground italic font-medium opacity-20">The master ledger is empty. Start your discovery pipeline.</td></tr>
+                    <tr><td colSpan={6} className="p-32 text-center text-muted-foreground italic font-medium opacity-20">The registry node is empty. Start your discovery pipeline.</td></tr>
                   )}
                 </tbody>
               </table>

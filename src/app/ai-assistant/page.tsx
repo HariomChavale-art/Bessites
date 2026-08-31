@@ -17,6 +17,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   recommendations?: DiscoveryOutput['recommendations'];
+  isError?: boolean;
 }
 
 const SUGGESTIONS = [
@@ -65,14 +66,16 @@ export default function AIAssistantPage() {
       const assistantMessage: Message = { 
         role: 'assistant', 
         content: result.response,
-        recommendations: result.recommendations 
+        recommendations: result.recommendations,
+        isError: result.error
       };
       
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: "I encountered a synchronization error. Please try again in a moment." 
+        content: "I encountered a synchronization error. Please try again in a moment.",
+        isError: true
       }]);
     } finally {
       setLoading(false);
@@ -105,7 +108,8 @@ export default function AIAssistantPage() {
                 "max-w-[85%] p-5 rounded-[2rem] text-sm font-medium leading-relaxed shadow-xl",
                 m.role === 'user' 
                   ? "bg-primary text-white rounded-tr-none" 
-                  : "bg-white/5 border border-white/5 text-white rounded-tl-none"
+                  : "bg-white/5 border border-white/5 text-white rounded-tl-none",
+                m.isError && "border-rose-500/20 bg-rose-500/5 text-rose-200"
               )}>
                 <div className="flex items-center gap-2 mb-2 opacity-40">
                   {m.role === 'user' ? <User className="w-3 h-3" /> : <Bot className="w-3 h-3" />}
@@ -149,7 +153,7 @@ export default function AIAssistantPage() {
           {loading && (
             <div className="flex items-center gap-3 text-muted-foreground italic animate-pulse p-4">
               <Loader2 className="w-4 h-4 animate-spin text-primary" />
-              <span className="text-xs font-black uppercase tracking-widest">Astra is indexing registry...</span>
+              <span className="text-xs font-black uppercase tracking-widest">Astra is calibrating registry nodes...</span>
             </div>
           )}
         </div>

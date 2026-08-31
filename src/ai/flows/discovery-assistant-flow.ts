@@ -1,13 +1,13 @@
 'use server';
 /**
  * @fileOverview Astra Discovery - AI search engine for Bessites.
- * Updated to understand the broad category hierarchy.
+ * Refactored to use tool-calling for high-fidelity registry searching.
+ * 
+ * - askDiscoveryAssistant - Orchestrates the conversational search.
  */
 
 import { ai, z } from '@/ai/genkit';
-import { initializeFirebase } from '@/firebase/init';
-import { collection, query, where, getDocs, limit } from 'firebase/firestore';
-import { MOCK_WEBSITES } from '@/lib/mock-data';
+import { searchWebsitesTool } from '@/ai/tools/search-websites';
 
 const DiscoveryInputSchema = z.object({
   message: z.string().describe('The user\'s request.'),
@@ -26,11 +26,12 @@ const DiscoveryOutputSchema = z.object({
     reason: z.string(),
     pros: z.array(z.string()).optional(),
   })).optional().describe('List of recommended websites from the registry.'),
+  error: z.boolean().optional().describe('Whether a sync error occurred.'),
 });
 
 export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
 
-export async function askDiscoveryAssistant(input: { message: string, history?: {role: 'user' | 'assistant', content: string}[] }) {
+export async function askDiscoveryAssistant(input: { message: string, history?: {role: 'user' | 'assistant', content: string}[] }): Promise<DiscoveryOutput> {
   return discoveryFlow(input);
 }
 
@@ -38,23 +39,22 @@ const discoveryPrompt = ai.definePrompt({
   name: 'discoveryPrompt',
   input: { schema: DiscoveryInputSchema },
   output: { schema: DiscoveryOutputSchema },
+  tools: [searchWebsitesTool],
   prompt: `You are Astra, the official discovery AI for Bessites. 
-  Your mission is to help users find tools from the provided REGISTRY.
+  Your mission is to help users find high-quality digital tools from our verified registry.
 
-  BESSITES CATEGORY ARCHITECTURE:
-  We use 26 broad public categories (AI, Tech, Gaming, Design, etc.) which act as high-level folders for over 200 technical sub-tags. 
-  When a user asks for something broad like "Gaming," you should look at items with tags related to games.
-  When a user asks for something specific like "Chess," you should find items with that exact tag.
+  CAPABILITIES:
+  - You can search the real-time registry using the "searchWebsites" tool.
+  - Always search the registry if the user is looking for a specific tool, category, or recommendation.
+  - We organize tools into 100 human-friendly interests (AI Tools, Gaming, Coding, etc.).
 
   STRICT RULES:
-  1. ONLY recommend websites listed in the REGISTRY below.
-  2. If no suitable match exists, suggest the closest broad category alternative.
-  3. Be sophisticated and helpful in your explanations.
+  1. ONLY recommend websites you find via the "searchWebsites" tool.
+  2. If no suitable match is found in the registry, suggest the closest broad category alternative we have.
+  3. Maintain a sophisticated, "tech-noir" professional tone.
+  4. Always format your output with a conversational response and a structured list of recommendations if applicable.
 
   CONTEXT:
-  Registry Data:
-  {{{registry}}}
-
   Conversation History:
   {{#each history}}
   {{role}}: {{content}}
@@ -70,43 +70,28 @@ const discoveryFlow = ai.defineFlow(
     outputSchema: DiscoveryOutputSchema,
   },
   async (input) => {
-    const { firestore } = initializeFirebase();
-    let registryData: any[] = [];
-
-    if (firestore) {
-      try {
-        const q = query(collection(firestore, 'submissions'), where('status', '==', 'approved'), limit(60));
-        const snapshot = await getDocs(q);
-        snapshot.forEach((doc) => {
-          const d = doc.data();
-          registryData.push({
-            id: doc.id,
-            name: d.websiteName || d.name || 'Unknown',
-            url: d.url || '',
-            description: d.description || '',
-            categories: d.categories || []
-          });
-        });
-      } catch (dbErr) {
-        console.warn("[Astra] Firestore fallback triggered.");
+    try {
+      // Execute the prompt with tool-calling capabilities enabled
+      const { output } = await discoveryPrompt(input);
+      
+      if (!output) {
+        throw new Error("Model returned null output");
       }
+
+      return output;
+    } catch (err: any) {
+      console.error("[Astra Flow Error]:", err);
+      
+      // Check for missing API Key specific error strings
+      const isApiKeyError = err.message?.includes('API_KEY') || err.message?.includes('403') || err.message?.includes('unauthorized');
+
+      return {
+        response: isApiKeyError 
+          ? "I am currently in system calibration mode because the API key is not fully synchronized. Please ensure your Gemini API key is active in the .env file."
+          : "I encountered a synchronization error within the neural engine. Please try again in a moment.",
+        error: true,
+        recommendations: []
+      };
     }
-
-    if (registryData.length === 0) {
-      registryData = MOCK_WEBSITES.map(s => ({
-        id: s.id,
-        name: s.websiteName || s.name,
-        url: s.url,
-        description: s.description,
-        categories: s.categories
-      }));
-    }
-
-    const { output } = await discoveryPrompt({
-      ...input,
-      registry: JSON.stringify(registryData.slice(0, 50))
-    });
-
-    return output!;
   }
 );

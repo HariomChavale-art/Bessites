@@ -117,18 +117,11 @@ export default function WebsiteDetail() {
     ).slice(0, 4);
   }, [dynamicWebsite]);
 
-  const currentRating = useMemo(() => {
-    if (stats?.ratingCount && stats?.ratingCount > 0) {
-      return (stats.ratingSum / stats.ratingCount).toFixed(1);
-    }
-    return "0.0";
-  }, [stats]);
-
   const handleVisitClick = () => {
     if (!db || !id) return;
     const ref = doc(db, "websiteStats", id as string);
     updateDoc(ref, { visitCount: increment(1) }).catch(() => {
-      setDoc(ref, { visitCount: 1 }, { merge: true });
+      setDoc(ref, { visitCount: 1, likeCount: 0, saveCount: 0, shareCount: 0 }, { merge: true });
     });
   };
 
@@ -141,13 +134,17 @@ export default function WebsiteDetail() {
     const globalStatsRef = doc(db, "websiteStats", id as string);
     const userLikeRef = doc(db, "users", user.uid, "userLikes", id as string);
 
-    if (isLiked) {
-      await deleteDoc(userLikeRef);
-      await updateDoc(globalStatsRef, { likeCount: increment(-1) });
-    } else {
-      await setDoc(userLikeRef, { likedAt: serverTimestamp() });
-      await updateDoc(globalStatsRef, { likeCount: increment(1) });
-      toast({ title: "Liked!", description: "Boosted discovery rank." });
+    try {
+      if (isLiked) {
+        await deleteDoc(userLikeRef);
+        await updateDoc(globalStatsRef, { likeCount: increment(-1) });
+      } else {
+        await setDoc(userLikeRef, { likedAt: serverTimestamp() });
+        await updateDoc(globalStatsRef, { likeCount: increment(1) });
+        toast({ title: "Liked!", description: "Boosted discovery rank." });
+      }
+    } catch (e) {
+      console.error("Like Error", e);
     }
   };
 
@@ -158,11 +155,19 @@ export default function WebsiteDetail() {
     }
     
     const saveRef = doc(db, "users", user.uid, "likedWebsites", id as string);
-    if (isSaved) {
-      await deleteDoc(saveRef);
-    } else {
-      await setDoc(saveRef, { id, timestamp: serverTimestamp() });
-      toast({ title: "Saved!", description: "Added to your collection." });
+    const globalStatsRef = doc(db, "websiteStats", id as string);
+
+    try {
+      if (isSaved) {
+        await deleteDoc(saveRef);
+        await updateDoc(globalStatsRef, { saveCount: increment(-1) });
+      } else {
+        await setDoc(saveRef, { id, timestamp: serverTimestamp() });
+        await updateDoc(globalStatsRef, { saveCount: increment(1) });
+        toast({ title: "Saved!", description: "Added to your collection." });
+      }
+    } catch (e) {
+      console.error("Save Error", e);
     }
   };
 
@@ -211,12 +216,13 @@ export default function WebsiteDetail() {
 
   const visitCount = stats?.visitCount || 0;
   const likeCount = stats?.likeCount || 0;
+  const saveCount = stats?.saveCount || 0;
+  const shareCount = stats?.shareCount || 0;
   const isTrending = visitCount > 100 || likeCount > 20;
 
   const brandName = dynamicWebsite.websiteName || dynamicWebsite.name;
   const discoveryTitle = dynamicWebsite.websiteName ? dynamicWebsite.name : "";
 
-  // De-duplicate categories to avoid key collisions
   const uniqueCategories = Array.from(new Set(dynamicWebsite.categories || []));
 
   return (
@@ -235,7 +241,7 @@ export default function WebsiteDetail() {
           </div>
           <div className="flex-1 min-w-0 space-y-4">
             <div className="space-y-1">
-              <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tighter italic uppercase leading-none truncate">
+              <h1 className="text-4xl sm:text-6xl font-headline font-black text-white tracking-tighter italic uppercase leading-none truncate">
                 {brandName}
               </h1>
               
@@ -287,10 +293,10 @@ export default function WebsiteDetail() {
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                 <MetricBox label="Rating" value={currentRating} sub="Avg Node" icon={Star} color="text-amber-500" />
-                 <MetricBox label="Pulse" value={likeCount} sub="Total Likes" icon={Heart} color="text-pink-500" />
-                 <MetricBox label="Volume" value={visitCount} sub="Views" icon={Eye} color="text-blue-500" />
-                 <MetricBox label="Reach" value={stats?.shareCount || 0} sub="Shares" icon={Share2} color="text-emerald-500" />
+                 <MetricBox label="Likes" value={likeCount} sub="Pulse" icon={Heart} color="text-pink-500" />
+                 <MetricBox label="Saves" value={saveCount} sub="Registry" icon={Bookmark} color="text-amber-500" />
+                 <MetricBox label="Visits" value={visitCount} sub="Volume" icon={Eye} color="text-blue-500" />
+                 <MetricBox label="Shared" value={shareCount} sub="Reach" icon={Share2} color="text-emerald-500" />
               </div>
            </div>
 
@@ -301,13 +307,13 @@ export default function WebsiteDetail() {
                 </a>
               </Button>
               <div className="grid grid-cols-3 gap-3">
-                 <Button variant="outline" onClick={handleLike} className={cn("h-20 rounded-[2rem] border-white/5 bg-white/5 group", isLiked && "border-pink-500/20 bg-pink-500/5 text-pink-500")}>
-                    <Heart className={cn("w-6 h-6", isLiked && "fill-current")} />
+                 <Button variant="outline" onClick={handleLike} className={cn("h-20 rounded-[2rem] border-white/5 bg-white/5 group transition-all duration-300", isLiked && "border-pink-500/20 bg-pink-500/5 text-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.1)]")}>
+                    <Heart className={cn("w-6 h-6 transition-transform group-active:scale-125", isLiked && "fill-current")} />
                  </Button>
-                 <Button variant="outline" onClick={handleSave} className={cn("h-20 rounded-[2rem] border-white/5 bg-white/5 group", isSaved && "border-primary/20 bg-primary/5 text-primary")}>
-                    <Bookmark className={cn("w-6 h-6", isSaved && "fill-current")} />
+                 <Button variant="outline" onClick={handleSave} className={cn("h-20 rounded-[2rem] border-white/5 bg-white/5 group transition-all duration-300", isSaved && "border-amber-500/20 bg-amber-500/5 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.1)]")}>
+                    <Bookmark className={cn("w-6 h-6 transition-transform group-active:scale-125", isSaved && "fill-current")} />
                  </Button>
-                 <Button variant="outline" onClick={handleShare} className="h-20 rounded-[2rem] border-white/5 bg-white/5 group hover:text-emerald-400">
+                 <Button variant="outline" onClick={handleShare} className="h-20 rounded-[2rem] border-white/5 bg-white/5 group hover:text-emerald-400 transition-all">
                     <Share2 className="w-6 h-6" />
                  </Button>
               </div>

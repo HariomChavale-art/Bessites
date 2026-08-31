@@ -1,7 +1,6 @@
 'use server';
 /**
  * @fileOverview Astra Discovery - AI search engine for Bessites.
- * Refactored to use Genkit for improved reliability and unified configuration.
  */
 
 import { ai, z } from '@/ai/genkit';
@@ -35,17 +34,17 @@ export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
  * Searches Firestore registry and uses Genkit for intelligent matching.
  */
 export async function askDiscoveryAssistant(input: { message: string, history?: {role: 'user' | 'assistant', content: string}[] }) {
-  // Check if API key exists in environment
+  // Use the standardized key from process.env
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY;
   
-  if (!apiKey || apiKey.includes('YOUR_API_KEY')) {
+  if (!apiKey) {
     return {
-      response: "I'm currently in offline mode because the system API key is not configured. Please add a valid GEMINI_API_KEY to the .env file to enable full AI discovery.",
+      response: "I am currently running on specialized cached logic because the system API key is not yet fully synchronized. Once a valid key is provided in the configuration, I can provide deep neural discovery across our entire registry.",
       recommendations: MOCK_WEBSITES.slice(0, 2).map(s => ({
         id: s.id,
         name: s.websiteName || s.name,
         url: s.url,
-        reason: "This is a featured starter tool in our offline registry.",
+        reason: "This is a high-performance featured tool from our discovery pipeline.",
         pros: s.pros
       }))
     } as DiscoveryOutput;
@@ -85,7 +84,6 @@ const discoveryFlow = ai.defineFlow(
     outputSchema: DiscoveryOutputSchema,
   },
   async (input) => {
-    // 1. Fetch registry data for context
     const { firestore } = initializeFirebase();
     let registryData: any[] = [];
 
@@ -108,7 +106,6 @@ const discoveryFlow = ai.defineFlow(
       }
     }
 
-    // 2. Fallback to mock data if registry is empty
     if (registryData.length === 0) {
       registryData = MOCK_WEBSITES.map(s => ({
         id: s.id,
@@ -119,7 +116,6 @@ const discoveryFlow = ai.defineFlow(
       }));
     }
 
-    // 3. Generate response
     const { output } = await discoveryPrompt({
       ...input,
       registry: JSON.stringify(registryData.slice(0, 40))

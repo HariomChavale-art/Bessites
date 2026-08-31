@@ -141,8 +141,8 @@ export default function WebsiteDetail() {
     const globalStatsRef = doc(db, "websiteStats", id as string);
     try {
       if (isVisited) {
-        await deleteDoc(visitDocRef!);
-        await updateDoc(globalStatsRef, { visitCount: increment(-1) });
+        // Sticky Logic: Do nothing if already visited. 
+        // "it only stays 1 it doesn't get taken back or Increase"
       } else {
         await setDoc(visitDocRef!, { visitedAt: serverTimestamp() });
         await updateDoc(globalStatsRef, { visitCount: increment(1) }, { merge: true });
@@ -209,14 +209,25 @@ export default function WebsiteDetail() {
         await updateDoc(globalStatsRef, { shareCount: increment(-1) });
       } else {
         const shareDataObj = { title: `Bessites | ${dynamicWebsite.websiteName || dynamicWebsite.name}`, url: window.location.href };
+        
+        let shareSuccessful = false;
         if (navigator.share) {
-          await navigator.share(shareDataObj);
+          try {
+            await navigator.share(shareDataObj);
+            shareSuccessful = true;
+          } catch (e) {
+             // Handle cancellation
+          }
         } else {
           await navigator.clipboard.writeText(window.location.href);
           toast({ title: "Copied!", description: "Discovery link ready." });
+          shareSuccessful = true;
         }
-        await setDoc(shareDocRef!, { sharedAt: serverTimestamp() });
-        await updateDoc(globalStatsRef, { shareCount: increment(1) });
+
+        if (shareSuccessful) {
+          await setDoc(shareDocRef!, { sharedAt: serverTimestamp() });
+          await updateDoc(globalStatsRef, { shareCount: increment(1) });
+        }
       }
     } catch (e) {
       console.error("Share Error", e);

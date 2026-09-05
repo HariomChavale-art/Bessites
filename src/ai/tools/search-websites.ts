@@ -37,6 +37,7 @@ export const searchWebsitesTool = ai.defineTool(
     // 1. Try to fetch from Firestore
     if (firestore) {
       try {
+        console.log(`[Astra Tool] Querying Firestore collection 'submissions'...`);
         const q = query(collection(firestore, 'submissions'), where('status', '==', 'approved'), limit(100));
         const snapshot = await getDocs(q);
         
@@ -60,8 +61,9 @@ export const searchWebsitesTool = ai.defineTool(
         });
         
         console.log(`[Astra Tool] Firestore matches found: ${results.length}`);
-      } catch (err) {
-        console.error("[Astra Tool] Firestore Query Error:", err);
+      } catch (err: any) {
+        console.error("[Astra Tool] Firestore Query Error:", err.message);
+        console.log("[Astra Tool] Stack Trace:", err.stack);
       }
     } else {
       console.warn("[Astra Tool] Firestore instance not initialized.");
@@ -69,7 +71,7 @@ export const searchWebsitesTool = ai.defineTool(
 
     // 2. Fallback to Mock Data if no results found in Firestore
     if (results.length === 0) {
-      console.log(`[Astra Tool] No Firestore results. Checking Mock Library...`);
+      console.log(`[Astra Tool] No Firestore results found or query failed. Checking Mock Library...`);
       const terms = input.query.toLowerCase().split(' ').filter(t => t.length > 1);
       
       MOCK_WEBSITES.forEach(site => {

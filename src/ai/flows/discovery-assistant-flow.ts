@@ -81,14 +81,26 @@ const discoveryFlow = ai.defineFlow(
       return output;
     } catch (err: any) {
       console.error("[Astra Flow Error]:", err);
+      // Detailed logging for Firebase Console diagnostics
+      console.log("Error Message:", err.message);
+      console.log("Error Status:", err.status || "N/A");
+      console.log("Full Error Object:", JSON.stringify(err, Object.getOwnPropertyNames(err)));
       
-      // Check for missing API Key specific error strings
-      const isApiKeyError = err.message?.includes('API_KEY') || err.message?.includes('403') || err.message?.includes('unauthorized');
+      // Categorize common errors for user-friendly feedback
+      const errMsg = err.message?.toLowerCase() || "";
+      const isApiKeyError = errMsg.includes('api_key') || errMsg.includes('403') || errMsg.includes('unauthorized') || errMsg.includes('api key');
+      const isModelError = errMsg.includes('404') || errMsg.includes('model not found');
+
+      let responseText = "I encountered a synchronization error within the neural engine. Please try again in a moment.";
+      
+      if (isApiKeyError) {
+        responseText = "I am currently in system calibration mode because the API key is not fully synchronized. Please ensure your Gemini API key is active in the environment settings.";
+      } else if (isModelError) {
+        responseText = "I encountered a configuration mismatch with the requested neural model. Our engineering team has been notified.";
+      }
 
       return {
-        response: isApiKeyError 
-          ? "I am currently in system calibration mode because the API key is not fully synchronized. Please ensure your Gemini API key is active in the .env file."
-          : "I encountered a synchronization error within the neural engine. Please try again in a moment.",
+        response: responseText,
         error: true,
         recommendations: []
       };

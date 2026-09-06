@@ -88,10 +88,10 @@ export default function ExplorePage() {
   }, [searchQuery, selectedInterest, selectedSector, allWebsites]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col pb-32">
       <Navigation />
       
-      <main className="flex-1 container mx-auto max-w-6xl px-4 py-8 sm:py-12 space-y-16 sm:space-y-24 pb-48">
+      <main className="flex-1 container mx-auto max-w-6xl px-4 py-8 sm:py-12 space-y-16 sm:space-y-24">
         
         <section className="max-w-4xl mx-auto w-full pt-4 sm:pt-8">
           <div className="relative group">
@@ -250,12 +250,13 @@ function ExploreItemRow({ app }: { app: any }) {
 
   const brandName = app.websiteName || app.name;
   const discoveryTitle = app.websiteName ? app.name : "";
+  const displayDeveloper = app.developer === "Bessites Curator" ? null : app.developer;
 
   return (
     <div className="group relative">
       <div className="flex flex-col md:flex-row items-start gap-6 sm:gap-12 p-5 sm:p-8 rounded-3xl sm:rounded-[3.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all duration-500 overflow-hidden min-h-fit">
         <Link href={`/website/${app.id}`} className="flex flex-col items-center gap-3 sm:gap-5 w-full md:w-48 shrink-0 text-center">
-          <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-[2rem] sm:rounded-[3rem] overflow-hidden bg-card/80 border border-white/10 shadow-xl group-hover:scale-105 transition-transform duration-700">
+          <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-2xl bg-white/[0.03] border border-white/10 overflow-hidden flex items-center justify-center p-4 shadow-xl group-hover:scale-105 transition-transform duration-700">
             <WebsitePreview 
               websiteId={app.id}
               websiteUrl={app.url}
@@ -263,7 +264,7 @@ function ExploreItemRow({ app }: { app: any }) {
               alt={brandName}
               width={512}
               height={512}
-              className="w-full h-full"
+              className="w-full h-full object-contain"
             />
           </div>
           <div className="space-y-2">
@@ -289,12 +290,14 @@ function ExploreItemRow({ app }: { app: any }) {
               {brandName}
             </h4>
             
-            <p className="text-xs sm:text-sm text-primary font-black uppercase tracking-[0.25em] mt-2 mb-1.5">
-              {app.developer}
-            </p>
+            {displayDeveloper && (
+              <p className="text-xs sm:text-sm text-primary font-black uppercase tracking-[0.25em] mt-2 mb-1.5">
+                {displayDeveloper}
+              </p>
+            )}
 
             {discoveryTitle && (
-              <p className="text-sm sm:text-xl text-white font-headline font-bold uppercase tracking-widest italic opacity-60 leading-tight">
+              <p className="text-sm sm:text-lg text-white/70 font-medium leading-tight mt-1">
                 {discoveryTitle}
               </p>
             )}
@@ -304,9 +307,14 @@ function ExploreItemRow({ app }: { app: any }) {
               <span key={cat} className="text-[9px] font-black uppercase tracking-widest text-primary/60 border border-primary/10 px-2.5 py-1 rounded-lg">{cat}</span>
             ))}
           </div>
-          <Link href={`/website/${app.id}`}>
-            <Button className="rounded-xl h-10 px-6 bg-primary text-white font-bold uppercase text-[10px] italic">View Insight</Button>
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link href={`/website/${app.id}`}>
+              <Button className="rounded-xl h-10 px-6 bg-primary text-white font-bold uppercase text-[10px] italic">View Insight</Button>
+            </Link>
+            <span className="text-[10px] font-bold text-zinc-400 hover:text-purple-400 uppercase tracking-widest transition-colors">
+              {app.url.replace('https://', '').replace('www.', '').split('/')[0]}
+            </span>
+          </div>
         </div>
       </div>
     </div>

@@ -124,7 +124,7 @@ export default function Home() {
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background pb-32">
       <Navigation />
       
       <main className="flex-1">

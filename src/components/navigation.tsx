@@ -22,7 +22,7 @@ import { signOut } from "firebase/auth";
 import { Logo } from "./logo";
 
 const SUGGESTIONS = [
-  "Bessites: High-fidelity discovery for the modern web.",
+  "✨ Discover curated, zero-duplication creator tools updated daily.",
   "Tip: Your Interaction Ledger tracks real-time engagement.",
   "Check the 'Trending' tab for verified high-impact assets.",
   "Submit your digital property via the Creator Hub.",

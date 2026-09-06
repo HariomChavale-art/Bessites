@@ -16,8 +16,8 @@ interface WebsiteCardProps {
 /**
  * WebsiteCard refined for Bessites discovery.
  * - Displays Website Name as primary brand.
- * - Shows Developer and Discovery Title (name) in hierarchy.
- * - Discovery Title font updated to white and Poppins italic bold.
+ * - Shows Discovery Title in Sentence case.
+ * - Optimized link colors and logo containers.
  */
 export function WebsiteCard({ website }: WebsiteCardProps) {
   const db = useFirestore();
@@ -44,23 +44,26 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
 
   const brandName = website.websiteName || website.name;
   const discoveryTitle = website.websiteName ? website.name : "";
+  const displayDeveloper = website.developer === "Bessites Curator" ? null : website.developer;
 
   return (
     <div className="block break-inside-avoid mb-4 sm:mb-6 group">
       <div className="relative rounded-2xl sm:rounded-[2.5rem] overflow-hidden bg-card/40 border border-white/5 transition-all duration-500 group-hover:border-primary/40 group-hover:bg-card/60 shadow-xl">
         
-        <Link href={`/website/${website.id}`} className="relative aspect-square overflow-hidden flex items-center justify-center bg-[#1A1A1A]">
-          <WebsitePreview 
-            websiteId={website.id}
-            websiteUrl={website.url}
-            fallbackUrl={stats?.logoUrl || website.imageUrl}
-            alt={brandName}
-            width={400}
-            height={400}
-            className="w-full h-full transition-transform duration-700 group-hover:scale-110"
-          />
+        <Link href={`/website/${website.id}`} className="relative aspect-square overflow-hidden flex items-center justify-center bg-white/[0.03] p-4">
+          <div className="w-full h-full rounded-2xl overflow-hidden flex items-center justify-center border border-white/10 group-hover:border-primary/20 transition-all bg-black/20">
+            <WebsitePreview 
+              websiteId={website.id}
+              websiteUrl={website.url}
+              fallbackUrl={stats?.logoUrl || website.imageUrl}
+              alt={brandName}
+              width={400}
+              height={400}
+              className="w-full h-full transition-transform duration-700 group-hover:scale-105"
+            />
+          </div>
           
-          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex flex-col gap-1.5 items-start">
+          <div className="absolute top-2 left-2 sm:top-6 sm:left-6 z-10 flex flex-col gap-1.5 items-start">
             <div className={cn(
               "flex items-center gap-1 backdrop-blur-xl px-2.5 py-1 sm:px-4 sm:py-1.5 rounded-full border shadow-lg",
               getPricingStyle(website.pricing)
@@ -82,17 +85,19 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
               {brandName}
             </h3>
             
-            <p className="text-[8px] sm:text-[10px] text-primary/60 font-black uppercase tracking-[0.2em] mt-1.5 mb-1">
-              {website.developer}
-            </p>
+            {displayDeveloper && (
+              <p className="text-[8px] sm:text-[10px] text-primary/60 font-black uppercase tracking-[0.2em] mt-1.5 mb-1">
+                {displayDeveloper}
+              </p>
+            )}
 
             {discoveryTitle && (
-              <p className="text-[10px] sm:text-xs text-white font-headline font-bold uppercase tracking-widest italic opacity-80 leading-tight line-clamp-2">
+              <p className="text-[10px] sm:text-xs text-white/80 font-medium leading-tight line-clamp-2 mt-1">
                 {discoveryTitle}
               </p>
             )}
 
-            <p className="text-[9px] sm:text-[10px] text-muted-foreground/30 font-medium tracking-widest uppercase mt-3 pt-3 border-t border-white/5">
+            <p className="text-[9px] sm:text-[10px] text-zinc-400 hover:text-purple-400 font-bold tracking-widest uppercase mt-3 pt-3 border-t border-white/5 transition-colors">
               {website.url.replace('https://', '').replace('www.', '').split('/')[0]}
             </p>
           </div>

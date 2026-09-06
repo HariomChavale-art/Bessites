@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useMemo, useState, useEffect } from "react";
@@ -19,7 +18,7 @@ interface WebsitePreviewProps {
 
 /**
  * WebsitePreview component with a self-healing fallback chain.
- * Prioritizes user-provided Supabase URLs.
+ * Optimized for object-contain styling to fit various logo shapes.
  */
 export function WebsitePreview({ 
   websiteUrl, 
@@ -70,7 +69,7 @@ export function WebsitePreview({
   };
 
   return (
-    <div className={cn("relative bg-[#1A1A1A] flex items-center justify-center w-full h-full overflow-hidden", className)}>
+    <div className={cn("relative bg-transparent flex items-center justify-center w-full h-full overflow-hidden", className)}>
       {!error ? (
         <Image 
           src={imageSrc} 
@@ -81,7 +80,7 @@ export function WebsitePreview({
           onError={handleError}
           className={cn(
             "w-full h-full transition-opacity duration-700 opacity-100",
-            "object-contain p-2"
+            "object-contain"
           )}
           unoptimized={true}
         />

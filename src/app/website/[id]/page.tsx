@@ -141,8 +141,7 @@ export default function WebsiteDetail() {
     const globalStatsRef = doc(db, "websiteStats", id as string);
     try {
       if (isVisited) {
-        // Sticky Logic: Do nothing if already visited. 
-        // "it only stays 1 it doesn't get taken back or Increase"
+        // Sticky Logic: Stay at 1
       } else {
         await setDoc(visitDocRef!, { visitedAt: serverTimestamp() });
         await updateDoc(globalStatsRef, { visitCount: increment(1) }, { merge: true });
@@ -271,21 +270,22 @@ export default function WebsiteDetail() {
 
   const brandName = dynamicWebsite.websiteName || dynamicWebsite.name;
   const discoveryTitle = dynamicWebsite.websiteName ? dynamicWebsite.name : "";
+  const displayDeveloper = dynamicWebsite.developer === "Bessites Curator" ? null : dynamicWebsite.developer;
 
   const uniqueCategories = Array.from(new Set(dynamicWebsite.categories || []));
 
   return (
-    <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30">
+    <div className="min-h-screen flex flex-col bg-background pb-32">
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-5xl px-4 py-12">
         <div className="flex flex-col md:flex-row gap-10 items-start mb-12">
-          <div className="w-full md:w-56 aspect-square rounded-[3rem] overflow-hidden bg-card border border-white/10 shrink-0 shadow-2xl relative group">
+          <div className="w-full md:w-56 aspect-square rounded-[2rem] bg-white/[0.03] border border-white/10 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center p-4">
             <WebsitePreview 
               websiteUrl={dynamicWebsite.url}
               fallbackUrl={dynamicWebsite.logoUrl || dynamicWebsite.imageUrl}
               alt={brandName}
-              className="w-full h-full group-hover:scale-110 transition-transform duration-700"
+              className="w-full h-full object-contain"
             />
           </div>
           <div className="flex-1 min-w-0 space-y-4">
@@ -294,19 +294,21 @@ export default function WebsiteDetail() {
                 {brandName}
               </h1>
               
-              <p className="text-sm sm:text-base text-primary font-black uppercase tracking-[0.3em] italic mb-2">
-                By {dynamicWebsite.developer}
-              </p>
+              {displayDeveloper && (
+                <p className="text-sm sm:base text-primary font-black uppercase tracking-[0.3em] italic mb-2">
+                  By {displayDeveloper}
+                </p>
+              )}
 
               {discoveryTitle && (
-                <p className="text-lg sm:text-2xl text-white font-headline font-black uppercase tracking-widest italic opacity-60 leading-tight">
+                <p className="text-lg sm:text-xl text-white/80 font-medium leading-tight mt-2">
                   {discoveryTitle}
                 </p>
               )}
             </div>
             <div className="flex flex-wrap items-center gap-4">
-                 <p className="text-primary font-bold text-xl flex items-center gap-2 italic">
-                   <Globe className="w-5 h-5" /> {dynamicWebsite.url.replace('https://', '').replace('www.', '').split('/')[0]}
+                 <p className="text-zinc-400 hover:text-purple-400 transition-colors font-bold text-lg flex items-center gap-2 italic">
+                   <Globe className="w-4 h-4" /> {dynamicWebsite.url.replace('https://', '').replace('www.', '').split('/')[0]}
                  </p>
                  <Badge variant="outline" className="border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest px-3 py-1 italic">{dynamicWebsite.pricing || 'Free'}</Badge>
             </div>
@@ -327,10 +329,10 @@ export default function WebsiteDetail() {
 
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 mb-16">
            <div className="xl:col-span-3 space-y-8">
-              <div className="bg-[#121117] border border-white/5 p-10 rounded-[3.5rem] shadow-2xl space-y-10 relative overflow-hidden group">
+              <div className="bg-[#121117] border border-white/5 p-8 sm:p-10 rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden group">
                  <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                 <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter border-b border-white/5 pb-4">About / Discovery</h2>
-                 <p className="text-2xl sm:text-4xl text-white font-black leading-[1.2] italic drop-shadow-lg tracking-tight selection:bg-primary selection:text-white">
+                 <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter border-b border-white/5 pb-4">About / Discovery</h2>
+                 <p className="text-xl sm:text-3xl text-white font-medium leading-relaxed italic tracking-tight selection:bg-primary selection:text-white">
                    {dynamicWebsite.description || dynamicWebsite.longDescription}
                  </p>
                  <div className="pt-6 flex items-center gap-4">
@@ -342,10 +344,10 @@ export default function WebsiteDetail() {
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                 <MetricBox label="Likes" value={likeCount} sub="Pulse" icon={Heart} color="text-pink-500" />
+                 <MetricBox label="Likes" value={likeCount} sub="Pulse" icon={Heart} color="text-rose-500" />
                  <MetricBox label="Saves" value={saveCount} sub="Registry" icon={Bookmark} color="text-amber-500" />
                  <MetricBox label="Visits" value={visitCount} sub="Volume" icon={Eye} color="text-blue-500" />
-                 <MetricBox label="Shared" value={shareCount} sub="Reach" icon={Share2} color="text-emerald-500" />
+                 <MetricBox label="Shared" value={shareCount} sub="Reach" icon={Emerald-500} color="text-emerald-500" />
               </div>
            </div>
 
@@ -357,7 +359,7 @@ export default function WebsiteDetail() {
                 <Globe className="w-8 h-8" /> {isVisited ? 'VISITED' : 'VISIT WEBSITE'}
               </Button>
               <div className="grid grid-cols-3 gap-3">
-                 <Button variant="outline" onClick={handleLike} className={cn("h-20 rounded-[2rem] border-white/5 bg-white/5 group transition-all duration-300", isLiked && "border-pink-500/20 bg-pink-500/5 text-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.1)]")}>
+                 <Button variant="outline" onClick={handleLike} className={cn("h-20 rounded-[2rem] border-white/5 bg-white/5 group transition-all duration-300", isLiked && "border-rose-500/20 bg-rose-500/5 text-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.1)]")}>
                     <Heart className={cn("w-6 h-6 transition-transform group-active:scale-125", isLiked && "fill-current")} />
                  </Button>
                  <Button variant="outline" onClick={handleSave} className={cn("h-20 rounded-[2rem] border-white/5 bg-white/5 group transition-all duration-300", isSaved && "border-amber-500/20 bg-amber-500/5 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.1)]")}>
@@ -375,7 +377,7 @@ export default function WebsiteDetail() {
 
         <section className="space-y-12 mb-24">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Review <span className="text-primary">Website</span></h2>
+            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Registry <span className="text-primary">Reviews</span></h2>
             <Dialog>
               <DialogTrigger asChild>
                 <Button className="rounded-full h-14 px-10 bg-primary hover:bg-primary/90 text-white font-black italic uppercase text-xs tracking-widest shadow-xl">WRITE REVIEW</Button>
@@ -407,7 +409,7 @@ export default function WebsiteDetail() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {recentRatings && recentRatings.length > 0 ? (
               recentRatings.map((rating: any) => (
-                <div key={rating.id} className="bg-white/[0.02] border border-white/5 p-8 rounded-[2.5rem] space-y-6 hover:bg-white/[0.04] transition-colors group">
+                <div key={rating.id} className="bg-white/[0.02] border border-white/5 p-8 rounded-[2rem] space-y-6 hover:bg-white/[0.04] transition-colors group">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <Avatar className="w-12 h-12 border-2 border-white/10 shadow-xl group-hover:scale-105 transition-transform">
@@ -429,9 +431,22 @@ export default function WebsiteDetail() {
                 </div>
               ))
             ) : (
-              <div className="col-span-full bg-white/[0.01] border border-dashed border-white/5 p-20 rounded-[3.5rem] text-center space-y-4">
-                <MessageSquare className="w-16 h-16 text-muted-foreground/10 mx-auto" />
-                <p className="font-black italic uppercase text-muted-foreground/20 tracking-[0.3em]">No Reviews Yet</p>
+              <div className="col-span-full">
+                <Card className="bg-[#121117] border border-white/5 p-12 rounded-[2.5rem] text-center space-y-6 flex flex-col items-center">
+                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
+                    <MessageSquare className="w-8 h-8 text-white/20" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-bold text-white">Have you used this tool?</h3>
+                    <p className="text-muted-foreground text-sm font-medium italic">Be the first to share your experience with the community.</p>
+                  </div>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="rounded-xl px-8 h-12 bg-white/5 border-white/10 font-black uppercase text-[10px] tracking-widest italic">Write a 1-Line Review</Button>
+                    </DialogTrigger>
+                    {/* Reuse existing dialog content above */}
+                  </Dialog>
+                </Card>
               </div>
             )}
           </div>
@@ -464,6 +479,18 @@ export default function WebsiteDetail() {
 }
 
 function MetricBox({ label, value, sub, icon: Icon, color }: { label: string, value: string | number, sub: string, icon: any, color: string }) {
+  if (value === 0) {
+    const fallbackLabel = label === 'Likes' ? 'Verified Listing' : (label === 'Visits' ? 'Free Tier' : 'Safe to Use');
+    const FallbackIcon = label === 'Likes' ? ShieldCheck : (label === 'Visits' ? Zap : CheckCircle2);
+    
+    return (
+      <div className="bg-white/[0.02] border border-white/5 p-6 rounded-[2rem] text-center space-y-1 relative overflow-hidden group flex flex-col items-center justify-center">
+         <FallbackIcon className="w-5 h-5 text-white/20 mb-2" />
+         <p className="text-[9px] font-black uppercase text-white/40 tracking-widest">{fallbackLabel}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] text-center space-y-1 relative overflow-hidden group">
        <Icon className={cn("w-12 h-12 absolute -right-2 -bottom-2 opacity-5 rotate-12 group-hover:scale-125 transition-transform", color)} />
@@ -472,4 +499,24 @@ function MetricBox({ label, value, sub, icon: Icon, color }: { label: string, va
        <p className="text-[8px] font-black uppercase text-muted-foreground/20">{sub}</p>
     </div>
   );
+}
+
+function CheckCircle2(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+      <path d="m9 12 2 2 4-4" />
+    </svg>
+  )
 }

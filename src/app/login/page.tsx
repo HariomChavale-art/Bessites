@@ -251,7 +251,7 @@ export default function LoginPage() {
              <h1 className="text-8xl xl:text-9xl font-black text-white tracking-tighter uppercase italic leading-[0.85] drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
                 Unlock a <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-400 to-cyan-400">World of</span> <br />
-                Modern Webs.
+                Websites.
              </h1>
              <p className="text-2xl text-muted-foreground font-medium max-w-lg italic opacity-70 leading-relaxed pt-4 border-l-4 border-primary pl-6">
                 Discover curated tools, apps, and games before the masses. Join the Bessites community and start your discovery pipeline today.

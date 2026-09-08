@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Hardened Search Tool for the Bessites registry.

@@ -23,6 +23,7 @@ service cloud.firestore {
     // User Profile Rules
     match /users/{userId} {
       // Users can read other profiles for creator attribution. 
+      // Collection-level read is allowed for authenticated users to support discovery/admin views.
       allow read: if request.auth != null; 
       allow write: if isOwner(userId);
       
@@ -66,62 +67,27 @@ service cloud.firestore {
       
       allow delete: if isAdmin();
 
-      // Enforces that non-owners can only update engagement fields with valid increments (+1 or -1)
       function isEngagementUpdate() {
         let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
-        
-        // Ensure ONLY specific engagement fields are being touched
         return affectedKeys.hasOnly(['visitCount', 'likeCount', 'saveCount', 'shareCount', 'ratingSum', 'ratingCount']) &&
-          
-          // visitCount: must increment or decrement by exactly 1
-          (!affectedKeys.contains('visitCount') || (
-            request.resource.data.visitCount == resource.data.visitCount + 1 || 
-            request.resource.data.visitCount == resource.data.visitCount - 1
-          )) &&
-          
-          // likeCount: must increment or decrement by exactly 1
-          (!affectedKeys.contains('likeCount') || (
-            request.resource.data.likeCount == resource.data.likeCount + 1 || 
-            request.resource.data.likeCount == resource.data.likeCount - 1
-          )) &&
-
-          // saveCount: must increment or decrement by exactly 1
-          (!affectedKeys.contains('saveCount') || (
-            request.resource.data.saveCount == resource.data.saveCount + 1 || 
-            request.resource.data.saveCount == resource.data.saveCount - 1
-          )) &&
-          
-          // shareCount: must increment or decrement by exactly 1
-          (!affectedKeys.contains('shareCount') || (
-            request.resource.data.shareCount == resource.data.shareCount + 1 || 
-            request.resource.data.shareCount == resource.data.shareCount - 1
-          )) &&
-          
-          // ratingCount: must increment by exactly 1
+          (!affectedKeys.contains('visitCount') || (request.resource.data.visitCount == resource.data.visitCount + 1 || request.resource.data.visitCount == resource.data.visitCount - 1)) &&
+          (!affectedKeys.contains('likeCount') || (request.resource.data.likeCount == resource.data.likeCount + 1 || request.resource.data.likeCount == resource.data.likeCount - 1)) &&
+          (!affectedKeys.contains('saveCount') || (request.resource.data.saveCount == resource.data.saveCount + 1 || request.resource.data.saveCount == resource.data.saveCount - 1)) &&
+          (!affectedKeys.contains('shareCount') || (request.resource.data.shareCount == resource.data.shareCount + 1 || request.resource.data.shareCount == resource.data.shareCount - 1)) &&
           (!affectedKeys.contains('ratingCount') || request.resource.data.ratingCount == resource.data.ratingCount + 1) &&
-          
-          // ratingSum: must increment by a valid rating value (1-5)
-          (!affectedKeys.contains('ratingSum') || (
-            request.resource.data.ratingSum >= resource.data.ratingSum + 1 && 
-            request.resource.data.ratingSum <= resource.data.ratingSum + 5
-          ));
+          (!affectedKeys.contains('ratingSum') || (request.resource.data.ratingSum >= resource.data.ratingSum + 1 && request.resource.data.ratingSum <= resource.data.ratingSum + 5));
       }
 
-      // Community Reviews/Ratings
       match /userRatings/{userId} {
         allow read: if true;
-        // userId as doc ID prevents multiple ratings from one user
         allow write: if isOwner(userId);
       }
     }
 
     // Promotions Rules (Ad campaigns)
     match /promotions/{promoId} {
-      // Only the campaign owner or an admin can see campaign details
       allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
-      // Authenticated users can create campaigns
       allow create: if request.auth != null;
-      // Only the owner or admin can update status
       allow update: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
     }
   }

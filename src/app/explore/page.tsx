@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Navigation } from "@/components/navigation";
@@ -252,7 +251,6 @@ function ExploreItemRow({ app }: { app: any }) {
   const discoveryTitle = app.websiteName ? app.name : "";
   const displayDeveloper = app.developer === "Bessites Curator" ? null : app.developer;
 
-  // Deduplicate categories to prevent key collisions
   const uniqueCategories = Array.from(new Set(app.categories || []));
 
   return (

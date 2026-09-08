@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useParams } from "next/navigation";
@@ -6,6 +5,7 @@ import { MOCK_WEBSITES, Website } from "@/lib/mock-data";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { useDoc, useUser, useFirestore, useCollection } from "@/firebase";
 import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc, collection, query, orderBy, limit, where } from "firebase/firestore";
 import { 
@@ -37,7 +37,6 @@ import { cn } from "@/lib/utils";
 import { WebsitePreview } from "@/components/website-preview";
 import { WebsiteCard } from "@/components/website-card";
 import { useToast } from "@/hooks/use-toast";
-import { Card } from "@/components/ui/card";
 
 export default function WebsiteDetail() {
   const { id } = useParams();
@@ -85,7 +84,6 @@ export default function WebsiteDetail() {
 
   const { data: stats } = useDoc(statsRef);
 
-  // Engagement States (Toggle Logic)
   const saveDocRef = useMemo(() => {
     if (!user || !db || !id) return null;
     return doc(db, "users", user.uid, "likedWebsites", id as string);
@@ -133,7 +131,6 @@ export default function WebsiteDetail() {
     ).slice(0, 4);
   }, [dynamicWebsite]);
 
-  // Toggle Handlers
   const handleVisitClick = async () => {
     if (!user || !db || !id) {
       window.open(dynamicWebsite.url, '_blank');
@@ -142,11 +139,9 @@ export default function WebsiteDetail() {
 
     const globalStatsRef = doc(db, "websiteStats", id as string);
     try {
-      if (isVisited) {
-        // Sticky Logic: Stay at 1
-      } else {
+      if (!isVisited) {
         await setDoc(visitDocRef!, { visitedAt: serverTimestamp() });
-        await updateDoc(globalStatsRef, { visitCount: increment(1) }, { merge: true });
+        await setDoc(globalStatsRef, { visitCount: increment(1) }, { merge: true });
         toast({ title: "Visit Logged!", description: "Interaction verified in registry." });
       }
       window.open(dynamicWebsite.url, '_blank');
@@ -205,20 +200,14 @@ export default function WebsiteDetail() {
 
     const globalStatsRef = doc(db, "websiteStats", id as string);
     try {
-      if (isShared) {
-        await deleteDoc(shareDocRef!);
-        await updateDoc(globalStatsRef, { shareCount: increment(-1) });
-      } else {
+      if (!isShared) {
         const shareDataObj = { title: `Bessites | ${dynamicWebsite.websiteName || dynamicWebsite.name}`, url: window.location.href };
-        
         let shareSuccessful = false;
         if (navigator.share) {
           try {
             await navigator.share(shareDataObj);
             shareSuccessful = true;
-          } catch (e) {
-             // Handle cancellation
-          }
+          } catch (e) {}
         } else {
           await navigator.clipboard.writeText(window.location.href);
           toast({ title: "Copied!", description: "Discovery link ready." });
@@ -229,6 +218,9 @@ export default function WebsiteDetail() {
           await setDoc(shareDocRef!, { sharedAt: serverTimestamp() });
           await updateDoc(globalStatsRef, { shareCount: increment(1) });
         }
+      } else {
+        await deleteDoc(shareDocRef!);
+        await updateDoc(globalStatsRef, { shareCount: increment(-1) });
       }
     } catch (e) {
       console.error("Share Error", e);
@@ -274,8 +266,6 @@ export default function WebsiteDetail() {
   const discoveryTitle = dynamicWebsite.websiteName ? dynamicWebsite.name : "";
   const displayDeveloper = dynamicWebsite.developer === "Bessites Curator" ? null : dynamicWebsite.developer;
 
-  const uniqueCategories = Array.from(new Set(dynamicWebsite.categories || []));
-
   return (
     <div className="min-h-screen flex flex-col bg-background pb-32">
       <Navigation />
@@ -315,7 +305,7 @@ export default function WebsiteDetail() {
                  <Badge variant="outline" className="border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest px-3 py-1 italic">{dynamicWebsite.pricing || 'Free'}</Badge>
             </div>
             <div className="flex flex-wrap gap-2">
-              {uniqueCategories.map((cat: string) => (
+              {dynamicWebsite.categories?.map((cat: string) => (
                 <Badge key={cat} className="bg-primary/10 text-primary border-none uppercase text-[9px] font-black tracking-widest px-3 py-1.5 italic">
                   {cat}
                 </Badge>

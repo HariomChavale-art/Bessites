@@ -10,7 +10,8 @@ import {
   X, 
   Sparkles,
   LayoutGrid,
-  Filter
+  Filter,
+  ExternalLink
 } from "lucide-react";
 import { WebsitePreview } from "@/components/website-preview";
 import { Input } from "@/components/ui/input";
@@ -182,6 +183,7 @@ export default function ExplorePage() {
 function ExploreItemRow({ app }: { app: any }) {
   const brandName = app.websiteName || app.name;
   const discoveryTitle = app.websiteName ? app.name : "";
+  const uniqueCategories = Array.from(new Set(app.categories || []));
 
   return (
     <div className="group relative">
@@ -216,12 +218,12 @@ function ExploreItemRow({ app }: { app: any }) {
               </p>
             )}
           </div>
-          <p className="text-sm sm:text-base text-muted-foreground font-medium leading-relaxed mb-6 line-clamp-2 italic">
+          <p className="text-sm sm:base text-muted-foreground font-medium leading-relaxed mb-6 line-clamp-2 italic">
             {app.description}
           </p>
           <div className="flex flex-wrap gap-2 mb-8">
-            {app.categories?.slice(0, 4).map((cat: string) => (
-              <span key={cat} className="text-[9px] font-black uppercase tracking-widest text-primary/60 border border-primary/10 px-2.5 py-1 rounded-lg">{cat}</span>
+            {uniqueCategories.slice(0, 4).map((cat: string) => (
+              <span key={`${app.id}-${cat}`} className="text-[9px] font-black uppercase tracking-widest text-primary/60 border border-primary/10 px-2.5 py-1 rounded-lg">{cat}</span>
             ))}
           </div>
           <div className="flex items-center gap-6">

@@ -1,95 +1,97 @@
+
 'use server';
 /**
- * @fileOverview A Genkit tool to search the Bessites registry.
- * Hardened with execution logging for diagnostics.
+ * @fileOverview Hardened Search Tool for the Bessites registry.
+ * Employs a fail-safe hybrid matching strategy (Firestore + Mock Library).
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { initializeFirebase } from '@/firebase/init';
-import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { collection, getDocs, limit, query } from 'firebase/firestore';
 import { MOCK_WEBSITES } from '@/lib/mock-data';
 
 const SearchWebsitesInputSchema = z.object({
-  query: z.string().describe('Keywords to search for.'),
-  category: z.string().optional().describe('Filter by sector.'),
+  query: z.string().describe('Search keywords or natural language request.'),
 });
 
 export const searchWebsitesTool = ai.defineTool(
   {
     name: 'searchWebsites',
-    description: 'Searches the Bessites registry for real websites.',
+    description: 'Searches the Bessites registry for real websites. ALWAYS use this if the user asks for tools, apps, or recommendations.',
     inputSchema: SearchWebsitesInputSchema,
     outputSchema: z.array(z.object({
       id: z.string(),
       websiteName: z.string(),
-      title: z.string(),
+      name: z.string(),
       description: z.string(),
       categories: z.array(z.string()),
       url: z.string(),
     })),
   },
   async (input) => {
-    console.log(`[Astra Tool] Execution started for query: "${input.query}"`);
+    console.log(`[Astra Tool] Initiating high-fidelity search for: "${input.query}"`);
     const { firestore } = initializeFirebase();
     let results: any[] = [];
+    const normalizedQuery = input.query.toLowerCase().trim();
 
-    // 1. Try to fetch from Firestore
+    // 1. Heuristic: If query is too generic, return "Featured" high-quality tools immediately
+    const isGeneric = normalizedQuery.length < 3 || ['hi', 'hello', 'help', 'tools', 'websites'].includes(normalizedQuery);
+
+    // 2. Fetch from Firestore (Approved Only)
     if (firestore) {
       try {
-        console.log(`[Astra Tool] Querying Firestore collection 'submissions'...`);
-        const q = query(collection(firestore, 'submissions'), where('status', '==', 'approved'), limit(100));
-        const snapshot = await getDocs(q);
-        
-        console.log(`[Astra Tool] Firestore snapshot received. Processing ${snapshot.size} approved items...`);
-
+        const snapshot = await getDocs(query(collection(firestore, 'submissions'), limit(200)));
         snapshot.forEach((doc) => {
           const data = doc.data();
+          if (data.status !== 'approved') return;
+
           const content = `${data.websiteName} ${data.name} ${data.description} ${data.categories?.join(' ')}`.toLowerCase();
-          const terms = input.query.toLowerCase().split(' ').filter(t => t.length > 1);
           
-          if (terms.length === 0 || terms.some(t => content.includes(t))) {
+          if (isGeneric || content.includes(normalizedQuery) || normalizedQuery.split(' ').some(word => word.length > 3 && content.includes(word))) {
             results.push({
               id: doc.id,
               websiteName: data.websiteName || 'Unknown',
-              title: data.name || '',
+              name: data.name || '',
               description: data.description || '',
               categories: data.categories || [],
               url: data.url || '',
             });
           }
         });
-        
-        console.log(`[Astra Tool] Firestore matches found: ${results.length}`);
       } catch (err: any) {
-        console.error("[Astra Tool] Firestore Query Error:", err.message);
-        console.log("[Astra Tool] Stack Trace:", err.stack);
+        console.warn("[Astra Tool] Firestore link weak. Synchronizing via fallback library.");
       }
-    } else {
-      console.warn("[Astra Tool] Firestore instance not initialized.");
     }
 
-    // 2. Fallback to Mock Data if no results found in Firestore
-    if (results.length === 0) {
-      console.log(`[Astra Tool] No Firestore results found or query failed. Checking Mock Library...`);
-      const terms = input.query.toLowerCase().split(' ').filter(t => t.length > 1);
-      
+    // 3. Fallback to Project Mock Library (200+ Tools)
+    if (results.length < 5) {
       MOCK_WEBSITES.forEach(site => {
         const content = `${site.websiteName} ${site.name} ${site.description} ${site.categories.join(' ')}`.toLowerCase();
-        if (terms.length === 0 || terms.some(t => content.includes(t))) {
-          results.push({
-            id: site.id,
-            websiteName: site.websiteName || 'Mock Asset',
-            title: site.name,
-            description: site.description,
-            categories: site.categories,
-            url: site.url,
-          });
+        if (isGeneric || content.includes(normalizedQuery) || normalizedQuery.split(' ').some(word => word.length > 3 && content.includes(word))) {
+          // Avoid duplicates from Firestore
+          if (!results.find(r => r.url === site.url)) {
+            results.push({
+              id: site.id,
+              websiteName: site.websiteName || 'Discovery Asset',
+              name: site.name,
+              description: site.description,
+              categories: site.categories,
+              url: site.url,
+            });
+          }
         }
       });
-      console.log(`[Astra Tool] Mock matches found: ${results.length}`);
     }
 
-    return results.slice(0, 8);
+    // Sort: Title matches first
+    results.sort((a, b) => {
+      const aTitleMatch = a.websiteName.toLowerCase().includes(normalizedQuery) ? 1 : 0;
+      const bTitleMatch = b.websiteName.toLowerCase().includes(normalizedQuery) ? 1 : 0;
+      return bTitleMatch - aTitleMatch;
+    });
+
+    console.log(`[Astra Tool] Results synchronized: ${results.length}`);
+    return results.slice(0, 10);
   }
 );

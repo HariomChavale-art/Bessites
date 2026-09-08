@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useParams } from "next/navigation";
@@ -5,6 +6,7 @@ import { MOCK_WEBSITES, Website } from "@/lib/mock-data";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { useDoc, useUser, useFirestore, useCollection } from "@/firebase";
 import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc, collection, query, orderBy, limit, where } from "firebase/firestore";
 import { 
@@ -134,20 +136,18 @@ export default function WebsiteDetail() {
   // Toggle Handlers
   const handleVisitClick = async () => {
     if (!user || !db || !id) {
-      window.open(dynamicWebsite.url, '_blank');
+      if (dynamicWebsite?.url) window.open(dynamicWebsite.url, '_blank');
       return;
     }
 
     const globalStatsRef = doc(db, "websiteStats", id as string);
     try {
-      if (isVisited) {
-        // Sticky Logic: Stay at 1
-      } else {
+      if (!isVisited) {
         await setDoc(visitDocRef!, { visitedAt: serverTimestamp() });
         await updateDoc(globalStatsRef, { visitCount: increment(1) }, { merge: true });
         toast({ title: "Visit Logged!", description: "Interaction verified in registry." });
       }
-      window.open(dynamicWebsite.url, '_blank');
+      if (dynamicWebsite?.url) window.open(dynamicWebsite.url, '_blank');
     } catch (e) {
       console.error("Visit Error", e);
     }
@@ -347,7 +347,7 @@ export default function WebsiteDetail() {
                  <MetricBox label="Likes" value={likeCount} sub="Pulse" icon={Heart} color="text-rose-500" />
                  <MetricBox label="Saves" value={saveCount} sub="Registry" icon={Bookmark} color="text-amber-500" />
                  <MetricBox label="Visits" value={visitCount} sub="Volume" icon={Eye} color="text-blue-500" />
-                 <MetricBox label="Shared" value={shareCount} sub="Reach" icon={Emerald-500} color="text-emerald-500" />
+                 <MetricBox label="Shared" value={shareCount} sub="Reach" icon={Share2} color="text-emerald-500" />
               </div>
            </div>
 

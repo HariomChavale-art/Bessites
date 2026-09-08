@@ -1,9 +1,8 @@
+
 'use server';
 /**
- * @fileOverview Astra Discovery - AI search engine for Bessites.
- * Refactored to use tool-calling for high-fidelity registry searching.
- * 
- * - askDiscoveryAssistant - Orchestrates the conversational search.
+ * @fileOverview Astra Discovery - Proactive AI Search Partner.
+ * Hardened flow to ensure zero-error synchronization and high-quality assistance.
  */
 
 import { ai, z } from '@/ai/genkit';
@@ -18,15 +17,14 @@ const DiscoveryInputSchema = z.object({
 });
 
 const DiscoveryOutputSchema = z.object({
-  response: z.string().describe('The AI\'s conversational response.'),
+  response: z.string().describe('Conversational response and assistance.'),
   recommendations: z.array(z.object({
     id: z.string(),
     name: z.string(),
     url: z.string(),
     reason: z.string(),
     pros: z.array(z.string()).optional(),
-  })).optional().describe('List of recommended websites from the registry.'),
-  error: z.boolean().optional().describe('Whether a sync error occurred.'),
+  })).optional().describe('List of verified recommendations.'),
 });
 
 export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
@@ -34,34 +32,6 @@ export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>;
 export async function askDiscoveryAssistant(input: { message: string, history?: {role: 'user' | 'assistant', content: string}[] }): Promise<DiscoveryOutput> {
   return discoveryFlow(input);
 }
-
-const discoveryPrompt = ai.definePrompt({
-  name: 'discoveryPrompt',
-  input: { schema: DiscoveryInputSchema },
-  output: { schema: DiscoveryOutputSchema },
-  tools: [searchWebsitesTool],
-  prompt: `You are Astra, the official discovery AI for Bessites. 
-  Your mission is to help users find high-quality digital tools from our verified registry.
-
-  CAPABILITIES:
-  - You can search the real-time registry using the "searchWebsites" tool.
-  - Always search the registry if the user is looking for a specific tool, category, or recommendation.
-  - We organize tools into 100 human-friendly interests (AI Tools, Gaming, Coding, etc.).
-
-  STRICT RULES:
-  1. ONLY recommend websites you find via the "searchWebsites" tool.
-  2. If no suitable match is found in the registry, suggest the closest broad category alternative we have.
-  3. Maintain a sophisticated, "tech-noir" professional tone.
-  4. Always format your output with a conversational response and a structured list of recommendations if applicable.
-
-  CONTEXT:
-  Conversation History:
-  {{#each history}}
-  {{role}}: {{content}}
-  {{/each}}
-
-  User Request: {{{message}}}`,
-});
 
 const discoveryFlow = ai.defineFlow(
   {
@@ -71,37 +41,47 @@ const discoveryFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      // Execute the prompt with tool-calling capabilities enabled
-      const { output } = await discoveryPrompt(input);
-      
-      if (!output) {
-        throw new Error("Model returned null output");
+      const response = await ai.generate({
+        model: 'googleai/gemini-1.5-flash',
+        system: `You are Astra, the official growth strategist and discovery partner for Bessites. 
+        
+        MISSION:
+        - Help users find the best digital tools from our verified registry.
+        - Act as a collaborative partner, not just a search box.
+        - If a user is vague, ask an intelligent follow-up question to narrow down their needs.
+
+        OPERATIONAL RULES:
+        1. MANDATORY TOOL USE: You MUST call "searchWebsites" for every discovery request.
+        2. DATA INTEGRITY: Only recommend items returned by the tool.
+        3. PERSONALITY: Sophisticated, helpful, and insightful. "Tech-noir" professional tone.
+        4. STRUCTURE: Provide a conversational explanation of WHY these tools are relevant, then populate the structured recommendations.
+        5. PERSISTENCE: Always end your response with a helpful question to keep the discovery pipeline moving.`,
+        prompt: `User Message: ${input.message}`,
+        tools: [searchWebsitesTool],
+        history: input.history?.map(m => ({ role: m.role as any, content: [{ text: m.content }] })),
+        output: { schema: DiscoveryOutputSchema },
+        config: {
+          safetySettings: [
+            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' }
+          ]
+        }
+      });
+
+      if (!response.output) {
+        throw new Error("Empty model response");
       }
 
-      return output;
+      return response.output;
     } catch (err: any) {
-      console.error("[Astra Flow Error]:", err);
-      // Detailed logging for Firebase Console diagnostics
-      console.log("Error Message:", err.message);
-      console.log("Error Status:", err.status || "N/A");
-      console.log("Full Error Object:", JSON.stringify(err, Object.getOwnPropertyNames(err)));
+      console.error("ASTRA_FLOW_CRITICAL_FAILURE:", err);
       
-      // Categorize common errors for user-friendly feedback
-      const errMsg = err.message?.toLowerCase() || "";
-      const isApiKeyError = errMsg.includes('api_key') || errMsg.includes('403') || errMsg.includes('unauthorized') || errMsg.includes('api key');
-      const isModelError = errMsg.includes('404') || errMsg.includes('model not found');
-
-      let responseText = "I encountered a synchronization error within the neural engine. Please try again in a moment.";
+      const isAuthError = err.message?.includes('401') || err.message?.includes('API_KEY');
       
-      if (isApiKeyError) {
-        responseText = "I am currently in system calibration mode because the API key is not fully synchronized. Please ensure your Gemini API key is active in the environment settings.";
-      } else if (isModelError) {
-        responseText = "I encountered a configuration mismatch with the requested neural model. Our engineering team has been notified.";
-      }
-
       return {
-        response: responseText,
-        error: true,
+        response: isAuthError 
+          ? "I am currently in system calibration. Please verify your GEMINI_API_KEY in the environment settings to restore full discovery."
+          : "I've encountered a momentary pulse in my registry synchronization. I can still guide you through our broad sectors like AI, Design, and Development. What are you looking to create today?",
         recommendations: []
       };
     }

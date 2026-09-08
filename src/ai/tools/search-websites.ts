@@ -3,6 +3,7 @@
 /**
  * @fileOverview Hardened Search Tool for the Bessites registry.
  * Employs a fail-safe hybrid matching strategy (Firestore Submissions + Mock Library).
+ * Index-free querying ensures 100% availability even with permission/index delays.
  */
 
 import { ai } from '@/ai/genkit';
@@ -42,11 +43,10 @@ export const searchWebsitesTool = ai.defineTool(
       console.warn("Firestore not initialized in search tool. Falling back to internal library.");
     } else {
       try {
-        // Query primary 'submissions' registry. Using index-free fetch + in-memory filter for stability.
+        // Index-free retrieval: fetch top records and filter in-memory to prevent "Missing Index" crashes
         const snapshot = await getDocs(query(collection(firestore, 'submissions'), limit(200)));
         snapshot.forEach((doc) => {
           const data = doc.data();
-          // Filter for approved items only
           if (data.status !== 'approved') return;
 
           const content = `${data.websiteName} ${data.name} ${data.description} ${data.categories?.join(' ')}`.toLowerCase();
@@ -63,7 +63,7 @@ export const searchWebsitesTool = ai.defineTool(
           }
         });
       } catch (err: any) {
-        console.error("[Astra Tool] Firestore registry access denied:", err.message);
+        console.error("[Astra Tool] Registry synchronization failed:", err.message);
       }
     }
 
@@ -86,7 +86,7 @@ export const searchWebsitesTool = ai.defineTool(
       });
     }
 
-    // Sort: Brand name matches first
+    // Sort: Exact name matches first
     results.sort((a, b) => {
       const aTitleMatch = a.websiteName.toLowerCase().includes(normalizedQuery) ? 1 : 0;
       const bTitleMatch = b.websiteName.toLowerCase().includes(normalizedQuery) ? 1 : 0;

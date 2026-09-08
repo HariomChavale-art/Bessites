@@ -153,14 +153,14 @@ export default function ExplorePage() {
               {filteredResults.length} Matching Tools
             </h2>
             <div className="flex items-center gap-2 text-[10px] font-black uppercase text-white/20 italic">
-              <TrendingUp className="w-3  h-3" /> Registry Status: Verified
+              <TrendingUp className="w-3 h-3" /> Registry Status: Verified
             </div>
           </div>
           
           <div className="grid grid-cols-1 gap-6 sm:gap-12">
             {filteredResults.length > 0 ? (
               filteredResults.map((app) => (
-                <ExploreItemRow key={app.id} app={app as any} />
+                <ExploreItemRow key={`explore-${app.id}`} app={app as any} />
               ))
             ) : (
               <div className="py-32 text-center space-y-4 bg-white/[0.02] rounded-[3rem] border border-white/5 border-dashed">
@@ -221,7 +221,7 @@ function ExploreItemRow({ app }: { app: any }) {
           </p>
           <div className="flex flex-wrap gap-2 mb-8">
             {uniqueCategories.slice(0, 4).map((cat: string) => (
-              <span key={`${app.id}-${cat}`} className="text-[9px] font-black uppercase tracking-widest text-primary/60 border border-primary/10 px-2.5 py-1 rounded-lg">{cat}</span>
+              <span key={`cat-${app.id}-${cat}`} className="text-[9px] font-black uppercase tracking-widest text-primary/60 border border-primary/10 px-2.5 py-1 rounded-lg">{cat}</span>
             ))}
           </div>
           <div className="flex items-center gap-6">

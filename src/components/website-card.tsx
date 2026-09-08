@@ -1,8 +1,9 @@
+
 "use client"
 
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
-import { Tag, TrendingUp } from "lucide-react";
+import { Tag } from "lucide-react";
 import { WebsitePreview } from "./website-preview";
 import { useMemo } from "react";
 import { useFirestore, useDoc } from "@/firebase";
@@ -39,6 +40,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
     ? rawExplainingTitle.split('|')[1].trim() 
     : rawExplainingTitle.replace(brandName, '').replace(/^[\s\-|]+/, '').trim() || "Explore Now";
     
+  // Format: Name | Explainer
   const displayTitle = `${brandName} | ${explainer.slice(0, 30)}${explainer.length > 30 ? '...' : ''}`;
 
   return (

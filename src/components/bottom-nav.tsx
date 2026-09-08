@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, User, Sparkles } from "lucide-react";
+import { Home, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/firebase";
 import { useState, useEffect } from "react";
@@ -26,12 +26,6 @@ export function BottomNav() {
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/explore", icon: Search, label: "Search" },
-    { 
-      href: "/ai-assistant", 
-      icon: Sparkles, 
-      label: "Astra", 
-      isSpecial: true 
-    },
     { href: "/profile", icon: User, label: "Profile" },
   ];
 
@@ -49,18 +43,16 @@ export function BottomNav() {
               className={cn(
                 "flex flex-col items-center gap-1 transition-all duration-300",
                 isActive 
-                  ? (item.isSpecial ? "text-purple-400 scale-110" : "text-primary scale-110") 
-                  : "text-muted-foreground hover:text-white",
-                item.isSpecial && "text-purple-400/80"
+                  ? "text-primary scale-110" 
+                  : "text-muted-foreground hover:text-white"
               )}
             >
               <Icon className={cn(
                 "w-6 h-6", 
-                isActive && !item.isSpecial && "fill-primary/20",
-                item.isSpecial && "drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]"
+                isActive && "fill-primary/20"
               )} />
               <span className="text-[10px] font-bold uppercase tracking-wider">
-                {item.isSpecial && "✨ "}{item.label}
+                {item.label}
               </span>
             </Link>
           );

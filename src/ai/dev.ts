@@ -1,4 +1,4 @@
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/assistant-chat-flow.ts';
+// Flows disconnected.

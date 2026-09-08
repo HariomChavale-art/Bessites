@@ -9,7 +9,6 @@ import {
   Globe, 
   BarChart3, 
   Users, 
-  Mic, 
   Settings, 
   HelpCircle, 
   LogOut
@@ -58,7 +57,6 @@ export function Navigation() {
     { label: 'My Websites', icon: Globe, href: '/my-websites' },
     { label: 'Analytics', icon: BarChart3, href: '/analytics' },
     { label: 'Audience', icon: Users, href: '/audience' },
-    { label: 'AI Assistant', icon: Mic, href: '/ai-assistant' },
     { label: 'Settings', icon: Settings, href: '/settings' },
     { label: 'Support', icon: HelpCircle, href: '/support' },
   ];

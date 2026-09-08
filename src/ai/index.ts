@@ -3,6 +3,5 @@
  * Using relative imports without .js extensions for standard TS resolution.
  */
 import './genkit';
-import './tools/search-websites';
-import './flows/discovery-assistant-flow';
-import './flows/assistant-chat-flow';
+
+// Astra components removed as per request.

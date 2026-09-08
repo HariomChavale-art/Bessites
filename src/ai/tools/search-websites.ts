@@ -2,7 +2,7 @@
 'use server';
 /**
  * @fileOverview Hardened Search Tool for the Bessites registry.
- * Employs a fail-safe hybrid matching strategy (Firestore + Mock Library).
+ * Employs a fail-safe hybrid matching strategy (Firestore Submissions + Mock Library).
  */
 
 import { ai } from '@/ai/genkit';
@@ -30,20 +30,23 @@ export const searchWebsitesTool = ai.defineTool(
     })),
   },
   async (input) => {
-    console.log(`[Astra Tool] Initiating high-fidelity search for: "${input.query}"`);
+    console.log(`[Astra Tool] Initiating discovery for: "${input.query}"`);
     const { firestore } = initializeFirebase();
     let results: any[] = [];
     const normalizedQuery = input.query.toLowerCase().trim();
 
-    // 1. Heuristic: If query is too generic, return "Featured" high-quality tools immediately
+    // Heuristic: Handle generic greetings or empty requests
     const isGeneric = normalizedQuery.length < 3 || ['hi', 'hello', 'help', 'tools', 'websites'].includes(normalizedQuery);
 
-    // 2. Fetch from Firestore (Approved Only)
-    if (firestore) {
+    if (!firestore) {
+      console.warn("Firestore not initialized in search tool. Falling back to internal library.");
+    } else {
       try {
+        // Query primary 'submissions' registry. Using index-free fetch + in-memory filter for stability.
         const snapshot = await getDocs(query(collection(firestore, 'submissions'), limit(200)));
         snapshot.forEach((doc) => {
           const data = doc.data();
+          // Filter for approved items only
           if (data.status !== 'approved') return;
 
           const content = `${data.websiteName} ${data.name} ${data.description} ${data.categories?.join(' ')}`.toLowerCase();
@@ -60,16 +63,15 @@ export const searchWebsitesTool = ai.defineTool(
           }
         });
       } catch (err: any) {
-        console.warn("[Astra Tool] Firestore link weak. Synchronizing via fallback library.");
+        console.error("[Astra Tool] Firestore registry access denied:", err.message);
       }
     }
 
-    // 3. Fallback to Project Mock Library (200+ Tools)
+    // Fallback/Augment with internal Project Library (200+ Tools)
     if (results.length < 5) {
       MOCK_WEBSITES.forEach(site => {
         const content = `${site.websiteName} ${site.name} ${site.description} ${site.categories.join(' ')}`.toLowerCase();
         if (isGeneric || content.includes(normalizedQuery) || normalizedQuery.split(' ').some(word => word.length > 3 && content.includes(word))) {
-          // Avoid duplicates from Firestore
           if (!results.find(r => r.url === site.url)) {
             results.push({
               id: site.id,
@@ -84,14 +86,13 @@ export const searchWebsitesTool = ai.defineTool(
       });
     }
 
-    // Sort: Title matches first
+    // Sort: Brand name matches first
     results.sort((a, b) => {
       const aTitleMatch = a.websiteName.toLowerCase().includes(normalizedQuery) ? 1 : 0;
       const bTitleMatch = b.websiteName.toLowerCase().includes(normalizedQuery) ? 1 : 0;
       return bTitleMatch - aTitleMatch;
     });
 
-    console.log(`[Astra Tool] Results synchronized: ${results.length}`);
     return results.slice(0, 10);
   }
 );

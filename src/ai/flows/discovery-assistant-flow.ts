@@ -74,7 +74,12 @@ const discoveryFlow = ai.defineFlow(
 
       return response.output;
     } catch (err: any) {
+      // High-Fidelity Diagnostic Logging
       console.error("ASTRA_FLOW_CRITICAL_FAILURE:", err);
+      console.error("ASTRA_FLOW_ERROR:", err);
+      if (err.message) {
+        console.error("ERROR_MESSAGE:", err.message);
+      }
       
       const isAuthError = err.message?.includes('401') || err.message?.includes('API_KEY');
       

@@ -85,7 +85,6 @@ export default function WebsiteDetail() {
 
   const { data: stats } = useDoc(statsRef);
 
-  // Engagement States (Toggle Logic)
   const saveDocRef = useMemo(() => {
     if (!user || !db || !id) return null;
     return doc(db, "users", user.uid, "likedWebsites", id as string);
@@ -133,7 +132,6 @@ export default function WebsiteDetail() {
     ).slice(0, 4);
   }, [dynamicWebsite]);
 
-  // Toggle Handlers
   const handleVisitClick = async () => {
     if (!user || !db || !id) {
       if (dynamicWebsite?.url) window.open(dynamicWebsite.url, '_blank');
@@ -214,9 +212,7 @@ export default function WebsiteDetail() {
           try {
             await navigator.share(shareDataObj);
             shareSuccessful = true;
-          } catch (e) {
-             // Handle cancellation
-          }
+          } catch (e) { }
         } else {
           await navigator.clipboard.writeText(window.location.href);
           toast({ title: "Copied!", description: "Discovery link ready." });
@@ -271,7 +267,6 @@ export default function WebsiteDetail() {
   const brandName = dynamicWebsite.websiteName || dynamicWebsite.name;
   const discoveryTitle = dynamicWebsite.websiteName ? dynamicWebsite.name : "";
   const displayDeveloper = dynamicWebsite.developer === "Bessites Curator" ? null : dynamicWebsite.developer;
-
   const uniqueCategories = Array.from(new Set(dynamicWebsite.categories || []));
 
   return (
@@ -293,13 +288,11 @@ export default function WebsiteDetail() {
               <h1 className="text-4xl sm:text-6xl font-headline font-bold italic text-white tracking-tighter uppercase leading-none truncate">
                 {brandName}
               </h1>
-              
               {displayDeveloper && (
                 <p className="text-sm sm:base text-primary font-black uppercase tracking-[0.3em] italic mb-2">
                   By {displayDeveloper}
                 </p>
               )}
-
               {discoveryTitle && (
                 <p className="text-lg sm:text-xl text-white/80 font-medium leading-tight mt-2">
                   {discoveryTitle}
@@ -444,7 +437,24 @@ export default function WebsiteDetail() {
                     <DialogTrigger asChild>
                       <Button variant="outline" className="rounded-xl px-8 h-12 bg-white/5 border-white/10 font-black uppercase text-[10px] tracking-widest italic">Write a 1-Line Review</Button>
                     </DialogTrigger>
-                    {/* Reuse existing dialog content above */}
+                    <DialogContent className="bg-[#121117] border-white/10 text-white rounded-[3rem] sm:max-w-md p-10">
+                      <DialogHeader className="space-y-2">
+                        <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter text-center">Lodge <span className="text-primary">Review</span></DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-8 pt-6">
+                        <div className="flex justify-center gap-5">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <button key={s} onClick={() => setRatingValue(s)} className="hover:scale-125 transition-transform">
+                              <Star className={cn("w-10 h-10 transition-colors", s <= ratingValue ? 'text-primary fill-primary' : 'text-white/5')} />
+                            </button>
+                          ))}
+                        </div>
+                        <Textarea placeholder="How did this asset perform?" value={comment} onChange={(e) => setComment(e.target.value)} className="bg-white/5 border-white/10 rounded-[2rem] min-h-[120px] p-6 text-sm font-medium" />
+                        <Button onClick={submitRating} disabled={ratingLoading || ratingValue === 0} className="w-full bg-primary hover:bg-primary/90 h-16 rounded-2xl font-black italic text-lg shadow-xl">
+                          {ratingLoading ? <Loader2 className="animate-spin" /> : "POST REVIEW"}
+                        </Button>
+                      </div>
+                    </DialogContent>
                   </Dialog>
                 </Card>
               </div>
@@ -481,7 +491,7 @@ export default function WebsiteDetail() {
 function MetricBox({ label, value, sub, icon: Icon, color }: { label: string, value: string | number, sub: string, icon: any, color: string }) {
   if (value === 0) {
     const fallbackLabel = label === 'Likes' ? 'Verified Listing' : (label === 'Visits' ? 'Free Tier' : 'Safe to Use');
-    const FallbackIcon = label === 'Likes' ? ShieldCheck : (label === 'Visits' ? Zap : CheckCircle2);
+    const FallbackIcon = label === 'Likes' ? ShieldCheck : (label === 'Visits' ? Zap : ShieldCheck);
     
     return (
       <div className="bg-white/[0.02] border border-white/5 p-6 rounded-[2rem] text-center space-y-1 relative overflow-hidden group flex flex-col items-center justify-center">
@@ -499,24 +509,4 @@ function MetricBox({ label, value, sub, icon: Icon, color }: { label: string, va
        <p className="text-[8px] font-black uppercase text-muted-foreground/20">{sub}</p>
     </div>
   );
-}
-
-function CheckCircle2(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
-  )
 }

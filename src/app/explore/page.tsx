@@ -29,7 +29,6 @@ export default function ExplorePage() {
   const [selectedSector, setSelectedSector] = useState<string | null>(null);
   const db = useFirestore();
 
-  // Debounce search input for performance (150ms)
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedQuery(searchQuery);
@@ -114,7 +113,6 @@ export default function ExplorePage() {
           </div>
         </section>
 
-        {/* Horizontal Scrolling Category Pills */}
         <section className="space-y-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-black uppercase tracking-[0.2em] text-white/40 flex items-center gap-2">
@@ -155,7 +153,7 @@ export default function ExplorePage() {
               {filteredResults.length} Matching Tools
             </h2>
             <div className="flex items-center gap-2 text-[10px] font-black uppercase text-white/20 italic">
-              <TrendingUp className="w-3 h-3" /> Registry Status: Verified
+              <TrendingUp className="w-3  h-3" /> Registry Status: Verified
             </div>
           </div>
           

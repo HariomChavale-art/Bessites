@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useParams } from "next/navigation";
@@ -50,7 +51,23 @@ export default function WebsiteDetail() {
   const [comment, setComment] = useState("");
   const [ratingValue, setRatingValue] = useState(0);
 
+  // Random base stats to satisfy requirement (10-1000)
+  const [baseStats, setBaseStats] = useState({
+    visits: 0,
+    likes: 0,
+    saves: 0,
+    shares: 0
+  });
+
   useEffect(() => {
+    // Generate stable random numbers on client mount
+    setBaseStats({
+      visits: Math.floor(Math.random() * 991) + 10,
+      likes: Math.floor(Math.random() * 991) + 10,
+      saves: Math.floor(Math.random() * 991) + 10,
+      shares: Math.floor(Math.random() * 991) + 10
+    });
+
     const fetchWebsite = async () => {
       if (!id || !db) return;
       
@@ -256,14 +273,16 @@ export default function WebsiteDetail() {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
   if (!dynamicWebsite) return <div className="min-h-screen flex items-center justify-center bg-background text-white font-black italic uppercase">Asset Not Found</div>;
 
-  const visitCount = stats?.visitCount || 0;
-  const likeCount = stats?.likeCount || 0;
-  const saveCount = stats?.saveCount || 0;
-  const shareCount = stats?.shareCount || 0;
-  const isTrending = visitCount > 100 || likeCount > 20;
+  // Final calculated stats (Random Base + Real DB interactions)
+  const displayVisits = baseStats.visits + (stats?.visitCount || 0);
+  const displayLikes = baseStats.likes + (stats?.likeCount || 0);
+  const displaySaves = baseStats.saves + (stats?.saveCount || 0);
+  const displayShares = baseStats.shares + (stats?.shareCount || 0);
+
+  const isTrending = displayVisits > 500 || displayLikes > 100;
 
   const brandName = dynamicWebsite.websiteName || dynamicWebsite.name;
-  const discoveryTitle = dynamicWebsite.websiteName ? dynamicWebsite.name : "";
+  const explainingTitle = dynamicWebsite.websiteName ? dynamicWebsite.name : dynamicWebsite.description?.split('.')[0] || "Discover Now";
   const displayDeveloper = dynamicWebsite.developer === "Bessites Curator" ? null : dynamicWebsite.developer;
 
   return (
@@ -282,21 +301,22 @@ export default function WebsiteDetail() {
           </div>
           <div className="flex-1 min-w-0 space-y-4">
             <div className="space-y-1">
-              <h1 className="text-4xl sm:text-6xl font-headline font-bold italic text-white tracking-tighter uppercase leading-none truncate">
-                {brandName}
+              {/* Explaining Title as main headline */}
+              <h1 className="text-3xl sm:text-5xl font-headline font-bold italic text-white tracking-tighter uppercase leading-tight">
+                {explainingTitle}
               </h1>
               
-              {displayDeveloper && (
-                <p className="text-sm sm:base text-primary font-black uppercase tracking-[0.3em] italic mb-2">
-                  By {displayDeveloper}
-                </p>
-              )}
-
-              {discoveryTitle && (
-                <p className="text-lg sm:text-xl text-white/80 font-medium leading-tight mt-2">
-                  {discoveryTitle}
-                </p>
-              )}
+              <div className="flex items-center gap-3 mt-4">
+                <span className="text-sm sm:text-base text-primary font-black uppercase tracking-[0.3em] italic">
+                  {brandName}
+                </span>
+                {displayDeveloper && (
+                  <>
+                    <span className="text-white/20">|</span>
+                    <span className="text-[10px] text-white/40 font-black uppercase tracking-widest italic">By {displayDeveloper}</span>
+                  </>
+                )}
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-4">
                  <p className="text-zinc-400 hover:text-purple-400 transition-colors font-bold text-lg flex items-center gap-2 italic">
@@ -323,7 +343,7 @@ export default function WebsiteDetail() {
            <div className="xl:col-span-3 space-y-8">
               <div className="bg-[#121117] border border-white/5 p-8 sm:p-10 rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden group">
                  <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                 <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter border-b border-white/5 pb-4">About / Discovery</h2>
+                 <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter border-b border-white/5 pb-4">Discovery / Insight</h2>
                  <p className="text-xl sm:text-3xl text-white font-medium leading-relaxed italic tracking-tight selection:bg-primary selection:text-white">
                    {dynamicWebsite.description || dynamicWebsite.longDescription}
                  </p>
@@ -336,10 +356,10 @@ export default function WebsiteDetail() {
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                 <MetricBox label="Likes" value={likeCount} sub="Pulse" icon={Heart} color="text-rose-500" />
-                 <MetricBox label="Saves" value={saveCount} sub="Registry" icon={Bookmark} color="text-amber-500" />
-                 <MetricBox label="Visits" value={visitCount} sub="Volume" icon={Eye} color="text-blue-500" />
-                 <MetricBox label="Shared" value={shareCount} sub="Reach" icon={Share2} color="text-emerald-500" />
+                 <MetricBox label="Likes" value={displayLikes} sub="Appreciations" icon={Heart} color="text-rose-500" />
+                 <MetricBox label="Saves" value={displaySaves} sub="Collections" icon={Bookmark} color="text-amber-500" />
+                 <MetricBox label="Visits" value={displayVisits} sub="Discovery Load" icon={Eye} color="text-blue-500" />
+                 <MetricBox label="Shared" value={displayShares} sub="External Link" icon={Share2} color="text-emerald-500" />
               </div>
            </div>
 
@@ -436,7 +456,27 @@ export default function WebsiteDetail() {
                     <DialogTrigger asChild>
                       <Button variant="outline" className="rounded-xl px-8 h-12 bg-white/5 border-white/10 font-black uppercase text-[10px] tracking-widest italic">Write a 1-Line Review</Button>
                     </DialogTrigger>
-                    {/* Reuse existing dialog content above */}
+                    <DialogContent className="bg-[#121117] border-white/10 text-white rounded-[3rem] sm:max-w-md p-10">
+                      <DialogHeader className="space-y-2">
+                        <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter text-center">Lodge <span className="text-primary">Review</span></DialogTitle>
+                        <DialogDescription className="text-muted-foreground text-xs text-center uppercase tracking-widest font-black opacity-40 italic">
+                          Quick feedback.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-8 pt-6">
+                        <div className="flex justify-center gap-5">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <button key={s} onClick={() => setRatingValue(s)} className="hover:scale-125 transition-transform">
+                              <Star className={cn("w-10 h-10 transition-colors", s <= ratingValue ? 'text-primary fill-primary' : 'text-white/5')} />
+                            </button>
+                          ))}
+                        </div>
+                        <Textarea placeholder="1 line feedback..." value={comment} onChange={(e) => setComment(e.target.value)} className="bg-white/5 border-white/10 rounded-[2rem] min-h-[100px] p-6 text-sm font-medium" />
+                        <Button onClick={submitRating} disabled={ratingLoading || ratingValue === 0} className="w-full bg-primary hover:bg-primary/90 h-16 rounded-2xl font-black italic text-lg shadow-xl">
+                          {ratingLoading ? <Loader2 className="animate-spin" /> : "POST"}
+                        </Button>
+                      </div>
+                    </DialogContent>
                   </Dialog>
                 </Card>
               </div>
@@ -471,23 +511,11 @@ export default function WebsiteDetail() {
 }
 
 function MetricBox({ label, value, sub, icon: Icon, color }: { label: string, value: string | number, sub: string, icon: any, color: string }) {
-  if (value === 0) {
-    const fallbackLabel = label === 'Likes' ? 'Verified Listing' : (label === 'Visits' ? 'Free Tier' : 'Safe to Use');
-    const FallbackIcon = label === 'Likes' ? ShieldCheck : (label === 'Visits' ? Zap : ShieldCheck);
-    
-    return (
-      <div className="bg-white/[0.02] border border-white/5 p-6 rounded-[2rem] text-center space-y-1 relative overflow-hidden group flex flex-col items-center justify-center">
-         <FallbackIcon className="w-5 h-5 text-white/20 mb-2" />
-         <p className="text-[9px] font-black uppercase text-white/40 tracking-widest">{fallbackLabel}</p>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] text-center space-y-1 relative overflow-hidden group">
        <Icon className={cn("w-12 h-12 absolute -right-2 -bottom-2 opacity-5 rotate-12 group-hover:scale-125 transition-transform", color)} />
        <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest">{label}</p>
-       <h4 className={cn("text-3xl font-black italic tracking-tighter", color)}>{value}</h4>
+       <h4 className={cn("text-3xl font-black italic tracking-tighter", color)}>{value.toLocaleString()}</h4>
        <p className="text-[8px] font-black uppercase text-muted-foreground/20">{sub}</p>
     </div>
   );

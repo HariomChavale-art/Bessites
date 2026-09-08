@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Navigation } from "@/components/navigation";
@@ -79,7 +80,7 @@ export default function ExplorePage() {
         app.url.toLowerCase().includes(queryText) ||
         app.categories.some(cat => cat.toLowerCase().includes(queryText));
       
-      const mappedInterests = app.categories.flatMap(tag => getInterestsForTag(tag));
+      const mappedInterests = (app.categories || []).flatMap(tag => getInterestsForTag(tag));
       const matchesInterest = !selectedInterest || mappedInterests.includes(selectedInterest);
       
       const matchesSector = !selectedSector || INTERESTS.some(i => i.group === selectedSector && mappedInterests.includes(i.name));
@@ -98,7 +99,7 @@ export default function ExplorePage() {
           <div className="relative group">
             <Search className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input 
-              placeholder="Search 250+ hidden gems..." 
+              placeholder="Search 250+ explaining tools..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 sm:pl-16 bg-white/5 border-white/10 rounded-2xl sm:rounded-[2.5rem] h-14 sm:h-20 text-base sm:text-xl font-bold focus:ring-primary focus:border-primary transition-all shadow-xl"
@@ -248,10 +249,10 @@ function ExploreItemRow({ app }: { app: any }) {
   const isTrending = totalVisits > 50 || totalLikes > 10;
 
   const brandName = app.websiteName || app.name;
-  const discoveryTitle = app.websiteName ? app.name : "";
+  const explainingTitle = app.websiteName ? app.name : app.description?.split('.')[0] || "Discover Property";
   const displayDeveloper = app.developer === "Bessites Curator" ? null : app.developer;
 
-  // Deduplicate categories to prevent React key errors
+  // Deduplicate categories for clean rendering
   const uniqueCategories = Array.from(new Set(app.categories || []));
 
   return (
@@ -288,21 +289,22 @@ function ExploreItemRow({ app }: { app: any }) {
 
         <div className="flex-1 min-w-0 py-2">
           <div className="block mb-4">
+            {/* Priortize the Explaining Title */}
             <h4 className="text-xl sm:text-4xl font-headline font-bold italic text-white leading-tight tracking-tighter whitespace-normal">
-              {brandName}
+              {explainingTitle}
             </h4>
             
-            {displayDeveloper && (
-              <p className="text-xs sm:text-sm text-primary font-black uppercase tracking-[0.25em] mt-2 mb-1.5">
-                {displayDeveloper}
-              </p>
-            )}
-
-            {discoveryTitle && (
-              <p className="text-sm sm:text-lg text-white/70 font-medium leading-tight mt-1">
-                {discoveryTitle}
-              </p>
-            )}
+            <div className="flex items-center gap-3 mt-3 mb-2">
+              <span className="text-xs sm:text-sm text-primary font-black uppercase tracking-[0.2em] italic">
+                {brandName}
+              </span>
+              {displayDeveloper && (
+                <>
+                  <span className="text-white/10">|</span>
+                  <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest italic">{displayDeveloper}</span>
+                </>
+              )}
+            </div>
           </div>
           <div className="flex flex-wrap gap-2 mb-6">
             {uniqueCategories.slice(0, 4).map((cat: any) => (

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Website } from "@/lib/mock-data";
@@ -15,8 +16,8 @@ interface WebsiteCardProps {
 
 /**
  * WebsiteCard refined for Bessites discovery.
- * - Displays Website Name as primary brand.
- * - Shows Discovery Title in Sentence case.
+ * - Displays Descriptive Title as primary brand.
+ * - Shows Brand Name in stylized primary color.
  * - Optimized link colors and logo containers.
  */
 export function WebsiteCard({ website }: WebsiteCardProps) {
@@ -43,7 +44,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   const isTrending = totalVisits > 50 || totalLikes > 10;
 
   const brandName = website.websiteName || website.name;
-  const discoveryTitle = website.websiteName ? website.name : "";
+  const explainingTitle = website.websiteName ? website.name : (website.description?.split('.')[0] || "Modern Web");
   const displayDeveloper = website.developer === "Bessites Curator" ? null : website.developer;
 
   return (
@@ -81,21 +82,14 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
 
         <div className="p-3 sm:p-6 pt-2 sm:pt-4">
           <div className="text-center">
-            <h3 className="font-headline font-bold italic text-sm sm:text-lg text-white group-hover:text-primary transition-colors whitespace-normal leading-tight">
-              {brandName}
+            {/* Priortize the descriptive title */}
+            <h3 className="font-headline font-bold italic text-sm sm:text-lg text-white group-hover:text-primary transition-colors whitespace-normal leading-tight line-clamp-2">
+              {explainingTitle}
             </h3>
             
-            {displayDeveloper && (
-              <p className="text-[8px] sm:text-[10px] text-primary/60 font-black uppercase tracking-[0.2em] mt-1.5 mb-1">
-                {displayDeveloper}
-              </p>
-            )}
-
-            {discoveryTitle && (
-              <p className="text-[10px] sm:text-xs text-white/80 font-medium leading-tight line-clamp-2 mt-1">
-                {discoveryTitle}
-              </p>
-            )}
+            <p className="text-[8px] sm:text-[10px] text-primary/60 font-black uppercase tracking-[0.2em] mt-2 mb-1 italic">
+              {brandName}
+            </p>
 
             <p className="text-[9px] sm:text-[10px] text-zinc-400 hover:text-purple-400 font-bold tracking-widest uppercase mt-3 pt-3 border-t border-white/5 transition-colors">
               {website.url.replace('https://', '').replace('www.', '').split('/')[0]}

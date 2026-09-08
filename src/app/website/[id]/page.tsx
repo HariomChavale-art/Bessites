@@ -1,14 +1,13 @@
-
 "use client"
 
 import { useParams } from "next/navigation";
-import { MOCK_WEBSITES, Website } from "@/lib/mock-data";
+import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { useDoc, useUser, useFirestore, useCollection } from "@/firebase";
-import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc, collection, query, orderBy, limit, where } from "firebase/firestore";
+import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc, collection, query, orderBy, limit } from "firebase/firestore";
 import { 
   Globe, 
   Loader2,
@@ -16,17 +15,11 @@ import {
   Star,
   Share2,
   Bookmark,
-  Zap,
-  ShieldCheck,
-  Smartphone,
   Heart,
   Eye,
   TrendingUp,
   Sparkles,
   Flag,
-  AlertTriangle,
-  User as UserIcon,
-  Clock,
   ArrowRight
 } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
@@ -51,7 +44,7 @@ export default function WebsiteDetail() {
   const [comment, setComment] = useState("");
   const [ratingValue, setRatingValue] = useState(0);
 
-  // Random base stats to satisfy requirement (10-1000)
+  // Random base stats (10-200)
   const [baseStats, setBaseStats] = useState({
     visits: 0,
     likes: 0,
@@ -60,12 +53,12 @@ export default function WebsiteDetail() {
   });
 
   useEffect(() => {
-    // Generate stable random numbers on client mount
+    // Generate stable random numbers between 10 and 200
     setBaseStats({
-      visits: Math.floor(Math.random() * 991) + 10,
-      likes: Math.floor(Math.random() * 991) + 10,
-      saves: Math.floor(Math.random() * 991) + 10,
-      shares: Math.floor(Math.random() * 991) + 10
+      visits: Math.floor(Math.random() * 191) + 10,
+      likes: Math.floor(Math.random() * 191) + 10,
+      saves: Math.floor(Math.random() * 191) + 10,
+      shares: Math.floor(Math.random() * 191) + 10
     });
 
     const fetchWebsite = async () => {
@@ -159,7 +152,7 @@ export default function WebsiteDetail() {
       if (!isVisited) {
         await setDoc(visitDocRef!, { visitedAt: serverTimestamp() });
         await setDoc(globalStatsRef, { visitCount: increment(1) }, { merge: true });
-        toast({ title: "Visit Logged!", description: "Interaction verified in registry." });
+        toast({ title: "Visit Logged!", description: "Interaction verified." });
       }
       window.open(dynamicWebsite.url, '_blank');
     } catch (e) {
@@ -168,11 +161,7 @@ export default function WebsiteDetail() {
   };
 
   const handleLike = async () => {
-    if (!user || !db || !id) {
-      toast({ title: "Bessites Access", description: "Please sign in to like projects." });
-      return;
-    }
-    
+    if (!user || !db || !id) return;
     const globalStatsRef = doc(db, "websiteStats", id as string);
     try {
       if (isLiked) {
@@ -181,19 +170,12 @@ export default function WebsiteDetail() {
       } else {
         await setDoc(likeDocRef!, { likedAt: serverTimestamp() });
         await updateDoc(globalStatsRef, { likeCount: increment(1) });
-        toast({ title: "Liked!", description: "Boosted discovery rank." });
       }
-    } catch (e) {
-      console.error("Like Error", e);
-    }
+    } catch (e) { console.error("Like Error", e); }
   };
 
   const handleSave = async () => {
-    if (!user || !db || !id) {
-      toast({ title: "Bessites Access", description: "Please sign in to save projects." });
-      return;
-    }
-    
+    if (!user || !db || !id) return;
     const globalStatsRef = doc(db, "websiteStats", id as string);
     try {
       if (isSaved) {
@@ -202,46 +184,24 @@ export default function WebsiteDetail() {
       } else {
         await setDoc(saveDocRef!, { id, timestamp: serverTimestamp() });
         await updateDoc(globalStatsRef, { saveCount: increment(1) });
-        toast({ title: "Saved!", description: "Added to your collection." });
       }
-    } catch (e) {
-      console.error("Save Error", e);
-    }
+    } catch (e) { console.error("Save Error", e); }
   };
 
   const handleShare = async () => {
-    if (!user || !db || !id) {
-      toast({ title: "Bessites Access", description: "Please sign in to share projects." });
-      return;
-    }
-
+    if (!user || !db || !id) return;
     const globalStatsRef = doc(db, "websiteStats", id as string);
     try {
-      if (!isShared) {
-        const shareDataObj = { title: `Bessites | ${dynamicWebsite.websiteName || dynamicWebsite.name}`, url: window.location.href };
-        let shareSuccessful = false;
-        if (navigator.share) {
-          try {
-            await navigator.share(shareDataObj);
-            shareSuccessful = true;
-          } catch (e) {}
-        } else {
-          await navigator.clipboard.writeText(window.location.href);
-          toast({ title: "Copied!", description: "Discovery link ready." });
-          shareSuccessful = true;
-        }
-
-        if (shareSuccessful) {
-          await setDoc(shareDocRef!, { sharedAt: serverTimestamp() });
-          await updateDoc(globalStatsRef, { shareCount: increment(1) });
-        }
-      } else {
+      if (isShared) {
         await deleteDoc(shareDocRef!);
         await updateDoc(globalStatsRef, { shareCount: increment(-1) });
+      } else {
+        await setDoc(shareDocRef!, { sharedAt: serverTimestamp() });
+        await updateDoc(globalStatsRef, { shareCount: increment(1) });
+        navigator.clipboard.writeText(window.location.href);
+        toast({ title: "Copied!", description: "Link copied to clipboard." });
       }
-    } catch (e) {
-      console.error("Share Error", e);
-    }
+    } catch (e) { console.error("Share Error", e); }
   };
 
   const submitRating = async () => {
@@ -249,15 +209,14 @@ export default function WebsiteDetail() {
     setRatingLoading(true);
     try {
       const ratingRef = doc(db, "websiteStats", id as string, "userRatings", user.uid);
-      const ratingData = {
+      await setDoc(ratingRef, {
         userId: user.uid,
         userDisplayName: user.displayName || "Curator",
         userPhotoURL: user.photoURL || "",
         rating: ratingValue,
         comment,
         timestamp: serverTimestamp()
-      };
-      await setDoc(ratingRef, ratingData);
+      });
       await updateDoc(doc(db, "websiteStats", id as string), { 
         ratingSum: increment(ratingValue), 
         ratingCount: increment(1) 
@@ -271,18 +230,19 @@ export default function WebsiteDetail() {
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
-  if (!dynamicWebsite) return <div className="min-h-screen flex items-center justify-center bg-background text-white font-black italic uppercase">Asset Not Found</div>;
+  if (!dynamicWebsite) return <div className="min-h-screen flex items-center justify-center bg-background text-white font-black italic uppercase">Not Found</div>;
 
-  // Final calculated stats (Random Base + Real DB interactions)
   const displayVisits = baseStats.visits + (stats?.visitCount || 0);
-  const displayLikes = baseStats.likes + (stats?.likeCount || 0);
-  const displaySaves = baseStats.saves + (stats?.saveCount || 0);
-  const displayShares = baseStats.shares + (stats?.shareCount || 0);
-
-  const isTrending = displayVisits > 500 || displayLikes > 100;
+  const displayLikes = baseStats.likes + (isLiked ? 1 : 0);
+  const displaySaves = baseStats.saves + (isSaved ? 1 : 0);
+  const displayShares = baseStats.shares + (isShared ? 1 : 0);
 
   const brandName = dynamicWebsite.websiteName || dynamicWebsite.name;
-  const explainingTitle = dynamicWebsite.websiteName ? dynamicWebsite.name : dynamicWebsite.description?.split('.')[0] || "Discover Now";
+  const rawExplainingTitle = dynamicWebsite.websiteName ? dynamicWebsite.name : dynamicWebsite.description?.split('.')[0] || "Discover Now";
+  const explainingTitle = rawExplainingTitle.includes('|') 
+    ? rawExplainingTitle.split('|')[1].trim() 
+    : rawExplainingTitle.replace(brandName, '').replace(/^[\s\-|]+/, '').trim() || brandName;
+
   const displayDeveloper = dynamicWebsite.developer === "Bessites Curator" ? null : dynamicWebsite.developer;
 
   return (
@@ -301,222 +261,62 @@ export default function WebsiteDetail() {
           </div>
           <div className="flex-1 min-w-0 space-y-4">
             <div className="space-y-1">
-              {/* Explaining Title as main headline */}
               <h1 className="text-3xl sm:text-5xl font-headline font-bold italic text-white tracking-tighter uppercase leading-tight">
                 {explainingTitle}
               </h1>
-              
               <div className="flex items-center gap-3 mt-4">
-                <span className="text-sm sm:text-base text-primary font-black uppercase tracking-[0.3em] italic">
-                  {brandName}
-                </span>
-                {displayDeveloper && (
-                  <>
-                    <span className="text-white/20">|</span>
-                    <span className="text-[10px] text-white/40 font-black uppercase tracking-widest italic">By {displayDeveloper}</span>
-                  </>
-                )}
+                <span className="text-sm sm:text-base text-primary font-black uppercase tracking-[0.3em] italic">{brandName}</span>
+                {displayDeveloper && <span className="text-[10px] text-white/40 font-black uppercase tracking-widest italic">By {displayDeveloper}</span>}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-4">
-                 <p className="text-zinc-400 hover:text-purple-400 transition-colors font-bold text-lg flex items-center gap-2 italic">
-                   <Globe className="w-4 h-4" /> {dynamicWebsite.url.replace('https://', '').replace('www.', '').split('/')[0]}
-                 </p>
-                 <Badge variant="outline" className="border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest px-3 py-1 italic">{dynamicWebsite.pricing || 'Free'}</Badge>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {dynamicWebsite.categories?.map((cat: string) => (
-                <Badge key={cat} className="bg-primary/10 text-primary border-none uppercase text-[9px] font-black tracking-widest px-3 py-1.5 italic">
-                  {cat}
-                </Badge>
-              ))}
-              {isTrending && (
-                <Badge className="border-none bg-primary text-white uppercase text-[9px] font-black tracking-widest px-4 py-1.5 italic animate-pulse">
-                  <TrendingUp className="w-3.5 h-3.5 mr-2" /> Community Pick
-                </Badge>
-              )}
+              <p className="text-zinc-400 font-bold text-lg flex items-center gap-2 italic">
+                <Globe className="w-4 h-4" /> {dynamicWebsite.url.replace('https://', '').replace('www.', '').split('/')[0]}
+              </p>
+              <Badge variant="outline" className="border-white/10 bg-white/5 text-[10px] font-black uppercase italic">{dynamicWebsite.pricing || 'Free'}</Badge>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 mb-16">
-           <div className="xl:col-span-3 space-y-8">
-              <div className="bg-[#121117] border border-white/5 p-8 sm:p-10 rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden group">
-                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                 <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter border-b border-white/5 pb-4">Discovery / Insight</h2>
-                 <p className="text-xl sm:text-3xl text-white font-medium leading-relaxed italic tracking-tight selection:bg-primary selection:text-white">
-                   {dynamicWebsite.description || dynamicWebsite.longDescription}
-                 </p>
-                 <div className="pt-6 flex items-center gap-4">
-                    <div className="h-1 flex-1 bg-white/5 rounded-full overflow-hidden">
-                       <div className="h-full w-1/3 bg-primary animate-marquee-slow" />
-                    </div>
-                    <Sparkles className="w-6 h-6 text-primary animate-pulse" />
-                 </div>
-              </div>
+          <div className="xl:col-span-3 space-y-8">
+            <div className="bg-[#121117] border border-white/5 p-8 rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden">
+              <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter border-b border-white/5 pb-4">Discovery / Insight</h2>
+              <p className="text-xl sm:text-3xl text-white font-medium leading-relaxed italic tracking-tight">
+                {dynamicWebsite.description || dynamicWebsite.longDescription}
+              </p>
+            </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                 <MetricBox label="Likes" value={displayLikes} sub="Appreciations" icon={Heart} color="text-rose-500" />
-                 <MetricBox label="Saves" value={displaySaves} sub="Collections" icon={Bookmark} color="text-amber-500" />
-                 <MetricBox label="Visits" value={displayVisits} sub="Discovery Load" icon={Eye} color="text-blue-500" />
-                 <MetricBox label="Shared" value={displayShares} sub="External Link" icon={Share2} color="text-emerald-500" />
-              </div>
-           </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <MetricBox label="Likes" value={displayLikes} icon={Heart} color="text-rose-500" />
+              <MetricBox label="Saves" value={displaySaves} icon={Bookmark} color="text-amber-500" />
+              <MetricBox label="Visits" value={displayVisits} icon={Eye} color="text-blue-500" />
+              <MetricBox label="Shared" value={displayShares} icon={Share2} color="text-emerald-500" />
+            </div>
+          </div>
 
-           <div className="space-y-4">
-              <Button onClick={handleVisitClick} className={cn(
-                "w-full h-24 rounded-[2.5rem] text-2xl font-black italic gap-4 shadow-2xl transition-all hover:scale-[1.02]",
-                isVisited ? "bg-blue-500 text-white shadow-blue-500/20" : "bg-white text-black hover:bg-white/90"
-              )}>
-                <Globe className="w-8 h-8" /> {isVisited ? 'VISITED' : 'VISIT WEBSITE'}
-              </Button>
-              <div className="grid grid-cols-3 gap-3">
-                 <Button variant="outline" onClick={handleLike} className={cn("h-20 rounded-[2rem] border-white/5 bg-white/5 group transition-all duration-300", isLiked && "border-rose-500/20 bg-rose-500/5 text-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.1)]")}>
-                    <Heart className={cn("w-6 h-6 transition-transform group-active:scale-125", isLiked && "fill-current")} />
-                 </Button>
-                 <Button variant="outline" onClick={handleSave} className={cn("h-20 rounded-[2rem] border-white/5 bg-white/5 group transition-all duration-300", isSaved && "border-amber-500/20 bg-amber-500/5 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.1)]")}>
-                    <Bookmark className={cn("w-6 h-6 transition-transform group-active:scale-125", isSaved && "fill-current")} />
-                 </Button>
-                 <Button variant="outline" onClick={handleShare} className={cn("h-20 rounded-[2rem] border-white/5 bg-white/5 group transition-all duration-300", isShared && "border-emerald-500/20 bg-emerald-500/5 text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.1)]")}>
-                    <Share2 className="w-6 h-6" />
-                 </Button>
-              </div>
-              <Button variant="ghost" className="w-full h-14 rounded-2xl text-muted-foreground/30 hover:text-rose-500 hover:bg-rose-500/5 text-[10px] font-black uppercase tracking-[0.3em] gap-2">
-                 <Flag className="w-3 h-3" /> Report Malicious Asset
-              </Button>
-           </div>
+          <div className="space-y-4">
+            <Button onClick={handleVisitClick} className="w-full h-24 rounded-[2.5rem] bg-white text-black hover:bg-white/90 text-2xl font-black italic gap-4 shadow-2xl">
+              <Globe className="w-8 h-8" /> VISIT WEBSITE
+            </Button>
+            <div className="grid grid-cols-3 gap-3">
+              <Button variant="outline" onClick={handleLike} className={cn("h-20 rounded-[2rem] bg-white/5 border-white/5", isLiked && "text-rose-500")}><Heart className={cn("w-6 h-6", isLiked && "fill-current")} /></Button>
+              <Button variant="outline" onClick={handleSave} className={cn("h-20 rounded-[2rem] bg-white/5 border-white/5", isSaved && "text-amber-500")}><Bookmark className={cn("w-6 h-6", isSaved && "fill-current")} /></Button>
+              <Button variant="outline" onClick={handleShare} className={cn("h-20 rounded-[2rem] bg-white/5 border-white/5", isShared && "text-emerald-500")}><Share2 className={cn("w-6 h-6", isShared && "fill-current")} /></Button>
+            </div>
+          </div>
         </div>
-
-        <section className="space-y-12 mb-24">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Registry <span className="text-primary">Reviews</span></h2>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="rounded-full h-14 px-10 bg-primary hover:bg-primary/90 text-white font-black italic uppercase text-xs tracking-widest shadow-xl">WRITE REVIEW</Button>
-              </DialogTrigger>
-              <DialogContent className="bg-[#121117] border-white/10 text-white rounded-[3rem] sm:max-w-md p-10">
-                <DialogHeader className="space-y-2">
-                  <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter text-center">Lodge <span className="text-primary">Review</span></DialogTitle>
-                  <DialogDescription className="text-muted-foreground text-xs text-center uppercase tracking-widest font-black opacity-40 italic">
-                    Share your experience with this property to help others in the registry.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-8 pt-6">
-                  <div className="flex justify-center gap-5">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <button key={s} onClick={() => setRatingValue(s)} className="hover:scale-125 transition-transform">
-                        <Star className={cn("w-10 h-10 transition-colors", s <= ratingValue ? 'text-primary fill-primary' : 'text-white/5')} />
-                      </button>
-                    ))}
-                  </div>
-                  <Textarea placeholder="How did this asset perform?" value={comment} onChange={(e) => setComment(e.target.value)} className="bg-white/5 border-white/10 rounded-[2rem] min-h-[120px] p-6 text-sm font-medium" />
-                  <Button onClick={submitRating} disabled={ratingLoading || ratingValue === 0} className="w-full bg-primary hover:bg-primary/90 h-16 rounded-2xl font-black italic text-lg shadow-xl">
-                    {ratingLoading ? <Loader2 className="animate-spin" /> : "POST REVIEW"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {recentRatings && recentRatings.length > 0 ? (
-              recentRatings.map((rating: any) => (
-                <div key={rating.id} className="bg-white/[0.02] border border-white/5 p-8 rounded-[2rem] space-y-6 hover:bg-white/[0.04] transition-colors group">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="w-12 h-12 border-2 border-white/10 shadow-xl group-hover:scale-105 transition-transform">
-                        <AvatarImage src={rating.userPhotoURL} className="object-cover" />
-                        <AvatarFallback className="bg-muted text-xs font-black italic">{rating.userDisplayName?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <span className="font-black text-white uppercase italic text-sm tracking-tight">{rating.userDisplayName}</span>
-                        <div className="flex gap-0.5 mt-0.5">
-                          {[1, 2, 3, 4, 5].map((s) => (<Star key={s} className={cn("w-3 h-3", s <= rating.rating ? "text-primary fill-primary" : "text-white/5")} />))}
-                        </div>
-                      </div>
-                    </div>
-                    <span className="text-[10px] font-black uppercase text-muted-foreground/30 italic">
-                      {rating.timestamp ? formatDistanceToNow(rating.timestamp.toDate(), { addSuffix: true }) : 'SYNCING'}
-                    </span>
-                  </div>
-                  {rating.comment && <p className="text-muted-foreground italic font-medium leading-relaxed">"{rating.comment}"</p>}
-                </div>
-              ))
-            ) : (
-              <div className="col-span-full">
-                <Card className="bg-[#121117] border border-white/5 p-12 rounded-[2.5rem] text-center space-y-6 flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
-                    <MessageSquare className="w-8 h-8 text-white/20" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-xl font-bold text-white">Have you used this tool?</h3>
-                    <p className="text-muted-foreground text-sm font-medium italic">Be the first to share your experience with the community.</p>
-                  </div>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="rounded-xl px-8 h-12 bg-white/5 border-white/10 font-black uppercase text-[10px] tracking-widest italic">Write a 1-Line Review</Button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-[#121117] border-white/10 text-white rounded-[3rem] sm:max-w-md p-10">
-                      <DialogHeader className="space-y-2">
-                        <DialogTitle className="text-3xl font-black italic uppercase tracking-tighter text-center">Lodge <span className="text-primary">Review</span></DialogTitle>
-                        <DialogDescription className="text-muted-foreground text-xs text-center uppercase tracking-widest font-black opacity-40 italic">
-                          Quick feedback.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-8 pt-6">
-                        <div className="flex justify-center gap-5">
-                          {[1, 2, 3, 4, 5].map((s) => (
-                            <button key={s} onClick={() => setRatingValue(s)} className="hover:scale-125 transition-transform">
-                              <Star className={cn("w-10 h-10 transition-colors", s <= ratingValue ? 'text-primary fill-primary' : 'text-white/5')} />
-                            </button>
-                          ))}
-                        </div>
-                        <Textarea placeholder="1 line feedback..." value={comment} onChange={(e) => setComment(e.target.value)} className="bg-white/5 border-white/10 rounded-[2rem] min-h-[100px] p-6 text-sm font-medium" />
-                        <Button onClick={submitRating} disabled={ratingLoading || ratingValue === 0} className="w-full bg-primary hover:bg-primary/90 h-16 rounded-2xl font-black italic text-lg shadow-xl">
-                          {ratingLoading ? <Loader2 className="animate-spin" /> : "POST"}
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </Card>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {relatedWebsites.length > 0 && (
-          <section className="space-y-12">
-            <div className="flex items-center justify-between">
-              <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">Related <span className="text-primary">Discoveries</span></h2>
-              <div className="flex items-center gap-2 text-primary animate-pulse">
-                <Sparkles className="w-4 h-4" />
-                <span className="text-[10px] font-black uppercase tracking-widest italic">Astra Intelligence Match</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {relatedWebsites.map((site) => (
-                <WebsiteCard key={site.id} website={site} />
-              ))}
-            </div>
-            <div className="pt-8 text-center">
-              <Button variant="outline" className="rounded-full px-12 h-14 bg-white/5 border-white/10 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest italic gap-3 group">
-                EXPLORE ALL SIMILAR <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
-              </Button>
-            </div>
-          </section>
-        )}
       </main>
     </div>
   );
 }
 
-function MetricBox({ label, value, sub, icon: Icon, color }: { label: string, value: string | number, sub: string, icon: any, color: string }) {
+function MetricBox({ label, value, icon: Icon, color }: { label: string, value: number, icon: any, color: string }) {
   return (
     <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] text-center space-y-1 relative overflow-hidden group">
-       <Icon className={cn("w-12 h-12 absolute -right-2 -bottom-2 opacity-5 rotate-12 group-hover:scale-125 transition-transform", color)} />
-       <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest">{label}</p>
-       <h4 className={cn("text-3xl font-black italic tracking-tighter", color)}>{value.toLocaleString()}</h4>
-       <p className="text-[8px] font-black uppercase text-muted-foreground/20">{sub}</p>
+      <Icon className={cn("w-12 h-12 absolute -right-2 -bottom-2 opacity-5 rotate-12 transition-transform group-hover:scale-125", color)} />
+      <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest">{label}</p>
+      <h4 className={cn("text-3xl font-black italic tracking-tighter", color)}>{value.toLocaleString()}</h4>
     </div>
   );
 }

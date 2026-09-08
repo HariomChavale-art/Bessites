@@ -1,9 +1,8 @@
-
 "use client"
 
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
-import { Tag, TrendingUp, User as UserIcon } from "lucide-react";
+import { Tag, TrendingUp } from "lucide-react";
 import { WebsitePreview } from "./website-preview";
 import { useMemo } from "react";
 import { useFirestore, useDoc } from "@/firebase";
@@ -16,9 +15,8 @@ interface WebsiteCardProps {
 
 /**
  * WebsiteCard refined for Bessites discovery.
- * - Displays Descriptive Title as primary brand.
- * - Shows Brand Name in stylized primary color.
- * - Optimized link colors and logo containers.
+ * - Displays understandable, short Explaining Title as main brand identifier.
+ * - Displays Brand Name (websiteName) in Stylized secondary text.
  */
 export function WebsiteCard({ website }: WebsiteCardProps) {
   const db = useFirestore();
@@ -44,8 +42,12 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   const isTrending = totalVisits > 50 || totalLikes > 10;
 
   const brandName = website.websiteName || website.name;
-  const explainingTitle = website.websiteName ? website.name : (website.description?.split('.')[0] || "Modern Web");
-  const displayDeveloper = website.developer === "Bessites Curator" ? null : website.developer;
+  const rawExplainingTitle = website.websiteName ? website.name : (website.description?.split('.')[0] || "Modern Web");
+  
+  // Logic to extract just the understandable explainer part
+  const explainingTitle = rawExplainingTitle.includes('|') 
+    ? rawExplainingTitle.split('|')[1].trim() 
+    : rawExplainingTitle.replace(brandName, '').replace(/^[\s\-|]+/, '').trim() || brandName;
 
   return (
     <div className="block break-inside-avoid mb-4 sm:mb-6 group">
@@ -82,7 +84,6 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
 
         <div className="p-3 sm:p-6 pt-2 sm:pt-4">
           <div className="text-center">
-            {/* Priortize the descriptive title */}
             <h3 className="font-headline font-bold italic text-sm sm:text-lg text-white group-hover:text-primary transition-colors whitespace-normal leading-tight line-clamp-2">
               {explainingTitle}
             </h3>

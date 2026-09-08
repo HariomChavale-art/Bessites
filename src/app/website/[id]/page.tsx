@@ -301,19 +301,7 @@ export default function WebsiteDetail() {
               </div>
 
               <div className="pt-8 border-t border-white/5 space-y-6">
-                 {/* Mock existing reviews for UI completeness */}
-                 <div className="space-y-4">
-                    <div className="flex items-start gap-4">
-                       <div className="w-10 h-10 rounded-full bg-white/10 shrink-0" />
-                       <div className="space-y-1">
-                          <p className="text-sm font-black italic text-white uppercase">Curator_Alpha</p>
-                          <div className="flex items-center gap-1 mb-2">
-                             {[1,2,3,4,5].map(s => <Star key={s} className="w-3 h-3 text-amber-400 fill-amber-400" />)}
-                          </div>
-                          <p className="text-sm text-muted-foreground leading-relaxed italic">"An absolute essential for my workflow. The UI is incredibly polished and the features are production-ready."</p>
-                       </div>
-                    </div>
-                 </div>
+                 {/* Mock reviews removed to prioritize user-generated content */}
               </div>
            </Card>
         </section>

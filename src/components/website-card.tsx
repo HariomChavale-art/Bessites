@@ -1,9 +1,8 @@
-
 "use client"
 
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
-import { Tag, TrendingUp, ExternalLink, Globe } from "lucide-react";
+import { Tag, TrendingUp, User as UserIcon } from "lucide-react";
 import { WebsitePreview } from "./website-preview";
 import { useMemo } from "react";
 import { useFirestore, useDoc } from "@/firebase";
@@ -14,6 +13,12 @@ interface WebsiteCardProps {
   website: Website;
 }
 
+/**
+ * WebsiteCard refined for Bessites discovery.
+ * - Displays Website Name as primary brand.
+ * - Shows Discovery Title in Sentence case.
+ * - Optimized link colors and logo containers.
+ */
 export function WebsiteCard({ website }: WebsiteCardProps) {
   const db = useFirestore();
   
@@ -23,6 +28,15 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   }, [db, website.id]);
 
   const { data: stats } = useDoc(statsRef);
+
+  const getPricingStyle = (pricing: string) => {
+    switch (pricing) {
+      case "Paid": return "bg-black text-white border-white/20";
+      case "Free": return "bg-white text-black border-none";
+      case "Freemium":
+      default: return "bg-secondary text-secondary-foreground border-white/10";
+    }
+  };
 
   const totalLikes = stats?.likeCount || 0;
   const totalVisits = stats?.visitCount || 0;
@@ -51,10 +65,11 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
           
           <div className="absolute top-2 left-2 sm:top-6 sm:left-6 z-10 flex flex-col gap-1.5 items-start">
             <div className={cn(
-              "flex items-center gap-1 backdrop-blur-xl px-2.5 py-1 sm:px-4 sm:py-1.5 rounded-full border shadow-lg bg-white text-black border-none"
+              "flex items-center gap-1 backdrop-blur-xl px-2.5 py-1 sm:px-4 sm:py-1.5 rounded-full border shadow-lg",
+              getPricingStyle(website.pricing)
             )}>
               <Tag className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
-              <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider">{website.pricing || 'Free'}</span>
+              <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider">{website.pricing}</span>
             </div>
             {isTrending && (
               <div className="flex items-center gap-1 bg-primary text-white px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter italic shadow-lg">
@@ -76,28 +91,15 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
               </p>
             )}
 
-            <p className="text-[10px] sm:text-xs text-white/80 font-medium leading-tight line-clamp-2 mt-1">
-              {discoveryTitle}
-            </p>
+            {discoveryTitle && (
+              <p className="text-[10px] sm:text-xs text-white/80 font-medium leading-tight line-clamp-2 mt-1">
+                {discoveryTitle}
+              </p>
+            )}
 
-            <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
-              <span className="text-[9px] sm:text-[10px] text-zinc-400 hover:text-purple-400 font-bold tracking-widest uppercase transition-colors truncate max-w-[120px]">
-                {website.url.replace('https://', '').replace('www.', '').split('/')[0]}
-              </span>
-              
-              {/* Only show metrics if they are non-zero, otherwise show interaction indicator */}
-              {totalVisits > 0 ? (
-                <div className="flex items-center gap-1.5 text-[9px] font-black text-white/40">
-                  <Globe className="w-2.5 h-2.5" />
-                  {totalVisits.toLocaleString()}
-                </div>
-              ) : (
-                <div className="flex items-center gap-1 text-primary/40">
-                  <ExternalLink className="w-3 h-3" />
-                  <span className="text-[8px] font-bold uppercase tracking-tighter">Verified</span>
-                </div>
-              )}
-            </div>
+            <p className="text-[9px] sm:text-[10px] text-zinc-400 hover:text-purple-400 font-bold tracking-widest uppercase mt-3 pt-3 border-t border-white/5 transition-colors">
+              {website.url.replace('https://', '').replace('www.', '').split('/')[0]}
+            </p>
           </div>
         </div>
       </div>

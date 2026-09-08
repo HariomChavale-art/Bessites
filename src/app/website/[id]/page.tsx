@@ -6,30 +6,19 @@ import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { useDoc, useUser, useFirestore, useCollection } from "@/firebase";
-import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc, collection, query, orderBy, limit } from "firebase/firestore";
+import { useDoc, useUser, useFirestore } from "@/firebase";
+import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc } from "firebase/firestore";
 import { 
   Globe, 
   Loader2,
-  MessageSquare,
-  Star,
   Share2,
   Bookmark,
   Heart,
-  Eye,
-  TrendingUp,
-  Sparkles,
-  Flag,
-  ArrowRight
+  Eye
 } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { WebsitePreview } from "@/components/website-preview";
-import { WebsiteCard } from "@/components/website-card";
 import { useToast } from "@/hooks/use-toast";
 
 export default function WebsiteDetail() {
@@ -40,11 +29,6 @@ export default function WebsiteDetail() {
   
   const [dynamicWebsite, setDynamicWebsite] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [ratingLoading, setRatingLoading] = useState(false);
-  const [comment, setComment] = useState("");
-  const [ratingValue, setRatingValue] = useState(0);
-
-  // Random base stats (10-200)
   const [baseStats, setBaseStats] = useState({
     visits: 0,
     likes: 0,
@@ -53,12 +37,12 @@ export default function WebsiteDetail() {
   });
 
   useEffect(() => {
-    // Generate stable random numbers between 10 and 200
+    // Generate stable random numbers ensuring Visits are much higher
     setBaseStats({
-      visits: Math.floor(Math.random() * 191) + 10,
-      likes: Math.floor(Math.random() * 191) + 10,
-      saves: Math.floor(Math.random() * 191) + 10,
-      shares: Math.floor(Math.random() * 191) + 10
+      visits: Math.floor(Math.random() * 101) + 100, // 100-200
+      likes: Math.floor(Math.random() * 41) + 10,   // 10-50
+      saves: Math.floor(Math.random() * 41) + 10,   // 10-50
+      shares: Math.floor(Math.random() * 41) + 10   // 10-50
     });
 
     const fetchWebsite = async () => {
@@ -122,25 +106,6 @@ export default function WebsiteDetail() {
   const { data: shareData } = useDoc(shareDocRef);
   const isShared = !!shareData;
 
-  const ratingsQuery = useMemo(() => {
-    if (!db || !id) return null;
-    return query(
-      collection(db, "websiteStats", id as string, "userRatings"),
-      orderBy("timestamp", "desc"),
-      limit(10)
-    );
-  }, [db, id]);
-
-  const { data: recentRatings } = useCollection(ratingsQuery);
-
-  const relatedWebsites = useMemo(() => {
-    if (!dynamicWebsite) return [];
-    return MOCK_WEBSITES.filter(w => 
-      w.id !== dynamicWebsite.id && 
-      w.categories.some(cat => dynamicWebsite.categories?.includes(cat))
-    ).slice(0, 4);
-  }, [dynamicWebsite]);
-
   const handleVisitClick = async () => {
     if (!user || !db || !id) {
       window.open(dynamicWebsite.url, '_blank');
@@ -152,7 +117,6 @@ export default function WebsiteDetail() {
       if (!isVisited) {
         await setDoc(visitDocRef!, { visitedAt: serverTimestamp() });
         await setDoc(globalStatsRef, { visitCount: increment(1) }, { merge: true });
-        toast({ title: "Visit Logged!", description: "Interaction verified." });
       }
       window.open(dynamicWebsite.url, '_blank');
     } catch (e) {
@@ -204,31 +168,6 @@ export default function WebsiteDetail() {
     } catch (e) { console.error("Share Error", e); }
   };
 
-  const submitRating = async () => {
-    if (!db || !id || !user || ratingValue === 0) return;
-    setRatingLoading(true);
-    try {
-      const ratingRef = doc(db, "websiteStats", id as string, "userRatings", user.uid);
-      await setDoc(ratingRef, {
-        userId: user.uid,
-        userDisplayName: user.displayName || "Curator",
-        userPhotoURL: user.photoURL || "",
-        rating: ratingValue,
-        comment,
-        timestamp: serverTimestamp()
-      });
-      await updateDoc(doc(db, "websiteStats", id as string), { 
-        ratingSum: increment(ratingValue), 
-        ratingCount: increment(1) 
-      });
-      setComment("");
-      setRatingValue(0);
-      toast({ title: "Review Shared!", description: "Thanks for helping the community." });
-    } finally {
-      setRatingLoading(false);
-    }
-  };
-
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
   if (!dynamicWebsite) return <div className="min-h-screen flex items-center justify-center bg-background text-white font-black italic uppercase">Not Found</div>;
 
@@ -238,12 +177,13 @@ export default function WebsiteDetail() {
   const displayShares = baseStats.shares + (isShared ? 1 : 0);
 
   const brandName = dynamicWebsite.websiteName || dynamicWebsite.name;
-  const rawExplainingTitle = dynamicWebsite.websiteName ? dynamicWebsite.name : dynamicWebsite.description?.split('.')[0] || "Discover Now";
-  const explainingTitle = rawExplainingTitle.includes('|') 
+  const rawExplainingTitle = dynamicWebsite.websiteName ? dynamicWebsite.name : (dynamicWebsite.description?.split('.')[0] || "Modern Discovery");
+  const explainer = rawExplainingTitle.includes('|') 
     ? rawExplainingTitle.split('|')[1].trim() 
-    : rawExplainingTitle.replace(brandName, '').replace(/^[\s\-|]+/, '').trim() || brandName;
-
-  const displayDeveloper = dynamicWebsite.developer === "Bessites Curator" ? null : dynamicWebsite.developer;
+    : rawExplainingTitle.replace(brandName, '').replace(/^[\s\-|]+/, '').trim() || "Web Resource";
+  
+  // Format: Brand Name | Explaining Title (shortened)
+  const displayTitle = `${brandName} | ${explainer.slice(0, 35)}${explainer.length > 35 ? '...' : ''}`;
 
   return (
     <div className="min-h-screen flex flex-col bg-background pb-32">
@@ -262,11 +202,10 @@ export default function WebsiteDetail() {
           <div className="flex-1 min-w-0 space-y-4">
             <div className="space-y-1">
               <h1 className="text-3xl sm:text-5xl font-headline font-bold italic text-white tracking-tighter uppercase leading-tight">
-                {explainingTitle}
+                {displayTitle}
               </h1>
               <div className="flex items-center gap-3 mt-4">
-                <span className="text-sm sm:text-base text-primary font-black uppercase tracking-[0.3em] italic">{brandName}</span>
-                {displayDeveloper && <span className="text-[10px] text-white/40 font-black uppercase tracking-widest italic">By {displayDeveloper}</span>}
+                <span className="text-sm sm:text-base text-primary font-black uppercase tracking-[0.3em] italic">Official Registry</span>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-4">
@@ -280,17 +219,17 @@ export default function WebsiteDetail() {
 
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 mb-16">
           <div className="xl:col-span-3 space-y-8">
-            <div className="bg-[#121117] border border-white/5 p-8 rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden">
+            <Card className="bg-[#121117] border-white/5 p-8 rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden">
               <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter border-b border-white/5 pb-4">Discovery / Insight</h2>
-              <p className="text-xl sm:text-3xl text-white font-medium leading-relaxed italic tracking-tight">
+              <p className="text-xl sm:text-2xl text-white font-medium leading-relaxed italic tracking-tight">
                 {dynamicWebsite.description || dynamicWebsite.longDescription}
               </p>
-            </div>
+            </Card>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <MetricBox label="Visits" value={displayVisits} icon={Eye} color="text-blue-500" />
               <MetricBox label="Likes" value={displayLikes} icon={Heart} color="text-rose-500" />
               <MetricBox label="Saves" value={displaySaves} icon={Bookmark} color="text-amber-500" />
-              <MetricBox label="Visits" value={displayVisits} icon={Eye} color="text-blue-500" />
               <MetricBox label="Shared" value={displayShares} icon={Share2} color="text-emerald-500" />
             </div>
           </div>

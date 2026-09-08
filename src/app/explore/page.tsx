@@ -8,8 +8,6 @@ import {
   TrendingUp, 
   X, 
   Tag, 
-  MoreHorizontal, 
-  Sparkles,
   LayoutGrid,
   ExternalLink
 } from "lucide-react";
@@ -17,10 +15,9 @@ import Link from "next/link";
 import { WebsitePreview } from "@/components/website-preview";
 import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
-import { useFirestore, useDoc, useUser, useCollection } from "@/firebase";
-import { doc, collection, query, where } from "firebase/firestore";
+import { useFirestore, useUser, useCollection } from "@/firebase";
+import { collection, query, where } from "firebase/firestore";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { BROAD_CATEGORIES, INTERESTS, getInterestsForTag } from "@/lib/category-mapping";
 
 export default function ExplorePage() {
@@ -29,13 +26,6 @@ export default function ExplorePage() {
   const [selectedSector, setSelectedSector] = useState<string | null>(null);
   const { user } = useUser();
   const db = useFirestore();
-
-  const userDocRef = useMemo(() => {
-    if (!user || !db) return null;
-    return doc(db, "users", user.uid);
-  }, [user, db]);
-
-  const { data: profile } = useDoc(userDocRef);
 
   const submissionsRef = useMemo(() => {
     if (!db) return null;
@@ -73,8 +63,9 @@ export default function ExplorePage() {
   const filteredResults = useMemo(() => {
     return allWebsites.filter(app => {
       const queryText = searchQuery.toLowerCase().trim();
+      const brand = (app.websiteName || app.name).toLowerCase();
       const matchesSearch = !searchQuery || 
-        (app.websiteName || app.name).toLowerCase().includes(queryText) ||
+        brand.includes(queryText) ||
         app.description.toLowerCase().includes(queryText) ||
         app.url.toLowerCase().includes(queryText) ||
         app.categories.some(cat => cat.toLowerCase().includes(queryText));
@@ -166,18 +157,16 @@ export default function ExplorePage() {
 }
 
 function ExploreItemRow({ app }: { app: any }) {
-  const db = useFirestore();
-  const statsRef = useMemo(() => {
-    if (!db) return null;
-    return doc(db, "websiteStats", app.id);
-  }, [db, app.id]);
-
-  const { data: stats } = useDoc(statsRef);
   const brandName = app.websiteName || app.name;
-  const rawExplainingTitle = app.websiteName ? app.name : app.description?.split('.')[0] || "Discover Property";
-  const explainingTitle = rawExplainingTitle.includes('|') 
+  const rawExplainingTitle = app.websiteName ? app.name : app.description?.split('.')[0] || "Discovery Hub";
+  
+  // Clean explainer title
+  const explainer = rawExplainingTitle.includes('|') 
     ? rawExplainingTitle.split('|')[1].trim() 
-    : rawExplainingTitle.replace(brandName, '').replace(/^[\s\-|]+/, '').trim() || brandName;
+    : rawExplainingTitle.replace(brandName, '').replace(/^[\s\-|]+/, '').trim() || "Discover More";
+    
+  // Combine format: Brand Name | Short Explainer
+  const displayTitle = `${brandName} | ${explainer.slice(0, 40)}${explainer.length > 40 ? '...' : ''}`;
     
   const uniqueCategories = Array.from(new Set(app.categories || []));
 
@@ -204,12 +193,12 @@ function ExploreItemRow({ app }: { app: any }) {
 
         <div className="flex-1 min-w-0 py-2">
           <div className="block mb-4">
-            <h4 className="text-xl sm:text-4xl font-headline font-bold italic text-white leading-tight tracking-tighter">
-              {explainingTitle}
+            <h4 className="text-xl sm:text-3xl font-headline font-bold italic text-white leading-tight tracking-tighter">
+              {displayTitle}
             </h4>
             <div className="flex items-center gap-3 mt-3 mb-2">
-              <span className="text-xs sm:text-sm text-primary font-black uppercase tracking-[0.2em] italic">
-                {brandName}
+              <span className="text-[10px] text-primary font-black uppercase tracking-[0.2em] italic">
+                Verified Asset
               </span>
             </div>
           </div>

@@ -13,11 +13,6 @@ interface WebsiteCardProps {
   website: Website;
 }
 
-/**
- * WebsiteCard refined for Bessites discovery.
- * - Displays understandable, short Explaining Title as main brand identifier.
- * - Displays Brand Name (websiteName) in Stylized secondary text.
- */
 export function WebsiteCard({ website }: WebsiteCardProps) {
   const db = useFirestore();
   
@@ -37,17 +32,14 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
     }
   };
 
-  const totalLikes = stats?.likeCount || 0;
-  const totalVisits = stats?.visitCount || 0;
-  const isTrending = totalVisits > 50 || totalLikes > 10;
-
   const brandName = website.websiteName || website.name;
-  const rawExplainingTitle = website.websiteName ? website.name : (website.description?.split('.')[0] || "Modern Web");
+  const rawExplainingTitle = website.websiteName ? website.name : (website.description?.split('.')[0] || "Discovery Asset");
   
-  // Logic to extract just the understandable explainer part
-  const explainingTitle = rawExplainingTitle.includes('|') 
+  const explainer = rawExplainingTitle.includes('|') 
     ? rawExplainingTitle.split('|')[1].trim() 
-    : rawExplainingTitle.replace(brandName, '').replace(/^[\s\-|]+/, '').trim() || brandName;
+    : rawExplainingTitle.replace(brandName, '').replace(/^[\s\-|]+/, '').trim() || "Explore Now";
+    
+  const displayTitle = `${brandName} | ${explainer.slice(0, 30)}${explainer.length > 30 ? '...' : ''}`;
 
   return (
     <div className="block break-inside-avoid mb-4 sm:mb-6 group">
@@ -74,24 +66,15 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
               <Tag className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
               <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider">{website.pricing}</span>
             </div>
-            {isTrending && (
-              <div className="flex items-center gap-1 bg-primary text-white px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter italic shadow-lg">
-                <TrendingUp className="w-2.5 h-2.5" /> Community Pick
-              </div>
-            )}
           </div>
         </Link>
 
         <div className="p-3 sm:p-6 pt-2 sm:pt-4">
           <div className="text-center">
             <h3 className="font-headline font-bold italic text-sm sm:text-lg text-white group-hover:text-primary transition-colors whitespace-normal leading-tight line-clamp-2">
-              {explainingTitle}
+              {displayTitle}
             </h3>
             
-            <p className="text-[8px] sm:text-[10px] text-primary/60 font-black uppercase tracking-[0.2em] mt-2 mb-1 italic">
-              {brandName}
-            </p>
-
             <p className="text-[9px] sm:text-[10px] text-zinc-400 hover:text-purple-400 font-bold tracking-widest uppercase mt-3 pt-3 border-t border-white/5 transition-colors">
               {website.url.replace('https://', '').replace('www.', '').split('/')[0]}
             </p>

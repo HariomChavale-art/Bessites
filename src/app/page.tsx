@@ -129,22 +129,22 @@ export default function Home() {
       
       <main className="flex-1">
         <section className="container mx-auto px-4 mt-8 sm:mt-12 mb-12">
-          <div className="relative w-full max-w-6xl mx-auto h-[250px] sm:h-[400px] md:h-[500px] flex items-center justify-center">
+          <div className="relative w-full max-w-6xl mx-auto h-[200px] sm:h-[400px] md:h-[500px] flex items-center justify-center">
             <div className="absolute inset-0 flex items-center justify-center">
               <img 
-                src="https://i.imgur.com/kS9yI8n.png" 
-                alt="Ornate Frame" 
-                className="w-full h-full object-contain invert brightness-[2] opacity-90"
+                src="https://i.imgur.com/PsYquEB.jpeg" 
+                alt="Incoming Frame" 
+                className="w-full h-full object-contain"
               />
             </div>
 
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-full h-full relative">
-                <div className="absolute left-[9%] sm:left-[11%] top-[48%] -translate-y-1/2 w-[22%] flex items-center justify-center">
-                  <h1 className="text-[10px] sm:text-2xl md:text-4xl font-black italic uppercase tracking-tighter text-white leading-none">WEBSITE</h1>
+                <div className="absolute left-[9.5%] top-[48.5%] -translate-y-1/2 w-[21%] flex items-center justify-center">
+                  <h1 className="text-[10px] sm:text-2xl md:text-3xl lg:text-4xl font-black italic uppercase tracking-tighter text-white leading-none drop-shadow-lg">WEBSITE</h1>
                 </div>
-                <div className="absolute left-[36%] sm:left-[34%] top-[48%] -translate-y-1/2 w-[55%] flex items-center justify-start pl-[2%]">
-                  <h1 className="text-xs sm:text-4xl md:text-7xl lg:text-8xl font-black italic uppercase tracking-tighter text-primary leading-none">INCOMING</h1>
+                <div className="absolute left-[36%] sm:left-[34%] top-[48.5%] -translate-y-1/2 w-[55%] flex items-center justify-start pl-[2%]">
+                  <h1 className="text-xs sm:text-4xl md:text-7xl lg:text-8xl font-black italic uppercase tracking-tighter text-primary leading-none drop-shadow-2xl">INCOMING</h1>
                 </div>
               </div>
             </div>
@@ -152,13 +152,8 @@ export default function Home() {
         </section>
 
         <section className="container mx-auto px-4 mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-white/[0.01] p-6 rounded-[2rem] border border-white/5">
-            <div className="space-y-1">
-              <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">Discovery <span className="text-primary">Node</span></h2>
-              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-40 italic">Filter verified assets by community pulse</p>
-            </div>
-            
-            <div className="flex items-center gap-4 bg-white/5 p-1.5 rounded-[1.5rem] border border-white/5 overflow-x-auto no-scrollbar shrink-0">
+          <div className="flex flex-col md:flex-row md:items-center justify-end gap-8 bg-white/[0.01] p-6 rounded-[2rem] border border-white/5">
+            <div className="flex items-center gap-4 bg-white/5 p-1.5 rounded-[1.5rem] border border-white/5 overflow-x-auto no-scrollbar shrink-0 w-full sm:w-auto">
               <Tabs defaultValue="foryou" className="w-full" onValueChange={setActiveTab}>
                 <TabsList className="bg-transparent h-auto gap-1">
                   <TabsTrigger value="foryou" className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary transition-all flex items-center gap-2 italic"><Sparkles className="w-4 h-4" /> For You</TabsTrigger>

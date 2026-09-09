@@ -99,7 +99,6 @@ export default function Home() {
         break;
       case "foryou":
       default:
-        // Logic: Filter based on whether any tag maps to the user's selected broad categories
         const matches = results.filter(w => 
           w.categories.some(tag => {
             const mappedBroads = getBroadCategoriesForTag(tag);
@@ -129,40 +128,24 @@ export default function Home() {
       <Navigation />
       
       <main className="flex-1">
-        {/* NEW VINTAGE FRAME HERO SECTION */}
         <section className="container mx-auto px-4 mt-8 sm:mt-12 mb-12">
-          <div className="relative w-full max-w-5xl mx-auto">
-            {/* The Ornate Frame Layout */}
-            <div className="relative min-h-[250px] sm:min-h-[350px] md:min-h-[400px] w-full flex items-center justify-center overflow-hidden border border-white/5 bg-white/[0.01] rounded-[3rem] sm:rounded-[5rem]">
-              
-              {/* Decorative Flourishes Mimicking the provided image */}
-              <div className="absolute left-0 top-0 bottom-0 w-1/4 hidden lg:flex items-center justify-center opacity-10 pointer-events-none">
-                 <div className="w-64 h-64 border-8 border-white/50 rounded-full flex items-center justify-center">
-                    <div className="w-48 h-48 border-2 border-white/30 rounded-full border-dotted" />
-                 </div>
-              </div>
-              
-              {/* Central Message Container */}
-              <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 py-12">
-                <div className="mb-8 flex items-center gap-4 text-primary opacity-50">
-                  <div className="h-px w-8 sm:w-16 bg-current" />
-                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.5em] italic">Registry Node Status</span>
-                  <div className="h-px w-8 sm:w-16 bg-current" />
+          <div className="relative w-full max-w-6xl mx-auto h-[250px] sm:h-[400px] md:h-[500px] flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <img 
+                src="https://i.imgur.com/kS9yI8n.png" 
+                alt="Ornate Frame" 
+                className="w-full h-full object-contain invert brightness-[2] opacity-90"
+              />
+            </div>
+
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-full h-full relative">
+                <div className="absolute left-[9%] sm:left-[11%] top-[48%] -translate-y-1/2 w-[22%] flex items-center justify-center">
+                  <h1 className="text-[10px] sm:text-2xl md:text-4xl font-black italic uppercase tracking-tighter text-white leading-none">WEBSITE</h1>
                 </div>
-
-                <h1 className="text-4xl sm:text-6xl md:text-8xl font-black italic uppercase tracking-tighter text-white leading-[0.85] drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
-                  WEBSITE <br />
-                  <span className="text-primary underline decoration-white/10 underline-offset-[12px]">INCOMING</span>
-                </h1>
-
-                <p className="mt-10 text-muted-foreground font-bold text-[9px] sm:text-xs uppercase tracking-[0.4em] opacity-40 max-w-lg italic">
-                  The Discovery Pipeline is currently synchronizing high-fidelity assets for the community.
-                </p>
-              </div>
-
-              {/* Right Side Frame Ornament */}
-              <div className="absolute right-0 top-0 bottom-0 w-12 border-l border-white/5 hidden lg:block opacity-20">
-                 <div className="h-full w-full bg-gradient-to-l from-white/10 to-transparent" />
+                <div className="absolute left-[36%] sm:left-[34%] top-[48%] -translate-y-1/2 w-[55%] flex items-center justify-start pl-[2%]">
+                  <h1 className="text-xs sm:text-4xl md:text-7xl lg:text-8xl font-black italic uppercase tracking-tighter text-primary leading-none">INCOMING</h1>
+                </div>
               </div>
             </div>
           </div>

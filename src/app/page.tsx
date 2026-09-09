@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
@@ -128,18 +129,53 @@ export default function Home() {
       <Navigation />
       
       <main className="flex-1">
-        <section className="container mx-auto px-4 mt-8 sm:mt-16 mb-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div className="space-y-2">
-              <h1 className="font-headline text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tighter uppercase italic leading-none">
-                Discovery <span className="text-primary">Pipeline</span>
-              </h1>
-              <p className="text-muted-foreground font-medium text-sm sm:text-base max-w-lg opacity-60">
-                A professional-grade directory for zero-duplication digital tools.
-              </p>
+        {/* NEW VINTAGE FRAME HERO SECTION */}
+        <section className="container mx-auto px-4 mt-8 sm:mt-12 mb-12">
+          <div className="relative w-full max-w-5xl mx-auto">
+            {/* The Ornate Frame Layout */}
+            <div className="relative min-h-[250px] sm:min-h-[350px] md:min-h-[400px] w-full flex items-center justify-center overflow-hidden border border-white/5 bg-white/[0.01] rounded-[3rem] sm:rounded-[5rem]">
+              
+              {/* Decorative Flourishes Mimicking the provided image */}
+              <div className="absolute left-0 top-0 bottom-0 w-1/4 hidden lg:flex items-center justify-center opacity-10 pointer-events-none">
+                 <div className="w-64 h-64 border-8 border-white/50 rounded-full flex items-center justify-center">
+                    <div className="w-48 h-48 border-2 border-white/30 rounded-full border-dotted" />
+                 </div>
+              </div>
+              
+              {/* Central Message Container */}
+              <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 py-12">
+                <div className="mb-8 flex items-center gap-4 text-primary opacity-50">
+                  <div className="h-px w-8 sm:w-16 bg-current" />
+                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.5em] italic">Registry Node Status</span>
+                  <div className="h-px w-8 sm:w-16 bg-current" />
+                </div>
+
+                <h1 className="text-4xl sm:text-6xl md:text-8xl font-black italic uppercase tracking-tighter text-white leading-[0.85] drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
+                  WEBSITE <br />
+                  <span className="text-primary underline decoration-white/10 underline-offset-[12px]">INCOMING</span>
+                </h1>
+
+                <p className="mt-10 text-muted-foreground font-bold text-[9px] sm:text-xs uppercase tracking-[0.4em] opacity-40 max-w-lg italic">
+                  The Discovery Pipeline is currently synchronizing high-fidelity assets for the community.
+                </p>
+              </div>
+
+              {/* Right Side Frame Ornament */}
+              <div className="absolute right-0 top-0 bottom-0 w-12 border-l border-white/5 hidden lg:block opacity-20">
+                 <div className="h-full w-full bg-gradient-to-l from-white/10 to-transparent" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="container mx-auto px-4 mb-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-white/[0.01] p-6 rounded-[2rem] border border-white/5">
+            <div className="space-y-1">
+              <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">Discovery <span className="text-primary">Node</span></h2>
+              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-40 italic">Filter verified assets by community pulse</p>
             </div>
             
-            <div className="flex items-center gap-4 bg-white/[0.02] p-1.5 rounded-[1.5rem] border border-white/5 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-4 bg-white/5 p-1.5 rounded-[1.5rem] border border-white/5 overflow-x-auto no-scrollbar shrink-0">
               <Tabs defaultValue="foryou" className="w-full" onValueChange={setActiveTab}>
                 <TabsList className="bg-transparent h-auto gap-1">
                   <TabsTrigger value="foryou" className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary transition-all flex items-center gap-2 italic"><Sparkles className="w-4 h-4" /> For You</TabsTrigger>

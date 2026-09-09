@@ -132,7 +132,7 @@ export default function Home() {
           <div className="relative w-full max-w-6xl mx-auto h-[200px] sm:h-[400px] md:h-[500px] flex items-center justify-center">
             <div className="absolute inset-0 flex items-center justify-center">
               <img 
-                src="https://i.imgur.com/PsYquEB.jpeg" 
+                src="https://i.imgur.com/xGXlNAL.png" 
                 alt="Incoming Frame" 
                 className="w-full h-full object-contain"
               />

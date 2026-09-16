@@ -200,12 +200,7 @@ export default function WebsiteDetail() {
   const displayShares = baseStats.shares + (isShared ? 1 : 0);
 
   const brandName = dynamicWebsite.websiteName || dynamicWebsite.name;
-  const rawExplainingTitle = dynamicWebsite.websiteName ? dynamicWebsite.name : (dynamicWebsite.description?.split('.')[0] || "Modern Discovery");
-  const explainer = rawExplainingTitle.includes('|') 
-    ? rawExplainingTitle.split('|')[1].trim() 
-    : rawExplainingTitle.replace(brandName, '').replace(/^[\s\-|]+/, '').trim() || "Web Resource";
-  
-  const displayTitle = `${brandName} | ${explainer.slice(0, 35)}${explainer.length > 35 ? '...' : ''}`;
+  const description = dynamicWebsite.description || dynamicWebsite.longDescription || "Digital Asset";
 
   return (
     <div className="min-h-screen flex flex-col bg-background pb-32">
@@ -214,21 +209,21 @@ export default function WebsiteDetail() {
       <main className="flex-1 container mx-auto max-w-5xl px-4 py-12 space-y-16">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row gap-10 items-start">
-          <div className="w-full md:w-56 aspect-square rounded-[2rem] bg-white/[0.03] border border-white/10 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center p-4">
+          <div className="w-24 h-24 sm:w-40 sm:h-40 rounded-[2rem] bg-[#1a1a24] border border-white/10 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center p-4">
             <WebsitePreview 
               websiteUrl={dynamicWebsite.url}
               fallbackUrl={dynamicWebsite.logoUrl || dynamicWebsite.imageUrl}
               alt={brandName}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain rounded-xl"
             />
           </div>
           <div className="flex-1 min-w-0 space-y-4">
             <div className="space-y-1">
-              <h1 className="text-3xl sm:text-5xl font-headline font-bold italic text-white tracking-tighter uppercase leading-tight">
-                {displayTitle}
+              <h1 className="text-4xl sm:text-6xl font-bold text-white tracking-tighter uppercase leading-tight">
+                {brandName}
               </h1>
               <div className="flex items-center gap-3 mt-4">
-                <span className="text-sm sm:text-base text-primary font-black uppercase tracking-[0.3em] italic">Official Registry</span>
+                <span className="text-xs sm:text-sm text-primary font-black uppercase tracking-[0.3em] italic px-3 py-1 bg-primary/10 rounded-md">Verified Node Asset</span>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-4">
@@ -244,9 +239,9 @@ export default function WebsiteDetail() {
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           <div className="xl:col-span-3 space-y-8">
             <Card className="bg-[#121117] border-white/5 p-8 rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden">
-              <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter border-b border-white/5 pb-4">Discovery / Insight</h2>
+              <h2 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] border-b border-white/5 pb-4">Discovery / Documentation</h2>
               <p className="text-xl sm:text-2xl text-white font-medium leading-relaxed italic tracking-tight">
-                {dynamicWebsite.description || dynamicWebsite.longDescription}
+                {description}
               </p>
             </Card>
 
@@ -276,7 +271,7 @@ export default function WebsiteDetail() {
               <div className="p-3 rounded-2xl bg-primary/10 text-primary">
                  <MessageSquare className="w-6 h-6" />
               </div>
-              <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Community Reviews</h2>
+              <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Community Feedback</h2>
            </div>
 
            <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] space-y-8">
@@ -287,21 +282,17 @@ export default function WebsiteDetail() {
                          <Star className={cn("w-8 h-8 transition-colors", rating >= s ? "text-amber-400 fill-amber-400" : "text-white/10")} />
                       </button>
                     ))}
-                    <span className="ml-4 text-xs font-black uppercase tracking-widest text-muted-foreground opacity-40">Identify your experience</span>
+                    <span className="ml-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Identify Experience</span>
                  </div>
                  <Textarea 
                    value={reviewText}
                    onChange={(e) => setReviewText(e.target.value)}
-                   placeholder="Share your discovery insight with the community..." 
-                   className="bg-white/5 border-white/10 rounded-2xl min-h-[120px] p-6 text-sm font-medium italic"
+                   placeholder="Publish your discovery insight..." 
+                   className="bg-white/[0.03] border-white/10 rounded-2xl min-h-[120px] p-6 text-sm font-medium italic"
                  />
                  <Button onClick={submitReview} disabled={!reviewText.trim()} className="h-14 px-10 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black italic uppercase">
-                    Publish Review
+                    Publish Ledger Entry
                  </Button>
-              </div>
-
-              <div className="pt-8 border-t border-white/5 space-y-6">
-                 {/* Mock reviews removed to prioritize user-generated content */}
               </div>
            </Card>
         </section>
@@ -313,7 +304,7 @@ export default function WebsiteDetail() {
                  <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400">
                     <Sparkles className="w-6 h-6" />
                  </div>
-                 <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Similar Discovery</h2>
+                 <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Similar Nodes</h2>
               </div>
               <Link href="/explore">
                  <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 gap-2 italic">
@@ -322,7 +313,7 @@ export default function WebsiteDetail() {
               </Link>
            </div>
 
-           <div className="columns-2 md:columns-3 lg:columns-4 gap-6">
+           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {similarWebsites.map((site) => (
                 <WebsiteCard key={site.id} website={site} />
               ))}
@@ -340,10 +331,10 @@ export default function WebsiteDetail() {
 
 function MetricBox({ label, value, icon: Icon, color }: { label: string, value: number, icon: any, color: string }) {
   return (
-    <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] text-center space-y-1 relative overflow-hidden group">
+    <div className="bg-white/[0.03] border border-white/5 p-6 rounded-[2rem] text-center space-y-1 relative overflow-hidden group">
       <Icon className={cn("w-12 h-12 absolute -right-2 -bottom-2 opacity-5 rotate-12 transition-transform group-hover:scale-125", color)} />
-      <p className="text-[10px] font-black uppercase text-muted-foreground/40 tracking-widest">{label}</p>
-      <h4 className={cn("text-3xl font-black italic tracking-tighter", color)}>{value.toLocaleString()}</h4>
+      <p className="text-[9px] font-black uppercase text-muted-foreground/40 tracking-[0.2em]">{label}</p>
+      <h4 className={cn("text-3xl font-bold italic tracking-tighter", color)}>{value.toLocaleString()}</h4>
     </div>
   );
 }

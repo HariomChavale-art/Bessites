@@ -11,12 +11,15 @@ interface MasonryFeedProps {
   hideEndMessage?: boolean;
 }
 
+/**
+ * High-fidelity Masonry Feed.
+ * Uses a column-based layout to allow asymmetrical interlocking cards 
+ * to flow into each other without rigid row heights.
+ */
 export function MasonryFeed({ initialWebsites, hideEndMessage = false }: MasonryFeedProps) {
-  // Start with a larger initial count to show more upfront
   const [displayCount, setDisplayCount] = useState(24);
   const [loading, setLoading] = useState(false);
 
-  // Ensure strict uniqueness in the display list
   const uniqueWebsites = useMemo(() => {
     const seen = new Set();
     return initialWebsites.filter(w => {
@@ -31,7 +34,6 @@ export function MasonryFeed({ initialWebsites, hideEndMessage = false }: Masonry
 
   const loadMore = () => {
     setLoading(true);
-    // Smooth transition to more items
     setTimeout(() => {
       setDisplayCount(prev => prev + 12);
       setLoading(false);
@@ -40,9 +42,11 @@ export function MasonryFeed({ initialWebsites, hideEndMessage = false }: Masonry
 
   return (
     <div className="w-full">
-      <div className="columns-2 md:columns-3 lg:columns-4 gap-3 sm:gap-6 p-2 sm:p-4">
+      <div className="columns-2 sm:columns-3 lg:columns-4 gap-4 p-3 max-w-7xl mx-auto space-y-4">
         {displayedWebsites.map((website, idx) => (
-          <WebsiteCard key={website.id} website={website} index={idx} />
+          <div key={website.id} className="break-inside-avoid mb-4">
+            <WebsiteCard website={website} index={idx} />
+          </div>
         ))}
       </div>
       
@@ -63,12 +67,6 @@ export function MasonryFeed({ initialWebsites, hideEndMessage = false }: Masonry
         <div className="text-center py-20 opacity-10">
           <div className="h-px w-32 bg-white/20 mx-auto mb-4" />
           <p className="text-[10px] font-black uppercase tracking-[0.2em]">End of Collection</p>
-        </div>
-      )}
-      
-      {uniqueWebsites.length === 0 && (
-        <div className="py-20 text-center opacity-40">
-          <p className="text-lg font-bold italic">No websites found here.</p>
         </div>
       )}
     </div>

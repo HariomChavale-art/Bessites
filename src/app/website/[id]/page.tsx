@@ -39,6 +39,7 @@ export default function WebsiteDetail() {
   const [loading, setLoading] = useState(true);
   const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState(5);
+  const [submittedReview, setSubmittedReview] = useState<any>(null);
   
   const [baseStats, setBaseStats] = useState({
     visits: 0,
@@ -170,7 +171,7 @@ export default function WebsiteDetail() {
   const handleShare = async () => {
     if (!dynamicWebsite) return;
     const shareUrl = window.location.href;
-    const shareTitle = `${dynamicWebsite.name || 'Bessites Discovery'}`;
+    const shareTitle = `${dynamicWebsite.websiteName || dynamicWebsite.name} | Bessites Discovery`;
     const shareText = `Check out this tool on Bessites: ${dynamicWebsite.description || ''}`;
 
     try {
@@ -181,14 +182,12 @@ export default function WebsiteDetail() {
           url: shareUrl,
         });
         
-        // Track the share in Firestore if not already logged
         if (user && db && id && !isShared) {
           const globalStatsRef = doc(db, "websiteStats", id as string);
           await setDoc(shareDocRef!, { sharedAt: serverTimestamp() });
           await updateDoc(globalStatsRef, { shareCount: increment(1) });
         }
       } else {
-        // Fallback for browsers without Web Share API
         await navigator.clipboard.writeText(shareUrl);
         toast({ title: "Copied!", description: "Discovery link copied to clipboard." });
         
@@ -200,7 +199,6 @@ export default function WebsiteDetail() {
       }
     } catch (e) {
       if ((e as Error).name !== 'AbortError') {
-        // Silent fallback for cancel, toast for errors
         await navigator.clipboard.writeText(shareUrl);
         toast({ title: "Copied!", description: "Discovery link copied to clipboard." });
       }
@@ -209,7 +207,16 @@ export default function WebsiteDetail() {
 
   const submitReview = async () => {
     if (!user || !db || !id || !reviewText.trim()) return;
-    toast({ title: "Review Submitted", description: "Thank you for your feedback!" });
+    
+    const reviewData = {
+      text: reviewText,
+      rating: rating,
+      timestamp: new Date(),
+      userName: user.displayName || user.email?.split('@')[0] || "Curator"
+    };
+
+    setSubmittedReview(reviewData);
+    toast({ title: "Review Submitted", description: "Your feedback has been logged to the discovery node." });
     setReviewText("");
   };
 
@@ -313,6 +320,27 @@ export default function WebsiteDetail() {
                  <Button onClick={submitReview} disabled={!reviewText.trim()} className="h-14 px-10 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black italic uppercase">
                     Publish Ledger Entry
                  </Button>
+
+                 {submittedReview && (
+                   <div className="mt-8 pt-8 border-t border-white/5 space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                      <div className="flex items-center justify-between">
+                         <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black uppercase text-primary italic">Live Feed</span>
+                            <div className="w-1 h-1 rounded-full bg-primary animate-pulse" />
+                         </div>
+                         <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest">{submittedReview.timestamp.toLocaleDateString()}</span>
+                      </div>
+                      <div className="bg-white/[0.02] border border-white/5 p-6 rounded-2xl space-y-3">
+                         <div className="flex items-center gap-1">
+                            {[1,2,3,4,5].map(s => (
+                              <Star key={s} className={cn("w-4 h-4", submittedReview.rating >= s ? "text-amber-400 fill-amber-400" : "text-white/5")} />
+                            ))}
+                         </div>
+                         <p className="text-white font-medium italic text-sm leading-relaxed">"{submittedReview.text}"</p>
+                         <p className="text-[10px] font-black uppercase text-white/40 tracking-widest">— {submittedReview.userName}</p>
+                      </div>
+                   </div>
+                 )}
               </div>
            </Card>
         </section>

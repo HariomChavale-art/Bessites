@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Website } from "@/lib/mock-data";

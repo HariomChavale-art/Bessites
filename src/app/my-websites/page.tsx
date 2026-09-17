@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useMemo, useState } from "react";
@@ -117,10 +118,26 @@ export default function MyWebsitesPage() {
       });
   };
 
-  const handleShare = (id: string) => {
-    const url = `${window.location.origin}/website/${id}`;
-    navigator.clipboard.writeText(url);
-    toast({ title: "Copied!", description: "Public discovery link copied to clipboard." });
+  const handleShare = async (id: string, siteName: string) => {
+    const shareUrl = `${window.location.origin}/website/${id}`;
+    const shareTitle = `Discover ${siteName} on Bessites`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: shareTitle,
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({ title: "Copied!", description: "Public discovery link copied to clipboard." });
+      }
+    } catch (e) {
+      if ((e as Error).name !== 'AbortError') {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({ title: "Copied!", description: "Public discovery link copied to clipboard." });
+      }
+    }
   };
 
   const handleLogout = async () => {
@@ -231,6 +248,7 @@ export default function MyWebsitesPage() {
                       const siteStats = globalStats?.find(gs => gs.id === site.id);
                       const impact = siteStats?.visitCount || 0;
                       const likes = siteStats?.likeCount || 0;
+                      const siteName = site.websiteName || site.url.replace('https://', '').replace('www.', '').split('/')[0];
                       return (
                         <tr key={site.id} className="group hover:bg-white/[0.02] transition-colors">
                           <td className="p-8">
@@ -239,7 +257,7 @@ export default function MyWebsitesPage() {
                                 <WebsitePreview websiteUrl={site.url} fallbackUrl={site.logoUrl} alt={site.url} width={56} height={56} className="w-full h-full" />
                               </div>
                               <div className="min-w-0">
-                                <p className="text-sm font-black italic tracking-tighter text-white group-hover:text-primary transition-colors truncate">{site.url.replace('https://', '').replace('www.', '')}</p>
+                                <p className="text-sm font-black italic tracking-tighter text-white group-hover:text-primary transition-colors truncate">{siteName}</p>
                                 <p className="text-[10px] text-muted-foreground font-medium opacity-40 italic mt-0.5">{site.categories?.[0] || 'Web App'}</p>
                               </div>
                             </div>
@@ -257,7 +275,7 @@ export default function MyWebsitesPage() {
                           <td className="p-8">
                              <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button size="icon" variant="ghost" onClick={() => router.push(`/website/${site.id}`)} className="h-10 w-10 hover:bg-white/10 rounded-xl" title="View Public Page"><ExternalLink className="w-4 h-4" /></Button>
-                                <Button size="icon" variant="ghost" onClick={() => handleShare(site.id)} className="h-10 w-10 hover:bg-white/10 rounded-xl" title="Share Link"><Share2 className="w-4 h-4" /></Button>
+                                <Button size="icon" variant="ghost" onClick={() => handleShare(site.id, siteName)} className="h-10 w-10 hover:bg-white/10 rounded-xl" title="Share Link"><Share2 className="w-4 h-4" /></Button>
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
                                     <Button size="icon" variant="ghost" className="h-10 w-10 hover:bg-destructive/20 text-destructive rounded-xl" title="Delete Permanent"><Trash2 className="w-4 h-4" /></Button>

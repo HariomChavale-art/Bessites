@@ -40,7 +40,6 @@ export default function WebsiteDetail() {
   const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState(5);
   
-  // Stable random baselines: Visits (100-200), Others (10-50)
   const [baseStats, setBaseStats] = useState({
     visits: 0,
     likes: 0,
@@ -116,7 +115,6 @@ export default function WebsiteDetail() {
   const { data: shareData } = useDoc(shareDocRef);
   const isShared = !!shareData;
 
-  // Similar Websites Logic
   const similarWebsites = useMemo(() => {
     if (!dynamicWebsite) return [];
     return MOCK_WEBSITES.filter(w => 
@@ -126,6 +124,7 @@ export default function WebsiteDetail() {
   }, [dynamicWebsite, id]);
 
   const handleVisitClick = async () => {
+    if (!dynamicWebsite) return;
     if (!user || !db || !id) {
       window.open(dynamicWebsite.url, '_blank');
       return;
@@ -169,19 +168,43 @@ export default function WebsiteDetail() {
   };
 
   const handleShare = async () => {
-    if (!user || !db || !id) return;
-    const globalStatsRef = doc(db, "websiteStats", id as string);
+    if (!dynamicWebsite) return;
+    const shareUrl = window.location.href;
+    const shareTitle = `${dynamicWebsite.name || 'Bessites Discovery'}`;
+    const shareText = `Check out this tool on Bessites: ${dynamicWebsite.description || ''}`;
+
     try {
-      if (isShared) {
-        await deleteDoc(shareDocRef!);
-        await updateDoc(globalStatsRef, { shareCount: increment(-1) });
+      if (navigator.share) {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        });
+        
+        // Track the share in Firestore if not already logged
+        if (user && db && id && !isShared) {
+          const globalStatsRef = doc(db, "websiteStats", id as string);
+          await setDoc(shareDocRef!, { sharedAt: serverTimestamp() });
+          await updateDoc(globalStatsRef, { shareCount: increment(1) });
+        }
       } else {
-        await setDoc(shareDocRef!, { sharedAt: serverTimestamp() });
-        await updateDoc(globalStatsRef, { shareCount: increment(1) });
-        navigator.clipboard.writeText(window.location.href);
-        toast({ title: "Copied!", description: "Link copied to clipboard." });
+        // Fallback for browsers without Web Share API
+        await navigator.clipboard.writeText(shareUrl);
+        toast({ title: "Copied!", description: "Discovery link copied to clipboard." });
+        
+        if (user && db && id && !isShared) {
+          const globalStatsRef = doc(db, "websiteStats", id as string);
+          await setDoc(shareDocRef!, { sharedAt: serverTimestamp() });
+          await updateDoc(globalStatsRef, { shareCount: increment(1) });
+        }
       }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      if ((e as Error).name !== 'AbortError') {
+        // Silent fallback for cancel, toast for errors
+        await navigator.clipboard.writeText(shareUrl);
+        toast({ title: "Copied!", description: "Discovery link copied to clipboard." });
+      }
+    }
   };
 
   const submitReview = async () => {
@@ -199,6 +222,7 @@ export default function WebsiteDetail() {
   const displayShares = baseStats.shares + (isShared ? 1 : 0);
 
   const brandName = dynamicWebsite.websiteName || dynamicWebsite.name;
+  const fullName = dynamicWebsite.name || brandName;
   const description = dynamicWebsite.description || dynamicWebsite.longDescription || "Digital Asset";
 
   return (
@@ -206,7 +230,6 @@ export default function WebsiteDetail() {
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-5xl px-4 py-12 space-y-16">
-        {/* Header Section */}
         <div className="flex flex-col md:flex-row gap-10 items-start">
           <div className="w-24 h-24 sm:w-40 sm:h-40 rounded-[2rem] bg-[#1a1a24] border border-white/10 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center p-4">
             <WebsitePreview 
@@ -219,7 +242,7 @@ export default function WebsiteDetail() {
           <div className="flex-1 min-w-0 space-y-4">
             <div className="space-y-1">
               <h1 className="text-4xl sm:text-6xl font-bold text-white tracking-tighter uppercase leading-tight">
-                {brandName}
+                {fullName}
               </h1>
               <div className="flex items-center gap-3 mt-4">
                 <span className="text-xs sm:text-sm text-primary font-black uppercase tracking-[0.3em] italic px-3 py-1 bg-primary/10 rounded-md">Verified Node Asset</span>
@@ -234,7 +257,6 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Content & Actions Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           <div className="xl:col-span-3 space-y-8">
             <Card className="bg-[#121117] border-white/5 p-8 rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden">
@@ -264,7 +286,6 @@ export default function WebsiteDetail() {
           </div>
         </div>
 
-        {/* Reviews Section */}
         <section className="space-y-8">
            <div className="flex items-center gap-4">
               <div className="p-3 rounded-2xl bg-primary/10 text-primary">
@@ -296,7 +317,6 @@ export default function WebsiteDetail() {
            </Card>
         </section>
 
-        {/* Similar Websites Section */}
         <section className="space-y-10">
            <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">

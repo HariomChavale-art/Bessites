@@ -7,10 +7,9 @@ import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useDoc, useUser, useFirestore, useCollection } from "@/firebase";
-import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc, collection, query, where, limit } from "firebase/firestore";
+import { useDoc, useUser, useFirestore } from "@/firebase";
+import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc } from "firebase/firestore";
 import { 
   Globe, 
   Loader2,
@@ -314,8 +313,8 @@ export default function WebsiteDetail() {
            </div>
 
            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {similarWebsites.map((site) => (
-                <WebsiteCard key={site.id} website={site} />
+              {similarWebsites.map((site, idx) => (
+                <WebsiteCard key={site.id} website={site} index={idx} />
               ))}
               {similarWebsites.length === 0 && (
                 <div className="col-span-full py-20 text-center border-2 border-dashed border-white/5 rounded-[3rem] bg-white/[0.02]">

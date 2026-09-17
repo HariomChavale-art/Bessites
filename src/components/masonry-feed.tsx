@@ -1,9 +1,10 @@
+
 "use client"
 
 import { Website } from "@/lib/mock-data";
 import { WebsiteCard } from "./website-card";
 import { Button } from "./ui/button";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 
 interface MasonryFeedProps {
   initialWebsites: Website[];
@@ -40,8 +41,8 @@ export function MasonryFeed({ initialWebsites, hideEndMessage = false }: Masonry
   return (
     <div className="w-full">
       <div className="columns-2 md:columns-3 lg:columns-4 gap-3 sm:gap-6 p-2 sm:p-4">
-        {displayedWebsites.map((website) => (
-          <WebsiteCard key={website.id} website={website} />
+        {displayedWebsites.map((website, idx) => (
+          <WebsiteCard key={website.id} website={website} index={idx} />
         ))}
       </div>
       

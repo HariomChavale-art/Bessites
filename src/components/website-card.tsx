@@ -12,9 +12,10 @@ import { cn } from "@/lib/utils";
 
 interface WebsiteCardProps {
   website: Website;
+  index: number;
 }
 
-export function WebsiteCard({ website }: WebsiteCardProps) {
+export function WebsiteCard({ website, index }: WebsiteCardProps) {
   const db = useFirestore();
   
   const statsRef = useMemo(() => {
@@ -36,52 +37,92 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   const brandName = website.websiteName || website.name;
   const description = website.description || website.longDescription || "Discovery Asset";
   const domain = website.url.replace('https://', '').replace('www.', '').split('/')[0];
+  
+  const variant = index % 5;
+
+  // Shared inner content to keep variants clean
+  const CardContent = ({ colorClass }: { colorClass: string }) => (
+    <>
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="w-9 h-9 rounded-xl bg-[#1a1a24] border border-white/10 flex items-center justify-center overflow-hidden p-1.5 shrink-0 shadow-lg">
+          <WebsitePreview 
+            websiteId={website.id}
+            websiteUrl={website.url}
+            fallbackUrl={stats?.logoUrl || website.imageUrl}
+            alt={brandName}
+            width={64}
+            height={64}
+            className="w-full h-full object-contain rounded-lg"
+          />
+        </div>
+        
+        <span className={cn(
+          "px-2 py-0.5 text-[9px] font-black tracking-wider uppercase rounded-md border",
+          getPricingStyle(website.pricing)
+        )}>
+          {website.pricing}
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <h3 className={cn("text-[14px] font-bold text-white tracking-tight transition-colors", colorClass)}>
+          {brandName}
+        </h3>
+        <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed font-medium">
+          {description}
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.06] text-[9px] text-zinc-500 font-bold uppercase tracking-widest">
+        <span className="truncate max-w-[80%] font-mono">{domain}</span>
+        <ChevronRight className="w-3.5 h-3.5 text-zinc-500 group-hover:translate-x-0.5 transition-all" />
+      </div>
+    </>
+  );
 
   return (
     <Link 
       href={`/website/${website.id}`}
-      className="block break-inside-avoid mb-4 group"
+      className="block break-inside-avoid mb-4 group transition-transform active:scale-[0.98]"
     >
-      <div className="flex flex-col justify-between p-4 rounded-2xl bg-[#121218] border border-white/[0.08] hover:border-purple-500/40 active:scale-[0.98] transition-all duration-300 shadow-xl overflow-hidden">
-        
-        {/* Top Row: Compact Icon + Clean Badge */}
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-[#1a1a24] border border-white/10 flex items-center justify-center overflow-hidden p-1.5 shrink-0 shadow-lg">
-            <WebsitePreview 
-              websiteId={website.id}
-              websiteUrl={website.url}
-              fallbackUrl={stats?.logoUrl || website.imageUrl}
-              alt={brandName}
-              width={64}
-              height={64}
-              className="w-full h-full object-contain rounded-lg"
-            />
+      {variant === 0 && (
+        <div className="relative p-5 bg-[#111118]/90 backdrop-blur-sm border border-blue-500/20 group-hover:border-blue-400 transition-all duration-300 [clip-path:polygon(0_0,100%_6%,100%_100%,0_94%)]">
+          <CardContent colorClass="group-hover:text-blue-300" />
+        </div>
+      )}
+
+      {variant === 1 && (
+        <div className="relative p-5 bg-[#13131c]/90 backdrop-blur-sm border border-purple-500/20 group-hover:border-purple-400 transition-all duration-300 [clip-path:polygon(0_6%,100%_0,100%_94%,0_100%)]">
+          <CardContent colorClass="group-hover:text-purple-300" />
+        </div>
+      )}
+
+      {variant === 2 && (
+        <div className="relative p-5 pt-8 bg-[#0e0e16]/90 backdrop-blur-sm border border-cyan-500/20 group-hover:border-cyan-400 transition-all duration-300 rounded-2xl mt-4">
+          <div className="absolute -top-4 right-4 w-11 h-11 rounded-full bg-[#151522] border-2 border-cyan-400/40 shadow-lg flex items-center justify-center overflow-hidden p-1.5 z-10 group-hover:scale-110 transition-transform">
+             <WebsitePreview 
+                websiteId={website.id}
+                websiteUrl={website.url}
+                fallbackUrl={stats?.logoUrl || website.imageUrl}
+                alt={brandName}
+                className="w-full h-full object-contain rounded-full"
+              />
           </div>
-          
-          <span className={cn(
-            "px-2 py-0.5 text-[9px] font-black tracking-wider uppercase rounded-md border",
-            getPricingStyle(website.pricing)
-          )}>
-            {website.pricing}
-          </span>
+          <CardContent colorClass="group-hover:text-cyan-300" />
         </div>
+      )}
 
-        {/* Middle: Clean Title & Pitch */}
-        <div className="flex flex-col gap-1">
-          <h3 className="text-[14px] font-bold text-white tracking-tight group-hover:text-purple-300 transition-colors">
-            {brandName}
-          </h3>
-          <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed font-medium">
-            {description}
-          </p>
+      {variant === 3 && (
+        <div className="relative p-5 bg-[#14141f]/90 backdrop-blur-sm border border-pink-500/20 group-hover:border-pink-400 transition-all duration-300 [clip-path:polygon(16px_0%,100%_0%,100%_calc(100%-16px),calc(100%-16px)_100%,0%_100%,0%_16px)]">
+          <CardContent colorClass="group-hover:text-pink-300" />
         </div>
+      )}
 
-        {/* Bottom Row: Domain + Arrow */}
-        <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.06] text-[9px] text-zinc-500 font-bold uppercase tracking-widest">
-          <span className="truncate max-w-[80%]">{domain}</span>
-          <ChevronRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-purple-400 group-hover:translate-x-0.5 transition-all" />
+      {variant === 4 && (
+        <div className="relative p-5 bg-[#101017]/90 backdrop-blur-sm border border-emerald-500/20 group-hover:border-emerald-400 transition-all duration-300 [clip-path:polygon(0_0,100%_0,100%_85%,90%_85%,90%_100%,0_100%)]">
+          <CardContent colorClass="group-hover:text-emerald-300" />
         </div>
-      </div>
+      )}
     </Link>
   );
 }

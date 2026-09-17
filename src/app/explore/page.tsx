@@ -8,9 +8,7 @@ import {
   Search, 
   TrendingUp, 
   X, 
-  Tag, 
   LayoutGrid,
-  ExternalLink,
   ChevronRight
 } from "lucide-react";
 import Link from "next/link";
@@ -169,7 +167,7 @@ function ExploreItemRow({ app }: { app: any }) {
       href={`/website/${app.id}`}
       className="group relative block"
     >
-      <div className="flex flex-col md:flex-row items-center gap-6 p-5 rounded-[2.5rem] bg-[#121218] border border-white/[0.08] hover:border-purple-500/40 transition-all duration-500 overflow-hidden">
+      <div className="flex flex-col md:flex-row items-center gap-6 p-5 rounded-[2.5rem] bg-[#121218] border border-white/[0.08] hover:border-purple-500/40 transition-all duration-500 overflow-hidden shadow-xl">
         
         <div className="w-16 h-16 rounded-2xl bg-[#1a1a24] border border-white/10 flex items-center justify-center p-2 shrink-0 shadow-lg group-hover:scale-105 transition-transform">
           <WebsitePreview 

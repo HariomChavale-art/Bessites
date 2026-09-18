@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
@@ -129,7 +128,7 @@ export default function Home() {
       
       <main className="flex-1">
         <section className="container mx-auto px-4 mt-8 sm:mt-12 mb-12">
-          <div className="relative w-full max-w-6xl mx-auto h-[200px] sm:h-[400px] md:h-[500px] flex items-center justify-center">
+          <div className="relative w-full max-w-6xl mx-auto aspect-[16/7] sm:aspect-[21/9] flex items-center justify-center">
             <div className="absolute inset-0 flex items-center justify-center">
               <img 
                 src="https://i.imgur.com/9wYu3Sc.png" 
@@ -141,10 +140,10 @@ export default function Home() {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-full h-full relative">
                 <div className="absolute left-[9.5%] top-[48.5%] -translate-y-1/2 w-[21%] flex items-center justify-center">
-                  <h1 className="text-[10px] sm:text-2xl md:text-3xl lg:text-4xl font-black italic uppercase tracking-tighter text-white leading-none drop-shadow-lg">WEBSITE</h1>
+                  <h1 className="text-[1.5vw] sm:text-2xl md:text-3xl lg:text-4xl font-black italic uppercase tracking-tighter text-white leading-none drop-shadow-lg">WEBSITE</h1>
                 </div>
                 <div className="absolute left-[36%] sm:left-[34%] top-[48.5%] -translate-y-1/2 w-[55%] flex items-center justify-start pl-[2%]">
-                  <h1 className="text-xs sm:text-4xl md:text-7xl lg:text-8xl font-black italic uppercase tracking-tighter text-primary leading-none drop-shadow-2xl">INCOMING</h1>
+                  <h1 className="text-[4vw] sm:text-4xl md:text-7xl lg:text-8xl font-black italic uppercase tracking-tighter text-primary leading-none drop-shadow-2xl">INCOMING</h1>
                 </div>
               </div>
             </div>

@@ -67,12 +67,12 @@ export function Navigation() {
         
         <div className="flex flex-col items-start gap-1 shrink-0">
           <Link href="/" className="group">
-            <Logo className="text-2xl sm:text-4xl transition-transform group-hover:scale-105" />
+            <Logo className="text-xl sm:text-4xl transition-transform group-hover:scale-105" />
           </Link>
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="w-10 h-8 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-all flex items-center justify-center">
-                <Menu className="w-6 h-6 text-white" />
+              <Button variant="ghost" size="icon" className="w-9 h-7 sm:w-10 sm:h-8 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-all flex items-center justify-center">
+                <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="bg-[#0B0A0F] border-r border-white/5 p-0 w-80 overflow-hidden shadow-[20px_0_50px_rgba(123,51,255,0.1)]">
@@ -120,12 +120,12 @@ export function Navigation() {
           flex-1 min-w-0 max-w-2xl
           animate-in fade-in slide-in-from-top-2 duration-700 transition-all group hover:bg-white/10 overflow-hidden">
           <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0 group-hover:scale-110 transition-transform" />
-          <span className="text-[10px] sm:text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider whitespace-normal leading-tight text-center flex-1">
+          <span className="text-[10px] sm:text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider whitespace-normal leading-tight text-center flex-1 line-clamp-2">
             {SUGGESTIONS[suggestionIdx]}
           </span>
         </div>
 
-        <div className="w-10 h-10 hidden md:block shrink-0" />
+        <div className="w-4 h-4 hidden md:block shrink-0" />
       </div>
     </nav>
   );

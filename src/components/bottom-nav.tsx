@@ -31,7 +31,7 @@ export function BottomNav() {
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-fit px-4">
-      <nav className="bg-card/90 backdrop-blur-2xl border border-white/10 rounded-full px-8 py-3 flex items-center gap-8 sm:gap-10 shadow-2xl ring-1 ring-black/20">
+      <nav className="bg-card/90 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-3 sm:px-8 flex items-center gap-6 sm:gap-10 shadow-2xl ring-1 ring-black/20">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -48,10 +48,10 @@ export function BottomNav() {
               )}
             >
               <Icon className={cn(
-                "w-6 h-6", 
+                "w-5 h-5 sm:w-6 sm:h-6", 
                 isActive && "fill-primary/20"
               )} />
-              <span className="text-[10px] font-bold uppercase tracking-wider">
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
                 {item.label}
               </span>
             </Link>

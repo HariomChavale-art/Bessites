@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useParams } from "next/navigation";
@@ -236,9 +235,9 @@ export default function WebsiteDetail() {
     <div className="min-h-screen flex flex-col bg-background pb-32">
       <Navigation />
       
-      <main className="flex-1 container mx-auto max-w-5xl px-4 py-12 space-y-16">
-        <div className="flex flex-col md:flex-row gap-10 items-start">
-          <div className="w-24 h-24 sm:w-40 sm:h-40 rounded-[2rem] bg-[#1a1a24] border border-white/10 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center p-4">
+      <main className="flex-1 container mx-auto max-w-5xl px-4 py-8 sm:py-12 space-y-16">
+        <div className="flex flex-col md:flex-row gap-8 sm:gap-10 items-start">
+          <div className="w-20 h-20 sm:w-40 sm:h-40 rounded-[1.5rem] sm:rounded-[2rem] bg-[#1a1a24] border border-white/10 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center p-3 sm:p-4">
             <WebsitePreview 
               websiteUrl={dynamicWebsite.url}
               fallbackUrl={dynamicWebsite.logoUrl || dynamicWebsite.imageUrl}
@@ -248,27 +247,27 @@ export default function WebsiteDetail() {
           </div>
           <div className="flex-1 min-w-0 space-y-4">
             <div className="space-y-1">
-              <h1 className="text-4xl sm:text-6xl font-bold text-white tracking-tighter uppercase leading-tight">
+              <h1 className="text-3xl sm:text-6xl font-bold text-white tracking-tighter uppercase leading-tight break-words hyphens-auto">
                 {fullName}
               </h1>
               <div className="flex items-center gap-3 mt-4">
-                <span className="text-xs sm:text-sm text-primary font-black uppercase tracking-[0.3em] italic px-3 py-1 bg-primary/10 rounded-md">Verified Node Asset</span>
+                <span className="text-[10px] sm:text-sm text-primary font-black uppercase tracking-[0.3em] italic px-3 py-1 bg-primary/10 rounded-md">Verified Node Asset</span>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-4">
-              <p className="text-zinc-400 font-bold text-lg flex items-center gap-2 italic">
-                <Globe className="w-4 h-4" /> {dynamicWebsite.url.replace('https://', '').replace('www.', '').split('/')[0]}
+              <p className="text-zinc-400 font-bold text-sm sm:text-lg flex items-center gap-2 italic truncate">
+                <Globe className="w-3.5 h-3.5 sm:w-4 h-4" /> {dynamicWebsite.url.replace('https://', '').replace('www.', '').split('/')[0]}
               </p>
-              <Badge variant="outline" className="border-white/10 bg-white/5 text-[10px] font-black uppercase italic">{dynamicWebsite.pricing || 'Free'}</Badge>
+              <Badge variant="outline" className="border-white/10 bg-white/5 text-[9px] sm:text-[10px] font-black uppercase italic">{dynamicWebsite.pricing || 'Free'}</Badge>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           <div className="xl:col-span-3 space-y-8">
-            <Card className="bg-[#121117] border-white/5 p-8 rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden">
-              <h2 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] border-b border-white/5 pb-4">Discovery / Documentation</h2>
-              <p className="text-xl sm:text-2xl text-white font-medium leading-relaxed italic tracking-tight">
+            <Card className="bg-[#121117] border-white/5 p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden">
+              <h2 className="text-[9px] sm:text-[10px] font-black text-white/30 uppercase tracking-[0.3em] border-b border-white/5 pb-4">Discovery / Documentation</h2>
+              <p className="text-lg sm:text-2xl text-white font-medium leading-relaxed italic tracking-tight">
                 {description}
               </p>
             </Card>
@@ -282,13 +281,13 @@ export default function WebsiteDetail() {
           </div>
 
           <div className="space-y-4">
-            <Button onClick={handleVisitClick} className="w-full h-24 rounded-[2.5rem] bg-white text-black hover:bg-white/90 text-2xl font-black italic gap-4 shadow-2xl">
-              <Globe className="w-8 h-8" /> VISIT WEBSITE
+            <Button onClick={handleVisitClick} className="w-full h-20 sm:h-24 rounded-[1.5rem] sm:rounded-[2.5rem] bg-white text-black hover:bg-white/90 text-xl sm:text-2xl font-black italic gap-4 shadow-2xl">
+              <Globe className="w-6 h-6 sm:w-8 sm:h-8" /> VISIT WEBSITE
             </Button>
             <div className="grid grid-cols-3 gap-3">
-              <Button variant="outline" onClick={handleLike} className={cn("h-20 rounded-[2rem] bg-white/5 border-white/5", isLiked && "text-rose-500")}><Heart className={cn("w-6 h-6", isLiked && "fill-current")} /></Button>
-              <Button variant="outline" onClick={handleSave} className={cn("h-20 rounded-[2rem] bg-white/5 border-white/5", isSaved && "text-amber-500")}><Bookmark className={cn("w-6 h-6", isSaved && "fill-current")} /></Button>
-              <Button variant="outline" onClick={handleShare} className={cn("h-20 rounded-[2rem] bg-white/5 border-white/5", isShared && "text-emerald-500")}><Share2 className={cn("w-6 h-6", isShared && "fill-current")} /></Button>
+              <Button variant="outline" onClick={handleLike} className={cn("h-16 sm:h-20 rounded-[1.5rem] sm:rounded-[2rem] bg-white/5 border-white/5", isLiked && "text-rose-500")}><Heart className={cn("w-5 h-5 sm:w-6 sm:h-6", isLiked && "fill-current")} /></Button>
+              <Button variant="outline" onClick={handleSave} className={cn("h-16 sm:h-20 rounded-[1.5rem] sm:rounded-[2rem] bg-white/5 border-white/5", isSaved && "text-amber-500")}><Bookmark className={cn("w-5 h-5 sm:w-6 sm:h-6", isSaved && "fill-current")} /></Button>
+              <Button variant="outline" onClick={handleShare} className={cn("h-16 sm:h-20 rounded-[1.5rem] sm:rounded-[2rem] bg-white/5 border-white/5", isShared && "text-emerald-500")}><Share2 className={cn("w-5 h-5 sm:w-6 sm:h-6", isShared && "fill-current")} /></Button>
             </div>
           </div>
         </div>
@@ -296,28 +295,28 @@ export default function WebsiteDetail() {
         <section className="space-y-8">
            <div className="flex items-center gap-4">
               <div className="p-3 rounded-2xl bg-primary/10 text-primary">
-                 <MessageSquare className="w-6 h-6" />
+                 <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Community Feedback</h2>
+              <h2 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter text-white">Community Feedback</h2>
            </div>
 
-           <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] space-y-8">
+           <Card className="bg-[#121117] border-white/5 p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] space-y-8">
               <div className="space-y-6">
                  <div className="flex items-center gap-2">
                     {[1,2,3,4,5].map(s => (
                       <button key={s} onClick={() => setRating(s)}>
-                         <Star className={cn("w-8 h-8 transition-colors", rating >= s ? "text-amber-400 fill-amber-400" : "text-white/10")} />
+                         <Star className={cn("w-6 h-6 sm:w-8 sm:h-8 transition-colors", rating >= s ? "text-amber-400 fill-amber-400" : "text-white/10")} />
                       </button>
                     ))}
-                    <span className="ml-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Identify Experience</span>
+                    <span className="ml-4 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Identify Experience</span>
                  </div>
                  <Textarea 
                    value={reviewText}
                    onChange={(e) => setReviewText(e.target.value)}
                    placeholder="Publish your discovery insight..." 
-                   className="bg-white/[0.03] border-white/10 rounded-2xl min-h-[120px] p-6 text-sm font-medium italic"
+                   className="bg-white/[0.03] border-white/10 rounded-2xl min-h-[120px] p-4 sm:p-6 text-sm font-medium italic"
                  />
-                 <Button onClick={submitReview} disabled={!reviewText.trim()} className="h-14 px-10 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black italic uppercase">
+                 <Button onClick={submitReview} disabled={!reviewText.trim()} className="h-12 sm:h-14 px-8 sm:px-10 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black italic uppercase text-xs sm:text-base">
                     Publish Ledger Entry
                  </Button>
 
@@ -325,19 +324,19 @@ export default function WebsiteDetail() {
                    <div className="mt-8 pt-8 border-t border-white/5 space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
                       <div className="flex items-center justify-between">
                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black uppercase text-primary italic">Live Feed</span>
+                            <span className="text-[9px] sm:text-[10px] font-black uppercase text-primary italic">Live Feed</span>
                             <div className="w-1 h-1 rounded-full bg-primary animate-pulse" />
                          </div>
-                         <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest">{submittedReview.timestamp.toLocaleDateString()}</span>
+                         <span className="text-[8px] sm:text-[9px] font-bold text-white/20 uppercase tracking-widest">{submittedReview.timestamp.toLocaleDateString()}</span>
                       </div>
-                      <div className="bg-white/[0.02] border border-white/5 p-6 rounded-2xl space-y-3">
+                      <div className="bg-white/[0.02] border border-white/5 p-4 sm:p-6 rounded-2xl space-y-3">
                          <div className="flex items-center gap-1">
                             {[1,2,3,4,5].map(s => (
-                              <Star key={s} className={cn("w-4 h-4", submittedReview.rating >= s ? "text-amber-400 fill-amber-400" : "text-white/5")} />
+                              <Star key={s} className={cn("w-3.5 h-3.5 sm:w-4 sm:h-4", submittedReview.rating >= s ? "text-amber-400 fill-amber-400" : "text-white/5")} />
                             ))}
                          </div>
-                         <p className="text-white font-medium italic text-sm leading-relaxed">"{submittedReview.text}"</p>
-                         <p className="text-[10px] font-black uppercase text-white/40 tracking-widest">— {submittedReview.userName}</p>
+                         <p className="text-white font-medium italic text-xs sm:text-sm leading-relaxed">"{submittedReview.text}"</p>
+                         <p className="text-[9px] sm:text-[10px] font-black uppercase text-white/40 tracking-widest">— {submittedReview.userName}</p>
                       </div>
                    </div>
                  )}
@@ -349,12 +348,12 @@ export default function WebsiteDetail() {
            <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                  <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400">
-                    <Sparkles className="w-6 h-6" />
+                    <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
                  </div>
-                 <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Similar Nodes</h2>
+                 <h2 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter text-white">Similar Nodes</h2>
               </div>
               <Link href="/explore">
-                 <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 gap-2 italic">
+                 <Button variant="ghost" className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 gap-2 italic">
                     Explore Node <ArrowRight className="w-3.5 h-3.5" />
                  </Button>
               </Link>
@@ -365,8 +364,8 @@ export default function WebsiteDetail() {
                 <WebsiteCard key={site.id} website={site} index={idx} />
               ))}
               {similarWebsites.length === 0 && (
-                <div className="col-span-full py-20 text-center border-2 border-dashed border-white/5 rounded-[3rem] bg-white/[0.02]">
-                   <p className="text-muted-foreground italic font-medium opacity-20 uppercase tracking-widest">No similar assets found in this node.</p>
+                <div className="col-span-full py-20 text-center border-2 border-dashed border-white/5 rounded-[2rem] sm:rounded-[3rem] bg-white/[0.02]">
+                   <p className="text-muted-foreground italic font-medium opacity-20 uppercase tracking-widest text-xs">No similar assets found in this node.</p>
                 </div>
               )}
            </div>
@@ -378,10 +377,10 @@ export default function WebsiteDetail() {
 
 function MetricBox({ label, value, icon: Icon, color }: { label: string, value: number, icon: any, color: string }) {
   return (
-    <div className="bg-white/[0.03] border border-white/5 p-6 rounded-[2rem] text-center space-y-1 relative overflow-hidden group">
-      <Icon className={cn("w-12 h-12 absolute -right-2 -bottom-2 opacity-5 rotate-12 transition-transform group-hover:scale-125", color)} />
-      <p className="text-[9px] font-black uppercase text-muted-foreground/40 tracking-[0.2em]">{label}</p>
-      <h4 className={cn("text-3xl font-bold italic tracking-tighter", color)}>{value.toLocaleString()}</h4>
+    <div className="bg-white/[0.03] border border-white/5 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] text-center space-y-1 relative overflow-hidden group">
+      <Icon className={cn("w-10 h-10 sm:w-12 sm:h-12 absolute -right-2 -bottom-2 opacity-5 rotate-12 transition-transform group-hover:scale-125", color)} />
+      <p className="text-[8px] sm:text-[9px] font-black uppercase text-muted-foreground/40 tracking-[0.2em]">{label}</p>
+      <h4 className={cn("text-2xl sm:text-3xl font-bold italic tracking-tighter", color)}>{value.toLocaleString()}</h4>
     </div>
   );
 }

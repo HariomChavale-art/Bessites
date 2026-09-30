@@ -12,7 +12,6 @@ import {
   Loader2, 
   Search, 
   X, 
-  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -35,7 +34,6 @@ export default function OnboardingPage() {
   const [selected, setSelected] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [visibleCount, setVisibleCount] = useState(20);
 
   useEffect(() => {
     if (!userLoading && !user) {
@@ -69,11 +67,6 @@ export default function OnboardingPage() {
     );
   }, [searchQuery, sortedInterests]);
 
-  const displayedInterests = useMemo(() => {
-    if (searchQuery.trim()) return filteredInterests;
-    return filteredInterests.slice(0, visibleCount);
-  }, [filteredInterests, visibleCount, searchQuery]);
-
   const toggleInterest = (id: string) => {
     setSelected(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
@@ -106,10 +99,6 @@ export default function OnboardingPage() {
       });
   };
 
-  const loadMore = () => {
-    setVisibleCount(prev => Math.min(prev + 20, 100));
-  };
-
   if (userLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -128,19 +117,16 @@ export default function OnboardingPage() {
             {isExistingUser ? "Discovery" : "Welcome to"} <span className="text-secondary">BES</span><span className="text-primary">SITES</span>
           </h1>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium">
-            Pick at least <span className="text-white font-bold underline decoration-primary underline-offset-4">3 interests</span> to personalize your discovery feed.
+            Pick at least <span className="text-white font-bold underline decoration-primary underline-offset-4">3 interests</span> from our 100-node registry.
           </p>
         </div>
 
         <div className="relative max-w-md mx-auto group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
-            placeholder="Search 100 premium interests..." 
+            placeholder="Search the 100-interest node..." 
             value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setVisibleCount(20);
-            }}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-lg font-bold focus:ring-primary shadow-xl"
           />
           {searchQuery && (
@@ -152,7 +138,7 @@ export default function OnboardingPage() {
 
         <div className="relative pb-24">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-            {displayedInterests.length > 0 ? displayedInterests.map((interest) => {
+            {filteredInterests.length > 0 ? filteredInterests.map((interest) => {
               const isSelected = selected.includes(interest.name);
               const Icon = interest.icon;
               const sector = BROAD_CATEGORIES.find(b => b.id === interest.group);
@@ -189,25 +175,10 @@ export default function OnboardingPage() {
               );
             }) : (
               <div className="col-span-full py-12 text-center text-muted-foreground italic font-medium opacity-40">
-                No interests match your search.
+                No nodes match your discovery query.
               </div>
             )}
           </div>
-
-          {!searchQuery && visibleCount < filteredInterests.length && (
-            <div className="absolute bottom-[-40px] left-0 right-0 flex flex-col items-center pointer-events-none z-20">
-               <div className="w-full h-32 bg-gradient-to-t from-background via-background/80 to-transparent mb-4" />
-               <button 
-                 onClick={loadMore}
-                 className="group pointer-events-auto flex flex-col items-center gap-2 cursor-pointer transition-transform active:scale-90"
-               >
-                 <div className="p-4 rounded-full bg-[#121117] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl group-hover:border-primary/50 group-hover:bg-primary/5 transition-all">
-                   <ChevronDown className="w-8 h-8 text-primary group-hover:scale-110 transition-transform" strokeWidth={3} />
-                 </div>
-                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary opacity-60 group-hover:opacity-100 transition-opacity">Reveal More Interests</span>
-               </button>
-            </div>
-          )}
         </div>
 
         <div className="pt-24 pb-16 w-full flex justify-center">

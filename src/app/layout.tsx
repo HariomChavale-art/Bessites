@@ -1,3 +1,4 @@
+
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
@@ -18,8 +19,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Bessites | Global Discovery',
-  description: 'A professional directory for modern webs and digital tools. Zero duplication, zero padding.',
+  title: 'Bessites | Absolute Discovery Engine',
+  description: 'The premier professional directory for modern webs and digital tools. Zero duplication, zero padding, absolute discovery.',
   metadataBase: new URL('https://bessites.store'),
   icons: {
     icon: [
@@ -29,8 +30,8 @@ export const metadata: Metadata = {
     apple: 'https://i.imgur.com/3STBHNy.png',
   },
   openGraph: {
-    title: 'Bessites | Global Discovery',
-    description: 'A professional directory for modern webs and digital tools.',
+    title: 'Bessites | Absolute Discovery Engine',
+    description: 'The most diverse directory for modern webs and curated digital resources.',
     url: 'https://bessites.store',
     siteName: 'Bessites',
     images: [
@@ -44,13 +45,6 @@ export const metadata: Metadata = {
     locale: 'en_US',
     type: 'website',
   },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Bessites | Global Discovery',
-    description: 'A professional directory for modern webs and digital tools.',
-    images: ['https://i.imgur.com/3STBHNy.png'],
-    creator: '@bessites',
-  },
 };
 
 export default function RootLayout({
@@ -61,8 +55,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6811475243465738"
-     crossorigin="anonymous"></script>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6811475243465738" crossOrigin="anonymous"></script>
         <link rel="icon" type="image/png" href="https://i.imgur.com/3STBHNy.png" />
         <link rel="shortcut icon" href="https://i.imgur.com/3STBHNy.png" />
         <link rel="apple-touch-icon" href="https://i.imgur.com/3STBHNy.png" />

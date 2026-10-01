@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
@@ -5,7 +6,7 @@ import { Navigation } from "@/components/navigation";
 import { MasonryFeed } from "@/components/masonry-feed";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, TrendingUp, Clock, Loader2 } from "lucide-react";
+import { Sparkles, TrendingUp, Clock, Loader2, ShieldCheck, Globe, Zap, Heart } from "lucide-react";
 import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -164,20 +165,82 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="container mx-auto px-2">
+        <section className="container mx-auto px-2 mb-24">
           <MasonryFeed key={activeTab + userBroadInterests.join(',') + filteredWebsites.length} initialWebsites={filteredWebsites} hideEndMessage={true} />
+        </section>
+
+        {/* AdSense Compliance Content Section */}
+        <section className="container mx-auto px-4 py-20 border-t border-white/5">
+          <div className="max-w-4xl mx-auto space-y-12">
+            <div className="text-center space-y-4">
+              <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Absolute <span className="text-primary">Discovery</span> Pipeline</h2>
+              <p className="text-muted-foreground text-lg">Uncovering the 1% of the modern web through human-centric curation.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <div className="space-y-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5">
+                <div className="flex items-center gap-3 text-primary">
+                  <Globe className="w-6 h-6" />
+                  <h3 className="text-xl font-bold uppercase italic">A Global Registry</h3>
+                </div>
+                <p className="text-muted-foreground leading-relaxed">
+                  Bessites operates as a premier digital directory, meticulously archiving over 100 high-impact interests across the web. Our mission is to solve the problem of "Low Value Content" by providing real, functional, and verified resources to developers, designers, and digital builders. Every asset in our node is manually reviewed to ensure it meets our "Zero Padding" standards.
+                </p>
+              </div>
+
+              <div className="space-y-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5">
+                <div className="flex items-center gap-3 text-primary">
+                  <ShieldCheck className="w-6 h-6" />
+                  <h3 className="text-xl font-bold uppercase italic">Verified Node Assets</h3>
+                </div>
+                <p className="text-muted-foreground leading-relaxed">
+                  Unlike automated search engines, Bessites prioritizes human intelligence. We believe discovery should be an intentional process, not a byproduct of an algorithm. Our interaction ledgers and community feedback nodes provide a layer of trust that automated tools can't replicate. When you discover an asset here, you are accessing the definitive version of that tool.
+                </p>
+              </div>
+
+              <div className="space-y-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5">
+                <div className="flex items-center gap-3 text-primary">
+                  <Zap className="w-6 h-6" />
+                  <h3 className="text-xl font-bold uppercase italic">High-Velocity Growth</h3>
+                </div>
+                <p className="text-muted-foreground leading-relaxed">
+                  The internet moves at an exponential pace. Bessites is built on a high-velocity framework that synchronizes new tool launches, experimental web art, and enterprise-grade software daily. Our categorized sectors—from AI Image Generation to Quantitative Trading—allow users to pivot through the internet's most productive corners with just a few clicks.
+                </p>
+              </div>
+
+              <div className="space-y-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5">
+                <div className="flex items-center gap-3 text-primary">
+                  <Heart className="w-6 h-6" />
+                  <h3 className="text-xl font-bold uppercase italic">The Creator Suite</h3>
+                </div>
+                <p className="text-muted-foreground leading-relaxed">
+                  Bessites isn't just for discovery; it's a launchpad for creators. Our Creator Hub allows developers to submit their digital properties directly to our global ad-boost pipeline. By leveraging our verified audience, emerging tools can achieve "Absolute Discovery" and build a loyal user base within our professional tech-noir community.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-10 text-center">
+              <p className="text-muted-foreground italic text-sm max-w-2xl mx-auto">
+                Discover curated tools and apps updated every 24 hours. No duplication, no padding—only the high-fidelity web tools that empower your digital life.
+              </p>
+            </div>
+          </div>
         </section>
       </main>
 
       <footer className="bg-card/50 border-t border-white/5 py-16">
-        <div className="container mx-auto px-4 text-center space-y-6">
+        <div className="container mx-auto px-4 text-center space-y-8">
           <div className="flex flex-wrap justify-center gap-8 text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/40 italic">
             <a href="/about" className="hover:text-primary transition-colors">About Us</a>
             <a href="/contact" className="hover:text-primary transition-colors">Contact</a>
             <a href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</a>
             <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
           </div>
-          <p className="text-xs text-muted-foreground opacity-20 font-black uppercase tracking-widest">© 2024 Bessites Studio. Absolute Discovery.</p>
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground opacity-40 font-bold uppercase">Official Support Node</p>
+            <a href="mailto:bessitesofficial@gmail.com" className="text-sm font-black text-white hover:text-primary transition-colors tracking-widest">bessitesofficial@gmail.com</a>
+          </div>
+          <p className="text-xs text-muted-foreground opacity-20 font-black uppercase tracking-widest pt-8">© 2024 Bessites Studio. Absolute Discovery.</p>
         </div>
       </footer>
     </div>

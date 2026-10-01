@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Mail, MessageSquare, Send, MapPin } from "lucide-react";
+import { Mail, MessageSquare, Send, Clock, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,8 +20,8 @@ export default function ContactPage() {
     setTimeout(() => {
       setLoading(false);
       toast({
-        title: "Message Sent",
-        description: "Thank you for reaching out. We'll get back to you shortly.",
+        title: "Message Transmitted",
+        description: "Your inquiry has been received by our support node. We will reply within 24 hours.",
       });
     }, 1500);
   };
@@ -39,7 +39,7 @@ export default function ContactPage() {
                 Get In <span className="text-primary">Touch</span>
               </h1>
               <p className="text-xl text-muted-foreground font-medium">
-                Have a suggestion, a partnership idea, or found a bug? We're all ears.
+                Have a suggestion for our discovery engine, a partnership idea, or need technical support? Our team is standing by.
               </p>
             </div>
 
@@ -49,19 +49,24 @@ export default function ContactPage() {
                   <Mail className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-1">Email Us</p>
-                  <p className="text-lg font-bold text-white">contact@bessites.store</p>
+                  <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-1">Official Support</p>
+                  <p className="text-lg font-bold text-white">bessitesofficial@gmail.com</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-6 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
                 <div className="bg-primary/10 p-4 rounded-2xl text-primary">
-                  <MessageSquare className="w-6 h-6" />
+                  <Clock className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-1">Support</p>
-                  <p className="text-lg font-bold text-white">24/7 Response Time</p>
+                  <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-1">Response Time</p>
+                  <p className="text-lg font-bold text-white">Within 24 Hours</p>
                 </div>
+              </div>
+
+              <div className="flex items-center gap-4 px-2 py-4">
+                <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                <p className="text-sm text-muted-foreground italic">Your data is secured and will only be used to process your request.</p>
               </div>
             </div>
           </div>
@@ -79,9 +84,14 @@ export default function ContactPage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-white font-bold ml-1">Your Message</Label>
+                <Label className="text-white font-bold ml-1">Subject</Label>
+                <Input placeholder="Registry Suggestion / Support" className="bg-white/5 border-white/10 rounded-2xl h-14" required />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-white font-bold ml-1">Message Detail</Label>
                 <Textarea 
-                  placeholder="How can we help you?" 
+                  placeholder="How can we assist your discovery process today?" 
                   className="bg-white/5 border-white/10 rounded-2xl min-h-[150px] p-4" 
                   required 
                 />
@@ -92,7 +102,7 @@ export default function ContactPage() {
                 disabled={loading}
                 className="w-full h-16 bg-primary hover:bg-primary/90 text-white rounded-full text-xl font-black shadow-xl glow-primary"
               >
-                {loading ? "Sending..." : "SEND MESSAGE"}
+                {loading ? "TRANSMITTING..." : "SEND MESSAGE"}
                 {!loading && <Send className="w-5 h-5 ml-2" />}
               </Button>
             </form>
@@ -108,8 +118,11 @@ export default function ContactPage() {
             <a href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</a>
             <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
           </div>
+          <p className="text-xs text-muted-foreground opacity-50 mb-4">
+            Official Support: <a href="mailto:bessitesofficial@gmail.com" className="text-white hover:text-primary transition-colors">bessitesofficial@gmail.com</a>
+          </p>
           <p className="text-sm text-muted-foreground opacity-50">
-            © 2024 Bessites. Professional Discovery.
+            © 2024 Bessites Studio. Global Discovery Hub.
           </p>
         </div>
       </footer>

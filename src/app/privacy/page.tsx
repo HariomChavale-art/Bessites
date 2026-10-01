@@ -1,7 +1,8 @@
+
 "use client"
 
 import { Navigation } from "@/components/navigation";
-import { Shield } from "lucide-react";
+import { Shield, Cookie, Users, Lock, Eye, CheckCircle2 } from "lucide-react";
 
 export default function PrivacyPage() {
   return (
@@ -15,49 +16,61 @@ export default function PrivacyPage() {
               <Shield className="w-8 h-8 text-primary" />
             </div>
             <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tighter uppercase italic leading-tight">
-              Privacy <span className="text-primary">Policy</span>
+              Privacy <span className="text-primary">Master Ledger</span>
             </h1>
-            <p className="text-muted-foreground font-medium">Last Updated: June 2024</p>
+            <p className="text-muted-foreground font-medium">Last Synchronized: February 2024 | Version 1.2</p>
           </header>
 
-          <div className="prose prose-invert prose-primary max-w-none space-y-8 text-muted-foreground leading-relaxed">
+          <div className="prose prose-invert prose-primary max-w-none space-y-10 text-muted-foreground leading-relaxed">
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">1. Introduction</h2>
-              <p>Welcome to Bessites.store. We value your privacy and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, and safeguard your information when you visit our website.</p>
+              <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                <Eye className="w-5 h-5 text-primary" /> 1. Data Integrity and Scope
+              </h2>
+              <p>Welcome to Bessites.store (the "Service"). We are committed to maintaining the highest standards of data privacy and transparency. This policy outlines how we collect, process, and safeguard your information when you interact with our discovery engine. By using our Service, you consent to the data practices described in this ledger.</p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">2. Information We Collect</h2>
-              <p>We collect information that you provide directly to us, such as when you create an account, submit a website, or contact us. This may include your name, email address, and profile information.</p>
-              <p>We also automatically collect certain information when you browse our site, including IP addresses, browser types, and usage patterns through cookies and similar technologies.</p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">3. How We Use Your Information</h2>
-              <p>We use the collected data to:</p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Provide and maintain our discovery directory.</li>
-                <li>Personalize your experience (e.g., interest-based feeds).</li>
-                <li>Process submissions and manage community reviews.</li>
-                <li>Communicate with you regarding support or updates.</li>
-                <li>Analyze website usage to improve our services.</li>
+              <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                <Cookie className="w-5 h-5 text-primary" /> 2. Google AdSense and Third-Party Vendors
+              </h2>
+              <p>Bessites uses <strong>Google AdSense</strong> and other third-party vendors to serve advertisements. These vendors, including Google, use cookies to serve ads based on a user's prior visits to Bessites or other websites.</p>
+              <ul className="list-disc pl-6 space-y-4 bg-white/5 p-6 rounded-2xl border border-white/5">
+                <li><strong>DART Cookies:</strong> Google's use of advertising cookies enables it and its partners to serve ads to users based on their visit to our sites and/or other sites on the Internet.</li>
+                <li><strong>Opting Out:</strong> Users may opt out of personalized advertising by visiting <a href="https://www.google.com/settings/ads" className="text-primary underline" target="_blank">Google Ads Settings</a>. Alternatively, you can opt out of a third-party vendor's use of cookies for personalized advertising by visiting <a href="https://www.aboutads.info" className="text-primary underline" target="_blank">www.aboutads.info</a>.</li>
+                <li><strong>Third-Party Vendor Disclosures:</strong> We may also display ads from other third-party ad networks. You can visit those vendor websites to opt out of the use of cookies for personalized advertising if the vendor or ad network offers this capability.</li>
               </ul>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">4. Data Sharing and Third Parties</h2>
-              <p>We do not sell your personal data. We may share information with third-party service providers (such as hosting providers and analytics services) who perform services on our behalf and are obligated to protect your data.</p>
+              <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-primary" /> 3. Information We Collect
+              </h2>
+              <p>We collect information to provide a better, more personalized discovery experience. This includes:</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li><strong>Personal Identifiers:</strong> Name, email address, and profile photography when you create a curator account.</li>
+                <li><strong>Usage Data:</strong> We log interactions such as tool saves, appreciations, and clicks to build your personalized discovery feed.</li>
+                <li><strong>Technical Data:</strong> IP addresses, browser types, and device information collected automatically through logs and cookies.</li>
+              </ul>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">5. Your Rights</h2>
-              <p>Depending on your location, you may have rights regarding your personal data, including the right to access, correct, or delete your information. You can manage your profile settings or contact us directly for data requests.</p>
+              <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                <Users className="w-5 h-5 text-primary" /> 4. Data Sharing and Transparency
+              </h2>
+              <p>Bessites <strong>does not sell your personal data</strong>. We only share information with trusted service providers who assist in operating our site, conducting our business, or serving our users, so long as those parties agree to keep this information confidential. We may also release information when its release is appropriate to comply with the law, enforce our site policies, or protect ours or others' rights, property, or safety.</p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">6. Contact Us</h2>
-              <p>If you have any questions about this Privacy Policy, please contact us at: <br />
-              <span className="text-white font-bold">privacy@bessites.store</span></p>
+              <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                <Lock className="w-5 h-5 text-primary" /> 5. Security Measures
+              </h2>
+              <p>We implement a variety of security measures to maintain the safety of your personal information. Your data is housed behind secured networks and is only accessible by a limited number of persons who have special access rights to such systems. All sensitive/credit information you supply is encrypted via Secure Socket Layer (SSL) technology.</p>
+            </section>
+
+            <section className="space-y-4 border-t border-white/5 pt-8">
+              <h2 className="text-2xl font-bold text-white">6. Contact Our Privacy Node</h2>
+              <p>For any questions regarding this Master Ledger, please reach out directly to our privacy officer at:</p>
+              <p className="text-xl font-bold text-white">bessitesofficial@gmail.com</p>
             </section>
           </div>
         </div>
@@ -72,7 +85,7 @@ export default function PrivacyPage() {
             <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
           </div>
           <p className="text-sm text-muted-foreground opacity-50">
-            © 2024 Bessites. Privacy First.
+            © 2024 Bessites Studio. Professional Discovery Hub.
           </p>
         </div>
       </footer>

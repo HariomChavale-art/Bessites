@@ -61,6 +61,8 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6811475243465738"
+     crossorigin="anonymous"></script>
         <link rel="icon" type="image/png" href="https://i.imgur.com/3STBHNy.png" />
         <link rel="shortcut icon" href="https://i.imgur.com/3STBHNy.png" />
         <link rel="apple-touch-icon" href="https://i.imgur.com/3STBHNy.png" />

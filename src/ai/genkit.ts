@@ -3,17 +3,25 @@ import { googleAI } from '@genkit-ai/google-genai';
 
 /**
  * Genkit instance configuration.
- * Optimized to rely on standard environment variables (GEMINI_API_KEY or GOOGLE_GENAI_API_KEY).
- * Explicitly passing apiKey to ensure compatibility with Firebase Secrets and various environments.
+ * Optimized to rely on standard environment variables (GEMINI_API_KEY).
  */
+
+const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY;
+
+// Debug Log for API Key presence
+if (!apiKey) {
+  console.error("API KEY MISSING - Check Env Variables in Firebase Studio");
+} else {
+  console.log("Ouneo API Connected - Node Synchronized");
+}
 
 export const ai = genkit({
   plugins: [
     googleAI({
-      apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY
+      apiKey: apiKey
     }),
   ],
-  model: 'googleai/gemini-2.0-flash',
+  model: 'googleai/gemini-1.5-flash',
 });
 
 export { z } from 'genkit';

@@ -3,5 +3,7 @@
  * Using relative imports without .js extensions for standard TS resolution.
  */
 import './genkit';
+import './flows/ouneo-flow';
+import './tools/search-websites';
 
-// Astra components removed as per request.
+export { askOuneo } from './flows/ouneo-flow';

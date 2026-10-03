@@ -1,5 +1,4 @@
-
-"use client"
+'use client';
 
 import { useState, useMemo, useEffect } from "react";
 import { Navigation } from "@/components/navigation";
@@ -11,6 +10,7 @@ import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { getBroadCategoriesForTag } from "@/lib/category-mapping";
+import { OuneoAssistant } from "@/components/ouneo-assistant";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
@@ -149,6 +149,11 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Ouneo Assistant Implementation */}
+        <section className="container mx-auto px-4 mb-20">
+          <OuneoAssistant />
         </section>
 
         <section className="container mx-auto px-4 mb-8">

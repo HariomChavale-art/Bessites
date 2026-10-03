@@ -2,76 +2,68 @@
 "use client"
 
 import { Navigation } from "@/components/navigation";
-import { FileText } from "lucide-react";
+import { FileText, ShieldAlert } from "lucide-react";
 
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
       
-      <main className="flex-1 container mx-auto max-w-4xl px-4 py-16 sm:py-24">
-        <div className="bg-white/[0.02] border border-white/5 p-8 sm:p-16 rounded-[3rem] space-y-12">
-          <header className="space-y-4 border-b border-white/5 pb-8">
-            <div className="bg-primary/10 w-16 h-16 flex items-center justify-center rounded-2xl mb-6">
-              <FileText className="w-8 h-8 text-primary" />
-            </div>
-            <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tighter uppercase italic leading-tight">
-              Terms of <span className="text-primary">Service</span>
+      <main className="flex-1 container mx-auto max-w-3xl px-4 py-16 sm:py-24">
+        <div className="bg-white/[0.02] border border-white/5 p-8 sm:p-12 rounded-[2rem] space-y-8 shadow-2xl">
+          <header className="space-y-2 border-b border-white/5 pb-6">
+            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tighter uppercase italic">
+              Terms of Service for http://Bessites.store
             </h1>
-            <p className="text-muted-foreground font-medium">Effective Date: June 2024</p>
+            <p className="text-muted-foreground font-bold text-sm">Effective Date: May 2026</p>
           </header>
 
-          <div className="prose prose-invert prose-primary max-w-none space-y-8 text-muted-foreground leading-relaxed">
-            <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">1. Acceptance of Terms</h2>
-              <p>By accessing or using Bessites.store ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our Service.</p>
+          <div className="space-y-8 text-muted-foreground leading-relaxed text-base">
+            <section>
+              <h2 className="text-xl font-bold text-white mb-2 italic">1. Acceptance of Terms</h2>
+              <p>
+                By using http://Bessites.store you agree to be bound by these terms. If you do not agree, please do not use our website.
+              </p>
             </section>
 
-            <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">2. Description of Service</h2>
-              <p>Bessites is a curated directory and community platform for discovering web applications, tools, and digital resources. We provide information and community insights about third-party websites.</p>
+            <section>
+              <h2 className="text-xl font-bold text-white mb-2 italic">2. Use of Our Tools</h2>
+              <p>
+                Our discovery tools are free to use for finding web resources. You must not misuse our services, attempt to hack our systems, or use the site to harm others.
+              </p>
             </section>
 
-            <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">3. User Conduct</h2>
-              <p>You agree to use the Service only for lawful purposes. You are prohibited from:</p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Submitting fraudulent, misleading, or malicious content.</li>
-                <li>Attempting to interfere with the security or operation of the site.</li>
-                <li>Scraping or extracting data from the Service without permission.</li>
-                <li>Posting offensive, harassing, or illegal material in community reviews.</li>
-              </ul>
+            <section className="bg-primary/5 p-6 rounded-2xl border border-primary/20 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-2 opacity-10">
+                <ShieldAlert className="w-12 h-12 text-primary" />
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2 italic flex items-center gap-2">
+                3. AI Content & Misuse Policy
+              </h2>
+              <p className="text-white/80 font-medium">
+                Users are strictly prohibited from using any AI tools found on this site to create illegal, obscene, or misleading fake content, including deepfakes and non-consensual imagery. This policy is in place to comply with Google’s terms and global digital safety rules. Violators will be blocked from the site.
+              </p>
             </section>
 
-            <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">4. User Submissions</h2>
-              <p>When you submit a website or post a review, you grant Bessites a non-exclusive, royalty-free, perpetual license to use, display, and distribute that content on our platform. You represent that you have the right to share any information you submit.</p>
+            <section>
+              <h2 className="text-xl font-bold text-white mb-2 italic">4. Third-Party Websites</h2>
+              <p>
+                We provide links to other websites for your convenience. We do not own or control these sites and are not responsible for their content, privacy policies, or actions.
+              </p>
             </section>
 
-            <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">5. Intellectual Property</h2>
-              <p>All brand names, logos, and content created by Bessites are the property of Bessites. Third-party logos and names displayed in our directory remain the property of their respective owners and are used here for informational and identification purposes only.</p>
+            <section>
+              <h2 className="text-xl font-bold text-white mb-2 italic">5. Disclaimer</h2>
+              <p>
+                All tools and information are provided "as is" without any warranty. We are not liable for any damages, losses, or issues that may arise from your use of this website.
+              </p>
             </section>
 
-            <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">6. Disclaimer of Warranties</h2>
-              <p>The Service is provided "as is" and "as available." We do not warrant the accuracy, completeness, or reliability of any information in our directory. Your use of third-party websites linked from Bessites is at your own risk.</p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">7. Limitation of Liability</h2>
-              <p>In no event shall Bessites be liable for any indirect, incidental, or consequential damages arising out of your use of the Service or the websites listed herein.</p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">8. Changes to Terms</h2>
-              <p>We reserve the right to modify these terms at any time. Your continued use of the Service after changes are posted constitutes your acceptance of the new terms.</p>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-2xl font-bold text-white">9. Contact</h2>
-              <p>For any questions regarding these terms, please contact us at: <br />
-              <span className="text-white font-bold">legal@bessites.store</span></p>
+            <section className="pt-6 border-t border-white/5">
+              <p className="text-sm font-medium">
+                For questions, contact: <br />
+                <span className="text-white font-black italic">bessitesofficial@gmail.com</span>
+              </p>
             </section>
           </div>
         </div>
@@ -79,14 +71,14 @@ export default function TermsPage() {
 
       <footer className="bg-card/50 border-t border-white/5 py-12">
         <div className="container mx-auto px-4 text-center space-y-4">
-          <div className="flex flex-wrap justify-center gap-6 text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
+          <div className="flex flex-wrap justify-center gap-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             <a href="/about" className="hover:text-primary transition-colors">About Us</a>
             <a href="/contact" className="hover:text-primary transition-colors">Contact</a>
             <a href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</a>
             <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
           </div>
-          <p className="text-sm text-muted-foreground opacity-50">
-            © 2024 Bessites. Usage Terms.
+          <p className="text-xs text-muted-foreground opacity-50 font-bold uppercase tracking-widest">
+            © 2026 http://Bessites.store | Absolute Discovery
           </p>
         </div>
       </footer>

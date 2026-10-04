@@ -11,7 +11,6 @@ import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { getBroadCategoriesForTag } from "@/lib/category-mapping";
 import { OuneoAssistant } from "@/components/ouneo-assistant";
-import { Card } from "@/components/ui/card";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
@@ -129,31 +128,8 @@ export default function Home() {
       <Navigation />
       
       <main className="flex-1">
-        <section className="container mx-auto px-4 mt-8 sm:mt-12 mb-12">
-          <div className="relative w-full max-w-6xl mx-auto aspect-[16/7] sm:aspect-[21/9] flex items-center justify-center">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <img 
-                src="https://i.imgur.com/9wYu3Sc.png" 
-                alt="Incoming Frame" 
-                className="w-full h-full object-contain"
-              />
-            </div>
-
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-full h-full relative">
-                <div className="absolute left-[9.5%] top-[48.5%] -translate-y-1/2 w-[21%] flex items-center justify-center">
-                  <h1 className="text-[1.5vw] sm:text-2xl md:text-3xl lg:text-4xl font-black italic uppercase tracking-tighter text-white leading-none drop-shadow-lg">WEBSITE</h1>
-                </div>
-                <div className="absolute left-[36%] sm:left-[34%] top-[48.5%] -translate-y-1/2 w-[55%] flex items-center justify-start pl-[2%]">
-                  <h1 className="text-[4vw] sm:text-4xl md:text-7xl lg:text-8xl font-black italic uppercase tracking-tighter text-primary leading-none drop-shadow-2xl">INCOMING</h1>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* High-Value Introduction for AdSense Crawler */}
-        <section className="container mx-auto px-4 mb-16 max-w-4xl text-center space-y-6">
+        <section className="container mx-auto px-4 mt-12 mb-16 max-w-4xl text-center space-y-6">
           <div className="flex items-center justify-center gap-3 text-primary mb-4">
              <Info className="w-6 h-6" />
              <h2 className="text-xl font-bold uppercase italic tracking-widest">About Ouneo Engine</h2>

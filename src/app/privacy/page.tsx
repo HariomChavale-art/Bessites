@@ -8,7 +8,7 @@ export default function PrivacyPage() {
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-3xl px-4 py-16 sm:py-24">
-        <div className="bg-white/[0.02] border border-white/5 p-8 sm:p-12 rounded-[2rem] space-y-8 shadow-2xl">
+        <div className="bg-white/[0.02] border border-white/5 p-8 sm:p-12 rounded-[2rem] shadow-2xl">
           <header className="space-y-2 border-b border-white/5 pb-6">
             <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tighter uppercase italic">
               Privacy Policy for http://Bessites.store
@@ -18,14 +18,14 @@ export default function PrivacyPage() {
 
           <div className="space-y-6 text-muted-foreground leading-relaxed text-base">
             <section>
-              <h2 className="text-xl font-bold text-white mb-2">1. Data Collection</h2>
+              <h2 className="text-xl font-bold text-white mb-2 italic">1. Data Collection</h2>
               <p>
                 Bessites.store is a public discovery directory. We DO NOT require users to create an account or log in to browse the registry. We DO NOT collect personal information such as your name, email address, or payment details unless you voluntarily contact us via our support channels.
               </p>
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-white mb-2">2. Log Data and Cookies</h2>
+              <h2 className="text-xl font-bold text-white mb-2 italic">2. Log Data and Cookies</h2>
               <p>
                 We collect standard Log Data (IP address, browser type, and time spent on pages) for security and performance analysis. We use cookies to enhance your experience. These are small data files stored on your device that help us understand how you use our site.
               </p>
@@ -52,7 +52,7 @@ export default function PrivacyPage() {
             </section>
 
             <section className="pt-6 border-t border-white/5">
-              <h2 className="text-xl font-bold text-white mb-2">5. Contact Information</h2>
+              <h2 className="text-xl font-bold text-white mb-2 italic">5. Contact Information</h2>
               <p>
                 If you have any questions regarding this Privacy Policy, please contact our support node at: <br />
                 <span className="text-white font-black italic">contact@ouneo.com</span>

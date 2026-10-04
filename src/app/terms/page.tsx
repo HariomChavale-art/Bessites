@@ -1,7 +1,6 @@
 "use client"
 
 import { Navigation } from "@/components/navigation";
-import { ShieldAlert } from "lucide-react";
 
 export default function TermsPage() {
   return (
@@ -26,20 +25,15 @@ export default function TermsPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-white mb-2 italic">2. Use of Our Discovery Tools</h2>
+              <h2 className="text-xl font-bold text-white mb-2 italic">2. Use of Our Tools</h2>
               <p>
                 Our discovery tools and AI search engine (Ouneo) are free to use for finding web resources. You must not misuse our services, attempt to disrupt our systems, or use the site to facilitate any harmful activity.
               </p>
             </section>
 
-            <section className="bg-primary/5 p-6 rounded-2xl border border-primary/20 relative overflow-hidden shadow-inner">
-              <div className="absolute top-0 right-0 p-2 opacity-10">
-                <ShieldAlert className="w-12 h-12 text-primary" />
-              </div>
-              <h2 className="text-xl font-bold text-white mb-2 italic flex items-center gap-2">
-                3. AI Content & Misuse Policy
-              </h2>
-              <p className="text-white/80 font-medium leading-relaxed">
+            <section className="bg-primary/5 p-6 rounded-2xl border border-primary/20">
+              <h2 className="text-xl font-bold text-white mb-2 italic">3. AI Content & Misuse Policy</h2>
+              <p>
                 Users are strictly prohibited from using any AI tools found on this site to create illegal, obscene, or misleading fake content, including deepfakes and non-consensual imagery. This policy is strictly enforced to comply with Google’s Terms of Service and global digital safety regulations. Violators will be blocked from accessing the site permanently.
               </p>
             </section>
@@ -52,7 +46,7 @@ export default function TermsPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-white mb-2 italic">5. Disclaimer of Liability</h2>
+              <h2 className="text-xl font-bold text-white mb-2 italic">5. Disclaimer</h2>
               <p>
                 All tools and information are provided "as is" without any warranty of any kind. Bessites is not liable for any damages, losses, or data issues that may arise from your use of this website or the tools listed herein.
               </p>
@@ -60,7 +54,7 @@ export default function TermsPage() {
 
             <section className="pt-6 border-t border-white/5">
               <p className="text-sm font-medium">
-                For questions regarding these terms, contact our legal node: <br />
+                For questions regarding these terms, contact our support node: <br />
                 <span className="text-white font-black italic">contact@ouneo.com</span>
               </p>
             </section>

@@ -16,7 +16,7 @@ export default function ContactPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulating transmission to our support node
+    // Simulating transmission to our official support node
     setTimeout(() => {
       setLoading(false);
       toast({
@@ -66,7 +66,7 @@ export default function ContactPage() {
 
               <div className="flex items-center gap-4 px-2 py-4">
                 <ShieldCheck className="w-5 h-5 text-emerald-500" />
-                <p className="text-sm text-muted-foreground italic">Your data is secured and will only be used to process your request in accordance with our Privacy Policy.</p>
+                <p className="text-sm text-muted-foreground italic">Your data is secured and will only be used to process your request.</p>
               </div>
             </div>
           </div>
@@ -122,7 +122,7 @@ export default function ContactPage() {
             Official Support: <a href="mailto:contact@ouneo.com" className="text-white hover:text-primary transition-colors">contact@ouneo.com</a>
           </p>
           <p className="text-sm text-muted-foreground opacity-50">
-            © 2024 Bessites Studio. Global Discovery Hub.
+            © 2026 Bessites Studio. Global Discovery Hub.
           </p>
         </div>
       </footer>

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Navigation } from "@/components/navigation";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Mail, MessageSquare, Send, Clock, ShieldCheck } from "lucide-react";
+import { Mail, Send, Clock, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -17,11 +16,12 @@ export default function ContactPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    // Simulating transmission to our support node
     setTimeout(() => {
       setLoading(false);
       toast({
         title: "Message Transmitted",
-        description: "Your inquiry has been received by our support node. We will reply within 24 hours.",
+        description: "Your inquiry has been received by our support node at contact@ouneo.com. We will reply within 24 hours.",
       });
     }, 1500);
   };
@@ -39,7 +39,7 @@ export default function ContactPage() {
                 Get In <span className="text-primary">Touch</span>
               </h1>
               <p className="text-xl text-muted-foreground font-medium">
-                Have a suggestion for our discovery engine, a partnership idea, or need technical support? Our team is standing by.
+                Have a suggestion for our discovery engine, a partnership idea, or need technical support? Our team is standing by to assist your workflow.
               </p>
             </div>
 
@@ -50,7 +50,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-1">Official Support</p>
-                  <p className="text-lg font-bold text-white">bessitesofficial@gmail.com</p>
+                  <p className="text-lg font-bold text-white">contact@ouneo.com</p>
                 </div>
               </div>
 
@@ -66,7 +66,7 @@ export default function ContactPage() {
 
               <div className="flex items-center gap-4 px-2 py-4">
                 <ShieldCheck className="w-5 h-5 text-emerald-500" />
-                <p className="text-sm text-muted-foreground italic">Your data is secured and will only be used to process your request.</p>
+                <p className="text-sm text-muted-foreground italic">Your data is secured and will only be used to process your request in accordance with our Privacy Policy.</p>
               </div>
             </div>
           </div>
@@ -91,7 +91,7 @@ export default function ContactPage() {
               <div className="space-y-2">
                 <Label className="text-white font-bold ml-1">Message Detail</Label>
                 <Textarea 
-                  placeholder="How can we assist your discovery process today?" 
+                  placeholder="How can Ouneo assist your discovery process today?" 
                   className="bg-white/5 border-white/10 rounded-2xl min-h-[150px] p-4" 
                   required 
                 />
@@ -119,7 +119,7 @@ export default function ContactPage() {
             <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
           </div>
           <p className="text-xs text-muted-foreground opacity-50 mb-4">
-            Official Support: <a href="mailto:bessitesofficial@gmail.com" className="text-white hover:text-primary transition-colors">bessitesofficial@gmail.com</a>
+            Official Support: <a href="mailto:contact@ouneo.com" className="text-white hover:text-primary transition-colors">contact@ouneo.com</a>
           </p>
           <p className="text-sm text-muted-foreground opacity-50">
             © 2024 Bessites Studio. Global Discovery Hub.

@@ -1,8 +1,7 @@
-
 "use client"
 
 import { Navigation } from "@/components/navigation";
-import { Info, Tooltip } from "lucide-react";
+import { Info } from "lucide-react";
 
 export default function AboutPage() {
   return (
@@ -20,26 +19,26 @@ export default function AboutPage() {
 
           <div className="space-y-6 text-muted-foreground leading-relaxed text-lg">
             <p>
-              Bessites is a simple platform where we find and list the best free online tools on the internet. From AI tools, video downloaders, image editors, to writing and design tools - we test hundreds of websites so you don't have to waste time.
+              Bessites is a simple, high-fidelity platform where we find and list the best free online tools on the internet. In a digital landscape cluttered with duplicate content and low-value fillers, we offer a "Zero Padding" experience. From cutting-edge AI tools and video downloaders to professional image editors and design resources—we test hundreds of websites so you don't have to waste time.
             </p>
 
             <p>
-              Our goal is to help you find the right tool for your work in seconds. We hand-pick every tool and we also build our own useful tools for our users.
+              Our primary goal is to help you find the right tool for your specific work in seconds. We hand-pick every tool listed in our 100-node interest registry, ensuring that every link provides genuine value to our users. Beyond curation, we also develop our own useful web utilities to further empower our community of digital builders, designers, and creators.
             </p>
 
             <p>
-              We started Bessites to make the internet more useful and less confusing.
+              We started Bessites because we believed the internet should be more useful and less confusing. By organizing the world's best web resources into 10 broad sectors—including AI & Tech, Design, Coding, and Productivity—we provide a seamless discovery pipeline that evolves as fast as the web itself.
             </p>
 
             <div className="bg-white/5 p-6 rounded-2xl border border-white/5 text-center italic">
               <p className="text-white font-medium">
-                Have a suggestion for a tool? Contact us at <br />
-                <span className="text-primary font-black not-italic">bessitesofficial@gmail.com</span>
+                Have a suggestion for a tool or looking for a partnership? Contact us at <br />
+                <span className="text-primary font-black not-italic">contact@ouneo.com</span>
               </p>
             </div>
 
             <p className="text-center pt-4">
-              Thank you for using Bessites!
+              Thank you for trusting Bessites as your discovery partner!
             </p>
           </div>
 
@@ -60,7 +59,7 @@ export default function AboutPage() {
             <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
           </div>
           <p className="text-xs text-muted-foreground opacity-50 font-bold uppercase tracking-widest">
-            Official Support: bessitesofficial@gmail.com
+            Official Support: contact@ouneo.com
           </p>
         </div>
       </footer>

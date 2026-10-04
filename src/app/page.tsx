@@ -5,12 +5,13 @@ import { Navigation } from "@/components/navigation";
 import { MasonryFeed } from "@/components/masonry-feed";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, TrendingUp, Clock, Loader2, ShieldCheck, Globe, Zap, Heart } from "lucide-react";
+import { Sparkles, TrendingUp, Clock, Loader2, ShieldCheck, Globe, Zap, Heart, Info } from "lucide-react";
 import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { getBroadCategoriesForTag } from "@/lib/category-mapping";
 import { OuneoAssistant } from "@/components/ouneo-assistant";
+import { Card } from "@/components/ui/card";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
@@ -151,6 +152,18 @@ export default function Home() {
           </div>
         </section>
 
+        {/* High-Value Introduction for AdSense Crawler */}
+        <section className="container mx-auto px-4 mb-16 max-w-4xl text-center space-y-6">
+          <div className="flex items-center justify-center gap-3 text-primary mb-4">
+             <Info className="w-6 h-6" />
+             <h2 className="text-xl font-bold uppercase italic tracking-widest">About Ouneo Engine</h2>
+          </div>
+          <p className="text-muted-foreground text-lg leading-relaxed font-medium italic">
+            Ouneo is an AI-powered search engine designed to help you discover the absolute best tools from our verified registry of over 1000+ digital assets. Unlike traditional search, Ouneo uses natural language processing to understand your specific workflow needs—whether you're looking to remove a background, generate a cinematic video, or optimize your code. Our mission is to eliminate "Low Value Content" and provide a direct pipeline to functional, hand-picked webs and applications that empower your digital productivity. Start a conversation with our engine below to find the perfect tool for your next project.
+          </p>
+          <div className="h-px w-24 bg-white/10 mx-auto" />
+        </section>
+
         {/* Ouneo Assistant Implementation */}
         <section className="container mx-auto px-4 mb-20">
           <OuneoAssistant />
@@ -243,9 +256,9 @@ export default function Home() {
           </div>
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground opacity-40 font-bold uppercase">Official Support Node</p>
-            <a href="mailto:bessitesofficial@gmail.com" className="text-sm font-black text-white hover:text-primary transition-colors tracking-widest">bessitesofficial@gmail.com</a>
+            <a href="mailto:contact@ouneo.com" className="text-sm font-black text-white hover:text-primary transition-colors tracking-widest">contact@ouneo.com</a>
           </div>
-          <p className="text-xs text-muted-foreground opacity-20 font-black uppercase tracking-widest pt-8">© 2024 Bessites Studio. Absolute Discovery.</p>
+          <p className="text-xs text-muted-foreground opacity-20 font-black uppercase tracking-widest pt-8">© 2024 Bessites Studio. Powered by Ouneo.</p>
         </div>
       </footer>
     </div>

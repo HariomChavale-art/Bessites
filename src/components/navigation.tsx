@@ -25,7 +25,7 @@ const SUGGESTIONS = [
   "Tip: Your Interaction Ledger tracks real-time engagement.",
   "Check the 'Trending' tab for verified high-impact assets.",
   "Submit your digital property via the Creator Hub.",
-  "Absolute Discovery: Zero Padding. Zero Duplication.",
+  "Official Support: contact@ouneo.com",
   "Verify your wallet to launch global ad campaigns.",
 ];
 
@@ -119,7 +119,7 @@ export function Navigation() {
         <div className="flex items-center gap-2 bg-white/5 px-4 py-2 sm:px-6 sm:py-2.5 rounded-full border border-white/5 
           flex-1 min-w-0 max-w-2xl
           animate-in fade-in slide-in-from-top-2 duration-700 transition-all group hover:bg-white/10 overflow-hidden">
-          <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0 group-hover:scale-110 transition-transform" />
+          <Sparkles className="w-3.5 h-3.5 sm:w-4 h-4 text-primary shrink-0 group-hover:scale-110 transition-transform" />
           <span className="text-[10px] sm:text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider whitespace-normal leading-tight text-center flex-1 line-clamp-2">
             {SUGGESTIONS[suggestionIdx]}
           </span>

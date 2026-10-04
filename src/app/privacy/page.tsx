@@ -1,8 +1,6 @@
-
 "use client"
 
 import { Navigation } from "@/components/navigation";
-import { Shield } from "lucide-react";
 
 export default function PrivacyPage() {
   return (
@@ -10,7 +8,7 @@ export default function PrivacyPage() {
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-3xl px-4 py-16 sm:py-24">
-        <div className="bg-white/[0.02] border border-white/5 p-8 sm:p-12 rounded-[2rem] space-y-8">
+        <div className="bg-white/[0.02] border border-white/5 p-8 sm:p-12 rounded-[2rem] space-y-8 shadow-2xl">
           <header className="space-y-2 border-b border-white/5 pb-6">
             <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tighter uppercase italic">
               Privacy Policy for http://Bessites.store
@@ -22,39 +20,42 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-xl font-bold text-white mb-2">1. Data Collection</h2>
               <p>
-                Bessites.store is a public discovery directory. We DO NOT require users to create an account or log in. We DO NOT collect personal information such as your name, email address, or payment details.
+                Bessites.store is a public discovery directory. We DO NOT require users to create an account or log in to browse the registry. We DO NOT collect personal information such as your name, email address, or payment details unless you voluntarily contact us via our support channels.
               </p>
             </section>
 
             <section>
               <h2 className="text-xl font-bold text-white mb-2">2. Log Data and Cookies</h2>
               <p>
-                We collect standard Log Data (IP address and browser type) for security and performance. We use cookies to enhance your experience. Third-party vendors, including Google, use cookies to serve ads based on your visits to this or other websites.
+                We collect standard Log Data (IP address, browser type, and time spent on pages) for security and performance analysis. We use cookies to enhance your experience. These are small data files stored on your device that help us understand how you use our site.
               </p>
             </section>
 
-            <section className="bg-white/5 p-6 rounded-2xl border border-white/5">
-              <h2 className="text-xl font-bold text-white mb-2">3. Google AdSense & DART Cookies</h2>
+            <section className="bg-primary/5 p-6 rounded-2xl border border-primary/10">
+              <h2 className="text-xl font-bold text-white mb-2 italic">3. Google AdSense & Third-Party Vendors</h2>
               <p className="mb-4">
-                Google’s use of advertising cookies enables it and its partners to serve ads to you based on your visit to our site. You may opt out of personalized advertising by visiting the link below:
+                We use Google AdSense to serve advertisements on our site. Google, as a third-party vendor, uses cookies to serve ads based on your prior visits to Bessites or other websites. Google's use of advertising cookies enables it and its partners to serve ads to you based on your visit to our site and/or other sites on the Internet.
               </p>
-              <a href="https://ad.google.com/home" className="text-primary font-bold underline" target="_blank" rel="noopener noreferrer">
-                Opt-out of Personalized Ads
+              <p className="mb-4">
+                Users may opt out of personalized advertising by visiting:
+              </p>
+              <a href="https://ad.google.com/home" className="text-primary font-black underline italic" target="_blank" rel="noopener noreferrer">
+                Opt-out of Personalized Google Ads
               </a>
             </section>
 
             <section className="border-l-4 border-primary pl-4">
-              <h2 className="text-xl font-bold text-white mb-2">4. AI Tools Disclaimer</h2>
+              <h2 className="text-xl font-bold text-white mb-2 italic">4. AI Tools Disclaimer & User Responsibility</h2>
               <p>
-                Bessites provides links to various AI resources. Users are strictly prohibited from using information found on this site to create illegal fake images, videos, or deepfakes. Misuse for creating misleading or harmful content is a violation of our terms.
+                Bessites provides links to various AI resources. Users are strictly prohibited from using any information or tools found on this site to create illegal fake images, videos, deepfakes, or non-consensual content. Misuse of listed tools for creating misleading or harmful content is a violation of our terms and global digital safety standards.
               </p>
             </section>
 
             <section className="pt-6 border-t border-white/5">
-              <h2 className="text-xl font-bold text-white mb-2">5. Contact</h2>
+              <h2 className="text-xl font-bold text-white mb-2">5. Contact Information</h2>
               <p>
-                If you have questions, contact us at: <br />
-                <span className="text-white font-black italic">bessitesofficial@gmail.com</span>
+                If you have any questions regarding this Privacy Policy, please contact our support node at: <br />
+                <span className="text-white font-black italic">contact@ouneo.com</span>
               </p>
             </section>
           </div>
@@ -70,7 +71,7 @@ export default function PrivacyPage() {
             <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
           </div>
           <p className="text-xs text-muted-foreground opacity-50 font-bold uppercase tracking-widest">
-            © 2026 Bessites.store | Absolute Discovery
+            © 2026 Bessites.store | Powered by Ouneo
           </p>
         </div>
       </footer>

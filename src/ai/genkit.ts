@@ -3,15 +3,15 @@ import { googleAI } from '@genkit-ai/google-genai';
 
 /**
  * Genkit instance configuration.
- * Optimized to rely on standard environment variables (GEMINI_API_KEY).
- * Supports both legacy AIzaSy and new AQ.Ab8 formats.
+ * Optimized for standard GEMINI_API_KEY environment variable.
+ * Supports all valid Google AI Studio key formats (AQ.Ab8 and AIzaSy).
  */
 
 const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY;
 
 // Connection Verification
 if (!apiKey) {
-  console.error("API KEY MISSING - Ensure GEMINI_API_KEY is set in Environment Variables.");
+  console.warn("GEMINI_API_KEY is missing. Ouneo will operate in local fallback mode.");
 } else {
   console.log("Gemini Connected Successfully");
 }

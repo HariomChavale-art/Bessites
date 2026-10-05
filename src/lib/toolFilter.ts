@@ -1,12 +1,12 @@
 /**
- * @fileOverview High-speed local filtering for the Bessites registry.
+ * @fileOverview Enhanced high-speed local filtering for the Bessites registry.
  */
 
 import { TOOLS_DATABASE, ToolEntry } from "@/data/toolsDatabase";
 
 export function filterTools(userQuery: string): ToolEntry[] {
   const query = userQuery.toLowerCase().trim();
-  if (!query) return TOOLS_DATABASE.slice(0, 6);
+  if (!query || query.length < 2) return TOOLS_DATABASE.slice(0, 6);
 
   // Score-based matching for better relevance
   const results = TOOLS_DATABASE.map(tool => {
@@ -35,5 +35,6 @@ export function filterTools(userQuery: string): ToolEntry[] {
   .filter(t => t.score > 0)
   .sort((a, b) => b.score - a.score);
 
-  return results.slice(0, 6);
+  // If no specific matches, return trending
+  return results.length > 0 ? results.slice(0, 6) : TOOLS_DATABASE.slice(0, 6);
 }

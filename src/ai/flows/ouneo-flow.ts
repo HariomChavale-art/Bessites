@@ -1,11 +1,12 @@
 'use server';
 /**
- * @fileOverview Ouneo - The Bessites AI Tool Guide.
+ * @fileOverview Ouneo - The Bessites Conversational AI Discovery Partner.
  * 
- * - Enhanced Hybrid Discovery Logic:
- *   1. Local keyword filtration for speed and candidate selection.
- *   2. AI Semantic re-ranking and reasoning.
- *   3. Silent high-quality fallback to local registry if API fails.
+ * - Enhanced Hybrid Logic:
+ *   1. Local keyword context retrieval.
+ *   2. Full conversational history support.
+ *   3. AI reasoning to pick and explain tools.
+ *   4. Silent high-quality fallback for stability.
  */
 
 import { ai, z } from '@/ai/genkit';
@@ -13,22 +14,22 @@ import { filterTools } from '@/lib/toolFilter';
 import { TOOLS_DATABASE } from '@/data/toolsDatabase';
 
 const OuneoInputSchema = z.object({
-  message: z.string().describe('The user\'s problem or tool request in natural language.'),
+  message: z.string().describe('The user\'s request or chat message.'),
   history: z.array(z.object({
     role: z.enum(['user', 'assistant']),
     content: z.string()
-  })).optional().describe('Conversation history for context.'),
+  })).optional().describe('Chat history for conversational context.'),
 });
 
 const OuneoOutputSchema = z.object({
-  response: z.string().describe('A brief, helpful conversational response.'),
+  response: z.string().describe('A helpful conversational response from Ouneo.'),
   matches: z.array(z.object({
     id: z.string().optional(),
     name: z.string(),
-    reason: z.string().describe('One line explaining why this is perfect for the user.'),
+    reason: z.string().describe('One line explaining why this tool is a great fit.'),
     url: z.string(),
     category: z.string(),
-  })).max(3).describe('Top 3 best matching tools from the registry.'),
+  })).max(3).describe('Top best-matching tools from the registry.'),
 });
 
 export type OuneoOutput = z.infer<typeof OuneoOutputSchema>;
@@ -44,10 +45,8 @@ const ouneoFlow = ai.defineFlow(
     outputSchema: OuneoOutputSchema,
   },
   async (input) => {
-    // Phase 1: Local candidate filtration
+    // Phase 1: Context Retrieval
     const candidates = filterTools(input.message);
-    
-    // If no local matches, use a curated set of popular tools for the AI to work with
     const activeContext = candidates.length > 0 ? candidates : TOOLS_DATABASE.slice(0, 6);
 
     try {
@@ -56,37 +55,39 @@ const ouneoFlow = ai.defineFlow(
         system: `You are Ouneo, the expert AI discovery partner for Bessites. 
         
         MISSION:
-        - Analyze the user request and select the best 3 tools from the PROVIDED CONTEXT.
-        - You MUST only recommend tools from the provided context list.
-        - For each match, provide a one-sentence "reason" why it solves their problem.
-        
+        - You are a helpful guide, not just a search tool. You talk like a human expert.
+        - If the user asks for a tool, pick the 3 best from the PROVIDED CONTEXT.
+        - If the user is just chatting or asking general questions, answer normally in your tech-noir style.
+        - If you recommend tools, explain WHY they fit the user's specific problem.
+        - IMPORTANT: Only recommend tools found in the provided context list.
+
         TONE:
-        - Professional, insightful, and concise. 
-        - No fluff. Minimalist tech-noir vibe.`,
+        - Professional, insightful, and slightly mysterious (tech-noir).
+        - Keep responses concise but impactful. No unnecessary fluff.`,
         prompt: `
-          User Request: "${input.message}"
+          User Message: "${input.message}"
           Available Tools Context: ${JSON.stringify(activeContext)}
           
-          Pick the 3 most relevant tools and explain why they fit.
+          Based on the message and the tools available, provide a conversational response and select up to 3 matches.
         `,
         history: input.history?.map(m => ({ role: m.role as any, content: [{ text: m.content }] })),
         output: { schema: OuneoOutputSchema },
       });
 
-      if (response.output && response.output.matches && response.output.matches.length > 0) {
+      if (response.output) {
         return response.output;
       }
       
-      throw new Error("Empty AI output");
+      throw new Error("Empty AI response");
 
     } catch (err: any) {
-      // Phase 3: Silent Fallback - User gets real results even if AI fails
+      // Phase 3: Silent Fallback
       console.warn("[Ouneo] API fallback triggered. Serving local results.");
       
       const fallbackResults = candidates.length > 0 ? candidates.slice(0, 3) : TOOLS_DATABASE.slice(0, 3);
       
       return {
-        response: "Based on our current tool registry, these high-impact assets are perfect for your workflow:",
+        response: "Based on our current tool registry, I recommend these high-impact assets for your workflow. What else are you looking to build?",
         matches: fallbackResults.map(t => ({
           name: t.name,
           url: t.url,

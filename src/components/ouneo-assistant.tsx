@@ -8,56 +8,158 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   Sparkles, 
-  Search, 
   Loader2, 
   ArrowRight, 
   ExternalLink, 
   X,
   Zap,
-  Globe
+  Globe,
+  User as UserIcon,
+  MessageSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
+
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  result?: OuneoOutput;
+}
 
 export function OuneoAssistant() {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<OuneoOutput | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const resultsRef = useRef<HTMLDivElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, loading]);
 
   const handleSearch = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!query.trim() || loading) return;
 
+    const currentQuery = query;
+    setQuery('');
     setLoading(true);
     setError(null);
-    setResult(null);
+
+    // Add user message to UI
+    const newMessages = [...messages, { role: 'user' as const, content: currentQuery }];
+    setMessages(newMessages);
 
     try {
-      const data = await askOuneo({ message: query });
-      setResult(data);
-      // Scroll to results on mobile
-      setTimeout(() => {
-        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
+      const history = messages.map(m => ({ role: m.role, content: m.content }));
+      const data = await askOuneo({ message: currentQuery, history });
+      
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: data.response,
+        result: data 
+      }]);
     } catch (err) {
-      setError("Ouneo is recalibrating. Please try again in a moment.");
+      setError("I'm having trouble connecting to the network. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const clearResults = () => {
-    setResult(null);
+  const clearChat = () => {
+    setMessages([]);
     setQuery('');
   };
 
   return (
-    <section className="w-full max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-top-4 duration-1000">
+    <section className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-top-4 duration-1000">
+      
+      {/* Chat History Area */}
+      {messages.length > 0 && (
+        <div className="space-y-8 mb-10 min-h-[100px] max-h-[600px] overflow-y-auto no-scrollbar p-2">
+          {messages.map((msg, idx) => (
+            <div key={idx} className={cn(
+              "flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500",
+              msg.role === 'user' ? "items-end" : "items-start"
+            )}>
+              {/* User Bubble */}
+              {msg.role === 'user' && (
+                <div className="flex items-center gap-3">
+                   <div className="bg-primary/20 text-primary p-3 rounded-2xl border border-primary/20">
+                      <p className="text-sm font-bold">{msg.content}</p>
+                   </div>
+                   <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center shrink-0">
+                      <UserIcon className="w-4 h-4 text-white/40" />
+                   </div>
+                </div>
+              )}
+
+              {/* Assistant Response */}
+              {msg.role === 'assistant' && (
+                <div className="flex gap-4 w-full">
+                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                   </div>
+                   <div className="flex-1 space-y-6">
+                      <div className="bg-white/[0.02] border border-white/5 p-5 rounded-[2rem] relative overflow-hidden max-w-[90%]">
+                         <p className="text-base text-white/90 font-medium italic leading-relaxed">
+                            {msg.content}
+                         </p>
+                      </div>
+
+                      {msg.result && msg.result.matches.length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                           {msg.result.matches.map((tool, tIdx) => (
+                             <Card 
+                               key={tIdx} 
+                               className="bg-[#121117] border-white/5 hover:border-primary/40 transition-all p-5 rounded-[1.5rem] flex flex-col justify-between group shadow-xl hover:shadow-primary/5 cursor-pointer relative overflow-hidden"
+                               onClick={() => window.open(tool.url, '_blank')}
+                             >
+                               <div className="space-y-3">
+                                 <div className="flex justify-between items-start">
+                                    <Badge className="bg-primary/10 text-primary border-none text-[7px] font-black uppercase italic">{tool.category}</Badge>
+                                    <ExternalLink className="w-3.5 h-3.5 text-white/10 group-hover:text-primary transition-colors" />
+                                 </div>
+                                 <div>
+                                   <h4 className="text-base font-black italic uppercase tracking-tighter text-white group-hover:text-primary transition-colors">{tool.name}</h4>
+                                   <p className="text-[10px] text-muted-foreground font-medium mt-1.5 leading-relaxed italic line-clamp-2">
+                                     {tool.reason}
+                                   </p>
+                                 </div>
+                               </div>
+                               <div className="pt-4 flex items-center gap-2 text-[7px] font-black uppercase text-white/20 tracking-widest border-t border-white/5 mt-4">
+                                 <Globe className="w-2.5 h-2.5" />
+                                 {tool.url.replace('https://', '').split('/')[0]}
+                               </div>
+                             </Card>
+                           ))}
+                        </div>
+                      )}
+                   </div>
+                </div>
+              )}
+            </div>
+          ))}
+          
+          {loading && (
+            <div className="flex gap-4 w-full animate-pulse">
+               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Loader2 className="w-4 h-4 text-primary animate-spin" />
+               </div>
+               <div className="h-14 bg-white/5 border border-white/5 rounded-2xl w-32" />
+            </div>
+          )}
+          
+          <div ref={chatEndRef} />
+        </div>
+      )}
+
+      {/* Input Area */}
       <div className="relative group">
-        {/* Animated Background Glow */}
-        <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-blue-500/20 to-purple-500/20 rounded-[2.5rem] blur-xl opacity-50 group-focus-within:opacity-100 transition-opacity duration-700" />
+        <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-blue-500/20 to-purple-500/20 rounded-[2.5rem] blur-xl opacity-30 group-focus-within:opacity-100 transition-opacity duration-700" />
         
         <form onSubmit={handleSearch} className="relative flex items-center bg-[#121117] border border-white/10 rounded-[2.5rem] p-2 pr-4 shadow-2xl transition-all group-focus-within:border-primary/50">
           <div className="p-4 pl-6">
@@ -66,11 +168,11 @@ export function OuneoAssistant() {
           <Input 
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ask Ouneo... (e.g. 'I need to remove background from image')"
-            className="flex-1 bg-transparent border-none text-lg sm:text-xl font-bold text-white placeholder:text-white/10 focus-visible:ring-0 focus-visible:ring-offset-0 h-16"
+            placeholder={messages.length === 0 ? "Ask Ouneo... (e.g. 'I need to make a logo')" : "Reply to Ouneo..."}
+            className="flex-1 bg-transparent border-none text-base sm:text-lg font-bold text-white placeholder:text-white/10 focus-visible:ring-0 focus-visible:ring-offset-0 h-16"
           />
-          {query && !loading && (
-            <button type="button" onClick={clearResults} className="p-2 mr-2 text-white/20 hover:text-white transition-colors">
+          {messages.length > 0 && !loading && (
+            <button type="button" onClick={clearChat} className="p-2 mr-2 text-white/20 hover:text-white transition-colors" title="Clear Chat">
               <X className="w-5 h-5" />
             </button>
           )}
@@ -84,69 +186,18 @@ export function OuneoAssistant() {
         </form>
       </div>
 
-      <div ref={resultsRef} className="space-y-6">
-        {loading && (
-          <div className="py-20 flex flex-col items-center justify-center space-y-4">
-             <div className="relative">
-                <div className="w-16 h-16 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
-                <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-primary animate-pulse" />
-             </div>
-             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary italic">Synchronizing Discovery Node...</p>
-          </div>
-        )}
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-xs font-bold text-center italic">
+          {error}
+        </div>
+      )}
 
-        {result && (
-          <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
-            <div className="bg-white/[0.02] border border-white/5 p-6 rounded-[2rem] relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-4 opacity-5"><Sparkles className="w-24 h-24 text-primary" /></div>
-               <p className="text-lg text-white/90 font-medium italic leading-relaxed relative z-10">
-                 "{result.response}"
-               </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {result.matches.map((tool, idx) => (
-                <Card 
-                  key={idx} 
-                  className="bg-[#121117] border-white/5 hover:border-primary/40 transition-all p-6 rounded-[2rem] flex flex-col justify-between group shadow-xl hover:shadow-primary/5 cursor-pointer relative overflow-hidden"
-                  onClick={() => window.open(tool.url, '_blank')}
-                >
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-start">
-                       <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black uppercase italic">{tool.category}</Badge>
-                       <ExternalLink className="w-4 h-4 text-white/10 group-hover:text-primary transition-colors" />
-                    </div>
-                    <div>
-                      <h4 className="text-lg font-black italic uppercase tracking-tighter text-white group-hover:text-primary transition-colors">{tool.name}</h4>
-                      <p className="text-xs text-muted-foreground font-medium mt-2 leading-relaxed italic">
-                        {tool.reason}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="pt-6 flex items-center gap-2 text-[8px] font-black uppercase text-white/20 tracking-widest border-t border-white/5 mt-6">
-                    <Globe className="w-3 h-3" />
-                    {tool.url.replace('https://', '').split('/')[0]}
-                  </div>
-                </Card>
-              ))}
-            </div>
-
-            {result.matches.length === 0 && !loading && (
-              <div className="py-20 text-center bg-white/[0.02] rounded-[3rem] border border-dashed border-white/10">
-                <Zap className="w-12 h-12 text-primary/20 mx-auto mb-4" />
-                <p className="text-xl font-black italic uppercase tracking-tighter text-white/40">Zero Matches Found</p>
-                <p className="text-sm text-muted-foreground mt-2">Try broader terms like "Image Generator" or "Code Editor"</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {error && (
-          <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-xs font-bold text-center italic">
-            {error}
-          </div>
-        )}
-      </div>
+      {messages.length === 0 && (
+        <div className="flex justify-center gap-2 pt-4">
+           <button onClick={() => setQuery("How can you help me?")} className="px-4 py-2 rounded-full bg-white/5 border border-white/5 text-[10px] font-black uppercase text-white/40 hover:text-white hover:bg-white/10 transition-all">How can you help me?</button>
+           <button onClick={() => setQuery("Show me the best AI tools")} className="px-4 py-2 rounded-full bg-white/5 border border-white/5 text-[10px] font-black uppercase text-white/40 hover:text-white hover:bg-white/10 transition-all">Best AI Tools</button>
+        </div>
+      )}
     </section>
   );
 }

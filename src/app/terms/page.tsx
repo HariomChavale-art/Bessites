@@ -55,7 +55,7 @@ export default function TermsPage() {
             <section className="pt-6 border-t border-white/5">
               <p className="text-sm font-medium">
                 For questions regarding these terms, contact our support node: <br />
-                <span className="text-white font-black italic">contact@ouneo.com</span>
+                <span className="text-white font-black italic">bessitesofficial@gmail.com</span>
               </p>
             </section>
           </div>
@@ -71,7 +71,7 @@ export default function TermsPage() {
             <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
           </div>
           <p className="text-xs text-muted-foreground opacity-50 font-bold uppercase tracking-widest">
-            © 2026 http://Bessites.store | Powered by Ouneo
+            © 2026 http://Bessites.store | Powered by Bessites
           </p>
         </div>
       </footer>

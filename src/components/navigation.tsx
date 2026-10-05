@@ -25,7 +25,7 @@ const SUGGESTIONS = [
   "Tip: Your Interaction Ledger tracks real-time engagement.",
   "Check the 'Trending' tab for verified high-impact assets.",
   "Submit your digital property via the Creator Hub.",
-  "Official Support: contact@ouneo.com",
+  "Official Support: bessitesofficial@gmail.com",
   "Verify your wallet to launch global ad campaigns.",
 ];
 

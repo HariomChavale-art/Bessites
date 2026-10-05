@@ -55,7 +55,7 @@ export default function PrivacyPage() {
               <h2 className="text-xl font-bold text-white mb-2 italic">5. Contact Information</h2>
               <p>
                 If you have any questions regarding this Privacy Policy, please contact our support node at: <br />
-                <span className="text-white font-black italic">contact@ouneo.com</span>
+                <span className="text-white font-black italic">bessitesofficial@gmail.com</span>
               </p>
             </section>
           </div>
@@ -71,7 +71,7 @@ export default function PrivacyPage() {
             <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
           </div>
           <p className="text-xs text-muted-foreground opacity-50 font-bold uppercase tracking-widest">
-            © 2026 Bessites.store | Powered by Ouneo
+            © 2026 http://Bessites.store | Powered by Bessites
           </p>
         </div>
       </footer>

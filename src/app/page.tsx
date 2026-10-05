@@ -220,9 +220,9 @@ export default function Home() {
           </div>
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground opacity-40 font-bold uppercase">Official Support Node</p>
-            <a href="mailto:contact@ouneo.com" className="text-sm font-black text-white hover:text-primary transition-colors tracking-widest">contact@ouneo.com</a>
+            <a href="mailto:bessitesofficial@gmail.com" className="text-sm font-black text-white hover:text-primary transition-colors tracking-widest">bessitesofficial@gmail.com</a>
           </div>
-          <p className="text-xs text-muted-foreground opacity-20 font-black uppercase tracking-widest pt-8">© 2024 Bessites Studio. Powered by Ouneo.</p>
+          <p className="text-xs text-muted-foreground opacity-20 font-black uppercase tracking-widest pt-8">© 2024 Bessites Studio. Powered by Bessites.</p>
         </div>
       </footer>
     </div>

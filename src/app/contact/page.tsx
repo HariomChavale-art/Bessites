@@ -21,7 +21,7 @@ export default function ContactPage() {
       setLoading(false);
       toast({
         title: "Message Transmitted",
-        description: "Your inquiry has been received by our support node at contact@ouneo.com. We will reply within 24 hours.",
+        description: "Your inquiry has been received by our support node at bessitesofficial@gmail.com. We will reply within 24 hours.",
       });
     }, 1500);
   };
@@ -50,7 +50,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-1">Official Support</p>
-                  <p className="text-lg font-bold text-white">contact@ouneo.com</p>
+                  <p className="text-lg font-bold text-white">bessitesofficial@gmail.com</p>
                 </div>
               </div>
 
@@ -91,7 +91,7 @@ export default function ContactPage() {
               <div className="space-y-2">
                 <Label className="text-white font-bold ml-1">Message Detail</Label>
                 <Textarea 
-                  placeholder="How can Ouneo assist your discovery process today?" 
+                  placeholder="How can Bessites assist your discovery process today?" 
                   className="bg-white/5 border-white/10 rounded-2xl min-h-[150px] p-4" 
                   required 
                 />
@@ -119,7 +119,7 @@ export default function ContactPage() {
             <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
           </div>
           <p className="text-xs text-muted-foreground opacity-50 mb-4">
-            Official Support: <a href="mailto:contact@ouneo.com" className="text-white hover:text-primary transition-colors">contact@ouneo.com</a>
+            Official Support: <a href="mailto:bessitesofficial@gmail.com" className="text-white hover:text-primary transition-colors">bessitesofficial@gmail.com</a>
           </p>
           <p className="text-sm text-muted-foreground opacity-50">
             © 2026 Bessites Studio. Global Discovery Hub.

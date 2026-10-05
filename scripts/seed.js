@@ -72,7 +72,7 @@ async function seedDatabase() {
         description: site.description,
         status: "approved", // Seeded items are auto-approved
         userId: "system-seed",
-        userEmail: "registry@bessites.store",
+        userEmail: "bessitesofficial@gmail.com",
         timestamp: admin.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
 

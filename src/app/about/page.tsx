@@ -32,7 +32,7 @@ export default function AboutPage() {
             <div className="bg-white/5 p-6 rounded-2xl border border-white/5 text-center italic">
               <p className="text-white font-medium">
                 Have a suggestion for a tool? Contact us at <br />
-                <span className="text-primary font-black not-italic">contact@ouneo.com</span>
+                <span className="text-primary font-black not-italic">bessitesofficial@gmail.com</span>
               </p>
             </div>
 
@@ -58,7 +58,7 @@ export default function AboutPage() {
             <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
           </div>
           <p className="text-xs text-muted-foreground opacity-50 font-bold uppercase tracking-widest">
-            Official Support: contact@ouneo.com
+            Official Support: bessitesofficial@gmail.com
           </p>
         </div>
       </footer>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { askGemini } from '@/ai/index';
 import { askOuneo, OuneoOutput } from '@/ai/flows/ouneo-flow';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -54,13 +55,23 @@ export function OuneoAssistant() {
     setMessages(newMessages);
 
     try {
-      const history = messages.map(m => ({ role: m.role, content: m.content }));
-      const data = await askOuneo({ message: currentQuery, history });
+      // Prioritize the Firebase AI Logic SDK for the response
+      const responseText = await askGemini(currentQuery);
+      
+      // We also run the background discovery flow to fetch tool matches if relevant
+      // In a production environment, you might merge these or use the discovery flow directly
+      let discoveryData: OuneoOutput | undefined;
+      try {
+        const history = messages.map(m => ({ role: m.role, content: m.content }));
+        discoveryData = await askOuneo({ message: currentQuery, history });
+      } catch (flowErr) {
+        console.warn("Discovery flow matched zero assets, continuing with text response.");
+      }
       
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: data.response,
-        result: data 
+        content: responseText,
+        result: discoveryData 
       }]);
     } catch (err) {
       setError("I'm having trouble connecting to the network. Please try again.");
@@ -104,13 +115,13 @@ export function OuneoAssistant() {
                       <Sparkles className="w-4 h-4 text-primary" />
                    </div>
                    <div className="flex-1 space-y-6">
-                      <div className="bg-white/[0.02] border border-white/5 p-5 rounded-[2rem] relative overflow-hidden max-w-[90%]">
-                         <p className="text-base text-white/90 font-medium italic leading-relaxed">
+                      <div className="bg-white/[0.02] border border-white/5 p-5 rounded-[2rem] relative overflow-hidden max-w-[90%] shadow-2xl">
+                         <p className="text-base text-white/90 font-medium italic leading-relaxed whitespace-pre-wrap">
                             {msg.content}
                          </p>
                       </div>
 
-                      {msg.result && msg.result.matches.length > 0 && (
+                      {msg.result && msg.result.matches && msg.result.matches.length > 0 && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                            {msg.result.matches.map((tool, tIdx) => (
                              <Card 

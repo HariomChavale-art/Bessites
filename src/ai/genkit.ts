@@ -9,11 +9,11 @@ import { googleAI } from '@genkit-ai/google-genai';
 
 const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY;
 
-// Connection Verification
+// Connection Verification (Server Console only)
 if (!apiKey) {
-  console.warn("GEMINI_API_KEY is missing. Ouneo will operate in local fallback mode.");
+  console.warn("[Ouneo] GEMINI_API_KEY is missing. Operating in local fallback mode.");
 } else {
-  console.log("Gemini Connected Successfully");
+  console.log("[Ouneo] Gemini Connection Initialized");
 }
 
 export const ai = genkit({

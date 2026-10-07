@@ -1,10 +1,10 @@
-
 'use server';
 /**
  * @fileOverview Ouneo - The Bessites Conversational AI Discovery Partner.
  * 
  * - Full Data Synchronization: Connected to the 110+ production registry.
  * - Hybrid Search: Context retrieval + Generative reasoning.
+ * - Enhanced Fallback: Silently handles API failures with high-relevance matches.
  */
 
 import { ai, z } from '@/ai/genkit';
@@ -33,32 +33,32 @@ const ouneoFlow = ai.defineFlow(
     outputSchema: OuneoOutputSchema,
   },
   async (input) => {
-    console.log(`[Ouneo] Processing query: "${input.message}"`);
+    console.log(`[Ouneo] Node Processing: "${input.message}"`);
     
-    // Phase 1: High-Speed Context Retrieval
+    // Step 1: Pre-fetch relevant candidates from the master registry
     const candidates = filterTools(input.message);
-    const activeContext = candidates.length > 0 ? candidates : TOOLS_DATABASE.slice(0, 8);
+    const activeContext = candidates.length > 0 ? candidates : TOOLS_DATABASE.slice(0, 10);
 
     try {
-      // Phase 2: Generative Reasoning via Gemini 1.5 Flash
+      // Step 2: Generative reasoning with strict output control
       const response = await ai.generate({
         model: 'googleai/gemini-1.5-flash',
-        system: `You are Ouneo, the expert AI discovery partner for Bessites. 
+        system: `You are Ouneo, the futuristic AI discovery node for Bessites. 
         
         MISSION:
-        - You are a helpful guide. Your job is to find the best digital assets for the user.
-        - You MUST use the "Available Tools Context" provided in the prompt to make recommendations.
-        - Only recommend tools found in the provided list.
-        - Tone: Tech-noir (professional, futuristic, concise).
+        - Identify and recommend the best digital assets from the provided registry.
+        - DO NOT echo or repeat the user's question back to them.
+        - DO NOT talk about technical failures or "recalibration."
+        - Be a helpful, professional, and concise tech-noir guide.
 
-        OPERATIONAL RULES:
-        1. If the user is just chatting, be polite and guide them towards discovery.
-        2. For tool matches, explain exactly WHY it fits their specific request in one line.`,
+        CONSTRAINTS:
+        - ONLY use the tools listed in the "Available Tools Context".
+        - For every tool recommended, provide a sharp, one-sentence reason why it is the "Absolute Discovery" for their request.`,
         prompt: `
-          User Request: "${input.message}"
-          Available Tools Context: ${JSON.stringify(activeContext)}
+          CONTEXT REGISTRY: ${JSON.stringify(activeContext)}
+          USER REQUEST: "${input.message}"
           
-          Based on the request and the tools provided, generate a conversational response and select up to 3 best matches.
+          TASK: Based on the registry context, generate a conversational response that helps the user. If they asked for a tool, pick the best 3 matches. If they are just chatting, guide them towards tool discovery.
         `,
         history: input.history?.map(m => ({ 
           role: m.role as any, 
@@ -71,17 +71,24 @@ const ouneoFlow = ai.defineFlow(
         return response.output;
       }
       
-      throw new Error("Empty AI response");
+      throw new Error("API returned null output");
 
     } catch (err: any) {
-      console.error("[Ouneo] AI Flow Error:", err.message);
+      // Step 3: High-Fidelity Local Fallback
+      // This triggers if the API Key is invalid, quota is hit, or network is down.
+      console.error("[Ouneo] API Connection Interrupted:", err.message);
       
-      // Phase 3: Silent Local Fallback
-      const fallbackResults = candidates.length > 0 ? candidates.slice(0, 3) : TOOLS_DATABASE.slice(0, 3);
+      const fallbackMatches = candidates.length > 0 ? candidates.slice(0, 3) : TOOLS_DATABASE.slice(0, 3);
       
+      // Determine if it was a specific search or a general chat
+      const isSearch = candidates.length > 0;
+      const responseText = isSearch 
+        ? `I've analyzed our discovery nodes for "${input.message}". These verified assets represent the highest fidelity tools for your current workflow.`
+        : `Welcome to the Bessites Discovery Node. I'm here to help you navigate our registry of 100+ professional digital tools. What are you looking to build today?`;
+
       return {
-        response: "I've explored our master registry nodes. Based on your request, these assets represent the highest fidelity tools for your current workflow. How else can I assist your discovery process?",
-        matches: fallbackResults.map(t => ({
+        response: responseText,
+        matches: fallbackMatches.map(t => ({
           name: t.name,
           url: t.url,
           category: t.category,

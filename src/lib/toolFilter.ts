@@ -1,5 +1,6 @@
 /**
  * @fileOverview Enhanced high-speed local filtering for the Bessites registry.
+ * Optimized for Ouneo's 110+ tool database.
  */
 
 import { TOOLS_DATABASE, ToolEntry } from "@/data/toolsDatabase";
@@ -13,22 +14,22 @@ export function filterTools(userQuery: string): ToolEntry[] {
     let score = 0;
     
     // Name match (Highest priority)
-    if (tool.name.toLowerCase().includes(query)) score += 10;
+    if (tool.name.toLowerCase().includes(query)) score += 15;
     
-    // Exact Tag match
-    if (tool.tags.some(tag => tag.toLowerCase() === query)) score += 8;
+    // Exact Category match
+    if (tool.category.toLowerCase() === query) score += 10;
+
+    // Keyword match (High fidelity)
+    if (tool.keywords.some(k => query.includes(k.toLowerCase()) || k.toLowerCase().includes(query))) score += 8;
     
-    // Partial Tag match
-    if (tool.tags.some(tag => tag.toLowerCase().includes(query))) score += 5;
-    
-    // Keyword match
-    if (tool.keywords.some(k => query.includes(k.toLowerCase()))) score += 4;
+    // Tag match
+    if (tool.tags.some(tag => query.includes(tag.toLowerCase()) || tag.toLowerCase().includes(query))) score += 5;
     
     // Description match
-    if (tool.description.toLowerCase().includes(query)) score += 2;
+    if (tool.description.toLowerCase().includes(query)) score += 3;
     
-    // Category match
-    if (tool.category.toLowerCase().includes(query)) score += 3;
+    // Long Description match
+    if (tool.longDescription.toLowerCase().includes(query)) score += 1;
 
     return { ...tool, score };
   })
@@ -36,5 +37,5 @@ export function filterTools(userQuery: string): ToolEntry[] {
   .sort((a, b) => b.score - a.score);
 
   // If no specific matches, return trending
-  return results.length > 0 ? results.slice(0, 6) : TOOLS_DATABASE.slice(0, 6);
+  return results.length > 0 ? results.slice(0, 10) : TOOLS_DATABASE.slice(0, 6);
 }

@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { askGemini } from '@/ai/index';
-import { askOuneo, OuneoOutput } from '@/ai/flows/ouneo-flow';
+import { askOuneo } from '@/ai/flows/ouneo-flow';
+import type { OuneoOutput } from '@/ai/flows/ouneo-flow';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,10 +14,8 @@ import {
   ArrowRight, 
   ExternalLink, 
   X,
-  Zap,
   Globe,
-  User as UserIcon,
-  MessageSquare
+  User as UserIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -51,30 +50,26 @@ export function OuneoAssistant() {
     setError(null);
 
     // Add user message to UI
+    const currentHistory = messages.map(m => ({ role: m.role, content: m.content }));
     const newMessages = [...messages, { role: 'user' as const, content: currentQuery }];
     setMessages(newMessages);
 
     try {
-      // Prioritize the Firebase AI Logic SDK for the response
-      const responseText = await askGemini(currentQuery);
-      
-      // We also run the background discovery flow to fetch tool matches if relevant
-      // In a production environment, you might merge these or use the discovery flow directly
-      let discoveryData: OuneoOutput | undefined;
-      try {
-        const history = messages.map(m => ({ role: m.role, content: m.content }));
-        discoveryData = await askOuneo({ message: currentQuery, history });
-      } catch (flowErr) {
-        console.warn("Discovery flow matched zero assets, continuing with text response.");
-      }
+      // Execute the optimized Discovery Flow
+      // askOuneo handles the API call and provides fallback logic internally
+      const discoveryData = await askOuneo({ 
+        message: currentQuery, 
+        history: currentHistory 
+      });
       
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: responseText,
+        content: discoveryData.response,
         result: discoveryData 
       }]);
     } catch (err) {
-      setError("I'm having trouble connecting to the network. Please try again.");
+      console.error("Ouneo UI Error:", err);
+      setError("The discovery node is currently offline. Please verify your connection.");
     } finally {
       setLoading(false);
     }
@@ -83,6 +78,7 @@ export function OuneoAssistant() {
   const clearChat = () => {
     setMessages([]);
     setQuery('');
+    setError(null);
   };
 
   return (

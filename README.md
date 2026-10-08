@@ -28,6 +28,17 @@ To commit and push all current changes to GitHub:
 npm run sync
 ```
 
+### 4. Handling Conflicts (When Pull fails)
+If you need to get the latest remote changes and put your work on top:
+```bash
+npm run pull-git
+```
+
+If you need to force your local changes and overwrite the remote (DANGEROUS):
+```bash
+npm run force-sync
+```
+
 ## Quick Commands Reference
 
 - `npm run dev`: Start development server

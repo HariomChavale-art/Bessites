@@ -10,11 +10,12 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "sync": "git add . && (git commit -m 'Automatic sync: Update UI and discovery logic' || echo 'No changes to commit') && git push origin main",
+    "force-sync": "git add . && (git commit -m 'Force sync: Overwriting remote with local state' || echo 'No changes to commit') && git push origin main --force",
+    "pull-git": "git pull origin main --rebase",
     "setup-git": "git remote set-url origin https://github.com/HariomChavale-art/Webdock.git && git branch -M main && git push -u origin main",
     "fix-git": "git remote set-url origin https://github.com/HariomChavale-art/Webdock.git && git branch -M main && git fetch origin && git branch --set-upstream-to=origin/main main",
     "auth-git": "git config --global credential.helper store && echo 'Please run: git push' && echo 'When prompted, enter your GitHub username and use a Personal Access Token (PAT) as your password.'",
-    "check-git": "git remote -v",
-    "pull-git": "git pull origin main --rebase"
+    "check-git": "git remote -v"
   },
   "dependencies": {
     "@genkit-ai/google-genai": "^1.1.1",

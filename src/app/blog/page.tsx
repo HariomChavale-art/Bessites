@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Navigation } from "@/components/navigation";
@@ -8,6 +9,14 @@ import { Calendar, Clock, ChevronRight, BookOpen } from "lucide-react";
 import Link from "next/link";
 
 const BLOG_POSTS = [
+  {
+    slug: "free-traffic-for-new-website",
+    title: "How to Get More Traffic to Your Website (7 Working Methods in 2026)",
+    description: "The definitive guide to scaling your first users using multi-node distribution strategies across search, social, and curated registries.",
+    date: "Oct 8, 2026",
+    readTime: "7 min read",
+    category: "Growth Strategy"
+  },
   {
     slug: "submit-website-to-google",
     title: "How to Submit Your Website to Google in 2026: The Absolute Guide",
@@ -70,7 +79,7 @@ export default function BlogPage() {
           ))}
         </div>
 
-        {BLOG_POSTS.length === 1 && (
+        {BLOG_POSTS.length <= 2 && (
           <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-[4rem] bg-white/[0.01]">
             <BookOpen className="w-12 h-12 text-white/10 mx-auto mb-4" />
             <p className="text-muted-foreground italic font-medium opacity-20 uppercase tracking-widest text-xs">

@@ -1,9 +1,10 @@
 
-import { z } from 'genkit';
+import { z } from 'zod';
 
 /**
  * @fileOverview Shared schemas for Ouneo AI.
- * Defined here to prevent transitive imports of the Genkit instance into client components.
+ * Uses 'zod' directly instead of 'genkit' to prevent transitive imports 
+ * of Node.js-only modules (like async_hooks) into client components.
  */
 
 export const OuneoOutputSchema = z.object({
@@ -16,3 +17,5 @@ export const OuneoOutputSchema = z.object({
     category: z.string(),
   })).max(3).describe('Top best-matching tools from the registry.'),
 });
+
+export type OuneoOutput = z.infer<typeof OuneoOutputSchema>;

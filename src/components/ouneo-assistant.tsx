@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { askOuneo } from '@/ai/flows/ouneo-flow';
-import type { OuneoOutput } from '@/ai/flows/ouneo-flow';
+import type { OuneoOutput } from '@/ai/schemas';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -55,8 +55,7 @@ export function OuneoAssistant() {
     setMessages(newMessages);
 
     try {
-      // Execute the optimized Discovery Flow
-      // askOuneo handles the API call and provides fallback logic internally
+      // Execute the optimized Discovery Flow via Server Action
       const discoveryData = await askOuneo({ 
         message: currentQuery, 
         history: currentHistory 
@@ -83,7 +82,6 @@ export function OuneoAssistant() {
 
   return (
     <section className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-top-4 duration-1000">
-      
       {/* Chat History Area */}
       {messages.length > 0 && (
         <div className="space-y-8 mb-10 min-h-[100px] max-h-[600px] overflow-y-auto no-scrollbar p-2">

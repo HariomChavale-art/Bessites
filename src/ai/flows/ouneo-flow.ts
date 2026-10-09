@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Ouneo - The Bessites Conversational AI Discovery Partner.
@@ -7,29 +8,34 @@
  * - Enhanced Fallback: Silently handles API failures with high-relevance matches.
  */
 
-import { ai, z } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import { filterTools } from '@/lib/toolFilter';
 import { TOOLS_DATABASE } from '@/data/toolsDatabase';
-import { OuneoOutputSchema } from '@/ai/schemas';
+import { OuneoOutputSchema, type OuneoOutput } from '@/ai/schemas';
 
-const OuneoInputSchema = z.object({
-  message: z.string().describe('The user\'s request or chat message.'),
-  history: z.array(z.object({
-    role: z.enum(['user', 'assistant']),
-    content: z.string()
+const OuneoInputSchema = OuneoOutputSchema.extend({
+  message: (await import('genkit')).z.string().describe('The user\'s request or chat message.'),
+  history: (await import('genkit')).z.array((await import('genkit')).z.object({
+    role: (await import('genkit')).z.enum(['user', 'assistant']),
+    content: (await import('genkit')).z.string()
   })).optional().describe('Chat history for conversational context.'),
 });
 
-export type OuneoOutput = z.infer<typeof OuneoOutputSchema>;
-
-export async function askOuneo(input: z.infer<typeof OuneoInputSchema>): Promise<OuneoOutput> {
+// Since the client needs the type but not the schema execution, we use OuneoOutput from schemas.ts
+export async function askOuneo(input: { message: string, history?: {role: 'user' | 'assistant', content: string}[] }): Promise<OuneoOutput> {
   return ouneoFlow(input);
 }
 
 const ouneoFlow = ai.defineFlow(
   {
     name: 'ouneoFlow',
-    inputSchema: OuneoInputSchema,
+    inputSchema: (await import('genkit')).z.object({
+      message: (await import('genkit')).z.string(),
+      history: (await import('genkit')).z.array((await import('genkit')).z.object({
+        role: (await import('genkit')).z.enum(['user', 'assistant']),
+        content: (await import('genkit')).z.string()
+      })).optional(),
+    }),
     outputSchema: OuneoOutputSchema,
   },
   async (input) => {
@@ -75,12 +81,9 @@ const ouneoFlow = ai.defineFlow(
 
     } catch (err: any) {
       // Step 3: High-Fidelity Local Fallback
-      // This triggers if the API Key is invalid, quota is hit, or network is down.
       console.error("[Ouneo] API Connection Interrupted:", err.message);
       
       const fallbackMatches = candidates.length > 0 ? candidates.slice(0, 3) : TOOLS_DATABASE.slice(0, 3);
-      
-      // Determine if it was a specific search or a general chat
       const isSearch = candidates.length > 0;
       const responseText = isSearch 
         ? `I've analyzed our discovery nodes for "${input.message}". These verified assets represent the highest fidelity tools for your current workflow.`

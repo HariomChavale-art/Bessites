@@ -1,12 +1,14 @@
-
-"use client"
-
 import { Navigation } from "@/components/navigation";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Calendar, Clock, ChevronRight, BookOpen } from "lucide-react";
 import Link from "next/link";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Bessites Blog | Strategic Discovery Insights",
+  description: "Professional strategies for digital creators, SEO masters, and high-velocity teams. Learn how to scale your digital presence.",
+};
 
 const BLOG_POSTS = [
   {
@@ -38,7 +40,7 @@ export default function BlogPage() {
             Bessites Intelligence
           </Badge>
           <h1 className="text-5xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-none">
-            Discovery <span className="text-primary">Insights</span>
+            Bessites <span className="text-primary">Blog</span>
           </h1>
           <p className="text-xl text-muted-foreground font-medium italic opacity-60">
             Professional strategies for digital creators, builders, and high-velocity teams.
@@ -88,6 +90,21 @@ export default function BlogPage() {
           </div>
         )}
       </main>
+
+      <footer className="bg-card/50 border-t border-white/5 py-16">
+        <div className="container mx-auto px-4 text-center space-y-8">
+          <div className="flex flex-wrap justify-center gap-8 text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/40 italic">
+            <Link href="/about" className="hover:text-primary transition-colors">About Us</Link>
+            <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
+            <Link href="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
+            <Link href="/disclaimer" className="hover:text-primary transition-colors">Disclaimer</Link>
+            <Link href="/faq" className="hover:text-primary transition-colors">FAQ</Link>
+            <Link href="/how-it-works" className="hover:text-primary transition-colors">How It Works</Link>
+            <Link href="/blog" className="hover:text-primary transition-colors">Blog</Link>
+          </div>
+          <p className="text-xs text-muted-foreground opacity-20 font-black uppercase tracking-widest">© 2024 Bessites Studio. Powered by Bessites.</p>
+        </div>
+      </footer>
     </div>
   );
 }

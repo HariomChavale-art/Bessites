@@ -1,4 +1,3 @@
-
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
@@ -9,8 +8,7 @@ import Script from 'next/script';
 
 /**
  * Global Metadata Configuration
- * properly displays the official brand icon across mobile browsers, Google shortcuts,
- * Apple touch icons, and social OpenGraph previews.
+ * Handles brand icons and social previews automatically via Next.js Metadata API.
  */
 export const viewport: Viewport = {
   themeColor: '#0d0c1d',
@@ -59,9 +57,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        <link rel="icon" type="image/png" href="https://i.imgur.com/3STBHNy.png" />
-        <link rel="shortcut icon" href="https://i.imgur.com/3STBHNy.png" />
-        <link rel="apple-touch-icon" href="https://i.imgur.com/3STBHNy.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />

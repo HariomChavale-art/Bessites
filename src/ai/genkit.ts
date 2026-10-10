@@ -22,7 +22,7 @@ export const ai = genkit({
       apiKey: apiKey
     }),
   ],
-  model: 'googleai/gemini-1.5-flash',
+  model: 'googleai/gemini-flash-latest', // Updated to latest stable alias
 });
 
 export { z } from 'genkit';

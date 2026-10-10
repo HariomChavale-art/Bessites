@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Ouneo - The Bessites Conversational AI Discovery Partner.
@@ -8,20 +7,19 @@
  * - Enhanced Fallback: Silently handles API failures with high-relevance matches.
  */
 
-import { ai } from '@/ai/genkit';
+import { ai, z } from '@/ai/genkit';
 import { filterTools } from '@/lib/toolFilter';
 import { TOOLS_DATABASE } from '@/data/toolsDatabase';
 import { OuneoOutputSchema, type OuneoOutput } from '@/ai/schemas';
 
-const OuneoInputSchema = OuneoOutputSchema.extend({
-  message: (await import('genkit')).z.string().describe('The user\'s request or chat message.'),
-  history: (await import('genkit')).z.array((await import('genkit')).z.object({
-    role: (await import('genkit')).z.enum(['user', 'assistant']),
-    content: (await import('genkit')).z.string()
+const OuneoInputSchema = z.object({
+  message: z.string().describe('The user\'s request or chat message.'),
+  history: z.array(z.object({
+    role: z.enum(['user', 'assistant']),
+    content: z.string()
   })).optional().describe('Chat history for conversational context.'),
 });
 
-// Since the client needs the type but not the schema execution, we use OuneoOutput from schemas.ts
 export async function askOuneo(input: { message: string, history?: {role: 'user' | 'assistant', content: string}[] }): Promise<OuneoOutput> {
   return ouneoFlow(input);
 }
@@ -29,13 +27,7 @@ export async function askOuneo(input: { message: string, history?: {role: 'user'
 const ouneoFlow = ai.defineFlow(
   {
     name: 'ouneoFlow',
-    inputSchema: (await import('genkit')).z.object({
-      message: (await import('genkit')).z.string(),
-      history: (await import('genkit')).z.array((await import('genkit')).z.object({
-        role: (await import('genkit')).z.enum(['user', 'assistant']),
-        content: (await import('genkit')).z.string()
-      })).optional(),
-    }),
+    inputSchema: OuneoInputSchema,
     outputSchema: OuneoOutputSchema,
   },
   async (input) => {
@@ -48,7 +40,7 @@ const ouneoFlow = ai.defineFlow(
     try {
       // Step 2: Generative reasoning with strict output control
       const response = await ai.generate({
-        model: 'googleai/gemini-1.5-flash',
+        model: 'googleai/gemini-flash-latest',
         system: `You are Ouneo, the futuristic AI discovery node for Bessites. 
         
         MISSION:

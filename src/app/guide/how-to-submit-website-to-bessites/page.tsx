@@ -1,6 +1,7 @@
 import { Navigation } from "@/components/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { 
   BookOpen, 
   CheckCircle2, 
@@ -86,7 +87,6 @@ export default function SubmitGuidePage() {
 
           <div className="space-y-24 text-zinc-300 leading-relaxed text-lg font-medium">
             
-            {/* H2 Section 1 */}
             <section id="what-is-bessites" className="space-y-6">
               <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white flex items-center gap-4">
                 <span className="text-emerald-500 text-4xl">01</span> What is Bessites.store?
@@ -103,7 +103,6 @@ export default function SubmitGuidePage() {
               </div>
             </section>
 
-            {/* H2 Section 2 */}
             <section id="why-submit" className="space-y-6">
               <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white flex items-center gap-4">
                 <span className="text-emerald-500 text-4xl">02</span> Why You Should Submit Your Website
@@ -143,21 +142,12 @@ export default function SubmitGuidePage() {
                   </div>
                 </li>
               </ul>
-              <div className="bg-white/5 border border-white/10 p-6 rounded-2xl italic">
-                <p className="text-sm font-bold text-white/40 mb-1 uppercase tracking-widest">Example Case:</p>
-                <p className="text-sm">A new AI coding tool submitted to Bessites saw its first 50 professional users within 24 hours of approval, leading to critical feedback that improved its core features before its main launch.</p>
-              </div>
             </section>
 
-            {/* H2 Section 3 */}
             <section id="step-by-step" className="space-y-8">
               <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white flex items-center gap-4">
                 <span className="text-emerald-500 text-4xl">03</span> Step-by-Step - How to Submit
               </h2>
-              <p>
-                The submission process at Bessites.store is designed for speed and clarity. We have removed the unnecessary form fields found in traditional directories, focusing only on the data that helps users discover you. Follow these four steps to ensure your project is properly indexed in our discovery node.
-              </p>
-              
               <div className="grid grid-cols-1 gap-6 pt-4">
                 <div className="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 space-y-4">
                   <div className="flex items-center gap-4">
@@ -165,74 +155,42 @@ export default function SubmitGuidePage() {
                     <h3 className="text-xl font-bold text-white uppercase italic">Authenticate & URL Entry</h3>
                   </div>
                   <p className="text-sm leading-relaxed opacity-80">
-                    First, login to your Bessites account and navigate to the "Submit" page. Enter your primary, live URL. Our system will perform a real-time reachability check to ensure your site is online and secure (HTTPS is required). If your site is still in development or password-protected, wait until it is public before submitting.
+                    First, login to your Bessites account and navigate to the "Submit" page. Enter your primary, live URL. Our system will perform a real-time reachability check.
                   </p>
                 </div>
-
                 <div className="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 space-y-4">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-black italic shadow-lg">2</div>
                     <h3 className="text-xl font-bold text-white uppercase italic">Brand Mark Upload</h3>
                   </div>
                   <p className="text-sm leading-relaxed opacity-80">
-                    Upload a high-resolution logo for your website. This brand mark is critical for visual discovery in our card-based feed. We recommend a square (1:1) aspect ratio for the best appearance. Clear, high-contrast logos perform significantly better than complex images. Ensure your logo is visible at small sizes as it will be shown in both desktop and mobile views.
-                  </p>
-                </div>
-
-                <div className="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-black italic shadow-lg">3</div>
-                    <h3 className="text-xl font-bold text-white uppercase italic">Category & Metadata</h3>
-                  </div>
-                  <p className="text-sm leading-relaxed opacity-80">
-                    Select your primary interest node from our curated list of 100 categories. This is how users find you via filters. After choosing a main category, add specific metadata tags. For example, if you are a "Graphic Design" tool, add tags like "Vector," "Figma," or "Mockup." These tags help our AI assistant, Ouneo, recommend your site to relevant users.
-                  </p>
-                </div>
-
-                <div className="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-black italic shadow-lg">4</div>
-                    <h3 className="text-xl font-bold text-white uppercase italic">Discovery Description</h3>
-                  </div>
-                  <p className="text-sm leading-relaxed opacity-80">
-                    Write a concise, 1-2 sentence value proposition for your tool. Focus on the problem you solve rather than marketing fluff. Instead of saying "We are the best site," say "We help developers generate clean CSS grids in 30 seconds." This level of technical clarity is what our high-velocity users expect.
+                    Upload a high-resolution logo for your website. This brand mark is critical for visual discovery in our card-based feed.
                   </p>
                 </div>
               </div>
             </section>
 
-            {/* H2 Section 4 */}
             <section id="post-submission" className="space-y-6">
               <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white flex items-center gap-4">
                 <span className="text-emerald-500 text-4xl">04</span> What Happens After You Submit?
               </h2>
               <p>
-                Once you click "Publish Project," your entry is moved into our moderation queue. Unlike automated directories, Bessites.store uses human curators to verify every single submission. This process usually takes between 24 and 48 hours. Our curators look for three things: functional utility, zero padding (no excessive ads or filler), and category accuracy. If your project passes these checks, it is officially indexed in our registry.
+                Once you click "Publish Project," your entry is moved into our moderation queue. Unlike automated directories, Bessites.store uses human curators to verify every single submission. This process usually takes between 24 and 48 hours.
               </p>
-              <p>
-                After approval, your site will appear in the "New" tab of the discovery feed. From here, your interaction ledger begins. Every visit and appreciation counts toward your trending score. If your project gains enough momentum, it will be moved to the "Trending" section, which significantly increases your visibility. You can track all these metrics in real-time through your Creator Hub. This is where you can also launch ad-boost campaigns if you want to accelerate your discovery.
-              </p>
-              <div className="bg-primary/5 border border-primary/20 p-6 rounded-2xl italic">
-                <p className="text-sm font-bold text-primary mb-1 uppercase tracking-widest">Pro Tip:</p>
-                <p className="text-sm">Check your "My Websites" dashboard daily. Seeing how users interact with your listing can help you refine your landing page messaging for better conversion.</p>
-              </div>
             </section>
 
-            {/* Conclusion */}
             <section className="space-y-6 pt-10 border-t border-white/5">
               <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Conclusion</h2>
               <p>
-                Reaching absolute discovery is a technical discipline of distribution. By submitting your website to Bessites.store, you are taking a proactive step in building your brand's authority and finding your first professional users. Our registry is designed to reward quality and utility, giving the best tools the momentum they deserve. Follow our steps, prioritize your brand assets, and stay intentional with your metadata. Discovery is not a matter of luck; it is a matter of placement. Keep building, keep optimizing, and let our pipeline help you reach the top 1% of the modern web.
+                Reaching absolute discovery is a technical discipline of distribution. By submitting your website to Bessites.store, you are taking a proactive step in building your brand's authority.
               </p>
             </section>
 
-            {/* FAQ Section */}
             <section id="faq" className="space-y-10 pt-10 border-t border-white/5">
               <div className="flex items-center gap-4 text-emerald-400">
                 <HelpCircle className="w-8 h-8" />
                 <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Frequently Asked Questions</h2>
               </div>
-              
               <div className="grid grid-cols-1 gap-8">
                 {faqData.map((faq, index) => (
                   <div key={index} className="space-y-3">
@@ -247,38 +205,19 @@ export default function SubmitGuidePage() {
           <footer className="pt-20 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-8">
              <Link href="/guide">
                 <Button variant="ghost" className="text-muted-foreground hover:text-white uppercase font-black tracking-widest text-[10px] italic">
-                   <ChevronLeft className="w-4 h-4 mr-2" /> Back to Hub
+                   <ChevronLeft className="w-4 h-4 mr-2" /> Manual Hub
                 </Button>
              </Link>
              <div className="flex gap-4">
                 <Link href="/guide/how-to-get-free-traffic">
-                  <Button className="rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[9px] font-black uppercase italic shadow-xl shadow-emerald-500/10">
-                     Next Guide: Free Traffic <ChevronRight className="w-4 h-4 ml-2" />
+                  <Button className="rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[9px] font-black uppercase italic shadow-xl">
+                     Next Guide <ChevronRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
              </div>
           </footer>
         </article>
       </main>
-
-      {/* JSON-LD Schema for SEO */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            "mainEntity": faqData.map(f => ({
-              "@type": "Question",
-              "name": f.q,
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": f.a
-              }
-            }))
-          })
-        }}
-      />
     </div>
   );
 }

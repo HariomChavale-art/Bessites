@@ -61,9 +61,6 @@ export default function CommonMistakesGuide() {
               <p>
                 The biggest mistake new websites make is requiring too much effort from the user before showing value. If your tool is behind a mandatory sign-up wall, or if your landing page is cluttered with pop-ups and cookie banners, you are creating 'Interaction Friction'. In 2026, users expect a 'Zero Friction' path to utility. They want to see the tool work before they commit their data or time to your node.
               </p>
-              <p>
-                Remove any unnecessary steps in your conversion node. If your website is a PDF converter, let them convert one file for free without an account. This builds immediate 'Community Proof' and trust. High-fidelity discovery is about proving value first and asking for data second. If your onboarding is a barrier, your 'Interaction Ledger' will show a high bounce rate, which search engines interpret as a sign of low-quality utility.
-              </p>
               <div className="bg-primary/5 border border-primary/20 p-6 rounded-2xl italic">
                 <p className="text-sm font-bold text-primary mb-1 uppercase tracking-widest">Pro Tip:</p>
                 <p className="text-sm">Audit your landing page with a '3-Second Test'. If a total stranger can't identify your primary utility and value prop within 3 seconds, your navigation node is failing and needs immediate recalibration.</p>
@@ -76,9 +73,6 @@ export default function CommonMistakesGuide() {
               </h2>
               <p>
                 In an attempt to rank for keywords, many creators fill their pages with 'Padding'—long, repetitive paragraphs that add no value to the user. This is a primary target for modern discovery algorithms like Google's helpful content system. If your 1,000-word guide can be summarized in 100 words without losing utility, you have a padding problem. 'Zero Padding' content is technical, concise, and result-oriented.
-              </p>
-              <p>
-                Stop using AI to generate raw text without heavy manual editing. Generic AI content is a low-fidelity signal that tells curation nodes like Bessites.store that your project is a 'Low Value' clone. Focus on provided 'Unique Insights' and 'Actionable Data' that only a human expert could provide. High-fidelity documentation should be instructional—it should tell the user exactly what to do and how to do it. Value is measured by utility, not word count.
               </p>
               <ul className="space-y-4 pt-4">
                 <li className="flex gap-4"><CheckCircle2 className="w-6 h-6 text-primary shrink-0" /><span>Replace long paragraphs with bulleted lists and technical diagrams for better readability.</span></li>
@@ -94,9 +88,6 @@ export default function CommonMistakesGuide() {
               <p>
                 A slow website is a hidden website. Many new builders neglect 'Core Web Vitals', assuming that their content is enough to win. In 2026, performance is a mandatory technical requirement for discovery. If your LCP (Largest Contentful Paint) is over 3 seconds, or if your mobile layout shifts during loading, you are sending a 'Critical Error' signal to the search nodes. Your discovery potential will be capped, regardless of how good your tool is.
               </p>
-              <p>
-                Another common mistake is 'Mobile Shrinking'—treating your mobile version as just a smaller desktop site. Mobile users have specific 'Interaction Nodes': they need large touch targets and simplified navigation. If your site is hard to use on a phone, you are losing 70% of the modern web audience. Optimize your assets, use high-fidelity hosting nodes like Vercel, and ensure your mobile UX is as refined as your desktop UX. Zero latency is the hallmark of professional builders.
-              </p>
               <div className="bg-white/5 border border-white/10 p-6 rounded-2xl italic">
                 <p className="text-sm font-bold text-white/40 mb-1 uppercase tracking-widest">Example Trap:</p>
                 <p className="text-sm">Using heavy hero images (2MB+) without WebP compression. This single technical error can increase your bounce rate by 50% and permanently damage your initial discovery momentum.</p>
@@ -109,9 +100,6 @@ export default function CommonMistakesGuide() {
               </h2>
               <p>
                 'Build it and they will come' is the most dangerous myth in the creator economy. Most new websites fail because they are built in 'Distribution Isolation'. The creator spends months building the perfect tool but zero hours on distribution. Without intentional force to push your URL into discovery gateways like Bessites.store, Pinterest, or Reddit, your site will remain a silent node in a sea of billions.
-              </p>
-              <p>
-                Bessites was created specifically to solve this isolation problem. By listing your project in our professional registry, you are connecting your site to an active network of discovery-hungry users. Don't build for a month without one distribution experiment. Every new feature should be accompanied by a distribution burst in your target communities. High-velocity growth is driven by continuous distribution, not a single 'Launch Day' that never happens.
               </p>
             </section>
 
@@ -149,21 +137,6 @@ export default function CommonMistakesGuide() {
           </footer>
         </article>
       </main>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            "mainEntity": faqData.map(f => ({
-              "@type": "Question",
-              "name": f.q,
-              "acceptedAnswer": { "@type": "Answer", "text": f.a }
-            }))
-          })
-        }}
-      />
     </div>
   );
 }
-

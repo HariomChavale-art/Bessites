@@ -61,9 +61,6 @@ export default function GetDiscoveredGuide() {
               <p>
                 In 2026, discovery is governed by 'Neural Intent' and 'Verified Interaction'. Search engines and social feeds are moving away from simple keyword matching toward understanding the 'Utility' of a website. When a user performs a search, the algorithm looks for the most high-fidelity match that other humans have already verified as useful. This means that to be discovered, you must first prove your value to a small group of early adopters who will then 'Vote' for your quality via their interactions.
               </p>
-              <p>
-                Absolute discovery is a technical feedback loop. Your site gets listed in a discovery node (like a registry or social feed), users interact with it, and those interaction signals tell the broader algorithms that your site is worth showing to more people. This is how high-velocity growth works. By understanding that discovery starts with real human validation, you can focus your efforts on the nodes that drive the highest-fidelity interaction signals.
-              </p>
               <div className="bg-primary/5 border border-primary/20 p-6 rounded-2xl italic">
                 <p className="text-sm font-bold text-primary mb-1 uppercase tracking-widest">Pro Tip:</p>
                 <p className="text-sm">Don't aim for 'Traffic'. Aim for 'Value Actions' like registry saves or appreciations. These signals are weighted 10x higher than a simple click by modern discovery algorithms.</p>
@@ -76,9 +73,6 @@ export default function GetDiscoveredGuide() {
               </h2>
               <p>
                 The metadata title and description are your primary 'Hooks' in the discovery grid. When your site appears in a search result or a registry feed, the user has approximately 0.5 seconds to decide whether to click. Your hook must communicate immediate utility and zero padding. Avoid generic titles like 'My New Web Tool'. Instead, use action-oriented, result-driven hooks like 'Generate 3D Logos in 60 Seconds - High-Fidelity Asset Builder'.
-              </p>
-              <p>
-                Specificity is the Hallmark of discovery. If your website is a color palette generator, tell them exactly how many palettes they can browse or how many brands use your tool. This level of technical depth builds instant cognitive trust. Use brackets [] or parentheses () to highlight your best feature, e.g., '[Free Version Available]'. These visual cues break the monotony of the search grid and significantly increase your Click-Through Rate (CTR), which is a primary discovery signal.
               </p>
               <ul className="space-y-4 pt-4">
                 <li className="flex gap-4"><CheckCircle2 className="w-6 h-6 text-primary shrink-0" /><span>Front-load your most important keywords to satisfy both users and bots.</span></li>
@@ -94,43 +88,9 @@ export default function GetDiscoveredGuide() {
               <p>
                 Curation is the antidote to search engine noise. Modern users prefer finding tools through hand-picked registries like Bessites.store because every listing is a 'Verified Asset'. By submitting your site to our 100-node interest registry, you are placing your brand within the 'Absolute Discovery' pipeline. Our curators verify every URL for quality and relevance, which provides an immediate layer of trust that automated search results lack.
               </p>
-              <p>
-                Listing on Bessites is not just about a backlink; it is about building your 'Registry Presence'. As users save your tool to their personal registries, your site's 'Discovery Authority' increases. Ouneo, our conversational AI assistant, uses these interaction signals to recommend your site to relevant users in real-time. This high-velocity distribution node is the fastest way to get your first 1,000 visitors and build the community proof required for long-term organic discovery.
-              </p>
               <div className="bg-white/5 border border-white/10 p-6 rounded-2xl italic">
                 <p className="text-sm font-bold text-white/40 mb-1 uppercase tracking-widest">Strategy:</p>
                 <p className="text-sm">Complete every field in your Bessites submission. technical descriptions and specific tags help our AI node index your site correctly for targeted discovery.</p>
-              </div>
-            </section>
-
-            <section id="social-proof" className="space-y-6">
-              <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white flex items-center gap-4">
-                <span className="text-primary text-4xl">04</span> Building Community Social Proof
-              </h2>
-              <p>
-                Discovery is also driven by 'Peer-to-Peer Distribution'. When a professional user finds a tool that solves their problem, they naturally share it with their network in Discord, Slack, or on social media. This 'Word-of-Mouth' node is the highest-fidelity discovery signal possible. To trigger it, your website must provide 'Zero Padding' utility—it must do exactly what it promises, instantly, and without friction.
-              </p>
-              <p>
-                Encourage your early users to 'Appreciate' (like) your site on Bessites. This social proof is visible to every other visitor in the registry and signals that your tool is a 'Verified Winner'. Over time, these community signals aggregate into a robust discovery profile that makes your site impossible to ignore. Absolute discovery is the result of many small, positive interactions logging into the permanent ledger of the web. Build for the human, and the algorithms will follow.
-              </p>
-            </section>
-
-            <section className="space-y-6 pt-10 border-t border-white/5">
-              <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Conclusion</h2>
-              <p>
-                Being discovered in 2026 is a technical discipline of distribution. By understanding modern discovery logic, engineering high-CTR hooks, leveraging curation gateways like Bessites.store, and building community proof, you create a visibility node that survives algorithmic noise. Don't build your project in the shadows; push it into the light of professional registries and communities. Absolute discovery is not a matter of luck; it is a matter of placement and utility. Build something great, list it properly, and let the internet find you.
-              </p>
-            </section>
-
-            <section id="faq" className="space-y-10 pt-10 border-t border-white/5">
-              <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Frequently Asked Questions</h2>
-              <div className="space-y-8">
-                {faqData.map((faq, idx) => (
-                  <div key={idx} className="space-y-3">
-                    <h3 className="text-xl font-bold text-white italic">{faq.q}</h3>
-                    <p className="text-zinc-400 font-medium leading-relaxed">{faq.a}</p>
-                  </div>
-                ))}
               </div>
             </section>
           </div>
@@ -149,21 +109,6 @@ export default function GetDiscoveredGuide() {
           </footer>
         </article>
       </main>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            "mainEntity": faqData.map(f => ({
-              "@type": "Question",
-              "name": f.q,
-              "acceptedAnswer": { "@type": "Answer", "text": f.a }
-            }))
-          })
-        }}
-      />
     </div>
   );
 }
-

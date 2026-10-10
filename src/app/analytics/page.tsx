@@ -24,7 +24,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Logo } from "@/components/logo";
 import { 
   XAxis, 
@@ -160,7 +160,19 @@ export default function AnalyticsPage() {
           <Link href="/" className="flex items-center gap-2">
             <Logo className="text-2xl" />
           </Link>
-          <Sheet><SheetTrigger asChild><Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl bg-white/5"><Menu className="w-5 h-5" /></Button></SheetTrigger><SheetContent side="left" className="bg-[#0D0C12] p-6 w-80"><SidebarContent /></SheetContent></Sheet>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl bg-white/5">
+                <Menu className="w-5 h-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="bg-[#0D0C12] p-6 w-80">
+              <SheetHeader className="mb-8">
+                <SheetTitle className="text-left text-white/40 text-[10px] font-black uppercase tracking-widest">Creator Menu</SheetTitle>
+              </SheetHeader>
+              <SidebarContent />
+            </SheetContent>
+          </Sheet>
         </header>
 
         <div className="p-4 sm:p-8 md:p-12 space-y-12">

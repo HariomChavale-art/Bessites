@@ -11,7 +11,8 @@ import {
   Users, 
   Settings, 
   HelpCircle, 
-  LogOut
+  LogOut,
+  BookOpen
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
@@ -101,6 +102,23 @@ export function Navigation() {
                             <span className="text-sm font-bold tracking-tight">{link.label}</span>
                           </button>
                         ))}
+
+                        <div className="pt-8 pb-4">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/30 ml-4 mb-2">Registry Docs</p>
+                          <button
+                            onClick={() => { router.push('/guide'); }}
+                            className={cn(
+                              "w-full flex items-center gap-4 px-5 py-4 rounded-[1.5rem] transition-all group relative overflow-hidden",
+                              pathname?.startsWith('/guide') 
+                                ? "text-white bg-gradient-to-r from-emerald-500/40 to-transparent shadow-lg" 
+                                : "text-muted-foreground/60 hover:text-white hover:bg-white/5"
+                            )}
+                          >
+                            {pathname?.startsWith('/guide') && <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,1)]" />}
+                            <BookOpen className={cn("w-5 h-5", pathname?.startsWith('/guide') ? "text-emerald-500" : "group-hover:scale-110 transition-transform")} />
+                            <span className="text-sm font-bold tracking-tight">User Manual</span>
+                          </button>
+                        </div>
                      </nav>
                   </div>
                   {user && (

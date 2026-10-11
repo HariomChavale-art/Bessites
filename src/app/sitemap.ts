@@ -24,4 +24,8 @@ export default function sitemap() {
     { url: `${baseUrl}/guide/common-mistakes-new-websites`, lastModified: new Date() },
     { url: `${baseUrl}/guide/how-to-track-website-traffic`, lastModified: new Date() },
   ]
+<<<<<<< HEAD
 }
+=======
+    }
+>>>>>>> b7aeaf6646dd93f4e1831144243baa2028d5ce2e

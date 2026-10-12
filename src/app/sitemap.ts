@@ -1,31 +1,55 @@
 export default function sitemap() {
-  const baseUrl = 'https://www.bessites.store'
+  const baseUrl = 'https://www.bessites.store';
+  const now = new Date();
+
+  const guides = [
+    'how-to-submit-website',
+    'how-to-submit-website-to-bessites',
+    'how-to-get-free-traffic',
+    'how-to-submit-to-google',
+    'how-to-make-website-faster',
+    'how-to-get-first-100-visitors',
+    'how-to-write-seo-title',
+    'how-to-share-website-on-pinterest',
+    'how-to-use-bessites',
+    'how-to-get-backlinks-free',
+    'how-to-promote-on-reddit',
+    'how-to-find-new-websites',
+    'how-to-increase-website-ranking',
+    'how-to-create-sitemap',
+    'how-to-use-search-console',
+    'how-to-make-website-mobile-friendly',
+    'best-tools-for-new-websites',
+    'how-to-grow-from-zero',
+    'how-to-get-website-discovered',
+    'common-mistakes-new-websites',
+    'how-to-track-website-traffic',
+  ];
+
+  const publicPages = [
+    'about',
+    'contact',
+    'privacy-policy',
+    'terms',
+    'faq',
+    'how-it-works',
+    'explore'
+  ];
+
+  const guideUrls = guides.map((slug) => ({
+    url: `${baseUrl}/guide/${slug}`,
+    lastModified: now,
+  }));
+
+  const infoUrls = publicPages.map((slug) => ({
+    url: `${baseUrl}/${slug}`,
+    lastModified: now,
+  }));
+
   return [
-    { url: baseUrl, lastModified: new Date() },
-    { url: `${baseUrl}/guide`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-submit-website-to-bessites`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-get-free-traffic`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-submit-to-google`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-make-website-faster`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-get-first-100-visitors`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-write-seo-title`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-share-website-on-pinterest`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-use-bessites`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-get-backlinks-free`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-promote-on-reddit`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-find-new-websites`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-increase-website-ranking`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-create-sitemap`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-use-search-console`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-make-website-mobile-friendly`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/best-tools-for-new-websites`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-grow-from-zero`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-get-website-discovered`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/common-mistakes-new-websites`, lastModified: new Date() },
-    { url: `${baseUrl}/guide/how-to-track-website-traffic`, lastModified: new Date() },
-  ]
-<<<<<<< HEAD
+    { url: baseUrl, lastModified: now },
+    { url: `${baseUrl}/guide`, lastModified: now },
+    ...infoUrls,
+    ...guideUrls,
+  ];
 }
-=======
-    }
->>>>>>> b7aeaf6646dd93f4e1831144243baa2028d5ce2e

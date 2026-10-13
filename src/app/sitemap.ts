@@ -1,9 +1,8 @@
 export default function sitemap() {
-  const baseUrl = 'https://www.bessites.store';
-  const now = new Date();
+  const baseUrl = 'https://www.bessites.store'
+  const now = new Date()
 
   const guides = [
-    'how-to-submit-website',
     'how-to-submit-website-to-bessites',
     'how-to-get-free-traffic',
     'how-to-submit-to-google',
@@ -24,32 +23,38 @@ export default function sitemap() {
     'how-to-get-website-discovered',
     'common-mistakes-new-websites',
     'how-to-track-website-traffic',
-  ];
+  ]
 
-  const publicPages = [
+  const resourceNodes = [
+    'methodology',
+    'trends',
+    'toolkit',
+    'glossary',
+    'benchmarks',
     'about',
     'contact',
     'privacy-policy',
     'terms',
     'faq',
     'how-it-works',
-    'explore'
-  ];
+    'explore',
+    'disclaimer'
+  ]
 
   const guideUrls = guides.map((slug) => ({
     url: `${baseUrl}/guide/${slug}`,
     lastModified: now,
-  }));
+  }))
 
-  const infoUrls = publicPages.map((slug) => ({
+  const resourceUrls = resourceNodes.map((slug) => ({
     url: `${baseUrl}/${slug}`,
     lastModified: now,
-  }));
+  }))
 
   return [
     { url: baseUrl, lastModified: now },
     { url: `${baseUrl}/guide`, lastModified: now },
-    ...infoUrls,
+    ...resourceUrls,
     ...guideUrls,
-  ];
+  ]
 }

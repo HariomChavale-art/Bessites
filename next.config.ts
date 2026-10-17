@@ -1,5 +1,4 @@
-
-import type {NextConfig} from 'next';
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   /* Removed static export to support Server Actions and Genkit AI flows */
@@ -43,6 +42,20 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  async redirects() {
+    return [
+      {
+        source: '/Homepage',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/homepage',
+        destination: '/',
+        permanent: true,
+      },
+    ];
   },
 };
 

@@ -1,4 +1,17 @@
+# https://www.robotstxt.org/robotstxt.html
 User-agent: *
 Allow: /
 
-Allow: /ads.txt
+# Exclude private creator studio and admin nodes from indexing
+Disallow: /admin
+Disallow: /login
+Disallow: /onboarding
+Disallow: /my-websites
+Disallow: /analytics
+Disallow: /audience
+Disallow: /promotions
+Disallow: /wallet
+Disallow: /profile
+Disallow: /settings
+
+Sitemap: https://bessites.store/sitemap.xml

@@ -1,7 +1,34 @@
-export default function sitemap() {
-  const baseUrl = 'https://www.bessites.store'
+import { MetadataRoute } from 'next'
+
+/**
+ * @fileOverview Dynamic Sitemap Generator for Bessites.store.
+ * Indexes all 36+ public discovery nodes for high-fidelity search engine visibility.
+ */
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const baseUrl = 'https://bessites.store'
   const now = new Date()
 
+  // Main Static Discovery Hubs & Legal Nodes
+  const mainPages = [
+    '',
+    '/explore',
+    '/about',
+    '/contact',
+    '/privacy-policy',
+    '/terms',
+    '/faq',
+    '/how-it-works',
+    '/disclaimer',
+    '/methodology',
+    '/trends',
+    '/toolkit',
+    '/glossary',
+    '/benchmarks',
+    '/guide'
+  ]
+
+  // Professional Registry Manual Guides (21 Modules)
   const guides = [
     'how-to-submit-website-to-bessites',
     'how-to-get-free-traffic',
@@ -23,38 +50,23 @@ export default function sitemap() {
     'how-to-get-website-discovered',
     'common-mistakes-new-websites',
     'how-to-track-website-traffic',
+    'how-to-submit-website'
   ]
 
-  const resourceNodes = [
-    'methodology',
-    'trends',
-    'toolkit',
-    'glossary',
-    'benchmarks',
-    'about',
-    'contact',
-    'privacy-policy',
-    'terms',
-    'faq',
-    'how-it-works',
-    'explore',
-    'disclaimer'
-  ]
+  const mainUrls = mainPages.map(route => ({
+    url: `${baseUrl}${route}`,
+    lastModified: now,
+    changeFrequency: 'daily' as const,
+    priority: route === '' ? 1.0 : 0.9
+  }))
 
-  const guideUrls = guides.map((slug) => ({
+  const guideUrls = guides.map(slug => ({
     url: `${baseUrl}/guide/${slug}`,
     lastModified: now,
+    changeFrequency: 'weekly' as const,
+    priority: 0.8
   }))
 
-  const resourceUrls = resourceNodes.map((slug) => ({
-    url: `${baseUrl}/${slug}`,
-    lastModified: now,
-  }))
-
-  return [
-    { url: baseUrl, lastModified: now },
-    { url: `${baseUrl}/guide`, lastModified: now },
-    ...resourceUrls,
-    ...guideUrls,
-  ]
+  // Combined High-Fidelity URL Set (Total: 36 URLs)
+  return [...mainUrls, ...guideUrls]
 }

@@ -4,7 +4,7 @@ export const revalidate = 0;
 import { Navigation } from "@/components/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Briefcase, Code, Palette, Rocket, Zap, HeartPulse } from "lucide-react";
+import { Briefcase, Code, Palette, Rocket, Zap, HeartPulse, Globe } from "lucide-react";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -105,4 +105,4 @@ function ToolkitCard({ icon: Icon, title, desc, tools }: { icon: any, title: str
        </div>
     </Card>
   )
-}
+      }

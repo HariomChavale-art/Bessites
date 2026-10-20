@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -68,7 +67,7 @@ export function OuneoAssistant() {
       }]);
     } catch (err) {
       console.error("Ouneo UI Error:", err);
-      setError("The discovery node is currently offline. Please verify your connection.");
+      setError("The AI assistant is currently offline. Please verify your connection.");
     } finally {
       setLoading(false);
     }
@@ -173,7 +172,7 @@ export function OuneoAssistant() {
           <Input 
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={messages.length === 0 ? "Ask Ouneo... (e.g. 'I need to make a logo')" : "Reply to Ouneo..."}
+            placeholder={messages.length === 0 ? "Search for websites... (e.g. 'I need to make a logo')" : "Reply to Ouneo..."}
             className="flex-1 bg-transparent border-none text-base sm:text-lg font-bold text-white placeholder:text-white/10 focus-visible:ring-0 focus-visible:ring-offset-0 h-16"
           />
           {messages.length > 0 && !loading && (
@@ -200,7 +199,7 @@ export function OuneoAssistant() {
       {messages.length === 0 && (
         <div className="flex justify-center gap-2 pt-4">
            <button onClick={() => setQuery("How can you help me?")} className="px-4 py-2 rounded-full bg-white/5 border border-white/5 text-[10px] font-black uppercase text-white/40 hover:text-white hover:bg-white/10 transition-all">How can you help me?</button>
-           <button onClick={() => setQuery("Show me the best AI tools")} className="px-4 py-2 rounded-full bg-white/5 border border-white/5 text-[10px] font-black uppercase text-white/40 hover:text-white hover:bg-white/10 transition-all">Best AI Tools</button>
+           <button onClick={() => setQuery("Show me the best AI websites")} className="px-4 py-2 rounded-full bg-white/5 border border-white/5 text-[10px] font-black uppercase text-white/40 hover:text-white hover:bg-white/10 transition-all">Best AI Tools</button>
         </div>
       )}
     </section>

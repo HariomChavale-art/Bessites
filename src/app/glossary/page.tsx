@@ -3,24 +3,25 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Book, Search, Type, Binary, Hash } from "lucide-react";
 import { Metadata } from "next";
+import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
   title: "Modern Web Glossary | Bessites Knowledge Base",
-  description: "Master the technical terminology of 2026. From discovery nodes to zero padding, learn the language of absolute discovery.",
+  description: "Master the technical terminology of 2026. From websites to zero padding, learn the language of absolute discovery.",
 };
 
 const TERMS = [
-  { term: "Absolute Discovery", def: "The state in which a digital asset reaches its target audience with zero friction and 100% intent alignment. Achieved through high-fidelity metadata and curated registry placement." },
-  { term: "Zero Padding", def: "A design and content philosophy that removes all filler text, deceptive UI, and redundant assets. Focuses exclusively on the immediate utility provided by a digital property." },
-  { term: "Discovery Node", def: "A single, verified entry in the Bessites registry. Each node represents a functional digital tool, app, or website that has passed the technical audit." },
-  { term: "Interaction Ledger", def: "Our transparent data system that logs visits, likes, and saves. This ledger determines the trending rank and community authority of a discovery node." },
+  { term: "Absolute Discovery", def: "The state in which a website reaches its target audience with zero friction and 100% intent alignment. Achieved through high-fidelity metadata and curated registry placement." },
+  { term: "Zero Padding", def: "A design and content philosophy that removes all filler text, deceptive UI, and redundant assets. Focuses exclusively on the immediate utility provided by a website." },
+  { term: "Website Entry", def: "A single, verified website in the Bessites registry. Each entry represents a functional tool, app, or website that has passed the technical audit." },
+  { term: "Interaction Ledger", def: "Our transparent data system that logs visits, likes, and saves. This ledger determines the trending rank and community authority of a website." },
   { term: "Neural Intent", def: "A user's underlying goal when performing a search. In 2026, discovery is moving away from keywords and toward mapping these high-level neural patterns." },
-  { term: "High-Fidelity Web", def: "Digital properties that prioritize performance (Core Web Vitals), clean code architecture, and high-resolution brand marks. The opposite of the 'Bloated Web'." },
-  { term: "Friction Node", def: "Any element on a website that causes a user to delay or abandon their intent. Common friction nodes include mandatory sign-up walls and heavy image payloads." },
+  { term: "High-Fidelity Web", def: "Websites that prioritize performance (Core Web Vitals), clean code architecture, and high-resolution brand marks. The opposite of the 'Bloated Web'." },
+  { term: "Friction Point", def: "Any element on a website that causes a user to delay or abandon their intent. Common examples include mandatory sign-up walls and heavy image payloads." },
   { term: "Curation Gateway", def: "A professional directory or hub (like Bessites) that uses human intelligence to verify and categorize the top 1% of the modern web." },
   { term: "Semantic Discovery", def: "Finding information based on the meaning and context of the data rather than simple string matching." },
-  { term: "LCP Fidelity", def: "A measurement of how quickly the 'Largest Contentful Paint' provides actual utility to the user. Fast LCP is a mandatory discovery signal." },
-  { term: "Node Decay", def: "The process by which an unmaintained website loses its ranking in the discovery charts due to technical failures or lack of community interaction." },
+  { term: "LCP Fidelity", def: "A measurement of how quickly the 'Largest Contentful Paint' provides actual utility to the user. Fast LCP is a mandatory signal." },
+  { term: "Site Decay", def: "The process by which an unmaintained website loses its ranking in the discovery charts due to technical failures or lack of community interaction." },
   { term: "Discovery Synergy", def: "The result of listing a tool in a registry where adjacent tools solve complementary problems, creating a high-velocity workflow for the user." }
 ];
 
@@ -72,10 +73,10 @@ export default function GlossaryPage() {
            <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white text-center">Mastering the language</h2>
            <div className="space-y-6 text-zinc-300 leading-relaxed text-lg font-medium italic max-w-3xl mx-auto">
               <p>
-                To navigate the high-fidelity web, you must speak its language. The terms in this lexicon are not just buzzwords; they represent technical requirements for discovery in the 2026 landscape. Whether you are a builder trying to reduce your "Friction Nodes" or a visitor seeking "Absolute Discovery," understanding these concepts is critical.
+                To navigate the high-fidelity web, you must speak its language. The terms in this lexicon are technical requirements for discovery in the 2026 landscape. Whether you are a builder trying to reduce friction or a visitor seeking solutions, understanding these concepts is critical.
               </p>
               <p>
-                We update this glossary weekly as new technical standards emerge. The Bessites registry is more than a list; it is a living educational resource for the next generation of web creators. Stay informed, build for the human, and never let "Padding" slow down your discovery.
+                We update this glossary weekly as new standards emerge. The Bessites registry is more than a list; it is a living educational resource for the next generation of web creators. Stay informed, build for the human, and never let unnecessary padding slow down your discovery.
               </p>
            </div>
         </section>
@@ -87,6 +88,7 @@ export default function GlossaryPage() {
           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/30 mt-8">Bessites Terminology Ledger / Verified</p>
         </footer>
       </main>
+      <Footer />
     </div>
   );
 }

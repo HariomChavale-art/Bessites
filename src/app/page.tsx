@@ -11,6 +11,7 @@ import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { getBroadCategoriesForTag } from "@/lib/category-mapping";
 import { OuneoAssistant } from "@/components/ouneo-assistant";
+import { Footer } from "@/components/footer";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
@@ -128,7 +129,6 @@ export default function Home() {
       <Navigation />
       
       <main className="flex-1">
-        {/* Ouneo Assistant Implementation */}
         <section className="container mx-auto px-4 my-20">
           <OuneoAssistant />
         </section>
@@ -151,12 +151,11 @@ export default function Home() {
           <MasonryFeed key={activeTab + userBroadInterests.join(',') + filteredWebsites.length} initialWebsites={filteredWebsites} hideEndMessage={true} />
         </section>
 
-        {/* AdSense Compliance Content Section */}
         <section className="container mx-auto px-4 py-20 border-t border-white/5">
           <div className="max-w-4xl mx-auto space-y-12">
             <div className="text-center space-y-4">
-              <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Absolute <span className="text-primary">Discovery</span> Pipeline</h2>
-              <p className="text-muted-foreground text-lg">Uncovering the 1% of the modern web through human-centric curation.</p>
+              <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Absolute <span className="text-primary">Website</span> Discovery</h2>
+              <p className="text-muted-foreground text-lg">Uncovering the top 1% of the modern web through manual curation.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -166,17 +165,17 @@ export default function Home() {
                   <h3 className="text-xl font-bold uppercase italic">A Global Registry</h3>
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
-                  Bessites operates as a premier digital directory, meticulously archiving over 100 high-impact interests across the web. Our mission is to solve the problem of "Low Value Content" by providing real, functional, and verified resources to developers, designers, and digital builders. Every asset in our node is manually reviewed to ensure it meets our "Zero Padding" standards.
+                  Bessites operates as a premier digital directory, meticulously archiving 301 high-utility websites across 100 categories. Our mission is to solve the problem of low-value results by providing real, functional, and verified resources to creators. Every website is manually reviewed to ensure zero padding.
                 </p>
               </div>
 
               <div className="space-y-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5">
                 <div className="flex items-center gap-3 text-primary">
                   <ShieldCheck className="w-6 h-6" />
-                  <h3 className="text-xl font-bold uppercase italic">Verified Node Assets</h3>
+                  <h3 className="text-xl font-bold uppercase italic">Verified Websites</h3>
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
-                  Unlike automated search engines, Bessites prioritizes human intelligence. We believe discovery should be an intentional process, not a byproduct of an algorithm. Our interaction ledgers and community feedback nodes provide a layer of trust that automated tools can't replicate. When you discover an asset here, you are accessing the definitive version of that tool.
+                  Unlike automated search engines, Bessites prioritizes human intelligence. We believe discovery should be an intentional process, not a byproduct of an algorithm. Our interaction ledgers and community feedback provide a layer of trust that automated tools can't replicate.
                 </p>
               </div>
 
@@ -186,7 +185,7 @@ export default function Home() {
                   <h3 className="text-xl font-bold uppercase italic">High-Velocity Growth</h3>
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
-                  The internet moves at an exponential pace. Bessites is built on a high-velocity framework that synchronizes new tool launches, experimental web art, and enterprise-grade software daily. Our categorized sectors—from AI Image Generation to Quantitative Trading—allow users to pivot through the internet's most productive corners with just a few clicks.
+                  The internet moves fast. Bessites is built on a high-velocity framework that synchronizes new tool launches, experimental web apps, and enterprise-grade software daily. Our categorized sectors allow you to pivot through the internet's most productive corners with just a few clicks.
                 </p>
               </div>
 
@@ -196,35 +195,21 @@ export default function Home() {
                   <h3 className="text-xl font-bold uppercase italic">The Creator Suite</h3>
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
-                  Bessites isn't just for discovery; it's a launchpad for creators. Our Creator Hub allows developers to submit their digital properties directly to our global ad-boost pipeline. By leveraging our verified audience, emerging tools can achieve "Absolute Discovery" and build a loyal user base within our professional tech-noir community.
+                  Bessites isn't just for visitors; it's a launchpad for developers. Our Creator Hub allows you to submit your websites directly to our global boost pipeline. By leveraging our verified audience, emerging tools can achieve visibility and build a loyal user base.
                 </p>
               </div>
             </div>
 
             <div className="pt-10 text-center">
               <p className="text-muted-foreground italic text-sm max-w-2xl mx-auto">
-                Discover curated tools and apps updated every 24 hours. No duplication, no padding—only the high-fidelity web tools that empower your digital life.
+                Discover curated tools and apps updated every 24 hours. No duplication, no padding—only high-fidelity websites that empower your digital life.
               </p>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="bg-card/50 border-t border-white/5 py-16">
-        <div className="container mx-auto px-4 text-center space-y-8">
-          <div className="flex flex-wrap justify-center gap-8 text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/40 italic">
-            <a href="/about" className="hover:text-primary transition-colors">About Us</a>
-            <a href="/contact" className="hover:text-primary transition-colors">Contact</a>
-            <a href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</a>
-            <a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a>
-          </div>
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground opacity-40 font-bold uppercase">Official Support Node</p>
-            <a href="mailto:bessitesofficial@gmail.com" className="text-sm font-black text-white hover:text-primary transition-colors tracking-widest">bessitesofficial@gmail.com</a>
-          </div>
-          <p className="text-xs text-muted-foreground opacity-20 font-black uppercase tracking-widest pt-8">© 2024 Bessites Studio. Powered by Bessites.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

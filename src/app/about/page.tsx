@@ -8,7 +8,7 @@ import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
   title: "About Us | Bessites Absolute Discovery",
-  description: "Learn more about Bessites, the professional directory for modern webs and digital tools. Zero duplication, zero padding, absolute discovery.",
+  description: "Learn more about Bessites, the professional directory for modern websites and digital tools. Zero duplication, zero padding, absolute discovery.",
 };
 
 export default function AboutPage() {
@@ -66,21 +66,12 @@ export default function AboutPage() {
             </Card>
           </div>
 
-          <section className="space-y-8">
-            <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white border-l-4 border-primary pl-6">
-              Our Mission
-            </h2>
-            <p className="text-lg text-zinc-300 leading-relaxed font-medium italic">
-              Our mission is to empower the next generation of digital creators by providing a "Zero Padding" discovery experience. We believe that the websites you use define the quality of your work, and we are dedicated to ensuring that the highest fidelity resources on the internet are always just a click away.
-            </p>
-          </section>
-
           <div className="pt-20 border-t border-white/5">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
-              <div><p className="text-3xl font-black italic text-white">100+</p><p className="text-[10px] font-black uppercase tracking-widest text-primary">Categories</p></div>
-              <div><p className="text-3xl font-black italic text-white">301</p><p className="text-[10px] font-black uppercase tracking-widest text-primary">Verified Websites</p></div>
-              <div><p className="text-3xl font-black italic text-white">5k+</p><p className="text-[10px] font-black uppercase tracking-widest text-primary">Daily Views</p></div>
-              <div><p className="text-3xl font-black italic text-white">10</p><p className="text-[10px] font-black uppercase tracking-widest text-primary">Broad Sectors</p></div>
+              <div><p className="text-3xl font-black italic text-white">100</p><p className="text-[10px] font-black uppercase tracking-widest text-primary">Categories</p></div>
+              <div><p className="text-3xl font-black italic text-white">405</p><p className="text-[10px] font-black uppercase tracking-widest text-primary">Verified Websites</p></div>
+              <div><p className="text-3xl font-black italic text-white">10k+</p><p className="text-[10px] font-black uppercase tracking-widest text-primary">Daily Views</p></div>
+              <div><p className="text-3xl font-black italic text-white">10</p><p className="text-[10px] font-black uppercase tracking-widest text-primary">Sectors</p></div>
             </div>
           </div>
         </div>

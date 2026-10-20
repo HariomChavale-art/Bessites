@@ -1,8 +1,9 @@
+
 "use client"
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, User } from "lucide-react";
+import { Home, Search, User, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/firebase";
 import { useState, useEffect } from "react";
@@ -26,12 +27,13 @@ export function BottomNav() {
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/explore", icon: Search, label: "Search" },
+    { href: "/ouneo", icon: Sparkles, label: "Ouneo" },
     { href: "/profile", icon: User, label: "Profile" },
   ];
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-fit px-4">
-      <nav className="bg-card/90 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-3 sm:px-8 flex items-center gap-6 sm:gap-10 shadow-2xl ring-1 ring-black/20">
+      <nav className="bg-card/90 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-3 sm:px-8 flex items-center gap-4 sm:gap-8 shadow-2xl ring-1 ring-black/20">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;

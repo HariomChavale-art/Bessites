@@ -1,8 +1,9 @@
+
 'use server';
 /**
  * @fileOverview Ouneo - The Bessites Conversational AI Discovery Partner.
  * 
- * - Full Data Synchronization: Connected to the 110+ production registry.
+ * - Full Data Synchronization: Connected to the 405+ production registry.
  * - Hybrid Search: Context retrieval + Generative reasoning.
  * - Enhanced Fallback: Silently handles API failures with high-relevance matches.
  */
@@ -31,9 +32,9 @@ const ouneoFlow = ai.defineFlow(
     outputSchema: OuneoOutputSchema,
   },
   async (input) => {
-    console.log(`[Ouneo] Node Processing: "${input.message}"`);
+    console.log(`[Ouneo] Processing Request: "${input.message}"`);
     
-    // Step 1: Pre-fetch relevant candidates from the master registry
+    // Step 1: Pre-fetch relevant candidates from the master registry (405 tools)
     const candidates = filterTools(input.message);
     const activeContext = candidates.length > 0 ? candidates : TOOLS_DATABASE.slice(0, 10);
 
@@ -41,22 +42,21 @@ const ouneoFlow = ai.defineFlow(
       // Step 2: Generative reasoning with strict output control
       const response = await ai.generate({
         model: 'googleai/gemini-flash-latest',
-        system: `You are Ouneo, the futuristic AI discovery node for Bessites. 
+        system: `You are Ouneo, the professional AI discovery partner for Bessites. 
         
         MISSION:
-        - Identify and recommend the best digital assets from the provided registry.
+        - Identify and recommend the best websites from the Bessites registry (405 verified items).
         - DO NOT echo or repeat the user's question back to them.
-        - DO NOT talk about technical failures or "recalibration."
-        - Be a helpful, professional, and concise tech-noir guide.
+        - Be a helpful, professional guide.
 
         CONSTRAINTS:
-        - ONLY use the tools listed in the "Available Tools Context".
-        - For every tool recommended, provide a sharp, one-sentence reason why it is the "Absolute Discovery" for their request.`,
+        - ONLY use the websites listed in the provided registry context.
+        - For every website recommended, provide a sharp, one-sentence reason why it is a great fit.`,
         prompt: `
-          CONTEXT REGISTRY: ${JSON.stringify(activeContext)}
+          REGISTRY CONTEXT: ${JSON.stringify(activeContext)}
           USER REQUEST: "${input.message}"
           
-          TASK: Based on the registry context, generate a conversational response that helps the user. If they asked for a tool, pick the best 3 matches. If they are just chatting, guide them towards tool discovery.
+          TASK: Pick the best 3 matches. If they are just chatting, guide them towards website discovery.
         `,
         history: input.history?.map(m => ({ 
           role: m.role as any, 
@@ -78,8 +78,8 @@ const ouneoFlow = ai.defineFlow(
       const fallbackMatches = candidates.length > 0 ? candidates.slice(0, 3) : TOOLS_DATABASE.slice(0, 3);
       const isSearch = candidates.length > 0;
       const responseText = isSearch 
-        ? `I've analyzed our discovery nodes for "${input.message}". These verified assets represent the highest fidelity tools for your current workflow.`
-        : `Welcome to the Bessites Discovery Node. I'm here to help you navigate our registry of 100+ professional digital tools. What are you looking to build today?`;
+        ? `I've analyzed our registry for "${input.message}". These verified websites represent the highest fidelity tools for your current workflow.`
+        : `Welcome to Ouneo. I'm here to help you navigate our registry of 405 professional websites. What are you looking to create today?`;
 
       return {
         response: responseText,

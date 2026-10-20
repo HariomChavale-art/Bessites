@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from "react";
@@ -10,7 +11,6 @@ import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { getBroadCategoriesForTag } from "@/lib/category-mapping";
-import { OuneoAssistant } from "@/components/ouneo-assistant";
 import { Footer } from "@/components/footer";
 
 export default function Home() {
@@ -129,12 +129,12 @@ export default function Home() {
       <Navigation />
       
       <main className="flex-1">
-        <section className="container mx-auto px-4 my-20">
-          <OuneoAssistant />
-        </section>
-
-        <section className="container mx-auto px-4 mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-end gap-8 bg-white/[0.01] p-6 rounded-[2rem] border border-white/5">
+        <section className="container mx-auto px-4 mt-12 mb-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-white/[0.01] p-6 rounded-[2rem] border border-white/5">
+            <div className="space-y-1">
+              <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white">Discovery Feed</h1>
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-40">Absolute Discovery / 405 Verified Websites</p>
+            </div>
             <div className="flex items-center gap-4 bg-white/5 p-1.5 rounded-[1.5rem] border border-white/5 overflow-x-auto no-scrollbar shrink-0 w-full sm:w-auto">
               <Tabs defaultValue="foryou" className="w-full" onValueChange={setActiveTab}>
                 <TabsList className="bg-transparent h-auto gap-1">
@@ -165,7 +165,7 @@ export default function Home() {
                   <h3 className="text-xl font-bold uppercase italic">A Global Registry</h3>
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
-                  Bessites operates as a premier digital directory, meticulously archiving 301 high-utility websites across 100 categories. Our mission is to solve the problem of low-value results by providing real, functional, and verified resources to creators. Every website is manually reviewed to ensure zero padding.
+                  Bessites operates as a premier digital directory, meticulously archiving 405 high-utility websites across 100 categories. Our mission is to solve the problem of low-value results by providing real, functional, and verified resources to creators.
                 </p>
               </div>
 
@@ -175,35 +175,9 @@ export default function Home() {
                   <h3 className="text-xl font-bold uppercase italic">Verified Websites</h3>
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
-                  Unlike automated search engines, Bessites prioritizes human intelligence. We believe discovery should be an intentional process, not a byproduct of an algorithm. Our interaction ledgers and community feedback provide a layer of trust that automated tools can't replicate.
+                  Unlike automated search engines, Bessites prioritizes human intelligence. We believe discovery should be an intentional process, not a byproduct of an algorithm.
                 </p>
               </div>
-
-              <div className="space-y-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5">
-                <div className="flex items-center gap-3 text-primary">
-                  <Zap className="w-6 h-6" />
-                  <h3 className="text-xl font-bold uppercase italic">High-Velocity Growth</h3>
-                </div>
-                <p className="text-muted-foreground leading-relaxed">
-                  The internet moves fast. Bessites is built on a high-velocity framework that synchronizes new tool launches, experimental web apps, and enterprise-grade software daily. Our categorized sectors allow you to pivot through the internet's most productive corners with just a few clicks.
-                </p>
-              </div>
-
-              <div className="space-y-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5">
-                <div className="flex items-center gap-3 text-primary">
-                  <Heart className="w-6 h-6" />
-                  <h3 className="text-xl font-bold uppercase italic">The Creator Suite</h3>
-                </div>
-                <p className="text-muted-foreground leading-relaxed">
-                  Bessites isn't just for visitors; it's a launchpad for developers. Our Creator Hub allows you to submit your websites directly to our global boost pipeline. By leveraging our verified audience, emerging tools can achieve visibility and build a loyal user base.
-                </p>
-              </div>
-            </div>
-
-            <div className="pt-10 text-center">
-              <p className="text-muted-foreground italic text-sm max-w-2xl mx-auto">
-                Discover curated tools and apps updated every 24 hours. No duplication, no padding—only high-fidelity websites that empower your digital life.
-              </p>
             </div>
           </div>
         </section>

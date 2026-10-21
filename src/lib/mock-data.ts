@@ -1,3 +1,4 @@
+
 import allSites from '@/data/allSites.json';
 
 export interface Website {

@@ -102,7 +102,7 @@ export function OuneoAssistant() {
                       {msg.result.matches.map((site, sIdx) => (
                         <Card 
                           key={sIdx} 
-                          className="bg-[#121117] border-white/5 hover:border-primary/40 transition-all p-6 rounded-[2rem] group cursor-pointer shadow-xl relative overflow-hidden"
+                          className="bg-[#121117] border border-white/5 hover:border-primary/40 transition-all p-6 rounded-[2rem] group cursor-pointer shadow-xl relative overflow-hidden"
                           onClick={() => window.open(site.url, '_blank')}
                         >
                           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity">
@@ -169,20 +169,6 @@ export function OuneoAssistant() {
           </Button>
         </form>
       </div>
-
-      {messages.length === 0 && (
-        <div className="flex flex-wrap justify-center gap-3 pt-4">
-          {["Best AI Tools", "Productivity Apps", "Cool Browser Games"].map(hint => (
-            <button 
-              key={hint}
-              onClick={() => setQuery(hint)}
-              className="px-5 py-2 rounded-full bg-white/5 border border-white/5 text-[10px] font-black uppercase text-white/40 hover:text-white hover:bg-white/10 transition-all tracking-widest"
-            >
-              {hint}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

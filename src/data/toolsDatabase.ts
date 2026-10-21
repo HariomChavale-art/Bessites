@@ -2,7 +2,7 @@
 /**
  * @fileOverview Official Bessites Master Tools Registry.
  * High-fidelity data for Ouneo AI Discovery.
- * Contains verified websites strictly from the user provided seed data.
+ * Synchronized with the expanded allSites.json dataset.
  */
 
 import { MOCK_WEBSITES } from "@/lib/mock-data";

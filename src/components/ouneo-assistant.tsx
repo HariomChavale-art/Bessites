@@ -1,9 +1,8 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useMemo } from 'react';
-import { useUser, useFirestore, useCollection, useAuth } from '@/firebase';
-import { collection, query, where, doc } from 'firebase/firestore';
+import { useState, useRef, useEffect } from 'react';
+import { useUser, useAuth } from '@/firebase';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -16,11 +15,9 @@ import {
   X,
   Globe,
   User as UserIcon,
-  Lock,
-  Crown
+  Lock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import Fuse from 'fuse.js';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -31,29 +28,11 @@ interface ChatMessage {
 export function OuneoAssistant() {
   const { user } = useUser();
   const auth = useAuth();
-  const db = useFirestore();
   const [userInput, setUserInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [searchCount, setSearchCount] = useState(0);
   const [showPaywall, setShowPaywall] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
-
-  // Fetch sites for Free local search
-  const sitesRef = useMemo(() => {
-    if (!db) return null;
-    return query(collection(db, "submissions"), where("status", "==", "approved"));
-  }, [db]);
-  const { data: registry } = useCollection(sitesRef);
-
-  // Initialize Fuse.js for local search
-  const fuse = useMemo(() => {
-    if (!registry) return null;
-    return new Fuse(registry, {
-      keys: ['websiteName', 'name', 'description', 'categories'],
-      threshold: 0.4
-    });
-  }, [registry]);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -67,11 +46,6 @@ export function OuneoAssistant() {
     e?.preventDefault();
     if (!userInput.trim() || loading) return;
 
-    if (searchCount >= 3 && !user?.isPro) {
-      setShowPaywall(true);
-      return;
-    }
-
     const currentQuery = userInput;
     setUserInput('');
     setLoading(true);
@@ -79,63 +53,36 @@ export function OuneoAssistant() {
     const newUserMessage: ChatMessage = { role: 'user', content: currentQuery };
     setMessages(prev => [...prev, newUserMessage]);
 
-    // Check if user is Pro
-    // Note: isPro check should ideally be from Firestore user doc, assuming user object has it or we fetch it.
-    // For this prototype, we'll check a simulated isPro property.
-    const isPro = (user as any)?.isPro === true;
-
-    if (isPro) {
-      // PRO: Server-side AI
-      try {
-        const idToken = await auth?.currentUser?.getIdToken();
-        const res = await fetch('/api/ouneo', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`
-          },
-          body: JSON.stringify({
-            message: currentQuery,
-            history: messages.map(m => ({ role: m.role, content: m.content }))
-          })
-        });
-        
-        const data = await res.json();
-        if (data.error === 'PRO_ONLY') {
-          setShowPaywall(true);
-        } else {
-          setMessages(prev => [...prev, { 
-            role: 'assistant', 
-            content: data.response,
-            matches: data.matches 
-          }]);
-        }
-      } catch (err) {
-        setMessages(prev => [...prev, { role: 'assistant', content: "Something broke. Try again?" }]);
-      }
-    } else {
-      // FREE: Local Search
-      setSearchCount(prev => prev + 1);
-      const results = fuse?.search(currentQuery).slice(0, 3) || [];
-      const humanResults = results.map(r => ({
-        name: r.item.websiteName || r.item.name,
-        url: r.item.url,
-        category: r.item.categories?.[0] || 'Web',
-        reason: (r.item.description || '').slice(0, 50) + '...'
-      }));
-
-      setTimeout(() => {
+    try {
+      const idToken = await auth?.currentUser?.getIdToken();
+      const res = await fetch('/api/ouneo', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          message: currentQuery,
+          history: messages.map(m => ({ role: m.role, content: m.content }))
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (data.error === 'LIMIT_REACHED') {
+        setShowPaywall(true);
+      } else {
         setMessages(prev => [...prev, { 
           role: 'assistant', 
-          content: results.length > 0 ? "Check these out. Anything else?" : "No site for that yet. What are you trying to do?",
-          matches: humanResults
+          content: data.response,
+          matches: data.matches 
         }]);
-        setLoading(false);
-      }, 600);
-      return;
+      }
+    } catch (err) {
+      setMessages(prev => [...prev, { role: 'assistant', content: "Node error. Try again." }]);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -151,7 +98,7 @@ export function OuneoAssistant() {
             msg.role === 'user' ? "items-end" : "items-start"
           )}>
             {msg.role === 'user' ? (
-              <div className="bg-primary/20 border border-primary/30 p-4 rounded-2xl rounded-tr-none max-w-[85%]">
+              <div className="bg-primary/20 border border-primary/30 p-4 rounded-2xl rounded-tr-none max-w-[85%] shadow-xl">
                 <p className="text-sm font-bold text-white">{msg.content}</p>
               </div>
             ) : (
@@ -231,20 +178,6 @@ export function OuneoAssistant() {
         </form>
       </div>
 
-      {/* Free User Banner */}
-      {!(user as any)?.isPro && (
-        <Card className="bg-gradient-to-r from-primary/10 to-blue-500/10 border-white/5 p-6 rounded-[2rem] text-center space-y-4">
-           <div className="flex items-center justify-center gap-3 text-primary">
-              <Crown className="w-5 h-5" />
-              <p className="text-xs font-black uppercase tracking-widest italic">Ouneo Intelligence Node</p>
-           </div>
-           <p className="text-sm text-zinc-300 font-medium">Want Ouneo to ask you questions and find the perfect site?</p>
-           <Link href="/promotions">
-             <Button className="h-10 px-8 rounded-full bg-primary text-white font-black text-xs uppercase italic mt-2">GO PRO $20</Button>
-           </Link>
-        </Card>
-      )}
-
       {/* Paywall Popup */}
       {showPaywall && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
@@ -253,12 +186,12 @@ export function OuneoAssistant() {
                  <Lock className="w-8 h-8 text-primary" />
               </div>
               <div className="space-y-2">
-                 <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">AI Ouneo is Pro only</h3>
-                 <p className="text-zinc-400 text-sm font-medium">Upgrade to access conversational discovery and clarifying questions.</p>
+                 <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">Daily Limit Reached</h3>
+                 <p className="text-zinc-400 text-sm font-medium">Free users get 3 AI searches per day. Upgrade to Pro for unlimited conversational discovery.</p>
               </div>
               <div className="flex flex-col gap-3">
                  <Button onClick={() => window.location.href='/promotions'} className="h-14 rounded-2xl bg-primary text-white font-black italic uppercase shadow-xl">GO PRO NOW</Button>
-                 <Button variant="ghost" onClick={() => setShowPaywall(false)} className="text-white/40 font-bold uppercase text-[10px]">Maybe later</Button>
+                 <Button variant="ghost" onClick={() => setShowPaywall(false)} className="text-white/40 font-bold uppercase text-[10px]">Close</Button>
               </div>
            </Card>
         </div>
@@ -266,5 +199,3 @@ export function OuneoAssistant() {
     </div>
   );
 }
-
-import Link from 'next/link';

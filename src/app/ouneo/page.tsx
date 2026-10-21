@@ -5,27 +5,13 @@ import { Navigation } from "@/components/navigation";
 import { OuneoAssistant } from "@/components/ouneo-assistant";
 import { Footer } from "@/components/footer";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Globe, ShieldCheck, Zap } from "lucide-react";
-import { useUser, useDoc, useFirestore } from "@/firebase";
-import { doc } from "firebase/firestore";
-import { useMemo } from "react";
+import { Globe, ShieldCheck, Zap } from "lucide-react";
 
 /**
  * @fileOverview Ouneo Discovery Hub.
- * Dual-mode search: Local fuzzy search for free users, Secure Gemini AI for Pro.
+ * Premium conversational recommender strictly anchored to the registry.
  */
 export default function OuneoPage() {
-  const { user } = useUser();
-  const db = useFirestore();
-
-  const userDocRef = useMemo(() => {
-    if (!user || !db) return null;
-    return doc(db, "users", user.uid);
-  }, [user, db]);
-
-  const { data: profile } = useDoc(userDocRef);
-  const isPro = profile?.isPro === true;
-
   return (
     <div className="min-h-screen flex flex-col bg-background pb-32">
       <Navigation />
@@ -33,28 +19,27 @@ export default function OuneoPage() {
       <main className="flex-1 flex flex-col items-center pt-16 sm:pt-24 px-4">
         <div className="max-w-4xl w-full text-center space-y-8 mb-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">
           <Badge className="bg-primary/20 text-primary border-none px-4 py-1 uppercase font-black tracking-widest italic mx-auto">
-             Real Website Recommendations
+             Human-Tier Website Curation
           </Badge>
           <div className="space-y-4">
             <h1 className="text-7xl sm:text-9xl font-black text-white tracking-tighter uppercase italic leading-none">
               OUNEO
             </h1>
             <p className="text-xl text-muted-foreground font-medium italic opacity-60 max-w-2xl mx-auto">
-              Skip the search slop. Ouneo knows the best sites in our registry and helps you find exactly what you need.
+              Ouneo knows every website in the registry. No fluff, no junk, just the sites you actually need.
             </p>
           </div>
         </div>
 
         <div className="w-full mb-32">
-          {/* Injecting Pro status into the assistant */}
           <OuneoAssistant />
         </div>
 
         <section className="container mx-auto px-4 py-32 border-t border-white/5">
           <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
-             <Feature icon={Globe} title="Verified Registry" desc="Connected only to websites worth your time." />
-             <Feature icon={ShieldCheck} title="Zero Slop" desc="No ads, no fluff, just the sites you actually need." />
-             <Feature icon={Zap} title="Human Focus" desc="Short question, better results. No complex prompts required." />
+             <Feature icon={Globe} title="Full Registry" desc="Access to all verified websites in one chat." />
+             <Feature icon={ShieldCheck} title="Zero Jargon" desc="Plain English recommendations from a friend." />
+             <Feature icon={Zap} title="Frictionless" desc="One question, two results. Discovery in seconds." />
           </div>
         </section>
       </main>

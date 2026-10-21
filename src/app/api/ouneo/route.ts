@@ -2,14 +2,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import allSites from '@/data/allSites.json';
 
 /**
- * @fileOverview Secure POST API for Pro-only Ouneo AI discovery.
+ * @fileOverview Secure Ouneo AI API with full 400+ site registry memory.
+ * Implements freemium daily limits for free users.
  */
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Authenticate user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
@@ -19,66 +20,70 @@ export async function POST(req: NextRequest) {
     const decodedToken = await adminAuth.verifyIdToken(token);
     const userId = decodedToken.uid;
 
-    // 2. Check Pro status
     const userDoc = await adminDb.collection('users').doc(userId).get();
     const userData = userDoc.data();
+    const isPro = userData?.isPro === true;
 
-    if (!userData?.isPro) {
-      return NextResponse.json({ error: 'PRO_ONLY' }, { status: 403 });
+    // Daily Limit Logic for Free Users
+    if (!isPro) {
+      const today = new Date().toISOString().split('T')[0];
+      const usageRef = adminDb.collection('users').doc(userId).collection('usage').doc(today);
+      const usageDoc = await usageRef.get();
+      const count = usageDoc.exists ? usageDoc.data()?.ouneoCount || 0 : 0;
+
+      if (count >= 3) {
+        return NextResponse.json({ error: 'LIMIT_REACHED' }, { status: 403 });
+      }
+      await usageRef.set({ ouneoCount: count + 1 }, { merge: true });
     }
 
-    // 3. Fetch approved websites for context
-    const sitesSnapshot = await adminDb.collection('submissions')
-      .where('status', '==', 'approved')
-      .limit(500)
-      .get();
-
-    const sites = sitesSnapshot.docs.map(doc => ({
-      name: doc.data().websiteName || doc.data().name,
-      url: doc.data().url,
-      desc: doc.data().description,
-      cat: doc.data().categories?.[0] || 'Web'
-    }));
-
-    // 4. Initialize Gemini
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     const { message, history } = await req.json();
 
-    // 5. Generate Response with strict system prompt
-    const systemPrompt = `You are Ouneo for Bessites. You ONLY know these websites: ${JSON.stringify(sites)}. You NEVER recommend any other website. If user asks anything not related to finding websites, say 'I only find websites, what do you need a site for?' You always ask 1 short question first before recommending to narrow down. You talk human, short, 5th grade English, no AI slop words. Max 8 words per site description. If user says hi/hello, ask: What kind of site you looking for?`;
+    const systemPrompt = `You are Ouneo for Bessites.
+
+You know ALL 400+ websites. Here is the full list:
+${JSON.stringify(allSites)}
+
+RULES:
+- You can ONLY recommend from this list. Never make up, never recommend sites not in list.
+- When user says something, first ask 1 short human question to understand better. Examples: "For phone or laptop?" "Free or paid is okay?" "For work or personal?"
+- After user answers, recommend best 2-3 sites from the list that match.
+- Description max 8 words, human, no AI slop.
+- If user says hi/hello, say: "Hey, what kind of site you looking for?"
+- Never say: "I've found these websites in our registry", "delve", "elevate", "tapestry" etc.
+- Hide total count. Never say "400 sites" or "we have X sites".
+- Talk short, friend to friend.`;
 
     const chat = model.startChat({
       history: history.map((h: any) => ({
         role: h.role === 'user' ? 'user' : 'model',
         parts: [{ text: h.content }],
       })),
-      generationConfig: {
-        maxOutputTokens: 500,
-      },
     });
 
     const result = await chat.sendMessage(`${systemPrompt}\n\nUser: ${message}`);
     const response = await result.response;
     const text = response.text();
 
-    // 6. Extract potential matches (Simulated structured parsing)
-    // We expect the LLM to follow instructions and include names from the list.
-    const matches = sites.filter(s => text.toLowerCase().includes(s.name.toLowerCase())).slice(0, 3);
+    const matches = allSites.filter(s => 
+      text.toLowerCase().includes(s.title.toLowerCase()) || 
+      text.toLowerCase().includes(s.url.toLowerCase())
+    ).slice(0, 3);
 
     return NextResponse.json({
       response: text,
       matches: matches.map(m => ({
-        name: m.name,
+        name: m.title,
         url: m.url,
-        category: m.cat,
-        reason: m.desc.split('.')[0] + '.' // Shorten reason
+        category: m.category,
+        reason: m.description
       }))
     });
 
   } catch (error: any) {
-    console.error('Ouneo API Error:', error);
-    return NextResponse.json({ error: 'INTERNAL_ERROR', message: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'SERVER_ERROR' }, { status: 500 });
   }
 }

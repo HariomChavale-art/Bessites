@@ -2,7 +2,7 @@
 /**
  * @fileOverview Official Bessites Master Tools Registry.
  * High-fidelity data for Ouneo AI Discovery.
- * Contains 405 verified websites across all 100 categories.
+ * Contains verified websites strictly from the user provided seed data.
  */
 
 import { MOCK_WEBSITES } from "@/lib/mock-data";

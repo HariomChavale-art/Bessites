@@ -1,7 +1,8 @@
+
 'use server';
 /**
  * @fileOverview Ouneo - Rebuilt from scratch.
- * Strictly anchored to the Bessites 405-website registry.
+ * Strictly anchored to the Bessites verified registry.
  */
 
 import { ai, z } from '@/ai/genkit';
@@ -28,7 +29,7 @@ const ouneoFlow = ai.defineFlow(
     outputSchema: OuneoOutputSchema,
   },
   async (input) => {
-    // Step 1: High-speed local retrieval from your 405 websites
+    // Step 1: High-speed local retrieval from your verified registry
     const candidates = filterTools(input.message);
     const contextRegistry = candidates.length > 0 ? candidates : TOOLS_DATABASE.slice(0, 10);
 
@@ -40,7 +41,7 @@ const ouneoFlow = ai.defineFlow(
         
         MISSION:
         - Recommend only the best websites from the provided registry.
-        - You have access to a registry of 405 verified websites.
+        - You have access to a registry of verified high-utility websites.
         - DO NOT suggest websites that are not in the provided context.
 
         OUTPUT RULES:
@@ -50,7 +51,7 @@ const ouneoFlow = ai.defineFlow(
           REGISTRY CONTEXT: ${JSON.stringify(contextRegistry)}
           USER REQUEST: "${input.message}"
           
-          TASK: Based ON ONLY the registry above, pick 3 websites. If the user is just saying hello, invite them to search the 405 verified websites.
+          TASK: Based ON ONLY the registry above, pick 3 websites. If the user is just saying hello, invite them to search the verified registry.
         `,
         history: input.history?.map(m => ({ 
           role: m.role as any, 
@@ -71,7 +72,7 @@ const ouneoFlow = ai.defineFlow(
       return {
         response: candidates.length > 0 
           ? `I've found these websites in our registry that match your request for "${input.message}".`
-          : "Welcome to Ouneo. I'm connected to our registry of 405 professional websites. What are you looking to discover today?",
+          : "Welcome to Ouneo. I'm connected to our registry of professional websites. What are you looking to discover today?",
         matches: fallbackMatches.map(t => ({
           name: t.name,
           url: t.url,

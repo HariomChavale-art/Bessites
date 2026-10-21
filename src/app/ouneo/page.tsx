@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Navigation } from "@/components/navigation";
@@ -5,8 +6,26 @@ import { OuneoAssistant } from "@/components/ouneo-assistant";
 import { Footer } from "@/components/footer";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Globe, ShieldCheck, Zap } from "lucide-react";
+import { useUser, useDoc, useFirestore } from "@/firebase";
+import { doc } from "firebase/firestore";
+import { useMemo } from "react";
 
+/**
+ * @fileOverview Ouneo Discovery Hub.
+ * Dual-mode search: Local fuzzy search for free users, Secure Gemini AI for Pro.
+ */
 export default function OuneoPage() {
+  const { user } = useUser();
+  const db = useFirestore();
+
+  const userDocRef = useMemo(() => {
+    if (!user || !db) return null;
+    return doc(db, "users", user.uid);
+  }, [user, db]);
+
+  const { data: profile } = useDoc(userDocRef);
+  const isPro = profile?.isPro === true;
+
   return (
     <div className="min-h-screen flex flex-col bg-background pb-32">
       <Navigation />
@@ -27,6 +46,7 @@ export default function OuneoPage() {
         </div>
 
         <div className="w-full mb-32">
+          {/* Injecting Pro status into the assistant */}
           <OuneoAssistant />
         </div>
 

@@ -60,6 +60,16 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
+        {/* Google tag (gtag.js) - Bessites Analytics */}
+        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-FBCQ2X04MJ"></Script>
+        <Script id="google-analytics">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-FBCQ2X04MJ');
+          `}
+        </Script>
       </head>
       <body className="font-body antialiased bg-background text-foreground pb-32">
         <Script

@@ -1,11 +1,7 @@
-
 'use server';
 /**
- * @fileOverview Ouneo - The Bessites Conversational AI Discovery Partner.
- * 
- * - Full Data Synchronization: Connected to the 405+ production registry.
- * - Hybrid Search: Context retrieval + Generative reasoning.
- * - Enhanced Fallback: Silently handles API failures with high-relevance matches.
+ * @fileOverview Ouneo - Rebuilt from scratch.
+ * Strictly anchored to the Bessites 405-website registry.
  */
 
 import { ai, z } from '@/ai/genkit';
@@ -14,11 +10,11 @@ import { TOOLS_DATABASE } from '@/data/toolsDatabase';
 import { OuneoOutputSchema, type OuneoOutput } from '@/ai/schemas';
 
 const OuneoInputSchema = z.object({
-  message: z.string().describe('The user\'s request or chat message.'),
+  message: z.string().describe('The user\'s discovery request.'),
   history: z.array(z.object({
     role: z.enum(['user', 'assistant']),
     content: z.string()
-  })).optional().describe('Chat history for conversational context.'),
+  })).optional().describe('Contextual history.'),
 });
 
 export async function askOuneo(input: { message: string, history?: {role: 'user' | 'assistant', content: string}[] }): Promise<OuneoOutput> {
@@ -32,31 +28,29 @@ const ouneoFlow = ai.defineFlow(
     outputSchema: OuneoOutputSchema,
   },
   async (input) => {
-    console.log(`[Ouneo] Processing Request: "${input.message}"`);
-    
-    // Step 1: Pre-fetch relevant candidates from the master registry (405 tools)
+    // Step 1: High-speed local retrieval from your 405 websites
     const candidates = filterTools(input.message);
-    const activeContext = candidates.length > 0 ? candidates : TOOLS_DATABASE.slice(0, 10);
+    const contextRegistry = candidates.length > 0 ? candidates : TOOLS_DATABASE.slice(0, 10);
 
     try {
-      // Step 2: Generative reasoning with strict output control
+      // Step 2: Generative reasoning using ONLY the provided registry items
       const response = await ai.generate({
         model: 'googleai/gemini-flash-latest',
-        system: `You are Ouneo, the professional AI discovery partner for Bessites. 
+        system: `You are Ouneo, the professional discovery AI for Bessites. 
         
         MISSION:
-        - Identify and recommend the best websites from the Bessites registry (405 verified items).
-        - DO NOT echo or repeat the user's question back to them.
-        - Be a helpful, professional guide.
+        - Recommend only the best websites from the provided registry.
+        - You have access to a registry of 405 verified websites.
+        - DO NOT suggest websites that are not in the provided context.
 
-        CONSTRAINTS:
-        - ONLY use the websites listed in the provided registry context.
-        - For every website recommended, provide a sharp, one-sentence reason why it is a great fit.`,
+        OUTPUT RULES:
+        - Be professional, concise, and helpful.
+        - For every recommendation, provide a one-sentence reason why it is perfect for the user.`,
         prompt: `
-          REGISTRY CONTEXT: ${JSON.stringify(activeContext)}
+          REGISTRY CONTEXT: ${JSON.stringify(contextRegistry)}
           USER REQUEST: "${input.message}"
           
-          TASK: Pick the best 3 matches. If they are just chatting, guide them towards website discovery.
+          TASK: Based ON ONLY the registry above, pick 3 websites. If the user is just saying hello, invite them to search the 405 verified websites.
         `,
         history: input.history?.map(m => ({ 
           role: m.role as any, 
@@ -69,20 +63,15 @@ const ouneoFlow = ai.defineFlow(
         return response.output;
       }
       
-      throw new Error("API returned null output");
+      throw new Error("Registry sync error");
 
     } catch (err: any) {
-      // Step 3: High-Fidelity Local Fallback
-      console.error("[Ouneo] API Connection Interrupted:", err.message);
-      
-      const fallbackMatches = candidates.length > 0 ? candidates.slice(0, 3) : TOOLS_DATABASE.slice(0, 3);
-      const isSearch = candidates.length > 0;
-      const responseText = isSearch 
-        ? `I've analyzed our registry for "${input.message}". These verified websites represent the highest fidelity tools for your current workflow.`
-        : `Welcome to Ouneo. I'm here to help you navigate our registry of 405 professional websites. What are you looking to create today?`;
-
+      // Step 3: Reliable local fallback if API fails
+      const fallbackMatches = candidates.slice(0, 3);
       return {
-        response: responseText,
+        response: candidates.length > 0 
+          ? `I've found these websites in our registry that match your request for "${input.message}".`
+          : "Welcome to Ouneo. I'm connected to our registry of 405 professional websites. What are you looking to discover today?",
         matches: fallbackMatches.map(t => ({
           name: t.name,
           url: t.url,

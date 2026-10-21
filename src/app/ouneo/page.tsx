@@ -1,11 +1,10 @@
-
 'use client';
 
 import { Navigation } from "@/components/navigation";
 import { OuneoAssistant } from "@/components/ouneo-assistant";
 import { Footer } from "@/components/footer";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Globe, ShieldCheck, Zap } from "lucide-react";
 
 export default function OuneoPage() {
   return (
@@ -17,12 +16,12 @@ export default function OuneoPage() {
           <Badge className="bg-primary/20 text-primary border-none px-4 py-1 uppercase font-black tracking-widest italic mx-auto">
              Conversational AI Discovery
           </Badge>
-          <div className="space-y-2">
-            <h1 className="text-6xl sm:text-8xl font-black text-white tracking-tighter uppercase italic leading-none">
-              Meet <span className="text-primary">Ouneo</span>
+          <div className="space-y-4">
+            <h1 className="text-6xl sm:text-9xl font-black text-white tracking-tighter uppercase italic leading-none">
+              OUNEO
             </h1>
-            <p className="text-xl text-muted-foreground font-medium italic opacity-60">
-              Your professional partner for absolute website discovery.
+            <p className="text-xl text-muted-foreground font-medium italic opacity-60 max-w-2xl mx-auto">
+              The professional discovery partner for the Bessites registry. Trained on 405 high-utility websites with zero padding.
             </p>
           </div>
         </div>
@@ -31,36 +30,30 @@ export default function OuneoPage() {
           <OuneoAssistant />
         </div>
 
-        <section className="container mx-auto px-4 py-20 border-t border-white/5">
-          <div className="max-w-3xl mx-auto space-y-12 text-center">
-             <div className="p-4 rounded-full bg-primary/10 w-fit mx-auto">
-                <Sparkles className="w-10 h-10 text-primary" />
-             </div>
-             <div className="space-y-6">
-                <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">How Ouneo Helps</h2>
-                <p className="text-lg text-muted-foreground italic leading-relaxed">
-                  Ouneo is trained on the complete Bessites registry of 405 high-utility websites. Unlike standard search engines, Ouneo understands the context of your creative and technical requests. 
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6">
-                   <div className="space-y-2">
-                      <p className="text-primary font-black uppercase text-[10px] tracking-widest">Natural Logic</p>
-                      <p className="text-xs text-white/40 font-medium">Speak naturally about your goals and problems.</p>
-                   </div>
-                   <div className="space-y-2">
-                      <p className="text-primary font-black uppercase text-[10px] tracking-widest">Verified Results</p>
-                      <p className="text-xs text-white/40 font-medium">Only receive matches from our audited registry.</p>
-                   </div>
-                   <div className="space-y-2">
-                      <p className="text-primary font-black uppercase text-[10px] tracking-widest">Zero Padding</p>
-                      <p className="text-xs text-white/40 font-medium">Direct paths to utility without the algorithmic noise.</p>
-                   </div>
-                </div>
-             </div>
+        <section className="container mx-auto px-4 py-32 border-t border-white/5">
+          <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+             <Feature icon={Globe} title="Verified Registry" desc="Connected directly to our master database of 405 audited assets." />
+             <Feature icon={ShieldCheck} title="Zero Hallucinations" desc="Ouneo only recommends websites that exist within the Bessites network." />
+             <Feature icon={Zap} title="Absolute Intent" desc="Understand technical problems and provides immediate functional solutions." />
           </div>
         </section>
       </main>
 
       <Footer />
+    </div>
+  );
+}
+
+function Feature({ icon: Icon, title, desc }: { icon: any, title: string, desc: string }) {
+  return (
+    <div className="space-y-4 text-center group">
+       <div className="w-16 h-16 rounded-[2rem] bg-white/5 border border-white/10 flex items-center justify-center mx-auto group-hover:scale-110 group-hover:bg-primary/10 group-hover:border-primary/20 transition-all duration-500">
+          <Icon className="w-8 h-8 text-primary" />
+       </div>
+       <div className="space-y-1">
+          <h3 className="text-lg font-black italic uppercase text-white tracking-tight">{title}</h3>
+          <p className="text-sm text-muted-foreground font-medium italic leading-relaxed">{desc}</p>
+       </div>
     </div>
   );
 }

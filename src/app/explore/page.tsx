@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Navigation } from "@/components/navigation";
@@ -89,7 +88,7 @@ export default function ExplorePage() {
           <div className="relative group">
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input 
-              placeholder="Search 250+ tools..." 
+              placeholder="Search professional tools..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-16 bg-white/[0.03] border-white/10 rounded-[2.5rem] h-20 text-xl font-bold focus:ring-primary focus:border-primary transition-all shadow-2xl"

@@ -29,12 +29,14 @@ export default function UseBessitesGuide() {
 
         <article className="space-y-16">
           <header className="space-y-8">
-            <Badge className="bg-primary/20 text-primary border-none px-3 py-0.5 text-[10px] font-black uppercase italic">Module 08: Platform Mastery</Badge>
+            <Badge className="bg-primary/20 text-primary border-none px-4 py-1 uppercase font-black tracking-widest italic">
+              Module 08: Platform Mastery
+            </Badge>
             <h1 className="text-5xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-[0.9]">
               How to Use <span className="text-primary">Bessites</span> Effectively - Platform Manual
             </h1>
             <p className="text-xl sm:text-2xl text-muted-foreground font-medium italic leading-relaxed border-l-4 border-primary pl-8 py-2">
-              Bessites.store is more than a simple web directory; it is a high-velocity discovery ecosystem built for the modern creator.
+              Bessites is a high-velocity discovery ecosystem built for the modern creator. Whether you are a visitor seeking the top tier of tools or a builder looking to scale, understanding the mechanics of our platform is critical.
             </p>
           </header>
 
@@ -56,12 +58,8 @@ export default function UseBessitesGuide() {
                 <span className="text-primary text-4xl">01</span> Understanding Discovery Logic
               </h2>
               <p>
-                The primary discovery engine on Bessites is built on three pillars: Freshness, Interaction, and Relevance. When you open the home feed, the 'For You' node uses your onboarding interest data to curate a personalized grid of webs.
+                The primary discovery engine on Bessites is built on three pillars: Freshness, Interaction, and Relevance. When you open the home feed, the 'For You' section uses your onboarding data to curate a personalized grid of websites.
               </p>
-              <div className="bg-primary/5 border border-primary/20 p-6 rounded-2xl italic">
-                <p className="text-sm font-bold text-primary mb-1 uppercase tracking-widest">Pro Tip:</p>
-                <p className="text-sm">Regularly update your 'Interest Profile' in your settings. As your professional needs evolve, your discovery feed should evolve with you to provide fresh inspiration and tools.</p>
-              </div>
             </section>
 
             <section id="ouneo" className="space-y-6">
@@ -69,12 +67,8 @@ export default function UseBessitesGuide() {
                 <span className="text-primary text-4xl">02</span> Mastering Ouneo AI Search
               </h2>
               <p>
-                Ouneo is your conversational partner in the discovery pipeline. Instead of using complex Boolean search queries, you can speak to Ouneo in natural language.
+                Ouneo is your conversational partner in the discovery pipeline. Instead of using complex search queries, you can speak to Ouneo in natural language. Ouneo scans our registry of extensive categories and recommends the best-matching verified assets.
               </p>
-              <ul className="space-y-4 pt-4">
-                <li className="flex gap-4"><CheckCircle2 className="w-6 h-6 text-primary shrink-0" /><span>Use Ouneo to find niche tools that might be buried deep in category filters.</span></li>
-                <li className="flex gap-4"><CheckCircle2 className="w-6 h-6 text-primary shrink-0" /><span>Ask Ouneo for 'Alternatives' to popular software to find fresh, zero-padding webs.</span></li>
-              </ul>
             </section>
           </div>
 
@@ -92,6 +86,7 @@ export default function UseBessitesGuide() {
           </footer>
         </article>
       </main>
+      <Footer />
     </div>
   );
 }

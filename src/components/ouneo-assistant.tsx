@@ -157,7 +157,7 @@ export function OuneoAssistant() {
           <Input 
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ask Ouneo about 405 verified websites..."
+            placeholder="Ask Ouneo about verified websites..."
             className="flex-1 bg-transparent border-none text-lg font-bold text-white placeholder:text-white/10 focus-visible:ring-0 h-14"
           />
           <Button 

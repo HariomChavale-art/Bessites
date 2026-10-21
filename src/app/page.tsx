@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from "react";
@@ -133,7 +132,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-white/[0.01] p-6 rounded-[2rem] border border-white/5">
             <div className="space-y-1">
               <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white">Discovery Feed</h1>
-              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-40">Absolute Discovery / 405 Verified Websites</p>
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-40">Absolute Discovery / Verified Websites</p>
             </div>
             <div className="flex items-center gap-4 bg-white/5 p-1.5 rounded-[1.5rem] border border-white/5 overflow-x-auto no-scrollbar shrink-0 w-full sm:w-auto">
               <Tabs defaultValue="foryou" className="w-full" onValueChange={setActiveTab}>
@@ -148,14 +147,14 @@ export default function Home() {
         </section>
 
         <section className="container mx-auto px-2 mb-24">
-          <MasonryFeed key={activeTab + userBroadInterests.join(',') + filteredWebsites.length} initialWebsites={filteredWebsites} hideEndMessage={true} />
+          <MasonryFeed key={activeTab + userBroadInterests.join(',') + (filteredWebsites?.length ?? 'fixed')} initialWebsites={filteredWebsites} hideEndMessage={true} />
         </section>
 
         <section className="container mx-auto px-4 py-20 border-t border-white/5">
           <div className="max-w-4xl mx-auto space-y-12">
             <div className="text-center space-y-4">
               <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Absolute <span className="text-primary">Website</span> Discovery</h2>
-              <p className="text-muted-foreground text-lg">Uncovering the top 1% of the modern web through manual curation.</p>
+              <p className="text-muted-foreground text-lg">Uncovering the top tier of the modern web through manual curation.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -165,7 +164,7 @@ export default function Home() {
                   <h3 className="text-xl font-bold uppercase italic">A Global Registry</h3>
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
-                  Bessites operates as a premier digital directory, meticulously archiving 405 high-utility websites across 100 categories. Our mission is to solve the problem of low-value results by providing real, functional, and verified resources to creators.
+                  Bessites operates as a premier digital directory, meticulously archiving high-utility websites across diverse categories. Our mission is to solve the problem of low-value results by providing real, functional, and verified resources to creators.
                 </p>
               </div>
 

@@ -26,7 +26,7 @@ export default function AboutPage() {
               About <span className="text-primary">Bessites</span>
             </h1>
             <p className="text-xl text-muted-foreground font-medium italic max-w-2xl mx-auto leading-relaxed">
-              Bessites is a premier digital discovery engine meticulously designed to index the top 1% of the modern web. We operate on a strict "Zero Padding" policy, ensuring that every website and resource in our registry provides immediate functional value to creators and builders.
+              Bessites is a premier digital discovery engine meticulously designed to index the highest tier of the modern web. We operate on a strict "Zero Padding" policy, ensuring that every website and resource in our registry provides immediate functional value to creators and builders.
             </p>
           </header>
 
@@ -61,17 +61,17 @@ export default function AboutPage() {
                 <h3 className="text-xl font-black italic uppercase tracking-tighter text-white">For Visitors</h3>
               </div>
               <p className="text-muted-foreground italic font-medium leading-relaxed">
-                Explore a hand-picked registry of 100+ categories. Whether you need an AI tool for video editing or a serverless backend for your next app, Bessites provides a seamless path to the web's most productive corners.
+                Explore a hand-picked registry of extensive curated categories. Whether you need an AI tool for video editing or a serverless backend for your next app, Bessites provides a seamless path to the web's most productive corners.
               </p>
             </Card>
           </div>
 
           <div className="pt-20 border-t border-white/5">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
-              <div><p className="text-3xl font-black italic text-white">100</p><p className="text-[10px] font-black uppercase tracking-widest text-primary">Categories</p></div>
-              <div><p className="text-3xl font-black italic text-white">405</p><p className="text-[10px] font-black uppercase tracking-widest text-primary">Verified Websites</p></div>
-              <div><p className="text-3xl font-black italic text-white">10k+</p><p className="text-[10px] font-black uppercase tracking-widest text-primary">Daily Views</p></div>
-              <div><p className="text-3xl font-black italic text-white">10</p><p className="text-[10px] font-black uppercase tracking-widest text-primary">Sectors</p></div>
+              <div><p className="text-3xl font-black italic text-white">Many</p><p className="text-[10px] font-black uppercase tracking-widest text-primary">Categories</p></div>
+              <div><p className="text-3xl font-black italic text-white">Verified</p><p className="text-[10px] font-black uppercase tracking-widest text-primary">Websites</p></div>
+              <div><p className="text-3xl font-black italic text-white">Active</p><p className="text-[10px] font-black uppercase tracking-widest text-primary">Daily Views</p></div>
+              <div><p className="text-3xl font-black italic text-white">All</p><p className="text-[10px] font-black uppercase tracking-widest text-primary">Sectors</p></div>
             </div>
           </div>
         </div>

@@ -21,7 +21,7 @@ export default function OuneoPage() {
               OUNEO
             </h1>
             <p className="text-xl text-muted-foreground font-medium italic opacity-60 max-w-2xl mx-auto">
-              The professional discovery partner for the Bessites registry. Trained on 405 high-utility websites with zero padding.
+              The professional discovery partner for the Bessites registry. Trained on verified high-utility websites with zero padding.
             </p>
           </div>
         </div>
@@ -32,9 +32,9 @@ export default function OuneoPage() {
 
         <section className="container mx-auto px-4 py-32 border-t border-white/5">
           <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
-             <Feature icon={Globe} title="Verified Registry" desc="Connected directly to our master database of 405 audited assets." />
+             <Feature icon={Globe} title="Verified Registry" desc="Connected directly to our master database of audited assets." />
              <Feature icon={ShieldCheck} title="Zero Hallucinations" desc="Ouneo only recommends websites that exist within the Bessites network." />
-             <Feature icon={Zap} title="Absolute Intent" desc="Understand technical problems and provides immediate functional solutions." />
+             <Feature icon={Zap} title="Absolute Intent" desc="Understands technical problems and provides immediate functional solutions." />
           </div>
         </section>
       </main>

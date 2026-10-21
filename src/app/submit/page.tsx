@@ -244,6 +244,7 @@ export default function SubmitWebsite() {
           </Card>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

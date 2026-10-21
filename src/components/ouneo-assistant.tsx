@@ -63,10 +63,16 @@ export function OuneoAssistant() {
         result: discoveryData 
       }]);
     } catch (err) {
-      setError("The discovery node is temporarily recalibrating. Please try again.");
+      setError("Ouneo is taking a breath. Try again in a sec.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const clearChat = () => {
+    setMessages([]);
+    setQuery('');
+    setError(null);
   };
 
   return (
@@ -74,7 +80,7 @@ export function OuneoAssistant() {
       {/* Interaction Area */}
       <div className={cn(
         "space-y-8 transition-all duration-700",
-        messages.length > 0 ? "opacity-100" : "opacity-0 h-0 overflow-hidden"
+        messages.length > 0 ? "opacity-100 min-h-[100px]" : "opacity-0 h-0 overflow-hidden"
       )}>
         {messages.map((msg, idx) => (
           <div key={idx} className={cn(
@@ -82,46 +88,42 @@ export function OuneoAssistant() {
             msg.role === 'user' ? "items-end" : "items-start"
           )}>
             {msg.role === 'user' ? (
-              <div className="bg-primary/10 border border-primary/20 p-4 rounded-2xl rounded-tr-none max-w-[80%]">
+              <div className="bg-primary/20 border border-primary/30 p-4 rounded-2xl rounded-tr-none max-w-[85%]">
                 <p className="text-sm font-bold text-white">{msg.content}</p>
               </div>
             ) : (
               <div className="flex gap-4 w-full">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0 shadow-lg">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 shadow-lg">
                   <Sparkles className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1 space-y-6">
-                  <div className="bg-[#121117] border border-white/5 p-6 rounded-[2rem] rounded-tl-none shadow-2xl">
-                    <p className="text-base text-zinc-300 font-medium italic leading-relaxed">
+                  <div className="bg-[#16141F] border border-white/5 p-6 rounded-[2rem] rounded-tl-none shadow-2xl">
+                    <p className="text-base text-zinc-200 font-medium italic leading-relaxed">
                       {msg.content}
                     </p>
                   </div>
 
                   {msg.result?.matches && msg.result.matches.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in zoom-in-95 duration-500">
                       {msg.result.matches.map((site, sIdx) => (
                         <Card 
                           key={sIdx} 
-                          className="bg-[#121117] border border-white/5 hover:border-primary/40 transition-all p-6 rounded-[2rem] group cursor-pointer shadow-xl relative overflow-hidden"
+                          className="bg-[#121117] border-white/5 hover:border-primary/40 transition-all p-5 rounded-[1.5rem] group cursor-pointer shadow-xl relative overflow-hidden"
                           onClick={() => window.open(site.url, '_blank')}
                         >
-                          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity">
-                            <ExternalLink className="w-4 h-4 text-primary" />
-                          </div>
-                          <div className="space-y-3">
-                            <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black uppercase italic">
-                              {site.category}
-                            </Badge>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black uppercase italic">
+                                {site.category}
+                              </Badge>
+                              <ExternalLink className="w-3.5 h-3.5 text-white/10 group-hover:text-primary transition-colors" />
+                            </div>
                             <h4 className="text-lg font-black italic uppercase tracking-tighter text-white group-hover:text-primary transition-colors">
                               {site.name}
                             </h4>
-                            <p className="text-xs text-muted-foreground font-medium leading-relaxed italic line-clamp-2">
+                            <p className="text-xs text-muted-foreground font-medium italic line-clamp-2">
                               {site.reason}
                             </p>
-                            <div className="pt-3 flex items-center gap-2 text-[8px] font-black uppercase text-white/20 tracking-widest border-t border-white/5">
-                              <Globe className="w-2.5 h-2.5" />
-                              {site.url.replace('https://', '').split('/')[0]}
-                            </div>
                           </div>
                         </Card>
                       ))}
@@ -133,11 +135,11 @@ export function OuneoAssistant() {
           </div>
         ))}
         {loading && (
-          <div className="flex gap-4 items-center animate-pulse">
+          <div className="flex gap-4 items-center">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
               <Loader2 className="w-5 h-5 text-primary animate-spin" />
             </div>
-            <div className="h-10 bg-white/5 rounded-2xl w-48 border border-white/5" />
+            <div className="h-4 bg-white/5 rounded-full w-24 border border-white/5 animate-pulse" />
           </div>
         )}
         <div ref={chatEndRef} />
@@ -145,30 +147,37 @@ export function OuneoAssistant() {
 
       {/* Input Module */}
       <div className="relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 to-blue-500/30 rounded-[3rem] blur-2xl opacity-20 group-focus-within:opacity-100 transition-opacity duration-1000" />
+        <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 to-blue-500/30 rounded-[3rem] blur-2xl opacity-10 group-focus-within:opacity-100 transition-opacity duration-1000" />
         <form 
           onSubmit={handleSearch} 
-          className="relative flex items-center bg-[#121117] border border-white/10 rounded-[3rem] p-3 pl-8 shadow-2xl transition-all group-focus-within:border-primary/50"
+          className="relative flex items-center bg-[#121117] border border-white/10 rounded-[3rem] p-2 pl-8 shadow-2xl transition-all group-focus-within:border-primary/50"
         >
-          <Sparkles className={cn(
-            "w-6 h-6 transition-all duration-700",
-            loading ? "text-primary animate-pulse scale-125" : "text-white/20 group-hover:text-primary"
-          )} />
           <Input 
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ask Ouneo about verified websites..."
-            className="flex-1 bg-transparent border-none text-lg font-bold text-white placeholder:text-white/10 focus-visible:ring-0 h-14"
+            placeholder={messages.length === 0 ? "Ask for a site... (e.g. 'I need to make a logo')" : "Reply to Ouneo..."}
+            className="flex-1 bg-transparent border-none text-base sm:text-lg font-bold text-white placeholder:text-white/10 focus-visible:ring-0 h-14"
           />
+          {messages.length > 0 && !loading && (
+            <button type="button" onClick={clearChat} className="p-3 text-white/20 hover:text-white transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          )}
           <Button 
             disabled={loading || !query.trim()}
             type="submit"
-            className="rounded-full w-14 h-14 bg-white text-black hover:bg-primary hover:text-white transition-all shadow-xl p-0"
+            className="rounded-full w-12 h-12 bg-white text-black hover:bg-primary hover:text-white transition-all shadow-xl p-0"
           >
-            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <ArrowRight className="w-6 h-6" />}
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowRight className="w-6 h-6" />}
           </Button>
         </form>
       </div>
+
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-xs font-bold text-center italic">
+          {error}
+        </div>
+      )}
     </div>
   );
 }

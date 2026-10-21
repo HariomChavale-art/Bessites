@@ -1,12 +1,10 @@
 'use server';
 /**
- * @fileOverview Ouneo - Rebuilt Website Recommender.
- * Strictly anchored to the Bessites database. 
- * Enforces human-like conversation and clarifying questions.
+ * @fileOverview Ouneo - The Bessites Website Recommender.
+ * Uses the full 405+ website registry to provide human-like recommendations.
  */
 
 import { ai, z } from '@/ai/genkit';
-import { filterTools } from '@/lib/toolFilter';
 import { TOOLS_DATABASE } from '@/data/toolsDatabase';
 import { OuneoOutputSchema, type OuneoOutput } from '@/ai/schemas';
 
@@ -29,32 +27,25 @@ const ouneoFlow = ai.defineFlow(
     outputSchema: OuneoOutputSchema,
   },
   async (input) => {
-    const candidates = filterTools(input.message);
-    const registryContext = candidates.length > 0 ? candidates : TOOLS_DATABASE.slice(0, 10);
-    
-    // Determine if we should ask a clarifying question (usually on first message or broad query)
-    const isInitialMessage = !input.history || input.history.length === 0;
+    // Provide the full registry context to the model
+    const registryContext = TOOLS_DATABASE;
 
     try {
       const response = await ai.generate({
         model: 'googleai/gemini-flash-latest',
-        system: `You are Ouneo, a friend who knows the best websites on Bessites.
+        system: `You are Ouneo, a friend who knows every website on Bessites.
         
+        REGISTRY: ${JSON.stringify(registryContext)}
+
         RULES:
-        - You ONLY recommend sites from the provided registry.
-        - NEVER recommend ChatGPT, Claude, or anything not in the list.
-        - NO AI SLOP. Do not say "I've found," "match your request," or "industry-standard."
-        - Be short and human.
-        - MANDATORY: If this is a new topic or the user is broad, ask ONE short question to narrow it down before giving links.
-        - If query doesn't match any site, say: "No site for that yet. What are you trying to do?" and ask a question.
-        - Max 8 words per site description.`,
-        prompt: `
-          REGISTRY: ${JSON.stringify(registryContext)}
-          USER: "${input.message}"
-          
-          TASK: If the user is broad, ask a clarifying question. If they answered your question, give 2-3 sites from the REGISTRY above. 
-          Use human descriptions like "Makes logos in 30 sec. Free."
-        `,
+        - You ONLY recommend sites from the REGISTRY above. Never make up names.
+        - Talk like a human friend. No AI jargon. 
+        - NEVER say "I've found," "match your request," or "here are some sites."
+        - MANDATORY: If the user is broad (e.g. "I need help" or "hello"), ask ONE short question to narrow it down (e.g. "For work or fun?").
+        - After they answer your question, give 2-3 specific sites.
+        - Descriptions must be human and max 8 words (e.g. "Makes logos in 30 sec. Free.").
+        - If no site fits, say: "Don't have a site for that yet. What else you working on?"`,
+        prompt: `User Message: "${input.message}"`,
         history: input.history?.map(m => ({ 
           role: m.role as any, 
           content: [{ text: m.content }] 
@@ -63,12 +54,12 @@ const ouneoFlow = ai.defineFlow(
       });
 
       if (response.output) return response.output;
-      throw new Error("No output");
+      throw new Error("Empty AI response");
 
     } catch (err) {
-      // Fallback
+      console.error("Ouneo Server Error:", err);
       return {
-        response: "What are you trying to build today? Need something free or pro?",
+        response: "I'm having a quick reset. What are you looking to build today?",
         matches: []
       };
     }

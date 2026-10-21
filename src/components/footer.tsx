@@ -6,7 +6,7 @@ import { ShieldCheck, Globe, Zap, Mail, Book, Terminal } from "lucide-react";
 
 /**
  * @fileOverview Unified Site Footer.
- * Centralized navigation for all public discovery assets and legal nodes.
+ * Centralized navigation for all public discovery assets and legal documentation.
  */
 export function Footer() {
   return (
@@ -37,9 +37,9 @@ export function Footer() {
             </nav>
           </div>
 
-          {/* About Column */}
+          {/* Intelligence Column */}
           <div className="space-y-6">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Intelligence Node</h4>
+            <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Intelligence Hub</h4>
             <nav className="flex flex-col gap-3">
               <FooterLink href="/about">Our Origin Story</FooterLink>
               <FooterLink href="/how-it-works">Platform Flow</FooterLink>
@@ -58,7 +58,7 @@ export function Footer() {
               <FooterLink href="/terms">Usage Terms</FooterLink>
               <FooterLink href="/disclaimer">Legal Disclaimer</FooterLink>
               <div className="pt-6 border-t border-white/5 space-y-2">
-                <p className="text-[9px] font-black uppercase text-white/20 tracking-widest">Global Support Node</p>
+                <p className="text-[9px] font-black uppercase text-white/20 tracking-widest">Global Support System</p>
                 <a href="mailto:bessitesofficial@gmail.com" className="text-sm font-bold text-white hover:text-primary transition-colors italic">bessitesofficial@gmail.com</a>
               </div>
             </nav>

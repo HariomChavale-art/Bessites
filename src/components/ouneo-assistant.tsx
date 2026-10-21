@@ -1,8 +1,8 @@
-
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useUser, useAuth } from '@/firebase';
+import { askOuneo } from '@/ai/flows/ouneo-flow';
+import type { OuneoOutput } from '@/ai/schemas';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,24 +14,21 @@ import {
   ExternalLink, 
   X,
   Globe,
-  User as UserIcon,
-  Lock
+  User as UserIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
-  matches?: any[];
+  result?: OuneoOutput;
 }
 
 export function OuneoAssistant() {
-  const { user } = useUser();
-  const auth = useAuth();
-  const [userInput, setUserInput] = useState('');
+  const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [showPaywall, setShowPaywall] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -39,163 +36,159 @@ export function OuneoAssistant() {
   };
 
   useEffect(() => {
-    if (messages.length > 0) scrollToBottom();
+    scrollToBottom();
   }, [messages, loading]);
 
   const handleSearch = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!userInput.trim() || loading) return;
+    if (!query.trim() || loading) return;
 
-    const currentQuery = userInput;
-    setUserInput('');
+    const currentQuery = query;
+    setQuery('');
     setLoading(true);
+    setError(null);
 
-    const newUserMessage: ChatMessage = { role: 'user', content: currentQuery };
-    setMessages(prev => [...prev, newUserMessage]);
+    const currentHistory = messages.map(m => ({ role: m.role, content: m.content }));
+    const newMessages = [...messages, { role: 'user' as const, content: currentQuery }];
+    setMessages(newMessages);
 
     try {
-      const idToken = await auth?.currentUser?.getIdToken();
-      const res = await fetch('/api/ouneo', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
-        },
-        body: JSON.stringify({
-          message: currentQuery,
-          history: messages.map(m => ({ role: m.role, content: m.content }))
-        })
+      const discoveryData = await askOuneo({ 
+        message: currentQuery, 
+        history: currentHistory 
       });
       
-      const data = await res.json();
-      
-      if (data.error === 'LIMIT_REACHED') {
-        setShowPaywall(true);
-      } else {
-        setMessages(prev => [...prev, { 
-          role: 'assistant', 
-          content: data.response,
-          matches: data.matches 
-        }]);
-      }
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: discoveryData.response,
+        result: discoveryData 
+      }]);
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Node error. Try again." }]);
+      console.error("Ouneo UI Error:", err);
+      setError("Ouneo is taking a break. Try again in a bit.");
     } finally {
       setLoading(false);
     }
   };
 
+  const clearChat = () => {
+    setMessages([]);
+    setQuery('');
+    setError(null);
+  };
+
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-8">
-      {/* Interaction Area */}
-      <div className={cn(
-        "space-y-8 transition-all duration-700",
-        messages.length > 0 ? "opacity-100 min-h-[100px]" : "opacity-0 h-0 overflow-hidden"
-      )}>
-        {messages.map((msg, idx) => (
-          <div key={idx} className={cn(
-            "flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500",
-            msg.role === 'user' ? "items-end" : "items-start"
-          )}>
-            {msg.role === 'user' ? (
-              <div className="bg-primary/20 border border-primary/30 p-4 rounded-2xl rounded-tr-none max-w-[85%] shadow-xl">
-                <p className="text-sm font-bold text-white">{msg.content}</p>
-              </div>
-            ) : (
-              <div className="flex gap-4 w-full">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 shadow-lg">
-                  <Sparkles className="w-5 h-5 text-primary" />
+    <section className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-top-4 duration-1000">
+      {messages.length > 0 && (
+        <div className="space-y-8 mb-10 min-h-[100px] max-h-[600px] overflow-y-auto no-scrollbar p-2">
+          {messages.map((msg, idx) => (
+            <div key={idx} className={cn(
+              "flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500",
+              msg.role === 'user' ? "items-end" : "items-start"
+            )}>
+              {msg.role === 'user' && (
+                <div className="flex items-center gap-3">
+                   <div className="bg-primary/20 text-primary p-3 rounded-2xl border border-primary/20">
+                      <p className="text-sm font-bold">{msg.content}</p>
+                   </div>
+                   <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center shrink-0">
+                      <UserIcon className="w-4 h-4 text-white/40" />
+                   </div>
                 </div>
-                <div className="flex-1 space-y-6">
-                  <div className="bg-[#16141F] border border-white/5 p-6 rounded-[2rem] rounded-tl-none shadow-2xl">
-                    <p className="text-base text-zinc-200 font-medium italic leading-relaxed">
-                      {msg.content}
-                    </p>
-                  </div>
+              )}
 
-                  {msg.matches && msg.matches.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in zoom-in-95 duration-500">
-                      {msg.matches.map((site, sIdx) => (
-                        <Card 
-                          key={sIdx} 
-                          className="bg-[#121117] border-white/5 hover:border-primary/40 transition-all p-5 rounded-[1.5rem] group cursor-pointer shadow-xl relative overflow-hidden"
-                          onClick={() => window.open(site.url, '_blank')}
-                        >
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black uppercase italic">
-                                {site.category}
-                              </Badge>
-                              <ExternalLink className="w-3.5 h-3.5 text-white/10 group-hover:text-primary transition-colors" />
-                            </div>
-                            <h4 className="text-lg font-black italic uppercase tracking-tighter text-white group-hover:text-primary transition-colors">
-                              {site.name}
-                            </h4>
-                            <p className="text-xs text-muted-foreground font-medium italic line-clamp-1">
-                              {site.reason}
-                            </p>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
+              {msg.role === 'assistant' && (
+                <div className="flex gap-4 w-full">
+                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                   </div>
+                   <div className="flex-1 space-y-6">
+                      <div className="bg-white/[0.02] border border-white/5 p-5 rounded-[2rem] relative overflow-hidden max-w-[90%] shadow-2xl">
+                         <p className="text-base text-white/90 font-medium italic leading-relaxed whitespace-pre-wrap">
+                            {msg.content}
+                         </p>
+                      </div>
+
+                      {msg.result && msg.result.matches && msg.result.matches.length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                           {msg.result.matches.map((site, sIdx) => (
+                             <Card 
+                               key={sIdx} 
+                               className="bg-[#121117] border-white/5 hover:border-primary/40 transition-all p-5 rounded-[1.5rem] flex flex-col justify-between group shadow-xl hover:shadow-primary/5 cursor-pointer relative overflow-hidden"
+                               onClick={() => window.open(site.url, '_blank')}
+                             >
+                               <div className="space-y-3">
+                                 <div className="flex justify-between items-start">
+                                    <Badge className="bg-primary/10 text-primary border-none text-[7px] font-black uppercase italic">{site.category}</Badge>
+                                    <ExternalLink className="w-3.5 h-3.5 text-white/10 group-hover:text-primary transition-colors" />
+                                 </div>
+                                 <div>
+                                   <h4 className="text-base font-black italic uppercase tracking-tighter text-white group-hover:text-primary transition-colors">{site.name}</h4>
+                                   <p className="text-[10px] text-muted-foreground font-medium mt-1.5 leading-relaxed italic line-clamp-2">
+                                     {site.reason}
+                                   </p>
+                                 </div>
+                               </div>
+                               <div className="pt-4 flex items-center gap-2 text-[7px] font-black uppercase text-white/20 tracking-widest border-t border-white/5 mt-4">
+                                 <Globe className="w-2.5 h-2.5" />
+                                 {site.url.replace('https://', '').split('/')[0]}
+                               </div>
+                             </Card>
+                           ))}
+                        </div>
+                      )}
+                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-        ))}
-        {loading && (
-          <div className="flex gap-4 items-center">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Loader2 className="w-5 h-5 text-primary animate-spin" />
+              )}
             </div>
-            <div className="h-4 bg-white/5 rounded-full w-24 border border-white/5 animate-pulse" />
-          </div>
-        )}
-        <div ref={chatEndRef} />
-      </div>
+          ))}
+          
+          {loading && (
+            <div className="flex gap-4 w-full animate-pulse">
+               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Loader2 className="w-4 h-4 text-primary animate-spin" />
+               </div>
+               <div className="h-14 bg-white/5 border border-white/5 rounded-2xl w-32" />
+            </div>
+          )}
+          
+          <div ref={chatEndRef} />
+        </div>
+      )}
 
-      {/* Input Module */}
       <div className="relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 to-blue-500/30 rounded-[3rem] blur-2xl opacity-10 group-focus-within:opacity-100 transition-opacity duration-1000" />
-        <form 
-          onSubmit={handleSearch} 
-          className="relative flex items-center bg-[#121117] border border-white/10 rounded-[3rem] p-2 pl-8 shadow-2xl transition-all group-focus-within:border-primary/50"
-        >
+        <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-blue-500/20 to-purple-500/20 rounded-[2.5rem] blur-xl opacity-30 group-focus-within:opacity-100 transition-opacity duration-700" />
+        
+        <form onSubmit={handleSearch} className="relative flex items-center bg-[#121117] border border-white/10 rounded-[2.5rem] p-2 pr-4 shadow-2xl transition-all group-focus-within:border-primary/50">
+          <div className="p-4 pl-6">
+            <Sparkles className={cn("w-6 h-6 transition-all duration-700", loading ? "text-primary animate-pulse scale-125" : "text-primary/40 group-hover:text-primary")} />
+          </div>
           <Input 
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-            placeholder="Search for a site..."
-            className="flex-1 bg-transparent border-none text-base sm:text-lg font-bold text-white placeholder:text-white/10 focus-visible:ring-0 h-14"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={messages.length === 0 ? "Ask Ouneo..." : "Reply to Ouneo..."}
+            className="flex-1 bg-transparent border-none text-base sm:text-lg font-bold text-white placeholder:text-white/10 focus-visible:ring-0 focus-visible:ring-offset-0 h-16"
           />
+          {messages.length > 0 && !loading && (
+            <button type="button" onClick={clearChat} className="p-2 mr-2 text-white/20 hover:text-white transition-colors" title="Clear Chat">
+              <X className="w-5 h-5" />
+            </button>
+          )}
           <Button 
-            disabled={loading || !userInput.trim()}
+            disabled={loading || !query.trim()}
             type="submit"
-            className="rounded-full w-12 h-12 bg-white text-black hover:bg-primary hover:text-white transition-all shadow-xl p-0"
+            className="rounded-full w-12 h-12 bg-white text-black hover:bg-primary hover:text-white transition-all shadow-lg shadow-white/5 p-0"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowRight className="w-6 h-6" />}
           </Button>
         </form>
       </div>
 
-      {/* Paywall Popup */}
-      {showPaywall && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-           <Card className="bg-[#121117] border-primary/30 p-10 rounded-[3rem] max-w-sm w-full text-center space-y-8 shadow-[0_0_50px_rgba(123,51,255,0.2)]">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                 <Lock className="w-8 h-8 text-primary" />
-              </div>
-              <div className="space-y-2">
-                 <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">Daily Limit Reached</h3>
-                 <p className="text-zinc-400 text-sm font-medium">Free users get 3 AI searches per day. Upgrade to Pro for unlimited conversational discovery.</p>
-              </div>
-              <div className="flex flex-col gap-3">
-                 <Button onClick={() => window.location.href='/promotions'} className="h-14 rounded-2xl bg-primary text-white font-black italic uppercase shadow-xl">GO PRO NOW</Button>
-                 <Button variant="ghost" onClick={() => setShowPaywall(false)} className="text-white/40 font-bold uppercase text-[10px]">Close</Button>
-              </div>
-           </Card>
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-xs font-bold text-center italic">
+          {error}
         </div>
       )}
-    </div>
+    </section>
   );
 }

@@ -55,7 +55,6 @@ export default function AddFundsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Fetch Real Profile & Transactions
   const userDocRef = useMemo(() => {
     if (!user || !db) return null;
     return doc(db, "users", user.uid);
@@ -86,21 +85,19 @@ export default function AddFundsPage() {
     let screenshotUrl = "";
 
     try {
-      // 1. Upload Screenshot if exists
       if (selectedFile && storage) {
         const fileRef = ref(storage, `screenshots/${user.uid}/${Date.now()}-${selectedFile.name}`);
         await uploadBytes(fileRef, selectedFile);
         screenshotUrl = await getDownloadURL(fileRef);
       }
 
-      // 2. Create Pending Transaction
       const transactionData = {
         userId: user.uid,
         type: 'deposit',
         amount: parseFloat(amount),
         currency: 'INR',
         description: `Wallet Deposit (Manual)`,
-        status: 'pending', // Verification needed
+        status: 'pending', 
         method: 'UPI QR',
         orderId: transId,
         screenshotUrl,
@@ -138,14 +135,14 @@ export default function AddFundsPage() {
            </Button>
            <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(123,51,255,1)]" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-primary italic">Secure Node Verified</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-primary italic">Secure System Verified</span>
            </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           <div className="lg:col-span-7 space-y-8">
-            <Card className="relative overflow-hidden border-none bg-gradient-to-br from-primary to-[#5B13E6] p-10 rounded-[3rem] shadow-2xl shadow-primary/20 group">
+            < Card className="relative overflow-hidden border-none bg-gradient-to-br from-primary to-[#5B13E6] p-10 rounded-[3rem] shadow-2xl shadow-primary/20 group">
                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-[100px] -mr-32 -mt-32 group-hover:scale-110 transition-transform duration-700" />
                <div className="relative z-10 flex justify-between items-start">
                   <div className="space-y-6">
@@ -161,7 +158,7 @@ export default function AddFundsPage() {
                </div>
             </Card>
 
-            <Card className="bg-[#121117] border border-white/5 p-8 rounded-[2.5rem] relative overflow-hidden group">
+            < Card className="bg-[#121117] border border-white/5 p-8 rounded-[2.5rem] relative overflow-hidden group">
                <div className="flex items-start gap-6">
                   <div className="bg-primary/10 p-4 rounded-2xl text-primary shrink-0 group-hover:scale-110 transition-transform">
                      <Sparkles className="w-6 h-6" />
@@ -180,7 +177,7 @@ export default function AddFundsPage() {
           </div>
 
           <div className="lg:col-span-5 space-y-8">
-            <Card className="bg-[#121117] border border-white/5 p-10 rounded-[3rem] space-y-10 shadow-2xl relative overflow-hidden">
+            < Card className="bg-[#121117] border border-white/5 p-10 rounded-[3rem] space-y-10 shadow-2xl relative overflow-hidden">
                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl" />
                
                <div className="space-y-2 text-center">
@@ -276,7 +273,7 @@ export default function AddFundsPage() {
 
         {showSuccess && (
           <div className="animate-in zoom-in slide-in-from-top-4 duration-700">
-             <Card className="bg-emerald-500/10 border-emerald-500/20 p-10 rounded-[3rem] flex flex-col sm:flex-row items-center gap-8 shadow-2xl shadow-emerald-500/5">
+             < Card className="bg-emerald-500/10 border-emerald-500/20 p-10 rounded-[3rem] flex flex-col sm:flex-row items-center gap-8 shadow-2xl shadow-emerald-500/5">
                 <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center shrink-0 shadow-xl shadow-emerald-500/20 animate-bounce">
                    <Check className="w-10 h-10 text-white" strokeWidth={5} />
                 </div>
@@ -314,7 +311,7 @@ export default function AddFundsPage() {
                               <td className="p-8">
                                  <div className="flex flex-col gap-1">
                                     <span className="text-sm font-black italic text-white group-hover:text-primary transition-colors">Deposit Ref: {t.orderId}</span>
-                                    <span className="text-[9px] text-muted-foreground/30 font-black uppercase tracking-widest">Internal Node ID: {t.id?.slice(0, 8)}</span>
+                                    <span className="text-[9px] text-muted-foreground/30 font-black uppercase tracking-widest">Internal ID: {t.id?.slice(0, 8)}</span>
                                  </div>
                               </td>
                               <td className="p-8"><span className="text-[10px] font-black uppercase text-white/40">{t.method}</span></td>

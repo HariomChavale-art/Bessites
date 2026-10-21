@@ -1,4 +1,3 @@
-
 import { Navigation } from "@/components/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -46,7 +45,7 @@ export default function AboutPage() {
           </section>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-2xl space-y-6">
+            < Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-2xl space-y-6">
               <div className="flex items-center gap-4 text-primary">
                 <ShieldCheck className="w-8 h-8" />
                 <h3 className="text-xl font-black italic uppercase tracking-tighter text-white">For Website Owners</h3>
@@ -56,7 +55,7 @@ export default function AboutPage() {
               </p>
             </Card>
 
-            <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-2xl space-y-6">
+            < Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] shadow-2xl space-y-6">
               <div className="flex items-center gap-4 text-primary">
                 <Globe className="w-8 h-8" />
                 <h3 className="text-xl font-black italic uppercase tracking-tighter text-white">For Visitors</h3>

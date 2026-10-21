@@ -1,12 +1,13 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { initializeFirestore, getFirestore, Firestore } from 'firebase/firestore';
+import { initializeFirestore, getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { firebaseConfig } from './config';
 
 /**
- * Core Firebase initialization logic separated from React components/hooks.
- * This is safe to import in both client and server contexts (Server Actions/Flows).
+ * Core Firebase initialization logic.
+ * Optimized with forced long polling on the client to prevent connection timeouts
+ * in restricted network environments or during high-latency periods.
  */
 export function initializeFirebase(): {
   firebaseApp: FirebaseApp | null;
@@ -19,7 +20,7 @@ export function initializeFirebase(): {
 
   if (!isValidConfig) {
     if (typeof window === 'undefined') {
-      console.warn("[Bessites] Server-side Firebase config missing. Ensure NEXT_PUBLIC_FIREBASE_API_KEY is set.");
+      console.warn("[Bessites] Server-side Firebase config missing.");
     }
     return { firebaseApp: null, firestore: null, auth: null, storage: null };
   }
@@ -29,13 +30,19 @@ export function initializeFirebase(): {
     
     let firestore: Firestore;
     
-    // Check if firestore is already initialized to avoid errors.
-    // Use long polling on client side for better compatibility, default on server.
-    try {
-      firestore = initializeFirestore(firebaseApp, {
-        experimentalForceLongPolling: typeof window !== 'undefined',
-      });
-    } catch (e: any) {
+    // Robust Firestore initialization
+    // Forcing long polling on client side is critical for reliability in many environments
+    if (typeof window !== 'undefined') {
+      try {
+        firestore = initializeFirestore(firebaseApp, {
+          experimentalForceLongPolling: true,
+          experimentalAutoDetectLongPolling: true,
+        });
+      } catch (e) {
+        // If already initialized, get the existing instance
+        firestore = getFirestore(firebaseApp);
+      }
+    } else {
       firestore = getFirestore(firebaseApp);
     }
     

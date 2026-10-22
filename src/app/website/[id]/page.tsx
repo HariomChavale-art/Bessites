@@ -27,6 +27,7 @@ import { WebsitePreview } from "@/components/website-preview";
 import { WebsiteCard } from "@/components/website-card";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
+import { AdSenseUnit } from "@/components/adsense-unit";
 
 export default function WebsiteDetail() {
   const { id } = useParams();
@@ -171,7 +172,7 @@ export default function WebsiteDetail() {
     if (!dynamicWebsite) return;
     const shareUrl = window.location.href;
     const shareTitle = `${dynamicWebsite.websiteName || dynamicWebsite.name} | Bessites Discovery`;
-    const shareText = `Check out this tool on Bessites: ${dynamicWebsite.description || ''}`;
+    const shareText = `Check out this high-fidelity tool on Bessites: ${dynamicWebsite.description || ''}`;
 
     try {
       if (navigator.share) {
@@ -215,7 +216,7 @@ export default function WebsiteDetail() {
     };
 
     setSubmittedReview(reviewData);
-    toast({ title: "Review Submitted", description: "Your feedback has been logged to the discovery node." });
+    toast({ title: "Review Submitted", description: "Your feedback has been logged to the discovery system." });
     setReviewText("");
   };
 
@@ -229,13 +230,13 @@ export default function WebsiteDetail() {
 
   const brandName = dynamicWebsite.websiteName || dynamicWebsite.name;
   const fullName = dynamicWebsite.name || brandName;
-  const description = dynamicWebsite.description || dynamicWebsite.longDescription || "Digital Asset";
+  const description = dynamicWebsite.description || dynamicWebsite.longDescription || "A high-fidelity digital asset registered on the Bessites discovery engine.";
 
   return (
     <div className="min-h-screen flex flex-col bg-background pb-32">
       <Navigation />
       
-      <main className="flex-1 container mx-auto max-w-5xl px-4 py-8 sm:py-12 space-y-16">
+      <main className="flex-1 container mx-auto max-w-5xl px-4 py-8 sm:py-12 space-y-16 website-detail-container">
         <div className="flex flex-col md:flex-row gap-8 sm:gap-10 items-start">
           <div className="w-20 h-20 sm:w-40 sm:h-40 rounded-[1.5rem] sm:rounded-[2rem] bg-[#1a1a24] border border-white/10 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center p-3 sm:p-4">
             <WebsitePreview 
@@ -251,7 +252,7 @@ export default function WebsiteDetail() {
                 {fullName}
               </h1>
               <div className="flex items-center gap-3 mt-4">
-                <span className="text-[10px] sm:text-sm text-primary font-black uppercase tracking-[0.3em] italic px-3 py-1 bg-primary/10 rounded-md">Verified Node Asset</span>
+                <span className="text-[10px] sm:text-sm text-primary font-black uppercase tracking-[0.3em] italic px-3 py-1 bg-primary/10 rounded-md">Verified System Asset</span>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-4">
@@ -270,6 +271,9 @@ export default function WebsiteDetail() {
               <p className="text-lg sm:text-2xl text-white font-medium leading-relaxed italic tracking-tight">
                 {description}
               </p>
+              
+              {/* Manual Ad Unit below description with 2s delay check */}
+              <AdSenseUnit slot="7483920156" className="pt-4 border-t border-white/5" />
             </Card>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -350,11 +354,11 @@ export default function WebsiteDetail() {
                  <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400">
                     <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
                  </div>
-                 <h2 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter text-white">Similar Nodes</h2>
+                 <h2 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter text-white">Similar Systems</h2>
               </div>
               <Link href="/explore">
                  <Button variant="ghost" className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 gap-2 italic">
-                    Explore Node <ArrowRight className="w-3.5 h-3.5" />
+                    Explore Registry <ArrowRight className="w-3.5 h-3.5" />
                  </Button>
               </Link>
            </div>
@@ -365,7 +369,7 @@ export default function WebsiteDetail() {
               ))}
               {similarWebsites.length === 0 && (
                 <div className="col-span-full py-20 text-center border-2 border-dashed border-white/5 rounded-[2rem] sm:rounded-[3rem] bg-white/[0.02]">
-                   <p className="text-muted-foreground italic font-medium opacity-20 uppercase tracking-widest text-xs">No similar assets found in this node.</p>
+                   <p className="text-muted-foreground italic font-medium opacity-20 uppercase tracking-widest text-xs">No similar assets found in this registry node.</p>
                 </div>
               )}
            </div>

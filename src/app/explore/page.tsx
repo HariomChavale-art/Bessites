@@ -18,6 +18,7 @@ import { useFirestore, useUser, useCollection } from "@/firebase";
 import { collection, query, where } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { BROAD_CATEGORIES, INTERESTS, getInterestsForTag } from "@/lib/category-mapping";
+import { AdSenseUnit } from "@/components/adsense-unit";
 
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,7 +40,7 @@ export default function ExplorePage() {
       name: s.name || s.url?.split('//')[1]?.split('.')[0] || "New Project",
       websiteName: s.websiteName || s.name,
       developer: s.userEmail || "Community",
-      description: s.description || "User submitted project",
+      description: s.description || "A high-fidelity project shared via Bessites.",
       categories: s.categories || ["Web App"],
       url: s.url,
       pricing: "Free",
@@ -136,11 +137,16 @@ export default function ExplorePage() {
             </h2>
           </div>
           
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-4 website-grid">
             {filteredResults.length > 0 ? (
-              filteredResults.map((app) => (
-                <ExploreItemRow key={`${app.id}-${app.name}`} app={app as any} />
-              ))
+              <>
+                {/* Safe Ad Node implementation for Explore page */}
+                {filteredResults.length > 5 && <AdSenseUnit slot="5938271042" className="mb-6" />}
+                
+                {filteredResults.map((app) => (
+                  <ExploreItemRow key={`${app.id}-${app.name}`} app={app as any} />
+                ))}
+              </>
             ) : (
               <div className="py-24 text-center space-y-4 bg-white/[0.02] rounded-[3.5rem] border border-white/5">
                 <LayoutGrid className="w-16 h-16 text-muted-foreground mx-auto opacity-10" />
@@ -164,7 +170,7 @@ function ExploreItemRow({ app }: { app: any }) {
   return (
     <Link 
       href={`/website/${app.id}`}
-      className="group relative block"
+      className="group relative block website-card-item"
     >
       <div className="flex flex-col md:flex-row items-center gap-6 p-5 rounded-[2.5rem] bg-[#121218] border border-white/[0.08] hover:border-purple-500/40 transition-all duration-500 overflow-hidden shadow-xl">
         
@@ -190,7 +196,7 @@ function ExploreItemRow({ app }: { app: any }) {
                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{app.pricing}</span>
             </div>
           </div>
-          <p className="text-sm text-zinc-400 font-medium line-clamp-1 opacity-70">
+          <p className="text-sm text-zinc-400 font-medium line-clamp-1 opacity-70 italic">
             {description}
           </p>
         </div>

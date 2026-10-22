@@ -3,6 +3,10 @@ import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Compass, ArrowLeft } from "lucide-react";
 
+/**
+ * 404 Node Not Found Page.
+ * Strictly no ads allowed on this screen to comply with AdSense policy.
+ */
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -19,16 +23,16 @@ export default function NotFound() {
           
           <div className="space-y-4">
             <h1 className="text-5xl font-black text-white tracking-tighter uppercase italic leading-none">
-              404 <span className="text-primary">NODE NOT FOUND</span>
+              404 <span className="text-primary">SYSTEM ERROR</span>
             </h1>
             <p className="text-muted-foreground text-lg font-medium italic px-4">
-              Sorry, this discovery node does not exist in our current registry. Let's get you back on track.
+              Sorry, this discovery system does not exist in our current registry. Let's get you back to the home feed.
             </p>
           </div>
 
           <div className="flex flex-col gap-4">
             <Link href="/">
-              <Button className="w-full h-16 rounded-full bg-white text-black hover:bg-white/90 text-xl font-black italic shadow-2xl transition-all hover:scale-105 active:scale-95 group">
+              <Button className="w-full h-16 rounded-full bg-white text-black hover:bg-white/90 text-xl font-black italic shadow-2xl transition-all hover:scale-105 active:scale-95 group uppercase tracking-widest">
                 <ArrowLeft className="w-5 h-5 mr-3 group-hover:-translate-x-2 transition-transform" /> BACK TO HOMEPAGE
               </Button>
             </Link>
@@ -42,7 +46,7 @@ export default function NotFound() {
       </main>
 
       <footer className="py-12 text-center opacity-10">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em]">Lost in Discovery / Error Node 404</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.4em]">Lost in Discovery / Error System 404</p>
       </footer>
     </div>
   );

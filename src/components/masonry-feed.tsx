@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Website } from "@/lib/mock-data";
@@ -13,8 +12,7 @@ interface MasonryFeedProps {
 
 /**
  * High-fidelity Masonry Feed.
- * Uses a column-based layout to allow asymmetrical interlocking cards 
- * to flow into each other without rigid row heights.
+ * Uses a column-based layout with specific class nodes for AdSense content auditing.
  */
 export function MasonryFeed({ initialWebsites, hideEndMessage = false }: MasonryFeedProps) {
   const [displayCount, setDisplayCount] = useState(24);
@@ -42,9 +40,10 @@ export function MasonryFeed({ initialWebsites, hideEndMessage = false }: Masonry
 
   return (
     <div className="w-full">
-      <div className="columns-2 sm:columns-3 lg:columns-4 gap-4 p-3 max-w-7xl mx-auto space-y-4">
+      {/* website-grid class added for AdSense content audit node */}
+      <div className="columns-2 sm:columns-3 lg:columns-4 gap-4 p-3 max-w-7xl mx-auto space-y-4 website-grid">
         {displayedWebsites.map((website, idx) => (
-          <div key={website.id} className="break-inside-avoid mb-4">
+          <div key={website.id} className="break-inside-avoid mb-4 website-card-item">
             <WebsiteCard website={website} index={idx} />
           </div>
         ))}
@@ -58,7 +57,7 @@ export function MasonryFeed({ initialWebsites, hideEndMessage = false }: Masonry
             disabled={loading}
             className="rounded-full px-12 py-6 border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold h-auto shadow-xl"
           >
-            {loading ? "Discovering more niche apps..." : "Load More Websites"}
+            {loading ? "Synchronizing discovery nodes..." : "Load More Websites"}
           </Button>
         </div>
       )}

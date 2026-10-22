@@ -11,6 +11,7 @@ import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { getBroadCategoriesForTag } from "@/lib/category-mapping";
 import { Footer } from "@/components/footer";
+import { AdSenseUnit } from "@/components/adsense-unit";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
@@ -53,7 +54,7 @@ export default function Home() {
       name: s.name || s.url?.split('//')[1]?.split('.')[0] || "New Project",
       developer: s.userEmail || "Community",
       description: s.description || "User submitted project",
-      longDescription: s.longDescription || s.description || "A new project shared via Bessites.",
+      longDescription: s.longDescription || s.description || "A high-fidelity project shared via Bessites.",
       rating: 0,
       reviewCount: 0,
       categories: s.categories || ["Web App"],
@@ -132,7 +133,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-white/[0.01] p-6 rounded-[2rem] border border-white/5">
             <div className="space-y-1">
               <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white">Discovery Feed</h1>
-              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-40">Absolute Discovery / Verified Websites</p>
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-40 italic">Absolute Discovery / Verified Assets</p>
             </div>
             <div className="flex items-center gap-4 bg-white/5 p-1.5 rounded-[1.5rem] border border-white/5 overflow-x-auto no-scrollbar shrink-0 w-full sm:w-auto">
               <Tabs defaultValue="foryou" className="w-full" onValueChange={setActiveTab}>
@@ -146,15 +147,22 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="container mx-auto px-2 mb-24">
-          <MasonryFeed key={activeTab + userBroadInterests.join(',') + (filteredWebsites?.length ?? 'fixed')} initialWebsites={filteredWebsites} hideEndMessage={true} />
+        <section className="container mx-auto px-2 mb-12">
+          {/* AdSense Unit placed after header and before content, but only with logic check */}
+          <AdSenseUnit slot="8574639201" className="container mx-auto px-4 mb-8" />
+          
+          <MasonryFeed 
+            key={activeTab + userBroadInterests.join(',') + (filteredWebsites?.length ?? 'fixed')} 
+            initialWebsites={filteredWebsites} 
+            hideEndMessage={true} 
+          />
         </section>
 
         <section className="container mx-auto px-4 py-20 border-t border-white/5">
           <div className="max-w-4xl mx-auto space-y-12">
             <div className="text-center space-y-4">
-              <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Absolute <span className="text-primary">Website</span> Discovery</h2>
-              <p className="text-muted-foreground text-lg">Uncovering the top tier of the modern web through manual curation.</p>
+              <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Absolute <span className="text-primary">Discovery</span> Hub</h2>
+              <p className="text-muted-foreground text-lg italic">Uncovering the highest tier of the modern web through manual curation and zero padding.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -163,18 +171,18 @@ export default function Home() {
                   <Globe className="w-6 h-6" />
                   <h3 className="text-xl font-bold uppercase italic">A Global Registry</h3>
                 </div>
-                <p className="text-muted-foreground leading-relaxed">
-                  Bessites operates as a premier digital directory, meticulously archiving high-utility websites across diverse categories. Our mission is to solve the problem of low-value results by providing real, functional, and verified resources to creators.
+                <p className="text-muted-foreground leading-relaxed italic">
+                  Bessites operates as a premier digital directory, meticulously archiving high-utility assets across diverse categories. Our mission is to solve the problem of low-value results by providing real, functional, and verified resources to creators globally. Every entry is technically audited to ensure a zero padding standard.
                 </p>
               </div>
 
               <div className="space-y-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5">
                 <div className="flex items-center gap-3 text-primary">
                   <ShieldCheck className="w-6 h-6" />
-                  <h3 className="text-xl font-bold uppercase italic">Verified Websites</h3>
+                  <h3 className="text-xl font-bold uppercase italic">Verified Assets</h3>
                 </div>
-                <p className="text-muted-foreground leading-relaxed">
-                  Unlike automated search engines, Bessites prioritizes human intelligence. We believe discovery should be an intentional process, not a byproduct of an algorithm.
+                <p className="text-muted-foreground leading-relaxed italic">
+                  Unlike automated search engines, Bessites prioritizes human intelligence and interaction ledger data. We believe discovery should be an intentional process, not a byproduct of a biased algorithm. Our registry is a sanctuary for high-fidelity webs and professional tools.
                 </p>
               </div>
             </div>

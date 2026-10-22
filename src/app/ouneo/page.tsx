@@ -9,7 +9,7 @@ import { Globe, ShieldCheck, Zap } from "lucide-react";
 
 /**
  * @fileOverview Ouneo Discovery Hub.
- * Premium conversational recommender strictly anchored to the registry.
+ * Rebuilt as a high-fidelity website recommender strictly anchored to the registry.
  */
 export default function OuneoPage() {
   return (
@@ -26,7 +26,7 @@ export default function OuneoPage() {
               OUNEO
             </h1>
             <p className="text-xl text-muted-foreground font-medium italic opacity-60 max-w-2xl mx-auto">
-              Ouneo knows every website in the registry. No fluff, no junk, just the sites you actually need.
+              Ouneo knows every website in our registry. No fluff, just the high-fidelity tools you actually need.
             </p>
           </div>
         </div>

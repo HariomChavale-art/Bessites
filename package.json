@@ -15,7 +15,8 @@
     "setup-git": "git remote set-url origin https://github.com/HariomChavale-art/Webdock.git && git branch -M main && git push -u origin main",
     "fix-git": "git remote set-url origin https://github.com/HariomChavale-art/Webdock.git && git branch -M main && git fetch origin && git branch --set-upstream-to=origin/main main",
     "auth-git": "git config --global credential.helper store && echo 'Please run: git push' && echo 'When prompted, enter your GitHub username and use a Personal Access Token (PAT) as your password.'",
-    "check-git": "git remote -v"
+    "check-git": "git remote -v",
+    "import-sites": "node scripts/import_1000.js"
   },
   "dependencies": {
     "@genkit-ai/google-genai": "^1.1.1",
@@ -67,6 +68,7 @@
     "stripe": "^17.6.0",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
+    "xlsx": "^0.18.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {

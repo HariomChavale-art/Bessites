@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -8,18 +9,16 @@ interface AdSenseUnitProps {
 }
 
 /**
- * @fileOverview High-fidelity AdSense Unit with Safety Checks.
- * Ensures ads only load when substantial publisher content is visible.
- * Prevents "No Content" violations by enforcing a 2s delay and element counting.
+ * @fileOverview High-fidelity AdSense Unit with publisher content verification.
+ * Ensures ads only initialize 2 seconds after the primary registry cards are rendered.
  */
 export function AdSenseUnit({ slot, className }: AdSenseUnitProps) {
-  const [canLoad, setCanCanLoad] = useState(false);
+  const [canLoad, setCanLoad] = useState(false);
 
   useEffect(() => {
-    // 1. Mandatory 2-second delay after mount to clear loading states
+    // 1. Mandatory 2-second delay to clear initial loading/blank states
     const timer = setTimeout(() => {
-      // 2. Check for substantial publisher content
-      // We look for a grid with at least 3 items or specific content containers
+      // 2. Check for substantial publisher content (at least 3 cards)
       const grid = document.querySelector('.website-grid');
       const cards = grid?.querySelectorAll('.website-card-item');
       const detailView = document.querySelector('.website-detail-container');
@@ -27,8 +26,9 @@ export function AdSenseUnit({ slot, className }: AdSenseUnitProps) {
       const hasGridContent = cards && cards.length >= 3;
       const hasDetailContent = !!detailView;
 
+      // Only allow loading if we are NOT in an empty state
       if (hasGridContent || hasDetailContent) {
-        setCanCanLoad(true);
+        setCanLoad(true);
       }
     }, 2000);
 
@@ -38,11 +38,10 @@ export function AdSenseUnit({ slot, className }: AdSenseUnitProps) {
   useEffect(() => {
     if (canLoad) {
       try {
-        // Safe push to the AdSense global queue
         const adsbygoogle = (window as any).adsbygoogle || [];
         adsbygoogle.push({});
       } catch (e) {
-        console.error('AdSense Initialization Failure:', e);
+        console.warn('AdSense Push Failure:', e);
       }
     }
   }, [canLoad]);

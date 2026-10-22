@@ -5,7 +5,7 @@ import { Compass, ArrowLeft } from "lucide-react";
 
 /**
  * 404 Page Not Found.
- * Strictly no ads allowed on this screen to comply with AdSense policy.
+ * Replaces technical jargon with user-friendly language.
  */
 export default function NotFound() {
   return (

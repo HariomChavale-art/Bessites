@@ -2,14 +2,13 @@ import { MetadataRoute } from 'next'
 
 /**
  * @fileOverview Dynamic Sitemap Generator for Bessites.store.
- * Indexes all 36+ public discovery hubs for high-fidelity search engine visibility.
+ * Indexes all public discovery hubs for high-fidelity search engine visibility.
  */
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://bessites.store'
   const now = new Date()
 
-  // Main Static Discovery Hubs & Legal Nodes
   const mainPages = [
     '',
     '/explore',
@@ -28,7 +27,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/guide'
   ]
 
-  // Professional Registry Manual Guides
   const guides = [
     'how-to-submit-website-to-bessites',
     'how-to-get-free-traffic',

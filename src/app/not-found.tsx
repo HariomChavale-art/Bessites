@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Compass, ArrowLeft } from "lucide-react";
 
 /**
- * 404 System Error Page.
+ * 404 Page Not Found.
  * Strictly no ads allowed on this screen to comply with AdSense policy.
  */
 export default function NotFound() {
@@ -23,7 +23,7 @@ export default function NotFound() {
           
           <div className="space-y-4">
             <h1 className="text-5xl font-black text-white tracking-tighter uppercase italic leading-none">
-              404 <span className="text-primary">SYSTEM ERROR</span>
+              404 <span className="text-primary">PAGE NOT FOUND</span>
             </h1>
             <p className="text-muted-foreground text-lg font-medium italic px-4">
               Sorry, this discovery system does not exist in our current registry. Let's get you back to the home feed.
@@ -46,7 +46,7 @@ export default function NotFound() {
       </main>
 
       <footer className="py-12 text-center opacity-10">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em]">Lost in Discovery / Error System 404</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.4em]">Lost in Discovery / Page Not Found</p>
       </footer>
     </div>
   );

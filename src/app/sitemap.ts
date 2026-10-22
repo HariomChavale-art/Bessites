@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 
 /**
  * @fileOverview Dynamic Sitemap Generator for Bessites.store.
- * Indexes all 36+ public discovery nodes for high-fidelity search engine visibility.
+ * Indexes all 36+ public discovery hubs for high-fidelity search engine visibility.
  */
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -28,7 +28,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/guide'
   ]
 
-  // Professional Registry Manual Guides (21 Modules)
+  // Professional Registry Manual Guides
   const guides = [
     'how-to-submit-website-to-bessites',
     'how-to-get-free-traffic',
@@ -67,6 +67,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8
   }))
 
-  // Combined High-Fidelity URL Set (Total: 36 URLs)
   return [...mainUrls, ...guideUrls]
 }

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Compass, ArrowLeft } from "lucide-react";
 
 /**
- * 404 Node Not Found Page.
+ * 404 System Error Page.
  * Strictly no ads allowed on this screen to comply with AdSense policy.
  */
 export default function NotFound() {

@@ -47,25 +47,12 @@ export default function OnboardingPage() {
     }
   }, [profile]);
 
-  const sortedInterests = useMemo(() => {
-    // Sort logic: Popular/Top Level items first based on common discovery patterns
-    const topInterests = ["AI Tools", "Games", "Programming", "Graphic Design", "Video Editing", "Education", "Travel", "Business", "Music Discovery", "Health & Fitness"];
-    
-    return [...INTERESTS].sort((a, b) => {
-      const aIsTop = topInterests.includes(a.name);
-      const bIsTop = topInterests.includes(b.name);
-      if (aIsTop && !bIsTop) return -1;
-      if (!aIsTop && bIsTop) return 1;
-      return a.name.localeCompare(b.name);
-    });
-  }, []);
-
   const filteredInterests = useMemo(() => {
-    if (!searchQuery.trim()) return sortedInterests;
-    return sortedInterests.filter(i => 
+    if (!searchQuery.trim()) return INTERESTS;
+    return INTERESTS.filter(i => 
       i.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery, sortedInterests]);
+  }, [searchQuery]);
 
   const toggleInterest = (id: string) => {
     setSelected(prev => 
@@ -117,14 +104,14 @@ export default function OnboardingPage() {
             {isExistingUser ? "Discovery" : "Welcome to"} <span className="text-secondary">BES</span><span className="text-primary">SITES</span>
           </h1>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium">
-            Pick at least <span className="text-white font-bold underline decoration-primary underline-offset-4">3 interests</span> from our 100-node registry.
+            Pick at least <span className="text-white font-bold underline decoration-primary underline-offset-4">3 interests</span> from our registry.
           </p>
         </div>
 
         <div className="relative max-w-md mx-auto group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
-            placeholder="Search the 100-interest node..." 
+            placeholder="Search interests..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-lg font-bold focus:ring-primary shadow-xl"
@@ -175,7 +162,7 @@ export default function OnboardingPage() {
               );
             }) : (
               <div className="col-span-full py-12 text-center text-muted-foreground italic font-medium opacity-40">
-                No nodes match your discovery query.
+                No interests match your search.
               </div>
             )}
           </div>

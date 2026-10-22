@@ -55,6 +55,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const measurementId = process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || 'G-XT85J2MN9F';
+
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
@@ -62,13 +64,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
         {/* Google tag (gtag.js) - Bessites Analytics */}
-        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-FBCQ2X04MJ"></Script>
+        <Script async src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}></Script>
         <Script id="google-analytics">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-FBCQ2X04MJ');
+            gtag('config', '${measurementId}');
           `}
         </Script>
       </head>

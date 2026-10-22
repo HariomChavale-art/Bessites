@@ -57,7 +57,7 @@ export function MasonryFeed({ initialWebsites, hideEndMessage = false }: Masonry
             disabled={loading}
             className="rounded-full px-12 py-6 border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold h-auto shadow-xl"
           >
-            {loading ? "Synchronizing discovery nodes..." : "Load More Websites"}
+            {loading ? "Synchronizing discovery assets..." : "Load More Websites"}
           </Button>
         </div>
       )}

@@ -369,7 +369,7 @@ export default function WebsiteDetail() {
               ))}
               {similarWebsites.length === 0 && (
                 <div className="col-span-full py-20 text-center border-2 border-dashed border-white/5 rounded-[2rem] sm:rounded-[3rem] bg-white/[0.02]">
-                   <p className="text-muted-foreground italic font-medium opacity-20 uppercase tracking-widest text-xs">No similar assets found in this registry node.</p>
+                   <p className="text-muted-foreground italic font-medium opacity-20 uppercase tracking-widest text-xs">No similar assets found in this registry.</p>
                 </div>
               )}
            </div>

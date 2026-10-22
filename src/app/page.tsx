@@ -5,7 +5,7 @@ import { Navigation } from "@/components/navigation";
 import { MasonryFeed } from "@/components/masonry-feed";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, TrendingUp, Clock, Loader2, ShieldCheck, Globe, Zap, Heart, Info } from "lucide-react";
+import { Sparkles, TrendingUp, Clock, Loader2, Globe, ShieldCheck, Zap } from "lucide-react";
 import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -33,94 +33,30 @@ export default function Home() {
   const { data: profile } = useDoc(userDocRef);
   const userBroadInterests = profile?.interests || [];
 
-  const submissionsRef = useMemo(() => {
-    if (!db) return null;
-    return query(collection(db, "submissions"), where("status", "==", "approved"));
-  }, [db]);
-
-  const { data: submittedSites } = useCollection(submissionsRef);
-
-  const statsRef = useMemo(() => {
-    if (!db) return null;
-    return collection(db, "websiteStats");
-  }, [db]);
-
-  const { data: globalStats } = useCollection(statsRef);
-
-  const allAvailableWebsites = useMemo(() => {
-    const firestoreSites = (submittedSites || []).map(s => ({
-      id: s.id,
-      websiteName: s.websiteName || s.name,
-      name: s.name || s.url?.split('//')[1]?.split('.')[0] || "New Project",
-      developer: s.userEmail || "Community",
-      description: s.description || "User submitted project",
-      longDescription: s.longDescription || s.description || "A high-fidelity project shared via Bessites.",
-      rating: 0,
-      reviewCount: 0,
-      categories: s.categories || ["Web App"],
-      imageUrl: s.logoUrl || "",
-      screenshots: [],
-      url: s.url,
-      pricing: s.pricing || "Free",
-      updatedAt: "2024",
-      size: "N/A",
-      version: "1.0",
-      ...s
-    }));
-    
-    const uniquePool = [...MOCK_WEBSITES];
-    const seenIds = new Set(uniquePool.map(w => w.id));
-    
-    firestoreSites.forEach(s => {
-      if (!seenIds.has(s.id)) {
-        uniquePool.push(s as any);
-        seenIds.add(s.id);
-      }
-    });
-
-    return uniquePool;
-  }, [submittedSites]);
-
   const filteredWebsites = useMemo(() => {
-    let results = [...allAvailableWebsites];
+    let results = [...MOCK_WEBSITES];
     
     switch (activeTab) {
       case "trending":
-        results.sort((a, b) => {
-          const statsA = globalStats?.find(s => s.id === a.id);
-          const statsB = globalStats?.find(s => s.id === b.id);
-          const scoreA = (statsA?.visitCount || 0) + (statsA?.likeCount || 0) * 2 + (statsA?.shareCount || 0) * 1.5;
-          const scoreB = (statsB?.visitCount || 0) + (statsB?.likeCount || 0) * 2 + (statsB?.shareCount || 0) * 1.5;
-          return scoreB - scoreA;
-        });
-        results = results.slice(0, 50);
+        results.sort((a, b) => b.rating - a.rating);
         break;
       case "new":
         results.reverse();
         break;
       case "foryou":
       default:
-        const matches = results.filter(w => 
+        results = results.filter(w => 
           w.categories.some(tag => {
             const mappedBroads = getBroadCategoriesForTag(tag);
             return mappedBroads.some(b => userBroadInterests.includes(b));
           })
         );
-        const nonMatches = results.filter(w => !matches.includes(w));
-        const shuffledNonMatches = [...nonMatches].sort(() => Math.random() - 0.5);
-        
-        matches.sort((a, b) => {
-          const aCount = a.categories.filter(tag => getBroadCategoriesForTag(tag).some(b => userBroadInterests.includes(b))).length;
-          const bCount = b.categories.filter(tag => getBroadCategoriesForTag(tag).some(b => userBroadInterests.includes(b))).length;
-          return bCount - aCount;
-        });
-
-        results = [...matches, ...shuffledNonMatches];
+        if (results.length === 0) results = MOCK_WEBSITES;
         break;
     }
     
     return results;
-  }, [activeTab, userBroadInterests, allAvailableWebsites, globalStats]);
+  }, [activeTab, userBroadInterests]);
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
 
@@ -129,40 +65,33 @@ export default function Home() {
       <Navigation />
       
       <main className="flex-1">
-        <section className="container mx-auto px-4 mt-12 mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-white/[0.01] p-6 rounded-[2rem] border border-white/5">
-            <div className="space-y-1">
-              <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white">Discovery Feed</h1>
-              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-40 italic">Absolute Discovery / Verified Assets</p>
-            </div>
-            <div className="flex items-center gap-4 bg-white/5 p-1.5 rounded-[1.5rem] border border-white/5 overflow-x-auto no-scrollbar shrink-0 w-full sm:w-auto">
-              <Tabs defaultValue="foryou" className="w-full" onValueChange={setActiveTab}>
-                <TabsList className="bg-transparent h-auto gap-1">
-                  <TabsTrigger value="foryou" className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary transition-all flex items-center gap-2 italic"><Sparkles className="w-4 h-4" /> For You</TabsTrigger>
-                  <TabsTrigger value="trending" className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary flex items-center gap-2 italic"><TrendingUp className="w-4 h-4" /> Trending</TabsTrigger>
-                  <TabsTrigger value="new" className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary flex items-center gap-2 italic"><Clock className="w-4 h-4" /> New</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
+        <section className="container mx-auto px-4 mt-12 mb-8 text-center">
+           <h1 className="text-4xl sm:text-6xl font-black italic uppercase tracking-tighter text-white">Discovery Feed</h1>
+           <p className="text-muted-foreground font-medium italic mt-2">Verified high-fidelity assets for your professional workflow.</p>
+        </section>
+
+        <section className="container mx-auto px-4 mb-8 flex justify-center">
+          <div className="bg-white/5 p-1.5 rounded-[1.5rem] border border-white/5">
+            <Tabs defaultValue="foryou" className="w-full" onValueChange={setActiveTab}>
+              <TabsList className="bg-transparent h-auto gap-1">
+                <TabsTrigger value="foryou" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary transition-all flex items-center gap-2 italic"><Sparkles className="w-4 h-4" /> For You</TabsTrigger>
+                <TabsTrigger value="trending" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary flex items-center gap-2 italic"><TrendingUp className="w-4 h-4" /> Trending</TabsTrigger>
+                <TabsTrigger value="new" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary flex items-center gap-2 italic"><Clock className="w-4 h-4" /> New</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
         </section>
 
         <section className="container mx-auto px-2 mb-12">
-          {/* AdSense Unit placed after header and before content, but only with logic check */}
-          <AdSenseUnit slot="8574639201" className="container mx-auto px-4 mb-8" />
-          
-          <MasonryFeed 
-            key={activeTab + userBroadInterests.join(',') + (filteredWebsites?.length ?? 'fixed')} 
-            initialWebsites={filteredWebsites} 
-            hideEndMessage={true} 
-          />
+          <AdSenseUnit slot="8574639201" className="mb-8" />
+          <MasonryFeed initialWebsites={filteredWebsites} hideEndMessage={true} />
         </section>
 
         <section className="container mx-auto px-4 py-20 border-t border-white/5">
           <div className="max-w-4xl mx-auto space-y-12">
             <div className="text-center space-y-4">
               <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Absolute <span className="text-primary">Discovery</span> Hub</h2>
-              <p className="text-muted-foreground text-lg italic">Uncovering the highest tier of the modern web through manual curation and zero padding.</p>
+              <p className="text-muted-foreground text-lg italic">Uncovering the highest tier of the modern web through manual curation.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -172,7 +101,7 @@ export default function Home() {
                   <h3 className="text-xl font-bold uppercase italic">A Global Registry</h3>
                 </div>
                 <p className="text-muted-foreground leading-relaxed italic">
-                  Bessites operates as a premier digital directory, meticulously archiving high-utility assets across diverse categories. Our mission is to solve the problem of low-value results by providing real, functional, and verified resources to creators globally. Every entry is technically audited to ensure a zero padding standard.
+                  Bessites operates as a premier digital directory, meticulously archiving high-utility assets across diverse categories. Every entry is technically audited to ensure quality.
                 </p>
               </div>
 
@@ -182,7 +111,7 @@ export default function Home() {
                   <h3 className="text-xl font-bold uppercase italic">Verified Assets</h3>
                 </div>
                 <p className="text-muted-foreground leading-relaxed italic">
-                  Unlike automated search engines, Bessites prioritizes human intelligence and interaction ledger data. We believe discovery should be an intentional process, not a byproduct of a biased algorithm. Our registry is a sanctuary for high-fidelity webs and professional tools.
+                  Unlike automated search engines, Bessites prioritizes human intelligence and interaction. Our registry is a sanctuary for high-fidelity professional tools.
                 </p>
               </div>
             </div>

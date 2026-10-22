@@ -1,7 +1,6 @@
 /**
  * @fileOverview Centralized Interest & Category Mapping System for Bessites.
- * Transforms 300+ technical tags into 100 human-friendly Interests, 
- * organized by 10 Broad Sectors.
+ * Transforms technical tags into 100 human-friendly interests across 10 sectors.
  */
 
 import { 
@@ -150,14 +149,10 @@ export const INTERESTS = [
   { name: "Interesting & Random", group: "lifestyle_discovery", icon: Search },
 ];
 
-/**
- * Maps a technical tag or raw database category to its public human-friendly interests.
- */
 export function getInterestsForTag(tag: string): string[] {
   const t = tag.toLowerCase();
   const interests: string[] = [];
 
-  // --- RAW SEED CATEGORY MAPPINGS ---
   if (t === 'design') interests.push("Graphic Design", "UI/UX Design");
   if (t === 'development') interests.push("Developer Tools", "Web Development");
   if (t === 'audio') interests.push("AI Audio & Voice", "Music Discovery");
@@ -169,110 +164,21 @@ export function getInterestsForTag(tag: string): string[] {
   if (t === 'education') interests.push("Education", "Science");
   if (t === 'finance') interests.push("Finance", "Investing");
 
-  // --- KEYWORD HEURISTICS ---
-  if (t.includes('ai') || t.includes('llm') || t.includes('intelligence')) {
-    interests.push("AI Tools");
-    if (t.includes('assist')) interests.push("AI Assistants");
-    if (t.includes('search')) interests.push("AI Search");
-    if (t.includes('image')) interests.push("AI Image Generation");
-    if (t.includes('video')) interests.push("AI Video");
-    if (t.includes('voice') || t.includes('audio')) interests.push("AI Audio & Voice");
-    if (t.includes('code')) interests.push("AI Coding");
-  }
-
-  if (t.includes('dev') || t.includes('tool') || t.includes('code') || t.includes('programming') || t.includes('api')) {
-    interests.push("Developer Tools");
-    if (t.includes('web')) interests.push("Web Development");
-    if (t.includes('editor')) interests.push("Code Editors");
-    if (t.includes('front')) interests.push("Frontend Development");
-    if (t.includes('back')) interests.push("Backend Development");
-    if (t.includes('database') || t.includes('api')) interests.push("APIs & Infrastructure");
-  }
-
-  if (t.includes('game') || t.includes('play') || t.includes('chess') || t.includes('puzz') || t.includes('rpg') || t.includes('speedrun') || t.includes('pinball') || t.includes('arcade')) {
-    interests.push("Games");
-    if (t.includes('browser')) interests.push("Browser Games");
-    if (t.includes('board') || t.includes('chess')) interests.push("Board Games");
-    if (t.includes('rpg') || t.includes('wargam') || t.includes('tabletop')) interests.push("Tabletop RPGs");
-    if (t.includes('chess')) interests.push("Chess");
-  }
-
-  if (t.includes('design') || t.includes('ui') || t.includes('ux') || t.includes('vector') || t.includes('typography') || t.includes('logo') || t.includes('model')) {
-    interests.push("Graphic Design");
-    if (t.includes('ui') || t.includes('ux')) interests.push("UI/UX Design");
-    if (t.includes('font') || t.includes('typography')) interests.push("Fonts & Typography");
-    if (t.includes('logo') || t.includes('brand')) interests.push("Logos & Branding");
-    if (t.includes('3d') || t.includes('spatial')) interests.push("3D Design");
-  }
-
-  if (t.includes('learn') || t.includes('edu') || t.includes('school') || t.includes('math') || t.includes('academic')) {
-    interests.push("Education");
-    if (t.includes('lang')) interests.push("Language Learning");
-    if (t.includes('math') || t.includes('calculat')) interests.push("Physics & Math");
-    if (t.includes('science') || t.includes('physics')) interests.push("Science");
-  }
-
-  if (t.includes('nature') || t.includes('bird') || t.includes('outdoor') || t.includes('earth') || t.includes('astronomy') || t.includes('climb') || t.includes('hike') || t.includes('trail')) {
-    interests.push("Nature & Wildlife");
-    if (t.includes('bird')) interests.push("Birds & Birdwatching");
-    if (t.includes('hike') || t.includes('trail') || t.includes('climb') || t.includes('mountaineer')) interests.push("Hiking & Outdoors");
-    if (t.includes('astronomy') || t.includes('space') || t.includes('astrophy') || t.includes('planetary')) interests.push("Space & Astronomy");
-  }
-
-  if (t.includes('business') || t.includes('startup') || t.includes('job') || t.includes('finance') || t.includes('invest') || t.includes('legal') || t.includes('macro')) {
-    interests.push("Business");
-    if (t.includes('startup')) interests.push("Startups");
-    if (t.includes('job') || t.includes('career')) interests.push("Jobs & Careers");
-    if (t.includes('finance') || t.includes('trading') || t.includes('invest') || t.includes('equity')) interests.push("Finance");
-  }
-
-  if (t.includes('cook') || t.includes('food') || t.includes('diet') || t.includes('nutrition') || t.includes('baking') || t.includes('culinary')) {
-    interests.push("Food & Cooking");
-  }
-
-  if (t.includes('health') || t.includes('fitness') || t.includes('muscle') || t.includes('anatomy') || t.includes('biomechanics') || t.includes('lifting') || t.includes('training') || t.includes('swimming') || t.includes('bjj') || t.includes('grappling')) {
-    interests.push("Health & Fitness");
-    if (t.includes('anatomy') || t.includes('bio')) interests.push("Science");
-  }
-
-  if (t.includes('woodworking') || t.includes('diy') || t.includes('maker') || t.includes('fabrication') || t.includes('home') || t.includes('bonsai') || t.includes('terrarium') || t.includes('ant') || t.includes('hobby') || t.includes('collect') || t.includes('coin') || t.includes('numista') || t.includes('vinyl') || t.includes('lego') || t.includes('origami') || t.includes('shooting') || t.includes('rc') || t.includes('golf') || t.includes('archery') || t.includes('bowhunt')) {
-    interests.push("Lifestyle & Hobbies");
-    if (t.includes('home') || t.includes('diy') || t.includes('woodworking')) interests.push("Home & DIY");
-  }
-
-  if (t.includes('video') || t.includes('media') || t.includes('film') || t.includes('cinematography') || t.includes('screen recording')) {
-    interests.push("Video & Media");
-    if (t.includes('photo')) interests.push("Photography");
-  }
-
-  if (t.includes('history') || t.includes('archive') || t.includes('museum')) {
-    interests.push("History");
-  }
-
-  if (t.includes('geohash') || t.includes('coordinate') || t.includes('random') || t.includes('interesting')) {
-    interests.push("Interesting & Random");
-  }
-
-  if (interests.length === 0) interests.push("Interesting & Random");
+  if (t.includes('ai')) interests.push("AI Tools");
+  if (t.includes('code') || t.includes('dev')) interests.push("Developer Tools");
+  if (t.includes('game')) interests.push("Games");
+  if (t.includes('design')) interests.push("Graphic Design");
   
+  if (interests.length === 0) interests.push("Interesting & Random");
   return Array.from(new Set(interests));
 }
 
-/**
- * Returns the broad sector name for a given interest.
- */
 export function getSectorForInterest(interestName: string): string {
   const interest = INTERESTS.find(i => i.name === interestName);
-  if (!interest) return "Lifestyle & Discovery";
-  const sector = BROAD_CATEGORIES.find(b => b.id === interest.group);
+  const sector = BROAD_CATEGORIES.find(b => b.id === interest?.group);
   return sector ? sector.name : "Lifestyle & Discovery";
 }
 
-/**
- * Returns all broad sectors associated with a technical tag.
- */
 export function getBroadCategoriesForTag(tag: string): string[] {
-  const interests = getInterestsForTag(tag);
-  const sectors = interests.map(i => getSectorForInterest(i));
-  return Array.from(new Set(sectors));
+  return getInterestsForTag(tag).map(i => getSectorForInterest(i));
 }

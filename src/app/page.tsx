@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from "react";
@@ -7,11 +8,12 @@ import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sparkles, TrendingUp, Clock, Loader2, Globe, ShieldCheck, Zap } from "lucide-react";
 import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
-import { doc, collection, query, where } from "firebase/firestore";
+import { doc, collection, query, where, orderBy } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { getBroadCategoriesForTag } from "@/lib/category-mapping";
 import { Footer } from "@/components/footer";
 import { AdSenseUnit } from "@/components/adsense-unit";
+import { OuneoAssistant } from "@/components/ouneo-assistant";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
@@ -33,30 +35,46 @@ export default function Home() {
   const { data: profile } = useDoc(userDocRef);
   const userBroadInterests = profile?.interests || [];
 
+  // Fetch approved submissions from Firestore
+  const submissionsRef = useMemo(() => {
+    if (!db) return null;
+    return query(collection(db, "submissions"), where("status", "==", "approved"));
+  }, [db]);
+  const { data: firestoreSites, loading: submissionsLoading } = useCollection(submissionsRef);
+
   const filteredWebsites = useMemo(() => {
-    let results = [...MOCK_WEBSITES];
+    // Combine mock data with real Firestore data for a full 1000+ registry
+    const registry = [...(firestoreSites || []), ...MOCK_WEBSITES];
+    const seen = new Set();
+    let results = registry.filter(s => {
+      const url = s.url?.toLowerCase().trim();
+      if (!url || seen.has(url)) return false;
+      seen.add(url);
+      return true;
+    });
     
     switch (activeTab) {
       case "trending":
-        results.sort((a, b) => b.rating - a.rating);
+        results.sort((a, b) => (b.rating || 0) - (a.rating || 0));
         break;
       case "new":
         results.reverse();
         break;
       case "foryou":
       default:
-        results = results.filter(w => 
-          w.categories.some(tag => {
+        const matches = results.filter(w => 
+          (w.categories || []).some((tag: string) => {
             const mappedBroads = getBroadCategoriesForTag(tag);
             return mappedBroads.some(b => userBroadInterests.includes(b));
           })
         );
-        if (results.length === 0) results = MOCK_WEBSITES;
+        const nonMatches = results.filter(w => !matches.includes(w));
+        results = [...matches, ...nonMatches];
         break;
     }
     
     return results;
-  }, [activeTab, userBroadInterests]);
+  }, [activeTab, userBroadInterests, firestoreSites]);
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
 
@@ -65,13 +83,12 @@ export default function Home() {
       <Navigation />
       
       <main className="flex-1">
-        <section className="container mx-auto px-4 mt-12 mb-8 text-center">
-           <h1 className="text-4xl sm:text-6xl font-black italic uppercase tracking-tighter text-white">Discovery Feed</h1>
-           <p className="text-muted-foreground font-medium italic mt-2">Verified high-fidelity assets for your professional workflow.</p>
+        <section className="container mx-auto px-4 mt-20 mb-12">
+           <OuneoAssistant />
         </section>
 
         <section className="container mx-auto px-4 mb-8 flex justify-center">
-          <div className="bg-white/5 p-1.5 rounded-[1.5rem] border border-white/5">
+          <div className="bg-white/5 p-1.5 rounded-[1.5rem] border border-white/5 overflow-x-auto no-scrollbar">
             <Tabs defaultValue="foryou" className="w-full" onValueChange={setActiveTab}>
               <TabsList className="bg-transparent h-auto gap-1">
                 <TabsTrigger value="foryou" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary transition-all flex items-center gap-2 italic"><Sparkles className="w-4 h-4" /> For You</TabsTrigger>
@@ -83,8 +100,11 @@ export default function Home() {
         </section>
 
         <section className="container mx-auto px-2 mb-12">
-          <AdSenseUnit slot="8574639201" className="mb-8" />
-          <MasonryFeed initialWebsites={filteredWebsites} hideEndMessage={true} />
+          {submissionsLoading ? (
+            <div className="py-20 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" /></div>
+          ) : (
+            <MasonryFeed initialWebsites={filteredWebsites as any} hideEndMessage={true} />
+          )}
         </section>
 
         <section className="container mx-auto px-4 py-20 border-t border-white/5">
@@ -101,7 +121,7 @@ export default function Home() {
                   <h3 className="text-xl font-bold uppercase italic">A Global Registry</h3>
                 </div>
                 <p className="text-muted-foreground leading-relaxed italic">
-                  Bessites operates as a premier digital directory, meticulously archiving high-utility assets across diverse categories. Every entry is technically audited to ensure quality.
+                  Bessites operates as a premier digital directory, meticulously archiving high-utility assets across 530+ interests. Every entry is technically audited to ensure quality.
                 </p>
               </div>
 

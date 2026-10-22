@@ -1,28 +1,14 @@
+
 import { genkit } from 'genkit';
-import { googleAI } from '@genkit-ai/google-genai';
 
 /**
- * Genkit instance configuration.
- * Optimized for standard GEMINI_API_KEY environment variable.
- * Supports both legacy (AIzaSy) and new (AQ.Ab8) Google AI Studio keys.
+ * @fileOverview Genkit core configuration.
+ * Refactored to act as a generic orchestration layer.
+ * Generative tasks are now routed directly to Groq for speed.
  */
 
-const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY;
-
-// Verify connection availability on server startup
-if (!apiKey) {
-  console.warn("[Ouneo] CRITICAL: GEMINI_API_KEY is missing from environment. Using Local Fallback Mode.");
-} else {
-  console.log("[Ouneo] Gemini Discovery Node Online (Key Verified)");
-}
-
 export const ai = genkit({
-  plugins: [
-    googleAI({
-      apiKey: apiKey
-    }),
-  ],
-  model: 'googleai/gemini-flash-latest', // Updated to latest stable alias
+  plugins: [],
 });
 
 export { z } from 'genkit';

@@ -1,12 +1,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { groq } from '@/lib/groq';
 import allSites from '@/data/allSites.json';
 
 /**
- * @fileOverview Secure Ouneo AI API with full 400+ site registry memory.
- * Implements freemium daily limits for free users.
+ * @fileOverview Secure Ouneo AI API with Groq Llama 3.1.
+ * Implements usage limits and registry-anchored discovery.
  */
 
 export async function POST(req: NextRequest) {
@@ -31,59 +31,44 @@ export async function POST(req: NextRequest) {
       const usageDoc = await usageRef.get();
       const count = usageDoc.exists ? usageDoc.data()?.ouneoCount || 0 : 0;
 
-      if (count >= 3) {
+      if (count >= 5) { // Increased limit for faster Groq model
         return NextResponse.json({ error: 'LIMIT_REACHED' }, { status: 403 });
       }
       await usageRef.set({ ouneoCount: count + 1 }, { merge: true });
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
     const { message, history } = await req.json();
 
-    const systemPrompt = `You are Ouneo for Bessites.
+    const systemPrompt = `You are Bessites AI. You have 1000 real websites in database. 
+    User says: {userInput}. Ask 1 follow-up question if needed (budget/purpose/device) 
+    then from the 1000 sites pick exactly 2-3 perfect ones. 
+    For each give: name, why perfect for this user specifically, clean score. 
+    No fake sites, only from database.
+    
+    Database Context: ${JSON.stringify(allSites.slice(0, 1000))}
 
-You know ALL 400+ websites. Here is the full list:
-${JSON.stringify(allSites)}
+    Return JSON:
+    {
+      "response": "Conversational part",
+      "matches": [
+        { "name": "Site", "url": "URL", "reason": "Why", "category": "Category" }
+      ]
+    }`;
 
-RULES:
-- You can ONLY recommend from this list. Never make up, never recommend sites not in list.
-- When user says something, first ask 1 short human question to understand better. Examples: "For phone or laptop?" "Free or paid is okay?" "For work or personal?"
-- After user answers, recommend best 2-3 sites from the list that match.
-- Description max 8 words, human, no AI slop.
-- If user says hi/hello, say: "Hey, what kind of site you looking for?"
-- Never say: "I've found these websites in our registry", "delve", "elevate", "tapestry" etc.
-- Hide total count. Never say "400 sites" or "we have X sites".
-- Talk short, friend to friend.`;
-
-    const chat = model.startChat({
-      history: history.map((h: any) => ({
-        role: h.role === 'user' ? 'user' : 'model',
-        parts: [{ text: h.content }],
-      })),
+    const completion = await groq.chat.completions.create({
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...history.map((h: any) => ({ role: h.role, content: h.content })),
+        { role: "user", content: message }
+      ],
+      model: "llama-3.1-8b-instant",
+      response_format: { type: "json_object" }
     });
 
-    const result = await chat.sendMessage(`${systemPrompt}\n\nUser: ${message}`);
-    const response = await result.response;
-    const text = response.text();
-
-    const matches = allSites.filter(s => 
-      text.toLowerCase().includes(s.title.toLowerCase()) || 
-      text.toLowerCase().includes(s.url.toLowerCase())
-    ).slice(0, 3);
-
-    return NextResponse.json({
-      response: text,
-      matches: matches.map(m => ({
-        name: m.title,
-        url: m.url,
-        category: m.category,
-        reason: m.description
-      }))
-    });
+    return NextResponse.json(JSON.parse(completion.choices[0].message.content || "{}"));
 
   } catch (error: any) {
+    console.error('[Ouneo API Error]:', error.message);
     return NextResponse.json({ error: 'SERVER_ERROR' }, { status: 500 });
   }
 }

@@ -1,11 +1,13 @@
+
 'use server';
 /**
- * @fileOverview Ouneo - The Bessites Website Recommender.
- * Uses the full 405+ website registry to provide human-like recommendations.
+ * @fileOverview Ouneo - The Bessites Conversational AI Discovery Partner.
+ * Now powered by Groq Llama 3.1 for high-velocity results.
  */
 
 import { ai, z } from '@/ai/genkit';
-import { TOOLS_DATABASE } from '@/data/toolsDatabase';
+import { groq } from '@/lib/groq';
+import allSites from '@/data/allSites.json';
 import { OuneoOutputSchema, type OuneoOutput } from '@/ai/schemas';
 
 const OuneoInputSchema = z.object({
@@ -27,39 +29,51 @@ const ouneoFlow = ai.defineFlow(
     outputSchema: OuneoOutputSchema,
   },
   async (input) => {
-    // Provide the full registry context to the model
-    const registryContext = TOOLS_DATABASE;
-
     try {
-      const response = await ai.generate({
-        model: 'googleai/gemini-flash-latest',
-        system: `You are Ouneo, a friend who knows every website on Bessites.
-        
-        REGISTRY: ${JSON.stringify(registryContext)}
+      const systemPrompt = `You are Bessites AI (Ouneo). You have 1000 real websites in database. 
+      Database: ${JSON.stringify(allSites.slice(0, 1000))}
 
-        RULES:
-        - You ONLY recommend sites from the REGISTRY above. Never make up names.
-        - Talk like a human friend. No AI jargon. 
-        - NEVER say "I've found," "match your request," or "here are some sites."
-        - MANDATORY: If the user is broad (e.g. "I need help" or "hello"), ask ONE short question to narrow it down (e.g. "For work or fun?").
-        - After they answer your question, give 2-3 specific sites.
-        - Descriptions must be human and max 8 words (e.g. "Makes logos in 30 sec. Free.").
-        - If no site fits, say: "Don't have a site for that yet. What else you working on?"`,
-        prompt: `User Message: "${input.message}"`,
-        history: input.history?.map(m => ({ 
-          role: m.role as any, 
-          content: [{ text: m.content }] 
-        })),
-        output: { schema: OuneoOutputSchema },
+      INSTRUCTIONS:
+      1. Talk like a professional discovery partner.
+      2. Ask 1 follow-up question if needed to refine the search.
+      3. Pick 2-3 sites from the registry.
+      4. Give name, reason, and a clean score.
+      5. NO FAKE SITES.
+      
+      OUTPUT FORMAT (JSON ONLY):
+      {
+        "response": "Conversational reply",
+        "matches": [
+          { "name": "Name", "url": "URL", "reason": "Why perfect", "category": "Category" }
+        ]
+      }`;
+
+      const chatHistory = input.history?.map(h => ({
+        role: h.role === 'user' ? 'user' : 'assistant' as any,
+        content: h.content
+      })) || [];
+
+      const completion = await groq.chat.completions.create({
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...chatHistory,
+          { role: "user", content: input.message }
+        ],
+        model: "llama-3.1-8b-instant",
+        response_format: { type: "json_object" }
       });
 
-      if (response.output) return response.output;
-      throw new Error("Empty AI response");
+      const result = JSON.parse(completion.choices[0].message.content || "{}");
 
-    } catch (err) {
-      console.error("Ouneo Server Error:", err);
       return {
-        response: "I'm having a quick reset. What are you looking to build today?",
+        response: result.response || "I've analyzed our registry for you.",
+        matches: result.matches || []
+      };
+
+    } catch (err: any) {
+      console.error("[Ouneo Flow Error]:", err.message);
+      return {
+        response: "I'm experiencing a high-velocity recalibration. What are you looking to discover today?",
         matches: []
       };
     }

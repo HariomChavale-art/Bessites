@@ -1,31 +1,17 @@
 
-'use server';
-/**
- * @fileOverview Server Action registry for Bessites AI.
- * Now powered by Groq Llama 3.1.
- */
+import { ai } from './genkit';
+import { z } from 'genkit';
+import allSites from '@/data/allSites.json';
 
-import { groq } from '@/lib/groq';
-import { askOuneo } from './flows/ouneo-flow';
-
-export { askOuneo };
-
-/**
- * askGroq - Direct query function for AI responses.
- * 
- * @param prompt - The user's input message.
- * @returns A promise resolving to the AI's text response.
- */
-export async function askGroq(prompt: string): Promise<string> {
-  try {
-    const completion = await groq.chat.completions.create({
-      messages: [{ role: "user", content: prompt }],
-      model: "llama-3.1-8b-instant",
+export const findSitesFlow = ai.defineFlow(
+  { name: 'findSitesFlow', inputSchema: z.string(), outputSchema: z.string() },
+  async (userQuery) => {
+    const { text } = await ai.generate({
+      model: 'googleai/gemini-1.5-flash',
+      prompt: `You are Bessites. You have 1000 real verified sites registry: ${JSON.stringify(allSites.slice(0, 1000))}. 
+      User wants: "${userQuery}". Pick 3 perfect REAL sites from registry only. For each give name, url, whyPerfect for this specific user, cleanScore 1-10. Return only JSON array like [{"name":"...","url":"https://...","whyPerfect":"...","cleanScore":9}]. No fake sites, no hallucination. If not sure say no perfect match.`,
+      config: { temperature: 0.2 }
     });
-    
-    return completion.choices[0].message.content || "I am unable to process that request.";
-  } catch (error) {
-    console.error("Groq AI Action Error:", error);
-    return "I encountered an error while processing your request through our AI system.";
+    return text;
   }
-}
+);

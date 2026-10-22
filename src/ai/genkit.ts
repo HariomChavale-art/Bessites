@@ -1,14 +1,8 @@
 
 import { genkit } from 'genkit';
-
-/**
- * @fileOverview Genkit core configuration.
- * Refactored to act as a generic orchestration layer.
- * Generative tasks are now routed directly to Groq for speed.
- */
+import { googleAI } from '@genkit-ai/googleai';
 
 export const ai = genkit({
-  plugins: [],
+  plugins: [googleAI({ apiKey: process.env.GOOGLE_API_KEY })],
+  model: 'googleai/gemini-1.5-flash',
 });
-
-export { z } from 'genkit';

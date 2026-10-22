@@ -16,28 +16,13 @@ import {
   Box, Shield, Smile, Coffee, BookMarked, Brain, Eye, User, Brush, Pen, 
   TrendingUp, Lock, Share2, Info, ExternalLink, Keyboard, Monitor, 
   Heart, Flag, Bike, Mountain, Tent, Archive, Bolt, Type, HelpCircle, FileText,
-  Speaker, LayoutGrid, Activity, Footprints, Apple as AppleIcon, Sword, Mouse, Gamepad,
+  LayoutGrid, Activity, Footprints, Apple, Sword, Mouse, Gamepad,
   Tv, Film, Clapperboard, Move, Wand2, Disc, UserRound, Landmark, Scale, 
   Stethoscope, Biohazard, Glasses, Beef, Pizza, GlassWater, Ship, Atom, 
   FlagTriangleRight, Timer, Thermometer, Construction, Droplets, Flame,
   Gem, Calculator, Key, Lightbulb, Receipt, PieChart, SquarePlay, Fish,
-  RefreshCw, Target, Users, Trash2, Minus
+  RefreshCw, Target, Users, Trash2, Minus, Soup, Wine, Cat
 } from "lucide-react";
-
-// Local Helper Components for custom mapping icons
-const MinusIcon = () => <div className="w-6 h-1 bg-current rounded-full" />;
-const AppleIconLocal = () => <div className="w-6 h-6 border-2 border-current rounded-full flex items-center justify-center font-bold text-[8px]">A</div>;
-const SwordIcon = () => <div className="w-6 h-6 border-2 border-current rounded-sm flex items-center justify-center font-bold text-[8px]">S</div>;
-const FlagIcon = () => <div className="w-6 h-6 border-2 border-current rounded-sm flex items-center justify-center font-bold text-[8px]">F</div>;
-const BikeIcon = () => <div className="w-6 h-6 border-2 border-current rounded-full flex items-center justify-center font-bold text-[8px]">B</div>;
-const MountainIcon = () => <div className="w-6 h-6 border-2 border-current rounded-sm flex items-center justify-center font-bold text-[8px]">M</div>;
-const TentIcon = () => <div className="w-6 h-6 border-2 border-current rounded-sm flex items-center justify-center font-bold text-[8px]">T</div>;
-const SpeakerIcon = () => <div className="w-6 h-6 border-2 border-current rounded-sm flex items-center justify-center font-bold text-[8px]">S</div>;
-const GridIcon = () => <div className="w-6 h-6 grid grid-cols-2 grid-rows-2 gap-0.5"><div className="bg-current"/><div className="bg-current"/><div className="bg-current"/><div className="bg-current"/></div>;
-const ArchiveIcon = () => <div className="w-6 h-6 border-2 border-current rounded-sm flex items-center justify-center font-bold text-[8px]">A</div>;
-const FootprintsIcon = () => <div className="w-6 h-6 border-2 border-current rounded-full flex items-center justify-center font-bold text-[8px]">S</div>;
-const MasksIcon = () => <div className="w-6 h-6 border-2 border-current rounded-full flex items-center justify-center font-bold text-[8px]">🎭</div>;
-const BalletIcon = () => <div className="w-6 h-6 border-2 border-current rounded-full flex items-center justify-center font-bold text-[8px]">🩰</div>;
 
 export const BROAD_CATEGORIES = [
   { id: "ai_tech", name: "AI & Technology", icon: Sparkles, color: "text-purple-400", bg: "bg-purple-500/10" },
@@ -53,6 +38,7 @@ export const BROAD_CATEGORIES = [
 ];
 
 export const INTERESTS = [
+  // --- PRIORITY ENTERTAINMENT & MEDIA ---
   { name: "TV Shows", group: "media_content", icon: Tv },
   { name: "Stand-Up Comedy", group: "media_content", icon: Mic },
   { name: "Documentaries", group: "media_content", icon: Film },
@@ -60,15 +46,15 @@ export const INTERESTS = [
   { name: "Horror", group: "media_content", icon: Ghost },
   { name: "Fantasy", group: "media_content", icon: Sparkles },
   { name: "K-Dramas", group: "media_content", icon: Tv },
-  { name: "Webtoons", group: "learning_knowledge", icon: BookOpen },
+  { name: "Webtoons", group: "learning_knowledge", icon: BookMarked },
   { name: "Comic Books", group: "learning_knowledge", icon: BookOpen },
   { name: "Graphic Novels", group: "learning_knowledge", icon: BookOpen },
   { name: "Audiobooks", group: "learning_knowledge", icon: Headphones },
   { name: "Poetry", group: "learning_knowledge", icon: PenTool },
-  { name: "Theater", group: "media_content", icon: MasksIcon },
+  { name: "Theater", group: "media_content", icon: Clapperboard },
   { name: "Musical Theater", group: "media_content", icon: Music },
   { name: "Opera", group: "music", icon: Mic },
-  { name: "Ballet", group: "media_content", icon: BalletIcon },
+  { name: "Ballet", group: "media_content", icon: Footprints },
   { name: "Dance", group: "media_content", icon: Move },
   { name: "Hip-Hop Dance", group: "media_content", icon: Activity },
   { name: "Salsa Dancing", group: "media_content", icon: Activity },
@@ -79,7 +65,7 @@ export const INTERESTS = [
   { name: "Puppetry", group: "media_content", icon: User },
   { name: "Ventriloquism", group: "media_content", icon: Mic },
   { name: "Circus Arts", group: "gaming_fun", icon: Sparkles },
-  { name: "Juggling", group: "gaming_fun", icon: Sparkles },
+  { name: "Juggling", group: "gaming_fun", icon: Target },
   { name: "Illusions", group: "gaming_fun", icon: Wand2 },
   { name: "Cardistry", group: "gaming_fun", icon: Layers },
   { name: "Hypnosis", group: "learning_knowledge", icon: Brain },
@@ -98,6 +84,8 @@ export const INTERESTS = [
   { name: "VTubing", group: "media_content", icon: UserRound },
   { name: "Reaction Videos", group: "media_content", icon: SquarePlay },
   { name: "Video Essays", group: "media_content", icon: Film },
+
+  // --- MUSIC ---
   { name: "Hip-Hop", group: "music", icon: Music },
   { name: "Rock Music", group: "music", icon: Music },
   { name: "Pop Music", group: "music", icon: Music },
@@ -114,8 +102,8 @@ export const INTERESTS = [
   { name: "Synthwave", group: "music", icon: Zap },
   { name: "House Music", group: "music", icon: Disc },
   { name: "Techno", group: "music", icon: Disc },
-  { name: "Drum and Bass", group: "music", icon: SpeakerIcon },
-  { name: "Drums", group: "music", icon: SpeakerIcon },
+  { name: "Drum and Bass", group: "music", icon: Music },
+  { name: "Drums", group: "music", icon: Music },
   { name: "Bass Guitar", group: "music", icon: Music },
   { name: "Violin", group: "music", icon: Music },
   { name: "Cello", group: "music", icon: Music },
@@ -133,6 +121,8 @@ export const INTERESTS = [
   { name: "Mastering", group: "ai_tech", icon: Layers },
   { name: "Audiophile Gear", group: "music", icon: Headphones },
   { name: "Headphones", group: "music", icon: Headphones },
+
+  // --- GAMING ---
   { name: "Indie Games", group: "gaming_fun", icon: Gamepad2 },
   { name: "Mobile Gaming", group: "gaming_fun", icon: Smartphone },
   { name: "VR Gaming", group: "gaming_fun", icon: Box },
@@ -168,6 +158,8 @@ export const INTERESTS = [
   { name: "Miniature Painting", group: "design_creative", icon: Brush },
   { name: "Sudoku", group: "gaming_fun", icon: Search },
   { name: "Crossword Puzzles", group: "gaming_fun", icon: HelpCircle },
+
+  // --- AI & TECHNOLOGY ---
   { name: "Artificial Intelligence", group: "ai_tech", icon: Brain },
   { name: "Machine Learning", group: "ai_tech", icon: Cpu },
   { name: "Deep Learning", group: "ai_tech", icon: Cpu },
@@ -213,6 +205,8 @@ export const INTERESTS = [
   { name: "E-Readers", group: "learning_knowledge", icon: Book },
   { name: "Drones", group: "lifestyle_discovery", icon: Plane },
   { name: "FPV Drones", group: "lifestyle_discovery", icon: Plane },
+
+  // --- DESIGN & CREATIVE ---
   { name: "UX Design", group: "design_creative", icon: Layout },
   { name: "Web Design", group: "design_creative", icon: Globe },
   { name: "Product Design", group: "design_creative", icon: Box },
@@ -248,6 +242,8 @@ export const INTERESTS = [
   { name: "Sculpting", group: "design_creative", icon: Hammer },
   { name: "Pottery", group: "design_creative", icon: Utensils },
   { name: "Ceramics", group: "design_creative", icon: Utensils },
+
+  // --- LIFESTYLE & HOBBIES ---
   { name: "Origami", group: "lifestyle_discovery", icon: Box },
   { name: "Paper Crafts", group: "lifestyle_discovery", icon: FileText },
   { name: "Knitting", group: "lifestyle_discovery", icon: HeartPulse },
@@ -379,14 +375,14 @@ export const INTERESTS = [
   { name: "Skateboarding", group: "lifestyle_discovery", icon: Move },
   { name: "Longboarding", group: "lifestyle_discovery", icon: Move },
   { name: "Rollerblading", group: "lifestyle_discovery", icon: Move },
-  { name: "BMX", group: "lifestyle_discovery", icon: BikeIcon },
-  { name: "Mountain Biking", group: "lifestyle_discovery", icon: BikeIcon },
-  { name: "Snowboarding", group: "lifestyle_discovery", icon: MountainIcon },
-  { name: "Skiing", group: "lifestyle_discovery", icon: MountainIcon },
+  { name: "BMX", group: "lifestyle_discovery", icon: Bike },
+  { name: "Mountain Biking", group: "lifestyle_discovery", icon: Bike },
+  { name: "Snowboarding", group: "lifestyle_discovery", icon: Mountain },
+  { name: "Skiing", group: "lifestyle_discovery", icon: Mountain },
   { name: "Ice Skating", group: "lifestyle_discovery", icon: Waves },
-  { name: "Mountaineering", group: "lifestyle_discovery", icon: MountainIcon },
-  { name: "Bouldering", group: "lifestyle_discovery", icon: MountainIcon },
-  { name: "Caving", group: "lifestyle_discovery", icon: MountainIcon },
+  { name: "Mountaineering", group: "lifestyle_discovery", icon: Mountain },
+  { name: "Bouldering", group: "lifestyle_discovery", icon: Mountain },
+  { name: "Caving", group: "lifestyle_discovery", icon: Mountain },
   { name: "Skydiving", group: "lifestyle_discovery", icon: Wind },
   { name: "Paragliding", group: "lifestyle_discovery", icon: Wind },
   { name: "Backpacking", group: "lifestyle_discovery", icon: Map },
@@ -402,8 +398,8 @@ export const INTERESTS = [
   { name: "Electric Vehicles", group: "lifestyle_discovery", icon: Zap },
   { name: "Car Detailing", group: "lifestyle_discovery", icon: Sparkles },
   { name: "Auto Repair", group: "lifestyle_discovery", icon: Hammer },
-  { name: "Motorcycles", group: "lifestyle_discovery", icon: BikeIcon },
-  { name: "Motocross", group: "lifestyle_discovery", icon: BikeIcon },
+  { name: "Motorcycles", group: "lifestyle_discovery", icon: Bike },
+  { name: "Motocross", group: "lifestyle_discovery", icon: Bike },
   { name: "Karting", group: "lifestyle_discovery", icon: Car },
   { name: "Boats", group: "lifestyle_discovery", icon: Ship },
   { name: "Yachts", group: "lifestyle_discovery", icon: Ship },
@@ -417,7 +413,7 @@ export const INTERESTS = [
   { name: "Marine Biology", group: "science_nature", icon: Waves },
   { name: "Botany", group: "science_nature", icon: Leaf },
   { name: "Ecology", group: "science_nature", icon: Leaf },
-  { name: "Geology", group: "science_nature", icon: MountainIcon },
+  { name: "Geology", group: "science_nature", icon: Mountain },
   { name: "Paleontology", group: "science_nature", icon: Microscope },
   { name: "Dinosaurs", group: "science_nature", icon: PawPrint },
   { name: "Archaeology", group: "learning_knowledge", icon: Search },
@@ -459,8 +455,17 @@ export const INTERESTS = [
 export function getInterestsForTag(tag: string): string[] {
   const t = tag.toLowerCase();
   const interests: string[] = [];
+
   if (t === 'design') interests.push("Graphic Design", "UI Design");
   if (t === 'development') interests.push("Web Development", "Coding");
+  if (t === 'audio') interests.push("Music", "Music Production");
+  if (t === 'gaming') interests.push("Gaming", "Browser Games");
+  if (t === 'productivity') interests.push("Productivity");
+  if (t === 'education') interests.push("Science", "Mathematics");
+  
+  if (t.includes('ai')) interests.push("AI Tools");
+  if (t.includes('code') || t.includes('dev')) interests.push("Coding", "Web Development");
+  
   if (interests.length === 0) interests.push("Interesting & Random");
   return Array.from(new Set(interests));
 }

@@ -104,7 +104,7 @@ export default function OnboardingPage() {
             {isExistingUser ? "Discovery" : "Welcome to"} <span className="text-secondary">BES</span><span className="text-primary">SITES</span>
           </h1>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium">
-            Pick at least <span className="text-white font-bold underline decoration-primary underline-offset-4">3 interests</span> from our registry.
+            Pick at least <span className="text-white font-bold underline decoration-primary underline-offset-4">3 interests</span> from our discovery system.
           </p>
         </div>
 
@@ -162,7 +162,7 @@ export default function OnboardingPage() {
               );
             }) : (
               <div className="col-span-full py-12 text-center text-muted-foreground italic font-medium opacity-40">
-                No interests match your search.
+                No interests match your search query.
               </div>
             )}
           </div>

@@ -1,7 +1,6 @@
 'use server';
 /**
  * @fileOverview Astra Discovery - Proactive AI Search Partner.
- * Updated to remove all recalibration error messages.
  */
 
 import { ai, z } from '@/ai/genkit';
@@ -64,7 +63,7 @@ const discoveryFlow = ai.defineFlow(
       return response.output;
     } catch (err: any) {
       return {
-        response: "I've explored our broad sectors like AI, Design, and Development to find the best resources for your project. What are you looking to create today?",
+        response: "I've explored our registry to find the best resources for your project. What are you looking to create today?",
         recommendations: []
       };
     }

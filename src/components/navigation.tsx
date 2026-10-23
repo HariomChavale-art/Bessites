@@ -1,4 +1,3 @@
-
 "use client"
 
 import Link from "next/link";
@@ -9,15 +8,15 @@ import {
   Menu, 
   Globe, 
   BarChart3, 
-  Users, 
   Settings, 
   HelpCircle, 
   LogOut,
   LayoutGrid,
-  Zap,
-  Layout,
   Layers,
-  Rocket
+  Rocket,
+  Flame,
+  Skull,
+  Ghost
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
@@ -27,9 +26,9 @@ import { signOut } from "firebase/auth";
 import { Logo } from "./logo";
 
 const SUGGESTIONS = [
-  "✨ Discover curated, zero-duplication creator tools updated daily.",
-  "Tip: Your Interaction Ledger tracks real-time engagement.",
-  "Check the 'Trending' tab for verified high-impact assets.",
+  "🎃 Registry Spotlight: Discover high-fidelity grimoires.",
+  "✨ Tip: Your Interaction Ledger tracks real-time engagement.",
+  "Eerie... This website was just upvoted in the crypt.",
   "Stacks: Community-curated website playlists are here.",
 ];
 
@@ -58,16 +57,16 @@ export function Navigation() {
   if (isAuthPage) return null;
 
   const sidebarLinks = [
-    { label: 'Collection', icon: LayoutGrid, href: '/collection' },
+    { label: 'Collection', icon: Ghost, href: '/collection' },
     { label: 'Stacks', icon: Layers, href: '/stacks', pulse: true },
-    { label: 'Launches', icon: Rocket, href: '/launches' },
+    { label: 'Launches', icon: Flame, href: '/launches' },
     { label: 'My Websites', icon: Globe, href: '/my-websites' },
     { label: 'Analytics', icon: BarChart3, href: '/analytics' },
     { label: 'Settings', icon: Settings, href: '/settings' },
   ];
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md border-b border-white/5 py-2 sm:py-0">
+    <nav className="sticky top-0 z-50 w-full bg-halloween-void/80 backdrop-blur-xl border-b border-halloween-pumpkin/10 py-2 sm:py-0">
       <div className="container mx-auto px-4 h-20 sm:h-24 flex items-center justify-between gap-4">
         
         <div className="flex items-center gap-6">
@@ -77,14 +76,14 @@ export function Navigation() {
             </Link>
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="w-9 h-7 sm:w-10 sm:h-8 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-all flex items-center justify-center relative">
+                <Button variant="ghost" size="icon" className="w-9 h-7 sm:w-10 sm:h-8 rounded-lg bg-white/5 border border-white/5 hover:bg-halloween-pumpkin/10 hover:border-halloween-pumpkin/20 transition-all flex items-center justify-center relative">
                   <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                  <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-background animate-pulse" />
+                  <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-halloween-pumpkin rounded-full border-2 border-halloween-void animate-pulse shadow-pumpkin-glow" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="bg-[#0B0A0F] border-r border-white/5 p-0 w-80 overflow-hidden shadow-[20px_0_50px_rgba(123,51,255,0.1)]">
+              <SheetContent side="left" className="bg-halloween-void border-r border-halloween-pumpkin/10 p-0 w-80 overflow-hidden shadow-[20px_0_50px_rgba(255,107,0,0.1)]">
                  <SheetHeader className="p-8 pb-4">
-                    <SheetTitle className="text-white font-black uppercase tracking-widest text-[10px] italic text-left opacity-40">Bessites Command</SheetTitle>
+                    <SheetTitle className="text-halloween-bone font-black uppercase tracking-widest text-[10px] italic text-left opacity-40">Bessites Crypt Command</SheetTitle>
                     <div className="mt-4">
                       <Logo className="text-3xl" />
                     </div>
@@ -99,15 +98,15 @@ export function Navigation() {
                               className={cn(
                                 "w-full flex items-center gap-4 px-5 py-4 rounded-[1.5rem] transition-all group relative overflow-hidden",
                                 pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href))
-                                  ? "text-white bg-gradient-to-r from-primary/40 to-transparent shadow-lg" 
-                                  : "text-muted-foreground/60 hover:text-white hover:bg-white/5"
+                                  ? "text-halloween-bone bg-gradient-to-r from-halloween-pumpkin/20 to-transparent border border-halloween-pumpkin/10" 
+                                  : "text-halloween-fog/60 hover:text-halloween-bone hover:bg-white/5"
                               )}
                             >
-                              {(pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href))) && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(123,51,255,1)]" />}
-                              <link.icon className={cn("w-5 h-5", (pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href))) ? "text-primary" : "group-hover:scale-110 transition-transform")} />
+                              {(pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href))) && <div className="absolute left-0 top-0 bottom-0 w-1 bg-halloween-pumpkin rounded-full shadow-pumpkin-glow" />}
+                              <link.icon className={cn("w-5 h-5", (pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href))) ? "text-halloween-pumpkin" : "group-hover:scale-110 transition-transform")} />
                               <span className="text-sm font-bold tracking-tight">{link.label}</span>
                               {link.pulse && (
-                                <div className="ml-auto w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                <div className="ml-auto w-2 h-2 rounded-full bg-halloween-slime animate-pulse shadow-slime-glow" />
                               )}
                             </button>
                           ))}
@@ -115,9 +114,9 @@ export function Navigation() {
                     </div>
                     {user && (
                       <div className="mt-auto p-6 border-t border-white/5 bg-white/[0.01]">
-                        <button onClick={handleLogout} className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-muted-foreground/40 hover:bg-destructive/10 hover:text-destructive transition-all text-sm font-bold group">
+                        <button onClick={handleLogout} className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-halloween-fog/40 hover:bg-red-500/10 hover:text-red-500 transition-all text-sm font-bold group">
                           <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                          <span>Sign Out</span>
+                          <span>Depart Crypt</span>
                         </button>
                       </div>
                     )}
@@ -127,11 +126,11 @@ export function Navigation() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 bg-white/5 px-4 py-2 sm:px-6 sm:py-2.5 rounded-full border border-white/5 
+        <div className="flex items-center gap-2 bg-halloween-obsidian/40 backdrop-blur-md px-4 py-2 sm:px-6 sm:py-2.5 rounded-full border border-halloween-pumpkin/10 
           flex-1 min-w-0 max-w-2xl
-          animate-in fade-in slide-in-from-top-2 duration-700 transition-all group hover:bg-white/10 overflow-hidden">
-          <Sparkles className="w-3.5 h-3.5 sm:w-4 h-4 text-primary shrink-0 group-hover:scale-110 transition-transform" />
-          <span className="text-[10px] sm:text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider whitespace-normal leading-tight text-center flex-1 line-clamp-2 italic">
+          animate-in fade-in slide-in-from-top-2 duration-700 transition-all group hover:border-halloween-pumpkin/30 overflow-hidden">
+          <Sparkles className="w-3.5 h-3.5 sm:w-4 h-4 text-halloween-pumpkin shrink-0 group-hover:scale-110 transition-transform animate-flame-flicker" />
+          <span className="text-[10px] sm:text-xs md:text-sm font-bold text-halloween-fog uppercase tracking-wider whitespace-normal leading-tight text-center flex-1 line-clamp-2 italic">
             {SUGGESTIONS[suggestionIdx]}
           </span>
         </div>

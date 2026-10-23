@@ -1,4 +1,3 @@
-
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
@@ -6,13 +5,11 @@ import { BottomNav } from "@/components/bottom-nav";
 import { FirebaseClientProvider } from '@/firebase';
 import { Analytics } from "@vercel/analytics/react";
 import Script from 'next/script';
+import { SpookyBackground } from '@/components/halloween/SpookyBackground';
+import { HalloweenBanner } from '@/components/halloween/HalloweenBanner';
 
-/**
- * Global Metadata Configuration
- * Handles brand icons and social previews automatically via Next.js Metadata API.
- */
 export const viewport: Viewport = {
-  themeColor: '#0d0c1d',
+  themeColor: '#070709',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -63,7 +60,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
-        {/* Google tag (gtag.js) - Bessites Analytics */}
         <Script async src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}></Script>
         <Script id="google-analytics">
           {`
@@ -74,7 +70,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className="font-body antialiased bg-background text-foreground pb-32">
+      <body className="font-body antialiased bg-halloween-void text-halloween-bone pb-32">
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6811475243465738"
@@ -82,7 +78,11 @@ export default function RootLayout({
           strategy="lazyOnload"
         />
         <FirebaseClientProvider>
-          {children}
+          <SpookyBackground />
+          <HalloweenBanner />
+          <div className="relative z-10">
+            {children}
+          </div>
           <BottomNav />
           <Toaster />
           <Analytics />

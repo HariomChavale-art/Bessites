@@ -1,4 +1,3 @@
-
 "use client"
 
 import Link from "next/link";
@@ -13,14 +12,12 @@ export function BottomNav() {
   const { user, loading } = useUser();
   const [mounted, setMounted] = useState(false);
 
-  // Prevent hydration mismatch by waiting for client mount
   useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted) return null;
 
-  // Hide navigation on auth pages, admin dashboard, or when user is not logged in
   const isExcludedPage = pathname === "/login" || pathname === "/onboarding" || pathname?.startsWith("/admin");
   if (!user || isExcludedPage || loading) return null;
 
@@ -35,7 +32,7 @@ export function BottomNav() {
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-fit px-4">
       <nav className="bg-card/90 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-3 sm:px-8 flex items-center gap-4 sm:gap-8 shadow-2xl ring-1 ring-black/20">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href));
           const Icon = item.icon;
           
           return (

@@ -11,7 +11,6 @@ import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { getBroadCategoriesForTag } from "@/lib/category-mapping";
 import { Footer } from "@/components/footer";
-import { OuneoAssistant } from "@/components/ouneo-assistant";
 import { FlameBadge } from "@/components/halloween/FlameBadge";
 
 export default function Home() {
@@ -81,14 +80,16 @@ export default function Home() {
       <Navigation />
       
       <main className="flex-1">
-        <section className="container mx-auto px-4 mt-16 mb-12 text-center space-y-6">
+        <section className="container mx-auto px-4 mt-20 mb-12 text-center space-y-6">
            <div className="flex justify-center">
              <FlameBadge intensity="high">Halloween Registry Active</FlameBadge>
            </div>
            <h1 className="text-5xl sm:text-7xl font-black italic uppercase tracking-tighter text-halloween-bone">
-             Discovery <span className="text-halloween-pumpkin">Hub.</span>
+             Discovery <span className="text-halloween-pumpkin">Registry.</span>
            </h1>
-           <OuneoAssistant />
+           <p className="text-xl text-halloween-fog font-medium italic opacity-60 max-w-2xl mx-auto leading-relaxed">
+             Hand-picked digital assets curated for professional workflows.
+           </p>
         </section>
 
         <section className="container mx-auto px-4 mb-8 flex justify-center">
@@ -114,7 +115,7 @@ export default function Home() {
         <section className="container mx-auto px-4 py-20 border-t border-halloween-pumpkin/10">
           <div className="max-w-4xl mx-auto space-y-12">
             <div className="text-center space-y-4">
-              <h2 className="text-4xl font-black italic uppercase tracking-tighter text-halloween-bone">Professional <span className="text-halloween-pumpkin">Discovery</span></h2>
+              <h2 className="text-4xl font-black italic uppercase tracking-tighter text-halloween-bone">Professional <span className="text-halloween-pumpkin">Systems</span></h2>
               <p className="text-halloween-fog text-lg italic">Uncovering the highest tier of the modern web through intentional curation.</p>
             </div>
             
@@ -122,7 +123,7 @@ export default function Home() {
               <div className="space-y-4 p-8 rounded-[3rem] bg-halloween-obsidian/40 backdrop-blur-xl border border-halloween-pumpkin/10 shadow-pumpkin-glow">
                 <div className="flex items-center gap-3 text-halloween-pumpkin">
                   <Globe className="w-6 h-6" />
-                  <h3 className="text-xl font-bold uppercase italic">A Global Directory</h3>
+                  <h3 className="text-xl font-bold uppercase italic">Global Registry</h3>
                 </div>
                 <p className="text-halloween-fog leading-relaxed italic">
                   Bessites operates as a premier digital directory, meticulously archiving high-utility assets across extensive curated categories.

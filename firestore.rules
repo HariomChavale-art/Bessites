@@ -11,30 +11,30 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
-    // --- Collection Rules ---
+    // --- Stacks Ecosystem ---
     
-    // User can only see and manage their own connected sites
-    match /collections_sites/{siteId} {
-      allow read, write: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
-      allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
+    match /stacks/{stackId} {
+      allow read: if resource.data.isPublic == true || (isAuthenticated() && resource.data.creatorId == request.auth.uid);
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
+
+      match /items/{itemId} {
+        allow read: if true;
+        allow write: if isAuthenticated() && get(/databases/$(database)/documents/stacks/$(stackId)).data.creatorId == request.auth.uid;
+      }
     }
 
-    // Credentials are NEVER readable or writeable by the client SDK
-    // Must be handled via Admin SDK / Server Actions
-    match /collections_credentials/{siteId} {
-      allow read, write: if false;
+    match /stackVotes/{voteId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && voteId == request.resource.data.stackId + '_' + request.auth.uid;
+      allow delete: if isAuthenticated() && voteId.split('_')[1] == request.auth.uid;
     }
 
-    // Time-series metrics for the user's sites
-    match /collections_timeseries/{siteId}/buckets/{bucketId} {
-      allow read: if isAuthenticated() && get(/databases/$(database)/documents/collections_sites/$(siteId)).data.ownerId == request.auth.uid;
-      allow write: if false; // Only server-side sync can write
-    }
-
-    // Alerts
-    match /collections_alerts/{alertId} {
-      allow read, update: if isAuthenticated() && get(/databases/$(database)/documents/collections_sites/$(resource.data.siteId)).data.ownerId == request.auth.uid;
-      allow delete: if false;
+    match /stackSaves/{saveId} {
+      allow read: if isAuthenticated() && saveId.split('_')[1] == request.auth.uid;
+      allow create: if isAuthenticated() && saveId == request.resource.data.stackId + '_' + request.auth.uid;
+      allow delete: if isAuthenticated() && saveId.split('_')[1] == request.auth.uid;
     }
 
     // --- Existing Rules ---
@@ -51,6 +51,11 @@ service cloud.firestore {
 
     match /websiteStats/{siteId} {
       allow read, write: if true;
+    }
+
+    match /collections_sites/{siteId} {
+      allow read, write: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
     }
   }
 }

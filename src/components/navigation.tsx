@@ -15,7 +15,9 @@ import {
   LogOut,
   LayoutGrid,
   Zap,
-  Layout
+  Layout,
+  Layers,
+  Rocket
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
@@ -28,7 +30,7 @@ const SUGGESTIONS = [
   "✨ Discover curated, zero-duplication creator tools updated daily.",
   "Tip: Your Interaction Ledger tracks real-time engagement.",
   "Check the 'Trending' tab for verified high-impact assets.",
-  "Collection: Monitor your own websites in real-time.",
+  "Stacks: Community-curated website playlists are here.",
 ];
 
 export function Navigation() {
@@ -56,10 +58,11 @@ export function Navigation() {
   if (isAuthPage) return null;
 
   const sidebarLinks = [
-    { label: 'Collection', icon: LayoutGrid, href: '/collection', pulse: true },
+    { label: 'Collection', icon: LayoutGrid, href: '/collection' },
+    { label: 'Stacks', icon: Layers, href: '/stacks', pulse: true },
+    { label: 'Launches', icon: Rocket, href: '/launches' },
     { label: 'My Websites', icon: Globe, href: '/my-websites' },
     { label: 'Analytics', icon: BarChart3, href: '/analytics' },
-    { label: 'Audience', icon: Users, href: '/audience' },
     { label: 'Settings', icon: Settings, href: '/settings' },
   ];
 
@@ -95,13 +98,13 @@ export function Navigation() {
                               onClick={() => { router.push(link.href); }}
                               className={cn(
                                 "w-full flex items-center gap-4 px-5 py-4 rounded-[1.5rem] transition-all group relative overflow-hidden",
-                                pathname === link.href 
+                                pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href))
                                   ? "text-white bg-gradient-to-r from-primary/40 to-transparent shadow-lg" 
                                   : "text-muted-foreground/60 hover:text-white hover:bg-white/5"
                               )}
                             >
-                              {pathname === link.href && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(123,51,255,1)]" />}
-                              <link.icon className={cn("w-5 h-5", pathname === link.href ? "text-primary" : "group-hover:scale-110 transition-transform")} />
+                              {(pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href))) && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-full shadow-[0_0_15px_rgba(123,51,255,1)]" />}
+                              <link.icon className={cn("w-5 h-5", (pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href))) ? "text-primary" : "group-hover:scale-110 transition-transform")} />
                               <span className="text-sm font-bold tracking-tight">{link.label}</span>
                               {link.pulse && (
                                 <div className="ml-auto w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />

@@ -65,7 +65,7 @@ export function OuneoAssistant() {
       }]);
     } catch (err) {
       console.error("Ouneo UI Error:", err);
-      setError("Ouneo is taking a break. Try again in a bit.");
+      setError("I am unavailable at the moment. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -166,7 +166,7 @@ export function OuneoAssistant() {
           <Input 
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={messages.length === 0 ? "Ask Ouneo..." : "Reply to Ouneo..."}
+            placeholder={messages.length === 0 ? "Search for websites..." : "Reply to Ouneo..."}
             className="flex-1 bg-transparent border-none text-base sm:text-lg font-bold text-white placeholder:text-white/10 focus-visible:ring-0 focus-visible:ring-offset-0 h-16"
           />
           {messages.length > 0 && !loading && (

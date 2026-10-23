@@ -1,7 +1,6 @@
 /**
  * @fileOverview Centralized Interest & Category Mapping System for Bessites.
  * Transforms technical tags into human-friendly interests across 10 sectors.
- * Features 300+ high-fidelity interests prioritized for the top 1%.
  */
 
 import React from 'react';
@@ -22,7 +21,7 @@ import {
   FlagTriangleRight, Timer, Thermometer, Construction, Droplets, Flame,
   Gem, Calculator, Key, Lightbulb, Receipt, PieChart, SquarePlay, Fish,
   RefreshCw, Target, Users, Soup, Wine, Cat, TrainFront, Watch, Link, Scissors, Flower2,
-  Flag, MapPin, Radio, Library, Settings, Bike, Speaker
+  Flag, MapPin, Radio, Library, Settings, Bike, Speaker, Footprints, Heart
 } from "lucide-react";
 
 export const BROAD_CATEGORIES = [
@@ -164,7 +163,7 @@ export const INTERESTS = [
 ];
 
 /**
- * Maps a technical tag or raw database category to its public human-friendly interests.
+ * Maps a technical tag to its human-friendly interests.
  */
 export function getInterestsForTag(tag: string): string[] {
   const t = tag.toLowerCase();
@@ -175,30 +174,7 @@ export function getInterestsForTag(tag: string): string[] {
   if (t === 'audio') interests.push("AI Audio & Voice", "Music Discovery");
   if (t === 'gaming') interests.push("Games", "Browser Games");
   if (t === 'productivity') interests.push("Productivity & Management");
-  if (t === 'hardware') interests.push("Home & DIY", "Developer Tools");
-  if (t === 'outdoors') interests.push("Hiking & Outdoors", "Nature & Wildlife");
-  if (t === 'security') interests.push("Cybersecurity");
   if (t === 'education') interests.push("Education", "Science");
-  if (t === 'finance') interests.push("Finance", "Investing");
-
-  if (t.includes('ai') || t.includes('llm') || t.includes('intelligence')) {
-    interests.push("AI Tools");
-    if (t.includes('assist')) interests.push("AI Assistants");
-    if (t.includes('search')) interests.push("AI Search");
-    if (t.includes('image')) interests.push("AI Image Generation");
-    if (t.includes('video')) interests.push("AI Video");
-    if (t.includes('voice') || t.includes('audio')) interests.push("AI Audio & Voice");
-    if (t.includes('code')) interests.push("AI Coding");
-  }
-
-  if (t.includes('dev') || t.includes('tool') || t.includes('code') || t.includes('programming') || t.includes('api')) {
-    interests.push("Developer Tools");
-    if (t.includes('web')) interests.push("Web Development");
-    if (t.includes('editor')) interests.push("Code Editors");
-    if (t.includes('front')) interests.push("Frontend Development");
-    if (t.includes('back')) interests.push("Backend Development");
-    if (t.includes('database') || t.includes('api')) interests.push("APIs & Infrastructure");
-  }
 
   if (interests.length === 0) interests.push("Interesting & Random");
   

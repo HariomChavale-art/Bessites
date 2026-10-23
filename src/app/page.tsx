@@ -5,7 +5,7 @@ import { Navigation } from "@/components/navigation";
 import { MasonryFeed } from "@/components/masonry-feed";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, TrendingUp, Clock, Loader2, Globe, ShieldCheck, Zap, Flame } from "lucide-react";
+import { Sparkles, TrendingUp, Clock, Loader2, Globe, ShieldCheck, Zap } from "lucide-react";
 import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -86,7 +86,7 @@ export default function Home() {
              <FlameBadge intensity="high">Halloween Registry Active</FlameBadge>
            </div>
            <h1 className="text-5xl sm:text-7xl font-black italic uppercase tracking-tighter text-halloween-bone">
-             Discovery <span className="text-halloween-pumpkin">Grimoire.</span>
+             Discovery <span className="text-halloween-pumpkin">Hub.</span>
            </h1>
            <OuneoAssistant />
         </section>
@@ -114,25 +114,25 @@ export default function Home() {
         <section className="container mx-auto px-4 py-20 border-t border-halloween-pumpkin/10">
           <div className="max-w-4xl mx-auto space-y-12">
             <div className="text-center space-y-4">
-              <h2 className="text-4xl font-black italic uppercase tracking-tighter text-halloween-bone">Absolute <span className="text-halloween-pumpkin">Discovery</span> Crypt</h2>
-              <p className="text-halloween-fog text-lg italic">Uncovering the highest tier of the modern web through occult curation.</p>
+              <h2 className="text-4xl font-black italic uppercase tracking-tighter text-halloween-bone">Professional <span className="text-halloween-pumpkin">Discovery</span></h2>
+              <p className="text-halloween-fog text-lg italic">Uncovering the highest tier of the modern web through intentional curation.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="space-y-4 p-8 rounded-[3rem] bg-halloween-obsidian/40 backdrop-blur-xl border border-halloween-pumpkin/10 shadow-pumpkin-glow">
                 <div className="flex items-center gap-3 text-halloween-pumpkin">
                   <Globe className="w-6 h-6" />
-                  <h3 className="text-xl font-bold uppercase italic">A Global Grimoire</h3>
+                  <h3 className="text-xl font-bold uppercase italic">A Global Directory</h3>
                 </div>
                 <p className="text-halloween-fog leading-relaxed italic">
-                  Bessites operates as a premier digital directory, meticulously archiving high-utility assets across extensive curated categories. Every entry is audited by our spectral nodes.
+                  Bessites operates as a premier digital directory, meticulously archiving high-utility assets across extensive curated categories.
                 </p>
               </div>
 
               <div className="space-y-4 p-8 rounded-[3rem] bg-halloween-obsidian/40 backdrop-blur-xl border border-halloween-witchcraft/10 shadow-witch-glow">
                 <div className="flex items-center gap-3 text-halloween-mystic">
                   <ShieldCheck className="w-6 h-6" />
-                  <h3 className="text-xl font-bold uppercase italic">Verified Phantoms</h3>
+                  <h3 className="text-xl font-bold uppercase italic">Verified Assets</h3>
                 </div>
                 <p className="text-halloween-fog leading-relaxed italic">
                   Unlike automated search engines, Bessites prioritizes human intelligence. Our registry is a sanctuary for high-fidelity professional tools.

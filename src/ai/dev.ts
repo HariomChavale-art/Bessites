@@ -1,7 +1,6 @@
-import { config } from 'dotenv';
-config();
+// Import genkit config
+import './genkit';
 
-// Initialize all flows for the Genkit Developer UI
-import './index';
-
-console.log('[Bessites AI] Discovery Node Online (Dev Mode)');
+// Import your flows here - this is what Genkit will show in UI
+// If you don't have flows yet, this empty file is enough to start
+console.log('Genkit dev ready');

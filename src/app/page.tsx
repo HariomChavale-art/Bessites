@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from "react";
@@ -8,11 +7,10 @@ import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sparkles, TrendingUp, Clock, Loader2, Globe, ShieldCheck, Zap } from "lucide-react";
 import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
-import { doc, collection, query, where, orderBy } from "firebase/firestore";
+import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { getBroadCategoriesForTag } from "@/lib/category-mapping";
 import { Footer } from "@/components/footer";
-import { AdSenseUnit } from "@/components/adsense-unit";
 import { OuneoAssistant } from "@/components/ouneo-assistant";
 
 export default function Home() {
@@ -35,15 +33,14 @@ export default function Home() {
   const { data: profile } = useDoc(userDocRef);
   const userBroadInterests = profile?.interests || [];
 
-  // Fetch approved submissions from Firestore
   const submissionsRef = useMemo(() => {
     if (!db) return null;
     return query(collection(db, "submissions"), where("status", "==", "approved"));
   }, [db]);
+
   const { data: firestoreSites, loading: submissionsLoading } = useCollection(submissionsRef);
 
   const filteredWebsites = useMemo(() => {
-    // Combine mock data with real Firestore data for a full 1000+ registry
     const registry = [...(firestoreSites || []), ...MOCK_WEBSITES];
     const seen = new Set();
     let results = registry.filter(s => {
@@ -121,7 +118,7 @@ export default function Home() {
                   <h3 className="text-xl font-bold uppercase italic">A Global Registry</h3>
                 </div>
                 <p className="text-muted-foreground leading-relaxed italic">
-                  Bessites operates as a premier digital directory, meticulously archiving high-utility assets across 530+ interests. Every entry is technically audited to ensure quality.
+                  Bessites operates as a premier digital directory, meticulously archiving high-utility assets across extensive curated categories. Every entry is technically audited to ensure quality.
                 </p>
               </div>
 

@@ -7,41 +7,37 @@ service cloud.firestore {
       return request.auth != null;
     }
     
-    function isVerified() {
-      return request.auth.token.email_verified == true;
-    }
-
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
 
-    // --- Launches Rules ---
-    match /launches/{launchId} {
-      allow read: if true;
-      allow create: if isAuthenticated() && isVerified() 
-        && !exists(/databases/$(database)/documents/launchedDomains/$(request.resource.data.normalizedDomain));
-      allow update: if isAuthenticated() && (
-        // Only allow incrementing metrics via specific field paths
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['upvoteCount', 'weightedVoteScore', 'commentCount', 'uniqueClicks', 'rankingScore', 'updatedAt'])
-      );
+    // --- Collection Rules ---
+    
+    // User can only see and manage their own connected sites
+    match /collections_sites/{siteId} {
+      allow read, write: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
     }
 
-    // --- Domain Lock (One Launch Per Domain) ---
-    match /launchedDomains/{domain} {
-      allow read: if true;
-      allow create: if isAuthenticated();
+    // Credentials are NEVER readable or writeable by the client SDK
+    // Must be handled via Admin SDK / Server Actions
+    match /collections_credentials/{siteId} {
+      allow read, write: if false;
     }
 
-    // --- Determinstic Voting ---
-    match /votes/{voteId} {
-      // voteId MUST be launchId_userId
-      allow read: if true;
-      allow create: if isAuthenticated() 
-        && voteId == request.resource.data.launchId + '_' + request.auth.uid;
-      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+    // Time-series metrics for the user's sites
+    match /collections_timeseries/{siteId}/buckets/{bucketId} {
+      allow read: if isAuthenticated() && get(/databases/$(database)/documents/collections_sites/$(siteId)).data.ownerId == request.auth.uid;
+      allow write: if false; // Only server-side sync can write
     }
 
-    // --- General Rules ---
+    // Alerts
+    match /collections_alerts/{alertId} {
+      allow read, update: if isAuthenticated() && get(/databases/$(database)/documents/collections_sites/$(resource.data.siteId)).data.ownerId == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // --- Existing Rules ---
     match /users/{userId} {
       allow read: if true;
       allow write: if isOwner(userId);
@@ -55,11 +51,6 @@ service cloud.firestore {
 
     match /websiteStats/{siteId} {
       allow read, write: if true;
-    }
-    
-    match /promotions/{promoId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
     }
   }
 }

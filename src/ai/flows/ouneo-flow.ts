@@ -45,7 +45,14 @@ const ouneoFlow = ai.defineFlow(
         config: { temperature: 0.1 }
       });
 
-      return output || { response: "I've analyzed our registry and couldn't find a direct match. Try exploring our broad categories like Design or Development.", matches: [] };
+      if (!output || !output.response) {
+        return { 
+          response: "I've analyzed our registry and couldn't find a direct match. Try exploring our broad categories like Design or Development.", 
+          matches: [] 
+        };
+      }
+
+      return output;
 
     } catch (err: any) {
       console.error("[Ouneo Flow Error]:", err.message);

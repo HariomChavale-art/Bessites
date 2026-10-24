@@ -71,6 +71,10 @@ export default function RootLayout({
         </Script>
       </head>
       <body className="font-body antialiased bg-halloween-void text-halloween-bone pb-32">
+        {/* Load Gumroad Overlay Scripts exactly once */}
+        <Script src="https://gumroad.com/js/gumroad.js" strategy="afterInteractive" id="gumroad-js" />
+        <Script src="https://gumroad.com/js/gumroad-embed.js" strategy="afterInteractive" id="gumroad-embed-js" />
+        
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6811475243465738"

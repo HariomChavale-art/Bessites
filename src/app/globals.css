@@ -27,6 +27,24 @@
   }
 }
 
+/* Strip Gumroad default branding while preserving overlay function */
+.gumroad-button, .gumroad-button-logo {
+  display: none !important;
+}
+
+/* Style the Gumroad Overlay Modal for Premium Look */
+#gumroad-overlay {
+  backdrop-filter: blur(16px) !important;
+  background-color: rgba(0, 0, 0, 0.85) !important;
+  z-index: 99999 !important;
+}
+
+.gumroad-overlay-iframe {
+  border-radius: 1.5rem !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
 @layer base {
   * {
     @apply border-border;

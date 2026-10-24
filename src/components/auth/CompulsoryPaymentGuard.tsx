@@ -20,23 +20,31 @@ export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode
   const userRef = user ? doc(db!, 'users', user.uid) : null;
   const { data: userDoc, loading: docLoading } = useDoc<any>(userRef);
 
-  useEffect(() => {
-    if (userLoading || docLoading) return;
+  // System Billing State
+  const billingRef = doc(db!, 'system', 'billingState');
+  const { data: billingState, loading: billingLoading } = useDoc<any>(billingRef);
 
-    // Allowed paths even if not paid
+  useEffect(() => {
+    if (userLoading || docLoading || billingLoading) return;
+
+    // Public/Auth paths
     const isPublicPath = pathname === '/login' || pathname === '/unlock-access' || pathname?.startsWith('/api');
     
-    if (user && !userDoc?.hasPaidAccess && !isPublicPath) {
+    // Determine if user should be locked
+    const isFreeTierUnlocked = billingState?.isFreeTierUnlocked === true;
+    const hasPaidAccess = userDoc?.hasPaidAccess === true;
+    
+    if (user && !hasPaidAccess && !isFreeTierUnlocked && !isPublicPath) {
       router.replace('/unlock-access');
     }
     
-    if (user && userDoc?.hasPaidAccess && pathname === '/unlock-access') {
+    if (user && (hasPaidAccess || isFreeTierUnlocked) && pathname === '/unlock-access') {
       router.replace('/');
     }
 
-  }, [user, userDoc, userLoading, docLoading, pathname, router]);
+  }, [user, userDoc, billingState, userLoading, docLoading, billingLoading, pathname, router]);
 
-  if (userLoading || docLoading) {
+  if (userLoading || docLoading || billingLoading) {
     return (
       <div className="min-h-screen bg-[#070709] flex flex-col items-center justify-center space-y-4">
         <Loader2 className="animate-spin text-orange-500 w-8 h-8" />

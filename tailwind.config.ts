@@ -89,11 +89,16 @@ export default {
           '20%': { opacity: '1' },
           '100%': { transform: 'translateY(-100vh) rotate(360deg)', opacity: '0' },
         },
+        'border-beam': {
+          '0%, 100%': { transform: 'translateX(-50%) translateY(-50%) rotate(0deg)' },
+          '100%': { transform: 'translateX(-50%) translateY(-50%) rotate(360deg)' },
+        }
       },
       animation: {
         'flame-flicker': 'flame-flicker 0.2s ease-in-out infinite',
         'fog-float': 'fog-float 10s ease-in-out infinite',
         'ember-drift': 'ember-drift 15s linear infinite',
+        'border-beam': 'border-beam 8s linear infinite',
       },
     },
   },

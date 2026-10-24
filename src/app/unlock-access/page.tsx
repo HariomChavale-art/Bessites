@@ -1,117 +1,130 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useUser, useDoc, useFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Loader2, ShieldCheck, Flame, ExternalLink } from 'lucide-react';
+import { Loader2, ShieldCheck, Flame, ExternalLink, ArrowRight, Sparkles } from 'lucide-react';
 import Script from 'next/script';
+import { Logo } from '@/components/logo';
 
 export default function UnlockAccessPage() {
   const { user, loading: userLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
-  
-  const [billingState, setBillingState] = useState<any>(null);
 
-  // Use the useDoc hook to get real-time user status
+  // User Doc Listener
   const userRef = user ? doc(db!, 'users', user.uid) : null;
   const { data: userDoc } = useDoc<any>(userRef);
 
-  // Effect to handle redirect when payment is verified
+  // System Billing Listener for Scarcity
+  const billingRef = doc(db!, 'system', 'billingState');
+  const { data: billingState } = useDoc<any>(billingRef);
+
+  // Auto-Unlock Effect
   useEffect(() => {
-    if (userDoc?.hasPaidAccess) {
+    if (userDoc?.hasPaidAccess || billingState?.isFreeTierUnlocked) {
       router.push('/');
     }
-  }, [userDoc, router]);
+  }, [userDoc, billingState, router]);
 
-  // Fetch billing count for scarcity/pricing
-  useEffect(() => {
-    if (!db) return;
-    const fetchBilling = async () => {
-      const snap = await doc(db, 'system', 'billingState');
-      // In a real app, use onSnapshot for this too
-      setBillingState({ paidUserCount: 12 }); // Mock for UI
-    };
-    fetchBilling();
-  }, [db]);
+  const paidUserCount = billingState?.paidUserCount || 0;
+  const isLifetime = paidUserCount < 100;
+  
+  const gumroadPermalink = isLifetime 
+    ? process.env.NEXT_PUBLIC_GUMROAD_LIFETIME_PERMALINK 
+    : process.env.NEXT_PUBLIC_GUMROAD_ANNUAL_PERMALINK;
 
   if (userLoading || !user) {
-    return <div className="min-h-screen bg-[#070709] flex items-center justify-center text-white"><Loader2 className="animate-spin" /></div>;
+    return <div className="min-h-screen bg-[#070709] flex items-center justify-center text-white"><Loader2 className="animate-spin text-orange-500" /></div>;
   }
 
-  const isLifetime = (billingState?.paidUserCount || 0) < 100;
-  const productId = isLifetime 
-    ? process.env.NEXT_PUBLIC_GUMROAD_LIFETIME_PRODUCT_ID 
-    : process.env.NEXT_PUBLIC_GUMROAD_ANNUAL_PRODUCT_ID;
-
   return (
-    <main className="min-h-screen w-full bg-[#070709] text-white flex flex-col items-center p-4 py-12">
+    <main className="min-h-screen w-full bg-[#070709] text-white flex flex-col items-center p-4 py-12 font-body selection:bg-orange-500/30">
       <Script src="https://gumroad.com/js/gumroad-embed.js" strategy="lazyOnload" />
 
       <div className="max-w-4xl w-full space-y-12">
         {/* Scarcity Header */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-white/5 border border-white/10 p-6 rounded-[2rem] backdrop-blur-xl">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
-              <ShieldCheck className="text-orange-500" />
+        <header className="flex flex-col sm:flex-row items-center justify-between gap-8 bg-white/5 border border-white/10 p-8 rounded-[3rem] backdrop-blur-2xl shadow-2xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform" />
+          
+          <div className="flex items-center gap-6 relative z-10">
+            <div className="w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
+              <ShieldCheck className="w-8 h-8 text-orange-500" />
             </div>
-            <div>
-              <p className="text-[10px] font-black uppercase text-white/30 tracking-widest">Signed In As</p>
-              <p className="text-sm font-bold">{user.email}</p>
+            <div className="space-y-1">
+              <p className="text-[10px] font-black uppercase text-white/30 tracking-[0.2em]">Authorized Curator</p>
+              <p className="text-lg font-bold text-white italic">{user.email}</p>
             </div>
           </div>
 
-          <div className="flex flex-col items-center sm:items-end gap-1">
-            <div className="flex items-center gap-2">
-              <Flame className="w-4 h-4 text-orange-500 animate-pulse" />
-              <span className="text-xs font-black uppercase tracking-tighter">
+          <div className="flex flex-col items-center sm:items-end gap-2 relative z-10">
+            <div className="flex items-center gap-3">
+              <Flame className="w-5 h-5 text-orange-500 animate-flame-flicker fill-current" />
+              <span className="text-base font-black uppercase tracking-tighter italic text-orange-500">
                 {isLifetime ? `HALLOWEEN LIFETIME PASS: $19.99` : 'ANNUAL PRO MEMBERSHIP: $19.99'}
               </span>
             </div>
-            <p className="text-[9px] font-bold text-white/20 uppercase">
-              {isLifetime ? `Spot #${(billingState?.paidUserCount || 0) + 1} of 100 Available` : 'Secure Annual Access'}
-            </p>
+            <div className="bg-white/5 px-4 py-1.5 rounded-full border border-white/5">
+               <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">
+                 {isLifetime ? `Spot #${paidUserCount + 1} of 100 Remaining` : 'Secure 1-Year Discovery License'}
+               </p>
+            </div>
           </div>
+        </header>
+
+        <div className="text-center space-y-4">
+           <Logo className="text-6xl glow-pumpkin" />
+           <h2 className="text-3xl font-black italic uppercase tracking-tighter">Unlock the <span className="text-orange-500">Registry.</span></h2>
+           <p className="text-white/40 font-medium italic max-w-lg mx-auto">Absolute discovery requires a verified curator node. Claim your spot in the founding circle.</p>
         </div>
 
         {/* Gumroad Embed Container */}
-        <Card className="bg-[#12111A] border border-orange-500/20 rounded-[3rem] p-1 overflow-hidden shadow-2xl">
-          <div className="bg-[#070709] rounded-[2.8rem] min-h-[600px] relative">
+        <Card className="bg-[#12111A] border border-orange-500/20 rounded-[3.5rem] p-1 overflow-hidden shadow-2xl relative">
+          <div className="absolute inset-0 bg-orange-500/5 blur-[100px] pointer-events-none" />
+          <div className="bg-[#070709] rounded-[3.4rem] min-h-[600px] relative z-10">
             <div 
               className="gumroad-product-embed" 
-              data-gumroad-product-id={productId}
+              data-gumroad-product-id={gumroadPermalink}
               data-outbound-embed="true"
             >
-              <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4">
-                <Loader2 className="w-10 h-10 animate-spin text-orange-500" />
-                <p className="text-xs font-bold text-white/30 uppercase tracking-[0.3em] animate-pulse">
-                  Synchronizing Checkout Node...
-                </p>
+              <div className="absolute inset-0 flex flex-col items-center justify-center space-y-6">
+                <Loader2 className="w-12 h-12 animate-spin text-orange-500" />
+                <div className="space-y-2 text-center">
+                  <p className="text-sm font-black text-white/30 uppercase tracking-[0.4em] animate-pulse">
+                    Synchronizing Secure Checkout...
+                  </p>
+                  <p className="text-[10px] font-bold text-white/10 uppercase tracking-widest">Awaiting Handshake from server node</p>
+                </div>
               </div>
             </div>
           </div>
         </Card>
 
-        {/* Fallback & Footer */}
-        <div className="text-center space-y-6">
-          <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest leading-relaxed">
-            Account will unlock automatically the millisecond payment is verified.<br />
-            No refresh required. System listening for handshake...
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a 
-              href={`https://gumroad.com/l/${productId}?email=${encodeURIComponent(user.email)}`} 
-              target="_blank" 
-              className="text-[10px] font-black text-orange-500 hover:text-orange-400 uppercase tracking-[0.2em] flex items-center gap-2 border-b border-orange-500/20 pb-1 transition-all"
-            >
-              POPUP BLOCKED? OPEN FULL CHECKOUT <ExternalLink className="w-3 h-3" />
-            </a>
+        {/* Support & Fallback */}
+        <footer className="text-center space-y-8 pb-12">
+          <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-white/20 italic">
+            <Sparkles className="w-4 h-4" /> Account Unlocks the Millisecond Transaction Completes <Sparkles className="w-4 h-4" />
           </div>
-        </div>
+          
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+            <a 
+              href={`https://gumroad.com/l/${gumroadPermalink}?email=${encodeURIComponent(user.email || '')}&custom_fields[uid]=${user.uid}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[10px] font-black text-orange-500 hover:text-orange-400 uppercase tracking-[0.2em] flex items-center gap-2 border-b border-orange-500/20 pb-2 transition-all hover:border-orange-500"
+            >
+              POPUP BLOCKED? OPEN EXTERNAL VAULT <ExternalLink className="w-4 h-4" />
+            </a>
+            <button 
+              onClick={() => router.push('/login')}
+              className="text-[10px] font-black text-white/20 hover:text-white uppercase tracking-[0.2em] flex items-center gap-2 transition-colors"
+            >
+              SWITCH ACCOUNT <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </footer>
       </div>
     </main>
   );

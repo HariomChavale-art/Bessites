@@ -2,11 +2,7 @@
 
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import { WebsitePreview } from "./website-preview";
-import { useMemo } from "react";
-import { useFirestore, useDoc } from "@/firebase";
-import { doc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 
 interface WebsiteCardProps {
@@ -14,74 +10,50 @@ interface WebsiteCardProps {
   index: number;
 }
 
-/**
- * Clean, human-made card system.
- * Removes awkward spacing and tech-jargon.
- */
-export function WebsiteCard({ website, index }: WebsiteCardProps) {
-  const db = useFirestore();
-  const variant = index % 3; // Simplified variant count
-
-  const statsRef = useMemo(() => {
-    if (!db) return null;
-    return doc(db, "websiteStats", website.id);
-  }, [db, website.id]);
-
-  const { data: stats } = useDoc(statsRef);
-
-  const brandName = website.websiteName || website.name;
-  const description = website.description || website.longDescription || "Professional Asset";
+export function WebsiteCard({ website }: WebsiteCardProps) {
   const domain = website.url.replace('https://', '').replace('www.', '').split('/')[0];
-
-  const getPricingStyle = (pricing: string) => {
-    switch (pricing) {
-      case "Paid": return "bg-halloween-obsidian text-halloween-bone border-halloween-bone/10";
-      case "Free": return "bg-halloween-slime/10 text-halloween-slime border-halloween-slime/20";
-      default: return "bg-halloween-witchcraft/10 text-halloween-mystic border-halloween-witchcraft/20";
-    }
-  };
 
   return (
     <Link 
       href={`/website/${website.id}`}
-      className="block group transition-transform active:scale-[0.98] w-full"
+      className="block group active:scale-[0.98] transition-all"
     >
-      <div className={cn(
-        "relative p-5 bg-halloween-obsidian/80 backdrop-blur-xl border border-halloween-pumpkin/10 group-hover:border-halloween-pumpkin/40 transition-all duration-500 overflow-hidden shadow-2xl rounded-3xl",
-      )}>
-        <div className="flex flex-col h-full relative z-10">
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-halloween-void border border-halloween-pumpkin/20 flex items-center justify-center overflow-hidden p-1.5 shrink-0 shadow-xl group-hover:border-halloween-pumpkin/50 transition-all">
+      <div className="relative p-5 bg-halloween-crypt border border-white/[0.07] hover:border-white/[0.15] transition-all duration-300 rounded-xl shadow-specular">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="w-10 h-10 rounded-lg bg-black border border-white/[0.06] p-1.5 shadow-xl">
               <WebsitePreview 
-                websiteId={website.id}
                 websiteUrl={website.url}
-                fallbackUrl={stats?.logoUrl || website.imageUrl}
-                alt={brandName}
-                className="w-full h-full object-contain rounded-lg"
+                alt={website.name}
+                className="w-full h-full object-contain"
               />
             </div>
-            <div className="ml-auto">
-              <span className={cn(
-                "px-2 py-0.5 text-[9px] font-black tracking-wider uppercase rounded-md border",
-                getPricingStyle(website.pricing)
-              )}>
-                {website.pricing}
-              </span>
-            </div>
+            <span className={cn(
+              "px-2 py-0.5 text-[10px] font-medium tracking-widest uppercase rounded border",
+              website.pricing === 'Paid' 
+                ? "border-white/10 text-zinc-400" 
+                : "border-emerald-500/20 text-emerald-400"
+            )}>
+              {website.pricing}
+            </span>
           </div>
 
-          <div className="flex-1">
-            <h3 className="text-[14px] font-bold text-halloween-bone tracking-tight transition-colors group-hover:text-halloween-pumpkin leading-tight mb-1">
-              {brandName}
+          <div>
+            <h3 className="text-[15px] font-semibold text-halloween-bone group-hover:text-primary transition-colors mb-1 leading-snug">
+              {website.websiteName || website.name}
             </h3>
-            <p className="text-[11px] text-halloween-fog line-clamp-3 leading-snug font-medium italic">
-              {description}
+            <p className="text-[13px] text-zinc-500 line-clamp-2 leading-relaxed font-medium">
+              {website.description}
             </p>
           </div>
 
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/[0.06] text-[9px] text-halloween-fog/40 font-bold uppercase tracking-widest">
-            <span className="truncate max-w-[80%] font-mono">{domain}</span>
-            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:text-halloween-pumpkin transition-all" />
+          <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between">
+            <span className="text-[11px] font-mono text-zinc-600 truncate uppercase tracking-widest">
+              {domain}
+            </span>
+            <div className="text-[11px] font-medium text-zinc-500 group-hover:text-white transition-colors">
+              Visit ↗
+            </div>
           </div>
         </div>
       </div>

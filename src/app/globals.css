@@ -4,26 +4,26 @@
 
 @layer base {
   :root {
-    --background: 255 18% 3%; /* #070709 */
-    --foreground: 210 20% 98%;
-    --card: 255 18% 7%;
-    --card-foreground: 210 20% 98%;
-    --popover: 255 18% 5%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 25 100% 50%; /* Pumpkin */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 271 76% 53%; /* Violet */
-    --secondary-foreground: 0 0% 100%;
-    --muted: 255 18% 10%;
-    --muted-foreground: 210 20% 70%;
-    --accent: 151 100% 50%; /* Ectoplasm */
-    --accent-foreground: 255 18% 5%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 6%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 25 100% 50%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 271 76% 53%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 5.9% 10%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 151 100% 50%;
+    --accent-foreground: 240 5.9% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 25 100% 50% / 0.15;
-    --input: 25 100% 50% / 0.1;
+    --border: 240 5.9% 10%;
+    --input: 240 5.9% 10%;
     --ring: 25 100% 50%;
-    --radius: 1.5rem;
+    --radius: 0.75rem;
   }
 }
 
@@ -32,46 +32,29 @@
     @apply border-border;
   }
   body {
-    @apply bg-halloween-void text-halloween-bone font-body;
+    @apply bg-halloween-void text-halloween-bone font-body selection:bg-primary/30;
     overflow-x: hidden;
   }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-headline;
+  h1, h2, h3, h4 {
+    @apply font-headline tracking-tightest;
   }
 }
 
 @layer utilities {
-  .animate-marquee {
-    animation: marquee 30s linear infinite;
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
-  .animate-marquee-slow {
-    animation: marquee 50s linear infinite;
+  .shadow-specular {
+    box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.08);
   }
-  .glow-pumpkin {
-    filter: drop-shadow(0 0 10px rgba(255, 107, 0, 0.4));
-  }
-  .glow-slime {
-    filter: drop-shadow(0 0 8px rgba(0, 255, 133, 0.3));
-  }
-  .border-spectral {
-    border-image: linear-gradient(to bottom right, rgba(255, 107, 0, 0.3), rgba(138, 43, 226, 0.15)) 1;
-  }
-}
-
-@keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 ::-webkit-scrollbar-track {
   @apply bg-halloween-void;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-halloween-ember rounded-full;
-}
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-halloween-pumpkin;
+  @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
 }

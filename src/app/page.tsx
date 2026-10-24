@@ -5,13 +5,12 @@ import { Navigation } from "@/components/navigation";
 import { MasonryFeed } from "@/components/masonry-feed";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, TrendingUp, Clock, Loader2, Globe, ShieldCheck, Zap } from "lucide-react";
-import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
-import { doc, collection, query, where } from "firebase/firestore";
+import { useUser, useFirestore, useCollection } from "@/firebase";
+import { collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { getBroadCategoriesForTag } from "@/lib/category-mapping";
 import { Footer } from "@/components/footer";
-import { FlameBadge } from "@/components/halloween/FlameBadge";
+import { Loader2 } from "lucide-react";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
@@ -20,18 +19,8 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-    }
+    if (!authLoading && !user) router.push("/login");
   }, [user, authLoading, router]);
-
-  const userDocRef = useMemo(() => {
-    if (!user || !db) return null;
-    return doc(db, "users", user.uid);
-  }, [user, db]);
-
-  const { data: profile } = useDoc(userDocRef);
-  const userBroadInterests = profile?.interests || [];
 
   const submissionsRef = useMemo(() => {
     if (!db) return null;
@@ -50,97 +39,51 @@ export default function Home() {
       return true;
     });
     
-    switch (activeTab) {
-      case "trending":
-        results.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        break;
-      case "new":
-        results.reverse();
-        break;
-      case "foryou":
-      default:
-        const matches = results.filter(w => 
-          (w.categories || []).some((tag: string) => {
-            const mappedBroads = getBroadCategoriesForTag(tag);
-            return mappedBroads.some(b => userBroadInterests.includes(b));
-          })
-        );
-        const nonMatches = results.filter(w => !matches.includes(w));
-        results = [...matches, ...nonMatches];
-        break;
+    if (activeTab === "trending") {
+      results.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    } else if (activeTab === "new") {
+      results.reverse();
     }
     
     return results;
-  }, [activeTab, userBroadInterests, firestoreSites]);
+  }, [activeTab, firestoreSites]);
 
-  if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-halloween-void"><Loader2 className="w-12 h-12 animate-spin text-halloween-pumpkin" /></div>;
+  if (authLoading) return null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-transparent pb-32">
+    <div className="min-h-screen flex flex-col bg-transparent">
       <Navigation />
       
       <main className="flex-1">
-        <section className="container mx-auto px-4 mt-20 mb-12 text-center space-y-6">
-           <div className="flex justify-center">
-             <FlameBadge intensity="high">Halloween Registry Active</FlameBadge>
-           </div>
-           <h1 className="text-5xl sm:text-7xl font-black italic uppercase tracking-tighter text-halloween-bone">
-             Discovery <span className="text-halloween-pumpkin">Registry.</span>
+        <section className="container mx-auto px-4 mt-24 mb-16 text-center space-y-6">
+           <h1 className="text-5xl sm:text-7xl font-semibold italic text-halloween-bone leading-tight tracking-tightest">
+             Discovery <span className="text-primary">Registry.</span>
            </h1>
-           <p className="text-xl text-halloween-fog font-medium italic opacity-60 max-w-2xl mx-auto leading-relaxed">
-             Hand-picked digital assets curated for professional workflows.
+           <p className="text-xl text-zinc-500 font-medium italic max-w-2xl mx-auto">
+             A living index of the internet's most useful, well-crafted websites.
            </p>
         </section>
 
-        <section className="container mx-auto px-4 mb-8 flex justify-center">
-          <div className="bg-halloween-obsidian/40 backdrop-blur-md p-1.5 rounded-[1.5rem] border border-halloween-pumpkin/10 overflow-x-auto no-scrollbar shadow-pumpkin-glow">
+        <section className="container mx-auto px-4 mb-12 flex justify-center">
+          <div className="bg-white/[0.03] p-1 rounded-xl border border-white/[0.06] shadow-specular">
             <Tabs defaultValue="foryou" className="w-full" onValueChange={setActiveTab}>
               <TabsList className="bg-transparent h-auto gap-1">
-                <TabsTrigger value="foryou" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-halloween-pumpkin data-[state=active]:text-halloween-void transition-all flex items-center gap-2 italic"><Sparkles className="w-4 h-4" /> For You</TabsTrigger>
-                <TabsTrigger value="trending" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-halloween-pumpkin data-[state=active]:text-halloween-void flex items-center gap-2 italic"><TrendingUp className="w-4 h-4" /> Trending</TabsTrigger>
-                <TabsTrigger value="new" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-halloween-pumpkin data-[state=active]:text-halloween-void flex items-center gap-2 italic"><Clock className="w-4 h-4" /> New</TabsTrigger>
+                {['foryou', 'trending', 'new'].map(t => (
+                  <TabsTrigger key={t} value={t} className="rounded-lg px-6 py-2 text-[11px] font-semibold uppercase tracking-widest data-[state=active]:bg-white/[0.08] data-[state=active]:text-white transition-all italic">
+                    {t.replace(/([A-Z])/g, ' $1').trim()}
+                  </TabsTrigger>
+                ))}
               </TabsList>
             </Tabs>
           </div>
         </section>
 
-        <section className="container mx-auto px-2 mb-12">
+        <section className="container mx-auto px-2 mb-24">
           {submissionsLoading ? (
-            <div className="py-20 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-halloween-pumpkin" /></div>
+            <div className="py-20 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-zinc-800" /></div>
           ) : (
             <MasonryFeed initialWebsites={filteredWebsites as any} hideEndMessage={true} />
           )}
-        </section>
-
-        <section className="container mx-auto px-4 py-20 border-t border-halloween-pumpkin/10">
-          <div className="max-w-4xl mx-auto space-y-12">
-            <div className="text-center space-y-4">
-              <h2 className="text-4xl font-black italic uppercase tracking-tighter text-halloween-bone">Professional <span className="text-halloween-pumpkin">Systems</span></h2>
-              <p className="text-halloween-fog text-lg italic">Uncovering the highest tier of the modern web through intentional curation.</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              <div className="space-y-4 p-8 rounded-[3rem] bg-halloween-obsidian/40 backdrop-blur-xl border border-halloween-pumpkin/10 shadow-pumpkin-glow">
-                <div className="flex items-center gap-3 text-halloween-pumpkin">
-                  <Globe className="w-6 h-6" />
-                  <h3 className="text-xl font-bold uppercase italic">Global Registry</h3>
-                </div>
-                <p className="text-halloween-fog leading-relaxed italic">
-                  Bessites operates as a premier digital directory, meticulously archiving high-utility assets across extensive curated categories.
-                </p>
-              </div>
-
-              <div className="space-y-4 p-8 rounded-[3rem] bg-halloween-obsidian/40 backdrop-blur-xl border border-halloween-witchcraft/10 shadow-witch-glow">
-                <div className="flex items-center gap-3 text-halloween-mystic">
-                  <ShieldCheck className="w-6 h-6" />
-                  <h3 className="text-xl font-bold uppercase italic">Verified Assets</h3>
-                </div>
-                <p className="text-halloween-fog leading-relaxed italic">
-                  Unlike automated search engines, Bessites prioritizes human intelligence. Our registry is a sanctuary for high-fidelity professional tools.
-                </p>
-              </div>
-            </div>
-          </div>
         </section>
       </main>
 

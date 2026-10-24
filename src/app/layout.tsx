@@ -6,6 +6,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import { Analytics } from "@vercel/analytics/react";
 import Script from 'next/script';
 import { SpookyBackground } from '@/components/halloween/SpookyBackground';
+import { CompulsoryPaymentGuard } from '@/components/auth/CompulsoryPaymentGuard';
 
 export const viewport: Viewport = {
   themeColor: '#070709',
@@ -78,10 +79,12 @@ export default function RootLayout({
         />
         <FirebaseClientProvider>
           <SpookyBackground />
-          <div className="relative z-10">
-            {children}
-          </div>
-          <BottomNav />
+          <CompulsoryPaymentGuard>
+            <div className="relative z-10">
+              {children}
+            </div>
+            <BottomNav />
+          </CompulsoryPaymentGuard>
           <Toaster />
           <Analytics />
         </FirebaseClientProvider>

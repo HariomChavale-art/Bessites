@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Centralized Interest & Category Mapping System for Bessites.
  * Transforms technical tags into human-friendly interests across 10 sectors.

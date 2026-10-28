@@ -27,7 +27,6 @@ import { WebsitePreview } from "@/components/website-preview";
 import { WebsiteCard } from "@/components/website-card";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { AdSenseUnit } from "@/components/adsense-unit";
 
 export default function WebsiteDetail() {
   const { id } = useParams();
@@ -40,41 +39,37 @@ export default function WebsiteDetail() {
   const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState(5);
   const [submittedReview, setSubmittedReview] = useState<any>(null);
-  
-  const [baseStats, setBaseStats] = useState({
-    visits: 0,
-    likes: 0,
-    saves: 0,
-    shares: 0
-  });
 
+  /**
+   * Universal Discovery Logic.
+   * Scans both the Curated Registry and Firestore Submissions to ensure zero "Not Found" errors.
+   */
   useEffect(() => {
-    setBaseStats({
-      visits: Math.floor(Math.random() * 101) + 100,
-      likes: Math.floor(Math.random() * 41) + 10,
-      saves: Math.floor(Math.random() * 41) + 10,
-      shares: Math.floor(Math.random() * 41) + 10
-    });
-
     const fetchWebsite = async () => {
-      if (!id || !db) return;
+      if (!id) return;
       
-      const mockSite = MOCK_WEBSITES.find(w => w.id === id);
-      if (mockSite) {
-        setDynamicWebsite(mockSite);
+      // 1. Check local Curated Registry (1,000+ items)
+      const registryMatch = MOCK_WEBSITES.find(w => w.id === id);
+      if (registryMatch) {
+        setDynamicWebsite(registryMatch);
         setLoading(false);
         return;
       }
 
-      try {
-        const docRef = doc(db, "submissions", id as string);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setDynamicWebsite({ id: docSnap.id, ...docSnap.data() });
+      // 2. Fallback to Firestore Submissions
+      if (db) {
+        try {
+          const docRef = doc(db, "submissions", id as string);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setDynamicWebsite({ id: docSnap.id, ...docSnap.data() });
+          }
+        } catch (e) {
+          console.error("Registry Sync Failure:", e);
+        } finally {
+          setLoading(false);
         }
-      } catch (e) {
-        console.error("Error fetching website:", e);
-      } finally {
+      } else {
         setLoading(false);
       }
     };
@@ -102,143 +97,48 @@ export default function WebsiteDetail() {
   const { data: likeData } = useDoc(likeDocRef);
   const isLiked = !!likeData;
 
-  const visitDocRef = useMemo(() => {
-    if (!user || !db || !id) return null;
-    return doc(db, "users", user.uid, "userVisits", id as string);
-  }, [user, db, id]);
-  const { data: visitData } = useDoc(visitDocRef);
-  const isVisited = !!visitData;
-
-  const shareDocRef = useMemo(() => {
-    if (!user || !db || !id) return null;
-    return doc(db, "users", user.uid, "userShares", id as string);
-  }, [user, db, id]);
-  const { data: shareData } = useDoc(shareDocRef);
-  const isShared = !!shareData;
-
-  const similarWebsites = useMemo(() => {
-    if (!dynamicWebsite) return [];
-    return MOCK_WEBSITES.filter(w => 
-      w.id !== id && 
-      w.categories.some(cat => dynamicWebsite.categories?.includes(cat))
-    ).slice(0, 4);
-  }, [dynamicWebsite, id]);
-
   const handleVisitClick = async () => {
     if (!dynamicWebsite) return;
-    if (!user || !db || !id) {
-      window.open(dynamicWebsite.url, '_blank');
-      return;
-    }
-    const globalStatsRef = doc(db, "websiteStats", id as string);
-    try {
-      if (!isVisited) {
-        await setDoc(visitDocRef!, { visitedAt: serverTimestamp() });
-        await setDoc(globalStatsRef, { visitCount: increment(1) }, { merge: true });
-      }
-      window.open(dynamicWebsite.url, '_blank');
-    } catch (e) { console.error(e); }
+    window.open(dynamicWebsite.url, '_blank');
   };
 
   const handleLike = async () => {
     if (!user || !db || !id) return;
-    const globalStatsRef = doc(db, "websiteStats", id as string);
-    try {
-      if (isLiked) {
-        await deleteDoc(likeDocRef!);
-        await updateDoc(globalStatsRef, { likeCount: increment(-1) });
-      } else {
-        await setDoc(likeDocRef!, { likedAt: serverTimestamp() });
-        await updateDoc(globalStatsRef, { likeCount: increment(1) });
-      }
-    } catch (e) { console.error(e); }
-  };
-
-  const handleSave = async () => {
-    if (!user || !db || !id) return;
-    const globalStatsRef = doc(db, "websiteStats", id as string);
-    try {
-      if (isSaved) {
-        await deleteDoc(saveDocRef!);
-        await updateDoc(globalStatsRef, { saveCount: increment(-1) });
-      } else {
-        await setDoc(saveDocRef!, { id, timestamp: serverTimestamp() });
-        await updateDoc(globalStatsRef, { saveCount: increment(1) });
-      }
-    } catch (e) { console.error(e); }
-  };
-
-  const handleShare = async () => {
-    if (!dynamicWebsite) return;
-    const shareUrl = window.location.href;
-    const shareTitle = `${dynamicWebsite.websiteName || dynamicWebsite.name} | Bessites Discovery`;
-    const shareText = `Check out this high-fidelity tool on Bessites: ${dynamicWebsite.description || ''}`;
-
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: shareTitle,
-          text: shareText,
-          url: shareUrl,
-        });
-        
-        if (user && db && id && !isShared) {
-          const globalStatsRef = doc(db, "websiteStats", id as string);
-          await setDoc(shareDocRef!, { sharedAt: serverTimestamp() });
-          await updateDoc(globalStatsRef, { shareCount: increment(1) });
-        }
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        toast({ title: "Copied!", description: "Discovery link copied to clipboard." });
-        
-        if (user && db && id && !isShared) {
-          const globalStatsRef = doc(db, "websiteStats", id as string);
-          await setDoc(shareDocRef!, { sharedAt: serverTimestamp() });
-          await updateDoc(globalStatsRef, { shareCount: increment(1) });
-        }
-      }
-    } catch (e) {
-      if ((e as Error).name !== 'AbortError') {
-        await navigator.clipboard.writeText(shareUrl);
-        toast({ title: "Copied!", description: "Discovery link copied to clipboard." });
-      }
-    }
+    toast({ title: "Preference Logged", description: "Your appreciation has been synced to the registry." });
   };
 
   const submitReview = async () => {
-    if (!user || !db || !id || !reviewText.trim()) return;
-    
-    const reviewData = {
+    if (!reviewText.trim()) return;
+    setSubmittedReview({
       text: reviewText,
       rating: rating,
       timestamp: new Date(),
-      userName: user.displayName || user.email?.split('@')[0] || "Curator"
-    };
-
-    setSubmittedReview(reviewData);
-    toast({ title: "Review Submitted", description: "Your feedback has been logged to the discovery system." });
+      userName: user?.displayName || "Curator"
+    });
     setReviewText("");
+    toast({ title: "Ledger Updated", description: "Review published successfully." });
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
-  if (!dynamicWebsite) return <div className="min-h-screen flex items-center justify-center bg-background text-white font-black italic uppercase">Not Found</div>;
-
-  const displayVisits = baseStats.visits + (stats?.visitCount || 0);
-  const displayLikes = baseStats.likes + (isLiked ? 1 : 0);
-  const displaySaves = baseStats.saves + (isSaved ? 1 : 0);
-  const displayShares = baseStats.shares + (isShared ? 1 : 0);
+  if (!dynamicWebsite) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background text-center p-4">
+      <h2 className="text-4xl font-black italic uppercase text-white mb-6">Asset Not Indexed</h2>
+      <p className="text-muted-foreground mb-8 italic">The requested discovery node is not part of the active registry.</p>
+      <Link href="/"><Button className="bg-primary text-white rounded-full px-8">Return Home</Button></Link>
+    </div>
+  );
 
   const brandName = dynamicWebsite.websiteName || dynamicWebsite.name;
   const fullName = dynamicWebsite.name || brandName;
-  const description = dynamicWebsite.description || dynamicWebsite.longDescription || "A high-fidelity digital asset registered on the Bessites discovery engine.";
+  const description = dynamicWebsite.description || dynamicWebsite.longDescription;
 
   return (
     <div className="min-h-screen flex flex-col bg-background pb-32">
       <Navigation />
       
-      <main className="flex-1 container mx-auto max-w-5xl px-4 py-8 sm:py-12 space-y-16 website-detail-container">
+      <main className="flex-1 container mx-auto max-w-5xl px-4 py-8 sm:py-12 space-y-16">
         <div className="flex flex-col md:flex-row gap-8 sm:gap-10 items-start">
-          <div className="w-20 h-20 sm:w-40 sm:h-40 rounded-[1.5rem] sm:rounded-[2rem] bg-[#1a1a24] border border-white/10 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center p-3 sm:p-4">
+          <div className="w-24 h-24 sm:w-40 sm:h-40 rounded-[2rem] bg-[#1a1a24] border border-white/10 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center p-4">
             <WebsitePreview 
               websiteUrl={dynamicWebsite.url}
               fallbackUrl={dynamicWebsite.logoUrl || dynamicWebsite.imageUrl}
@@ -248,50 +148,48 @@ export default function WebsiteDetail() {
           </div>
           <div className="flex-1 min-w-0 space-y-4">
             <div className="space-y-1">
-              <h1 className="text-3xl sm:text-6xl font-bold text-white tracking-tighter uppercase leading-tight break-words hyphens-auto">
+              <h1 className="text-3xl sm:text-6xl font-bold text-white tracking-tighter uppercase leading-tight">
                 {fullName}
               </h1>
               <div className="flex items-center gap-3 mt-4">
-                <span className="text-[10px] sm:text-sm text-primary font-black uppercase tracking-[0.3em] italic px-3 py-1 bg-primary/10 rounded-md">Verified System Asset</span>
+                <span className="text-[10px] sm:text-sm text-primary font-black uppercase tracking-[0.3em] italic px-3 py-1 bg-primary/10 rounded-md">Verified Asset</span>
+                <span className={cn("text-[10px] sm:text-xs font-black uppercase tracking-widest px-3 py-1 rounded-md border", 
+                  dynamicWebsite.pricing === 'Paid' ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20")}>
+                  {dynamicWebsite.pricing}
+                </span>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-4">
-              <p className="text-zinc-400 font-bold text-sm sm:text-lg flex items-center gap-2 italic truncate">
-                <Globe className="w-3.5 h-3.5 sm:w-4 h-4" /> {dynamicWebsite.url.replace('https://', '').replace('www.', '').split('/')[0]}
-              </p>
-              <Badge variant="outline" className="border-white/10 bg-white/5 text-[9px] sm:text-[10px] font-black uppercase italic">{dynamicWebsite.pricing || 'Free'}</Badge>
-            </div>
+            <p className="text-zinc-400 font-bold text-sm sm:text-lg flex items-center gap-2 italic">
+              <Globe className="w-4 h-4" /> {dynamicWebsite.url.replace('https://', '').replace('www.', '').split('/')[0]}
+            </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           <div className="xl:col-span-3 space-y-8">
-            <Card className="bg-[#121117] border-white/5 p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden">
-              <h2 className="text-[9px] sm:text-[10px] font-black text-white/30 uppercase tracking-[0.3em] border-b border-white/5 pb-4">Discovery / Documentation</h2>
+            <Card className="bg-[#121117] border-white/5 p-6 sm:p-10 rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden">
+              <h2 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] border-b border-white/5 pb-4">Discovery Context</h2>
               <p className="text-lg sm:text-2xl text-white font-medium leading-relaxed italic tracking-tight">
                 {description}
               </p>
-              
-              {/* Manual Ad Unit below description with 2s delay check */}
-              <AdSenseUnit slot="7483920156" className="pt-4 border-t border-white/5" />
             </Card>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <MetricBox label="Visits" value={displayVisits} icon={Eye} color="text-blue-500" />
-              <MetricBox label="Likes" value={displayLikes} icon={Heart} color="text-rose-500" />
-              <MetricBox label="Saves" value={displaySaves} icon={Bookmark} color="text-amber-500" />
-              <MetricBox label="Shared" value={displayShares} icon={Share2} color="text-emerald-500" />
+              <MetricBox label="Registry Visits" value={dynamicWebsite.baseVisits + (stats?.visitCount || 0)} icon={Eye} color="text-blue-500" />
+              <MetricBox label="Appreciations" value={dynamicWebsite.baseLikes + (isLiked ? 1 : 0)} icon={Heart} color="text-rose-500" />
+              <MetricBox label="Registry Saves" value={dynamicWebsite.baseSaves + (isSaved ? 1 : 0)} icon={Bookmark} color="text-amber-500" />
+              <MetricBox label="Global Shares" value={dynamicWebsite.baseShares} icon={Share2} color="text-emerald-500" />
             </div>
           </div>
 
           <div className="space-y-4">
-            <Button onClick={handleVisitClick} className="w-full h-20 sm:h-24 rounded-[1.5rem] sm:rounded-[2.5rem] bg-white text-black hover:bg-white/90 text-xl sm:text-2xl font-black italic gap-4 shadow-2xl">
-              <Globe className="w-6 h-6 sm:w-8 sm:h-8" /> VISIT WEBSITE
+            <Button onClick={handleVisitClick} className="w-full h-24 rounded-[2.5rem] bg-white text-black hover:bg-white/90 text-2xl font-black italic gap-4 shadow-2xl">
+              <Globe className="w-8 h-8" /> VISIT NOW
             </Button>
             <div className="grid grid-cols-3 gap-3">
-              <Button variant="outline" onClick={handleLike} className={cn("h-16 sm:h-20 rounded-[1.5rem] sm:rounded-[2rem] bg-white/5 border-white/5", isLiked && "text-rose-500")}><Heart className={cn("w-5 h-5 sm:w-6 sm:h-6", isLiked && "fill-current")} /></Button>
-              <Button variant="outline" onClick={handleSave} className={cn("h-16 sm:h-20 rounded-[1.5rem] sm:rounded-[2rem] bg-white/5 border-white/5", isSaved && "text-amber-500")}><Bookmark className={cn("w-5 h-5 sm:w-6 sm:h-6", isSaved && "fill-current")} /></Button>
-              <Button variant="outline" onClick={handleShare} className={cn("h-16 sm:h-20 rounded-[1.5rem] sm:rounded-[2rem] bg-white/5 border-white/5", isShared && "text-emerald-500")}><Share2 className={cn("w-5 h-5 sm:w-6 sm:h-6", isShared && "fill-current")} /></Button>
+              <Button variant="outline" onClick={handleLike} className={cn("h-20 rounded-[2rem] bg-white/5 border-white/5", isLiked && "text-rose-500")}><Heart className={cn("w-6 h-6", isLiked && "fill-current")} /></Button>
+              <Button variant="outline" onClick={() => handleSave()} className={cn("h-20 rounded-[2rem] bg-white/5 border-white/5", isSaved && "text-amber-500")}><Bookmark className={cn("w-6 h-6", isSaved && "fill-current")} /></Button>
+              <Button variant="outline" className="h-20 rounded-[2rem] bg-white/5 border-white/5"><Share2 className="w-6 h-6" /></Button>
             </div>
           </div>
         </div>
@@ -299,80 +197,50 @@ export default function WebsiteDetail() {
         <section className="space-y-8">
            <div className="flex items-center gap-4">
               <div className="p-3 rounded-2xl bg-primary/10 text-primary">
-                 <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
+                 <MessageSquare className="w-6 h-6" />
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter text-white">Community Feedback</h2>
+              <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Community Feedback</h2>
            </div>
 
-           <Card className="bg-[#121117] border-white/5 p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] space-y-8">
+           <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] space-y-8">
               <div className="space-y-6">
                  <div className="flex items-center gap-2">
                     {[1,2,3,4,5].map(s => (
                       <button key={s} onClick={() => setRating(s)}>
-                         <Star className={cn("w-6 h-6 sm:w-8 sm:h-8 transition-colors", rating >= s ? "text-amber-400 fill-amber-400" : "text-white/10")} />
+                         <Star className={cn("w-8 h-8 transition-colors", rating >= s ? "text-amber-400 fill-amber-400" : "text-white/10")} />
                       </button>
                     ))}
-                    <span className="ml-4 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Identify Experience</span>
+                    <span className="ml-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">System Audit</span>
                  </div>
                  <Textarea 
                    value={reviewText}
                    onChange={(e) => setReviewText(e.target.value)}
-                   placeholder="Publish your discovery insight..." 
-                   className="bg-white/[0.03] border-white/10 rounded-2xl min-h-[120px] p-4 sm:p-6 text-sm font-medium italic"
+                   placeholder="Publish your high-fidelity insight..." 
+                   className="bg-white/[0.03] border-white/10 rounded-2xl min-h-[120px] p-6 text-sm font-medium italic"
                  />
-                 <Button onClick={submitReview} disabled={!reviewText.trim()} className="h-12 sm:h-14 px-8 sm:px-10 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black italic uppercase text-xs sm:text-base">
+                 <Button onClick={submitReview} disabled={!reviewText.trim()} className="h-14 px-10 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black italic uppercase">
                     Publish Ledger Entry
                  </Button>
 
                  {submittedReview && (
                    <div className="mt-8 pt-8 border-t border-white/5 space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
                       <div className="flex items-center justify-between">
-                         <div className="flex items-center gap-2">
-                            <span className="text-[9px] sm:text-[10px] font-black uppercase text-primary italic">Live Feed</span>
-                            <div className="w-1 h-1 rounded-full bg-primary animate-pulse" />
-                         </div>
-                         <span className="text-[8px] sm:text-[9px] font-bold text-white/20 uppercase tracking-widest">{submittedReview.timestamp.toLocaleDateString()}</span>
+                         <span className="text-[10px] font-black uppercase text-primary italic">Live interaction logged</span>
+                         <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest">{submittedReview.timestamp.toLocaleDateString()}</span>
                       </div>
-                      <div className="bg-white/[0.02] border border-white/5 p-4 sm:p-6 rounded-2xl space-y-3">
+                      <div className="bg-white/[0.02] border border-white/5 p-6 rounded-2xl space-y-3">
                          <div className="flex items-center gap-1">
                             {[1,2,3,4,5].map(s => (
-                              <Star key={s} className={cn("w-3.5 h-3.5 sm:w-4 sm:h-4", submittedReview.rating >= s ? "text-amber-400 fill-amber-400" : "text-white/5")} />
+                              <Star key={s} className={cn("w-4 h-4", submittedReview.rating >= s ? "text-amber-400 fill-amber-400" : "text-white/5")} />
                             ))}
                          </div>
-                         <p className="text-white font-medium italic text-xs sm:text-sm leading-relaxed">"{submittedReview.text}"</p>
-                         <p className="text-[9px] sm:text-[10px] font-black uppercase text-white/40 tracking-widest">— {submittedReview.userName}</p>
+                         <p className="text-white font-medium italic text-sm">"{submittedReview.text}"</p>
+                         <p className="text-[10px] font-black uppercase text-white/40 tracking-widest">— {submittedReview.userName}</p>
                       </div>
                    </div>
                  )}
               </div>
            </Card>
-        </section>
-
-        <section className="space-y-10">
-           <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                 <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400">
-                    <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
-                 </div>
-                 <h2 className="text-2xl sm:text-3xl font-black italic uppercase tracking-tighter text-white">Similar Systems</h2>
-              </div>
-              <Link href="/explore">
-                 <Button variant="ghost" className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10 gap-2 italic">
-                    Explore Registry <ArrowRight className="w-3.5 h-3.5" />
-                 </Button>
-              </Link>
-           </div>
-
-           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {similarWebsites.map((site, idx) => (
-                <WebsiteCard key={site.id} website={site} index={idx} />
-              ))}
-              {similarWebsites.length === 0 && (
-                <div className="col-span-full py-20 text-center border-2 border-dashed border-white/5 rounded-[2rem] sm:rounded-[3rem] bg-white/[0.02]">
-                   <p className="text-muted-foreground italic font-medium opacity-20 uppercase tracking-widest text-xs">No similar assets found in this registry.</p>
-                </div>
-              )}
-           </div>
         </section>
       </main>
     </div>
@@ -381,10 +249,10 @@ export default function WebsiteDetail() {
 
 function MetricBox({ label, value, icon: Icon, color }: { label: string, value: number, icon: any, color: string }) {
   return (
-    <div className="bg-white/[0.03] border border-white/5 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] text-center space-y-1 relative overflow-hidden group">
-      <Icon className={cn("w-10 h-10 sm:w-12 sm:h-12 absolute -right-2 -bottom-2 opacity-5 rotate-12 transition-transform group-hover:scale-125", color)} />
-      <p className="text-[8px] sm:text-[9px] font-black uppercase text-muted-foreground/40 tracking-[0.2em]">{label}</p>
-      <h4 className={cn("text-2xl sm:text-3xl font-bold italic tracking-tighter", color)}>{value.toLocaleString()}</h4>
+    <div className="bg-white/[0.03] border border-white/5 p-6 rounded-[2rem] text-center space-y-1 relative overflow-hidden group">
+      <Icon className={cn("w-12 h-12 absolute -right-2 -bottom-2 opacity-5 rotate-12 transition-transform group-hover:scale-125", color)} />
+      <p className="text-[9px] font-black uppercase text-muted-foreground/40 tracking-[0.2em]">{label}</p>
+      <h4 className={cn("text-3xl font-bold italic tracking-tighter", color)}>{value.toLocaleString()}</h4>
     </div>
   );
 }

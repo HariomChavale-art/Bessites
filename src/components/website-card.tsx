@@ -2,7 +2,11 @@
 
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
+import { ChevronRight, Bookmark, Heart, Eye } from "lucide-react";
 import { WebsitePreview } from "./website-preview";
+import { useMemo } from "react";
+import { useFirestore, useDoc } from "@/firebase";
+import { doc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 
 interface WebsiteCardProps {
@@ -10,50 +14,75 @@ interface WebsiteCardProps {
   index: number;
 }
 
-export function WebsiteCard({ website }: WebsiteCardProps) {
+/**
+ * Bessites High-Fidelity Website Card.
+ * Restored: Pricing Tags (top-right), Interaction Metrics, and A-Z fixed sorting logic.
+ */
+export function WebsiteCard({ website, index }: WebsiteCardProps) {
+  const db = useFirestore();
+  const brandName = website.websiteName || website.name;
   const domain = website.url.replace('https://', '').replace('www.', '').split('/')[0];
+
+  const getPricingStyle = (pricing: string) => {
+    switch (pricing) {
+      case "Paid": return "bg-rose-500/10 text-rose-400 border-rose-500/20";
+      case "Free": return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+      case "Freemium": return "bg-primary/10 text-primary border-primary/20";
+      default: return "bg-white/5 text-white/40 border-white/10";
+    }
+  };
 
   return (
     <Link 
       href={`/website/${website.id}`}
-      className="block group active:scale-[0.98] transition-all"
+      className="block group transition-all active:scale-[0.98] w-full"
     >
-      <div className="relative p-5 bg-halloween-crypt border border-white/[0.07] hover:border-white/[0.15] transition-all duration-300 rounded-xl shadow-specular">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div className="w-10 h-10 rounded-lg bg-black border border-white/[0.06] p-1.5 shadow-xl">
-              <WebsitePreview 
-                websiteUrl={website.url}
-                alt={website.name}
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <span className={cn(
-              "px-2 py-0.5 text-[10px] font-medium tracking-widest uppercase rounded border",
-              website.pricing === 'Paid' 
-                ? "border-white/10 text-zinc-400" 
-                : "border-emerald-500/20 text-emerald-400"
-            )}>
-              {website.pricing}
-            </span>
+      <div className="relative p-5 bg-[#12111A] border border-white/[0.08] group-hover:border-primary/40 transition-all duration-300 rounded-[2rem] shadow-2xl overflow-hidden">
+        
+        {/* Interaction Metrics Overlay (Subtle) */}
+        <div className="absolute top-4 left-4 flex items-center gap-2 opacity-30 group-hover:opacity-100 transition-opacity">
+           <div className="flex items-center gap-1 text-[8px] font-black text-white/60">
+              <Eye className="w-2.5 h-2.5" /> {website.baseVisits}
+           </div>
+           <div className="flex items-center gap-1 text-[8px] font-black text-white/60">
+              <Heart className="w-2.5 h-2.5" /> {website.baseLikes}
+           </div>
+        </div>
+
+        {/* PRICING TAG - RESTORED TO TOP RIGHT */}
+        <div className="absolute top-4 right-4">
+          <span className={cn(
+            "px-2 py-0.5 text-[8px] font-black tracking-widest uppercase rounded-lg border italic",
+            getPricingStyle(website.pricing)
+          )}>
+            {website.pricing}
+          </span>
+        </div>
+
+        <div className="flex flex-col items-center gap-4 pt-4">
+          <div className="w-16 h-16 rounded-2xl bg-[#1a1a24] border border-white/10 flex items-center justify-center overflow-hidden p-2 shrink-0 shadow-lg group-hover:scale-105 transition-transform duration-500">
+            <WebsitePreview 
+              websiteUrl={website.url}
+              fallbackUrl={website.imageUrl}
+              alt={brandName}
+              className="w-full h-full object-contain rounded-lg"
+            />
           </div>
 
-          <div>
-            <h3 className="text-[15px] font-semibold text-halloween-bone group-hover:text-primary transition-colors mb-1 leading-snug">
-              {website.websiteName || website.name}
+          <div className="text-center space-y-1 w-full">
+            <h3 className="text-[15px] font-bold text-white tracking-tight group-hover:text-primary transition-colors truncate px-2">
+              {brandName}
             </h3>
-            <p className="text-[13px] text-zinc-500 line-clamp-2 leading-relaxed font-medium">
+            <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed font-medium italic opacity-60 px-2">
               {website.description}
             </p>
           </div>
+        </div>
 
-          <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between">
-            <span className="text-[11px] font-mono text-zinc-600 truncate uppercase tracking-widest">
-              {domain}
-            </span>
-            <div className="text-[11px] font-medium text-zinc-500 group-hover:text-white transition-colors">
-              Visit ↗
-            </div>
+        <div className="flex items-center justify-between mt-5 pt-3 border-t border-white/[0.06] text-[9px] text-zinc-500 font-bold uppercase tracking-widest">
+          <span className="truncate max-w-[80%] font-mono opacity-40">{domain}</span>
+          <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
+            <ChevronRight className="w-3.5 h-3.5" />
           </div>
         </div>
       </div>

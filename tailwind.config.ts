@@ -12,6 +12,7 @@ export default {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
         headline: ['Poppins', 'sans-serif'],
+        code: ['monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
@@ -47,13 +48,6 @@ export default {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        bessites: {
-          indigo: '#7B33FF',
-          slate: '#18151F',
-          periwinkle: '#85A3FF',
-          white: '#F5F3FF',
-          muted: '#8B85A1',
-        }
       },
       borderRadius: {
         lg: 'var(--radius)',

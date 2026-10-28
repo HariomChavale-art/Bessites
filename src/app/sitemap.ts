@@ -1,9 +1,5 @@
 import { MetadataRoute } from 'next'
 
-/**
- * @fileOverview Dynamic Sitemap Generator.
- * Provides a clean indexing map for search engines to achieve absolute discovery.
- */
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://bessites.store'
   const now = new Date()

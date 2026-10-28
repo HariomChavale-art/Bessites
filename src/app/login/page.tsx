@@ -2,7 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useAuth, useFirestore, useUser } from "@/firebase";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  updateProfile
+} from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -10,7 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Sparkles, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { 
+  Loader2, 
+  Eye, 
+  EyeOff, 
+  Sparkles, 
+  ShieldCheck
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { WebsitePreview } from "@/components/website-preview";
@@ -25,6 +35,7 @@ interface Particle {
   website: any;
   size: number;
   rotation: number;
+  tilt: number;
 }
 
 export default function LoginPage() {
@@ -33,47 +44,108 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { user: currentUser, loading: authLoading } = useUser();
-  
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  // --- INTERACTIVE FALLING WEBSITES BACKGROUND ---
   const [particles, setParticles] = useState<Particle[]>([]);
+  const mousePos = useRef({ x: -1000, y: -1000 });
+  const lastMousePos = useRef({ x: -1000, y: -1000 });
+  const mouseVelocity = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
-    const particleCount = 20;
+    const particleCount = 28;
     const initialParticles: Particle[] = Array.from({ length: particleCount }).map((_, i) => ({
       id: `p-${i}`,
       x: Math.random() * 100,
-      y: Math.random() * 100,
-      vx: (Math.random() - 0.5) * 0.05,
-      vy: 0.02 + Math.random() * 0.05,
+      y: (Math.random() * 140) - 20,
+      vx: 0,
+      vy: 0.04 + Math.random() * 0.08,
       website: MOCK_WEBSITES[i % MOCK_WEBSITES.length],
-      size: 100 + Math.random() * 50,
+      size: 100 + Math.random() * 80,
       rotation: Math.random() * 360,
+      tilt: 0
     }));
     setParticles(initialParticles);
 
-    let frame: number;
+    let animationFrame: number;
     const animate = () => {
+      mouseVelocity.current = {
+        x: (mousePos.current.x - lastMousePos.current.x) * 0.1,
+        y: (mousePos.current.y - lastMousePos.current.y) * 0.1
+      };
+      lastMousePos.current = { ...mousePos.current };
+
       setParticles(prev => prev.map(p => {
-        let { x, y, vy, rotation } = p;
+        let { x, y, vx, vy, rotation, tilt } = p;
+        
         y += vy;
-        if (y > 110) y = -10;
-        return { ...p, y, rotation: rotation + 0.1 };
+        
+        if (containerRef.current) {
+          const rect = containerRef.current.getBoundingClientRect();
+          const mx = (mousePos.current.x / rect.width) * 100;
+          const my = (mousePos.current.y / rect.height) * 100;
+          
+          const dx = mx - x;
+          const dy = my - y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < 25) {
+            const power = (25 - dist) / 25;
+            vx += dx * power * 0.015;
+            vy += dy * power * 0.015;
+            vx += mouseVelocity.current.x * power * 0.5;
+            vy += mouseVelocity.current.y * power * 0.5;
+            tilt = (vx * 20);
+          }
+        }
+
+        vx *= 0.94;
+        vy = vy * 0.95 + (p.vy) * 0.05;
+        tilt *= 0.9;
+        
+        x += vx;
+
+        if (y > 115) {
+          y = -20;
+          x = Math.random() * 100;
+          vx = 0;
+        }
+        if (x < -10) x = 110;
+        if (x > 110) x = -10;
+
+        return { ...p, x, y, vx, vy, rotation: rotation + 0.05, tilt };
       }));
-      frame = requestAnimationFrame(animate);
+      animationFrame = requestAnimationFrame(animate);
     };
-    frame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frame);
+
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
   }, []);
 
+  const handlePointerMove = (e: React.PointerEvent) => {
+    mousePos.current = { x: e.clientX, y: e.clientY };
+  };
+
   useEffect(() => {
-    if (currentUser && !authLoading) {
-      router.push("/");
+    if (currentUser && !authLoading && db) {
+      const userRef = doc(db, "users", currentUser.uid);
+      getDoc(userRef).then(docSnap => {
+        if (docSnap.exists() && docSnap.data().onboardingComplete) {
+          router.push("/");
+        } else {
+          router.push("/onboarding");
+        }
+      }).catch(() => {
+        router.push("/onboarding");
+      });
     }
-  }, [currentUser, authLoading, router]);
+  }, [currentUser, db, router, authLoading]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +153,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (mode === 'login') {
-        await signInWithEmailAndPassword(auth, email, password);
+        const result = await signInWithEmailAndPassword(auth, email, password);
         router.push("/");
       } else {
         const result = await createUserWithEmailAndPassword(auth, email, password);
@@ -97,42 +169,50 @@ export default function LoginPage() {
         router.push("/onboarding");
       }
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message });
+      toast({ variant: "destructive", title: "Auth Error", description: error.message });
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen relative bg-[#07060D] text-white flex items-center justify-center overflow-hidden font-body">
-      {/* Dynamic Void Background */}
-      <div className="absolute inset-0 pointer-events-none opacity-40">
+    <div 
+      ref={containerRef}
+      onPointerMove={handlePointerMove}
+      className="min-h-screen relative bg-[#0B0A0E] text-white flex flex-col items-center justify-center overflow-hidden font-body"
+    >
+      {/* Interactive Background */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         {particles.map(p => (
           <div 
             key={p.id}
-            className="absolute transition-transform duration-75"
+            className="absolute will-change-transform"
             style={{
               left: `${p.x}%`,
               top: `${p.y}%`,
               width: `${p.size}px`,
               height: `${p.size}px`,
-              transform: `translate(-50%, -50%) rotate(${p.rotation}deg)`,
-              opacity: 0.5,
+              transform: `translate(-50%, -50%) rotate(${p.rotation}deg) skewX(${p.tilt}deg)`,
+              opacity: 0.6,
             }}
           >
-            <div className="w-full h-full rounded-3xl border border-white/5 bg-white/[0.02] overflow-hidden shadow-2xl">
-              <WebsitePreview websiteUrl={p.website.url} className="w-full h-full object-cover grayscale" />
+            <div className="w-full h-full rounded-2xl border border-white/10 bg-card/80 overflow-hidden shadow-2xl backdrop-blur-sm">
+              <WebsitePreview 
+                websiteUrl={p.website.url} 
+                className="w-full h-full object-cover grayscale opacity-50" 
+              />
             </div>
           </div>
         ))}
       </div>
 
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#07060D]/80 to-[#07060D] z-10" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0B0A0E]/80 to-[#0B0A0E] z-10" />
 
+      {/* Auth Panel */}
       <main className="w-full max-w-lg px-6 z-20 animate-in fade-in zoom-in duration-1000">
-        <Card className="glass rounded-[3rem] p-10 sm:p-12 shadow-[0_0_100px_rgba(123,51,255,0.1)]">
+        <Card className="bg-[#121117]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-10 sm:p-12 shadow-2xl relative overflow-hidden">
           <header className="text-center mb-12 space-y-4">
             <Logo className="text-5xl" />
-            <p className="text-sm font-black uppercase tracking-widest text-muted-foreground/60 italic">
+            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 italic">
               {mode === 'login' ? 'Authorized Access Only' : 'Initialize Discovery Access'}
             </p>
           </header>

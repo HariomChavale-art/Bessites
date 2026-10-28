@@ -10,6 +10,7 @@ import { collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { Loader2, Sparkles, TrendingUp, Clock } from "lucide-react";
+import { OuneoAssistant } from "@/components/ouneo-assistant";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
@@ -31,7 +32,7 @@ export default function Home() {
   const filteredWebsites = useMemo(() => {
     const registry = [...(firestoreSites || []), ...MOCK_WEBSITES];
     
-    // Deduplicate by URL to ensure a clean registry
+    // Deduplicate by URL
     const seen = new Set();
     let results = registry.filter(s => {
       const url = s.url?.toLowerCase().trim();
@@ -40,13 +41,12 @@ export default function Home() {
       return true;
     });
     
-    // STABLE DETERMINISTIC SORT: Locked by Name to prevent "moving" websites during updates
+    // Deterministic Stable Sort
     if (activeTab === "trending") {
       results.sort((a, b) => (b.rating || 0) - (a.rating || 0) || a.name.localeCompare(b.name));
     } else if (activeTab === "new") {
       results.sort((a, b) => b.id.localeCompare(a.id));
     } else {
-      // Default: Alphabetical sort for maximum visual stability on the grid
       results.sort((a, b) => a.name.localeCompare(b.name));
     }
     
@@ -67,6 +67,10 @@ export default function Home() {
            <p className="text-xl text-muted-foreground font-medium italic max-w-2xl mx-auto leading-relaxed">
              A high-fidelity registry indexing the highest tier of the modern web. Curated for builders, by builders.
            </p>
+        </section>
+
+        <section className="container mx-auto px-4 mb-20">
+          <OuneoAssistant />
         </section>
 
         <section className="container mx-auto px-4 mb-12 flex justify-center">

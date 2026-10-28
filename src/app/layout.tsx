@@ -5,11 +5,9 @@ import { BottomNav } from "@/components/bottom-nav";
 import { FirebaseClientProvider } from '@/firebase';
 import { Analytics } from "@vercel/analytics/react";
 import Script from 'next/script';
-import { SpookyBackground } from '@/components/halloween/SpookyBackground';
-import { CompulsoryPaymentGuard } from '@/components/auth/CompulsoryPaymentGuard';
 
 export const viewport: Viewport = {
-  themeColor: '#070709',
+  themeColor: '#121117',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -70,7 +68,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className="font-body antialiased bg-halloween-void text-halloween-bone pb-32">
+      <body className="font-body antialiased bg-background text-foreground pb-32">
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6811475243465738"
@@ -78,13 +76,10 @@ export default function RootLayout({
           strategy="lazyOnload"
         />
         <FirebaseClientProvider>
-          <SpookyBackground />
-          <CompulsoryPaymentGuard>
-            <div className="relative z-10">
-              {children}
-            </div>
-            <BottomNav />
-          </CompulsoryPaymentGuard>
+          <div className="relative z-10">
+            {children}
+          </div>
+          <BottomNav />
           <Toaster />
           <Analytics />
         </FirebaseClientProvider>

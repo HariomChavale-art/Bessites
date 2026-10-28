@@ -4,26 +4,27 @@
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 6%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 25 100% 50%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 271 76% 53%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 5.9% 10%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 151 100% 50%;
-    --accent-foreground: 240 5.9% 10%;
+    /* Original Midnight Pulse Theme */
+    --background: 255 18% 7%; /* #121117 */
+    --foreground: 210 20% 98%;
+    --card: 255 18% 10%;
+    --card-foreground: 210 20% 98%;
+    --popover: 255 18% 7%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 261 100% 60%; /* #7B33FF */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 225 100% 76%; /* #85A3FF */
+    --secondary-foreground: 255 18% 10%;
+    --muted: 255 12% 15%;
+    --muted-foreground: 255 10% 65%;
+    --accent: 225 100% 76%;
+    --accent-foreground: 255 18% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 10%;
-    --input: 240 5.9% 10%;
-    --ring: 25 100% 50%;
-    --radius: 0.75rem;
+    --border: 255 18% 15%;
+    --input: 255 18% 15%;
+    --ring: 261 100% 60%;
+    --radius: 1.5rem;
   }
 }
 
@@ -32,29 +33,36 @@
     @apply border-border;
   }
   body {
-    @apply bg-halloween-void text-halloween-bone font-body selection:bg-primary/30;
+    @apply bg-background text-foreground font-body antialiased;
     overflow-x: hidden;
   }
-  h1, h2, h3, h4 {
-    @apply font-headline tracking-tightest;
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline;
   }
 }
 
 @layer utilities {
-  .tabular-nums {
-    font-variant-numeric: tabular-nums;
+  .glow-primary {
+    filter: drop-shadow(0 0 10px hsl(var(--primary) / 0.4));
   }
-  .shadow-specular {
-    box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.08);
+  .glass {
+    @apply bg-white/[0.03] backdrop-blur-xl border border-white/5;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-halloween-void;
+  @apply bg-background;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+  @apply bg-white/10 rounded-full hover:bg-primary/50 transition-colors;
 }

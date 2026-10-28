@@ -1,10 +1,9 @@
 import { MetadataRoute } from 'next'
 
 /**
- * @fileOverview Dynamic Sitemap Generator for Bessites.store.
- * Indexes all public discovery hubs for high-fidelity search engine visibility.
+ * @fileOverview Dynamic Sitemap Generator.
+ * Provides a clean indexing map for search engines to achieve absolute discovery.
  */
-
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://bessites.store'
   const now = new Date()
@@ -55,14 +54,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: `${baseUrl}${route}`,
     lastModified: now,
     changeFrequency: 'daily' as const,
-    priority: route === '' ? 1.0 : 0.9
+    priority: route === '' ? 1.0 : 0.8
   }))
 
   const guideUrls = guides.map(slug => ({
     url: `${baseUrl}/guide/${slug}`,
     lastModified: now,
     changeFrequency: 'weekly' as const,
-    priority: 0.8
+    priority: 0.6
   }))
 
   return [...mainUrls, ...guideUrls]

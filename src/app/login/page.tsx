@@ -5,7 +5,6 @@ import { useAuth, useFirestore, useUser } from "@/firebase";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
-  updateProfile
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -18,8 +17,8 @@ import {
   Loader2, 
   Eye, 
   EyeOff, 
-  Sparkles, 
-  ShieldCheck
+  ShieldCheck,
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
@@ -52,7 +51,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  // --- INTERACTIVE FALLING WEBSITES BACKGROUND ---
+  // --- ORIGINAL INTERACTIVE FALLING WEBSITES BACKGROUND ---
   const [particles, setParticles] = useState<Particle[]>([]);
   const mousePos = useRef({ x: -1000, y: -1000 });
   const lastMousePos = useRef({ x: -1000, y: -1000 });
@@ -153,8 +152,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (mode === 'login') {
-        const result = await signInWithEmailAndPassword(auth, email, password);
-        router.push("/");
+        await signInWithEmailAndPassword(auth, email, password);
       } else {
         const result = await createUserWithEmailAndPassword(auth, email, password);
         const user = result.user;
@@ -180,7 +178,6 @@ export default function LoginPage() {
       onPointerMove={handlePointerMove}
       className="min-h-screen relative bg-[#0B0A0E] text-white flex flex-col items-center justify-center overflow-hidden font-body"
     >
-      {/* Interactive Background */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         {particles.map(p => (
           <div 
@@ -207,7 +204,6 @@ export default function LoginPage() {
 
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0B0A0E]/80 to-[#0B0A0E] z-10" />
 
-      {/* Auth Panel */}
       <main className="w-full max-w-lg px-6 z-20 animate-in fade-in zoom-in duration-1000">
         <Card className="bg-[#121117]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-10 sm:p-12 shadow-2xl relative overflow-hidden">
           <header className="text-center mb-12 space-y-4">
@@ -267,7 +263,7 @@ export default function LoginPage() {
              </button>
              
              <div className="flex items-center justify-center gap-2 text-[9px] font-black uppercase text-white/20 tracking-[0.4em] pt-6 border-t border-white/5">
-                <ShieldCheck className="w-4 h-4 text-emerald-500" /> SECURE DISCOVERY NODE
+                <ShieldCheck className="w-4 h-4 text-emerald-500" /> SECURE DISCOVERY SYSTEM
              </div>
           </div>
         </Card>

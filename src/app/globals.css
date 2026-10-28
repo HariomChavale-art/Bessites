@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Midnight Pulse Theme */
+    /* Original Midnight Pulse Theme */
     --background: 255 18% 10%; /* #18151F */
     --foreground: 210 20% 98%;
     --card: 255 18% 12%;
@@ -52,6 +52,14 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+  .animate-marquee-slow {
+    animation: marquee 50s linear infinite;
+  }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 /* Custom scrollbar */

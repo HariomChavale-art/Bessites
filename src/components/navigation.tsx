@@ -13,7 +13,9 @@ import {
   HelpCircle, 
   LogOut,
   BookOpen,
-  Book
+  Book,
+  Plus,
+  Wallet
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
@@ -27,9 +29,13 @@ const SUGGESTIONS = [
   "Tip: Your Interaction Ledger tracks real-time engagement.",
   "Check the 'Trending' tab for verified high-impact assets.",
   "Submit your digital property via the Creator Hub.",
-  "Official Support: bessitesofficial@gmail.com",
+  "Official Support: support@bessites.store",
 ];
 
+/**
+ * Official Bessites Navigation Hub
+ * Restored original top-bar and full creator studio sidebar.
+ */
 export function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
@@ -58,6 +64,7 @@ export function Navigation() {
     { label: 'My Websites', icon: Globe, href: '/my-websites' },
     { label: 'Analytics', icon: BarChart3, href: '/analytics' },
     { label: 'Audience', icon: Users, href: '/audience' },
+    { label: 'Wallet', icon: Wallet, href: '/wallet' },
     { label: 'Settings', icon: Settings, href: '/settings' },
     { label: 'Support', icon: HelpCircle, href: '/support' },
   ];
@@ -135,10 +142,15 @@ export function Navigation() {
             </Sheet>
           </div>
           
-          <div className="hidden lg:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-2">
              <Link href="/guide">
                 <Button variant="ghost" className={cn("text-[10px] font-black uppercase tracking-[0.2em] italic transition-all", pathname?.startsWith('/guide') ? "text-primary" : "text-white/40 hover:text-white")}>
                    <Book className="w-4 h-4 mr-2" /> Manual
+                </Button>
+             </Link>
+             <Link href="/submit">
+                <Button className="h-10 rounded-xl bg-white text-black font-black uppercase italic text-[10px] tracking-widest px-6 shadow-xl transition-all hover:scale-105 active:scale-95">
+                   <Plus className="w-4 h-4 mr-2" /> Submit Project
                 </Button>
              </Link>
           </div>
@@ -148,12 +160,18 @@ export function Navigation() {
           flex-1 min-w-0 max-w-2xl
           animate-in fade-in slide-in-from-top-2 duration-700 transition-all group hover:bg-white/10 overflow-hidden">
           <Sparkles className="w-3.5 h-3.5 sm:w-4 h-4 text-primary shrink-0 group-hover:scale-110 transition-transform" />
-          <span className="text-[10px] sm:text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider whitespace-normal leading-tight text-center flex-1 line-clamp-2">
+          <span className="text-[10px] sm:text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider whitespace-normal leading-tight text-center flex-1 line-clamp-1">
             {SUGGESTIONS[suggestionIdx]}
           </span>
         </div>
 
-        <div className="w-4 h-4 hidden md:block shrink-0" />
+        <div className="hidden md:flex items-center gap-4 shrink-0">
+           <Link href="/explore">
+              <Button variant="ghost" size="icon" className="w-10 h-10 rounded-full hover:bg-white/5">
+                 <Globe className="w-5 h-5 text-white/40 hover:text-white transition-colors" />
+              </Button>
+           </Link>
+        </div>
       </div>
     </nav>
   );

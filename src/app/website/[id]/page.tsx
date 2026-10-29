@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useDoc, useUser, useFirestore } from "@/firebase";
-import { doc, setDoc, updateDoc, increment, serverTimestamp, getDoc, deleteDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { 
   Globe, 
   Loader2,
@@ -18,7 +18,6 @@ import {
   Eye,
   Star,
   MessageSquare,
-  Sparkles,
   ArrowRight
 } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
@@ -27,6 +26,7 @@ import { WebsitePreview } from "@/components/website-preview";
 import { WebsiteCard } from "@/components/website-card";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
+import { Footer } from "@/components/footer";
 
 export default function WebsiteDetail() {
   const { id } = useParams();
@@ -42,13 +42,12 @@ export default function WebsiteDetail() {
 
   /**
    * Universal Discovery Logic.
-   * Scans both the Curated Registry and Firestore Submissions to ensure zero "Not Found" errors.
+   * Scans both the Curated Registry and Firestore Submissions.
    */
   useEffect(() => {
     const fetchWebsite = async () => {
       if (!id) return;
       
-      // 1. Check local Curated Registry (1,000+ items)
       const registryMatch = MOCK_WEBSITES.find(w => w.id === id);
       if (registryMatch) {
         setDynamicWebsite(registryMatch);
@@ -56,7 +55,6 @@ export default function WebsiteDetail() {
         return;
       }
 
-      // 2. Fallback to Firestore Submissions
       if (db) {
         try {
           const docRef = doc(db, "submissions", id as string);
@@ -83,28 +81,9 @@ export default function WebsiteDetail() {
   }, [db, id]);
   const { data: stats } = useDoc(statsRef);
 
-  const saveDocRef = useMemo(() => {
-    if (!user || !db || !id) return null;
-    return doc(db, "users", user.uid, "likedWebsites", id as string);
-  }, [user, db, id]);
-  const { data: saveData } = useDoc(saveDocRef);
-  const isSaved = !!saveData;
-
-  const likeDocRef = useMemo(() => {
-    if (!user || !db || !id) return null;
-    return doc(db, "users", user.uid, "userLikes", id as string);
-  }, [user, db, id]);
-  const { data: likeData } = useDoc(likeDocRef);
-  const isLiked = !!likeData;
-
   const handleVisitClick = async () => {
     if (!dynamicWebsite) return;
     window.open(dynamicWebsite.url, '_blank');
-  };
-
-  const handleLike = async () => {
-    if (!user || !db || !id) return;
-    toast({ title: "Preference Logged", description: "Your appreciation has been synced to the registry." });
   };
 
   const submitReview = async () => {
@@ -121,7 +100,7 @@ export default function WebsiteDetail() {
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
   if (!dynamicWebsite) return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background text-center p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background text-center p-4 font-body">
       <h2 className="text-4xl font-black italic uppercase text-white mb-6">Asset Not Indexed</h2>
       <p className="text-muted-foreground mb-8 italic">The requested discovery node is not part of the active registry.</p>
       <Link href="/"><Button className="bg-primary text-white rounded-full px-8">Return Home</Button></Link>
@@ -130,16 +109,15 @@ export default function WebsiteDetail() {
 
   const brandName = dynamicWebsite.websiteName || dynamicWebsite.name;
   const fullName = dynamicWebsite.name || brandName;
-  const description = dynamicWebsite.description || dynamicWebsite.longDescription;
+  const description = dynamicWebsite.description || dynamicWebsite.longDescription || "Verified project in the Bessites discovery hub.";
 
-  // Safe Metric Calculation with Zero-Padding Defaults for Firestore sites
   const displayVisits = (dynamicWebsite.baseVisits || 0) + (stats?.visitCount || 0);
-  const displayLikes = (dynamicWebsite.baseLikes || 0) + (isLiked ? 1 : 0);
-  const displaySaves = (dynamicWebsite.baseSaves || 0) + (isSaved ? 1 : 0);
+  const displayLikes = (dynamicWebsite.baseLikes || 0) + (stats?.likeCount || 0);
+  const displaySaves = (dynamicWebsite.baseSaves || 0) + (stats?.saveCount || 0);
   const displayShares = (dynamicWebsite.baseShares || 0);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background pb-32">
+    <div className="min-h-screen flex flex-col bg-background pb-32 website-detail-container">
       <Navigation />
       
       <main className="flex-1 container mx-auto max-w-5xl px-4 py-8 sm:py-12 space-y-16">
@@ -159,7 +137,7 @@ export default function WebsiteDetail() {
               </h1>
               <div className="flex items-center gap-3 mt-4">
                 <span className="text-[10px] sm:text-sm text-primary font-black uppercase tracking-[0.3em] italic px-3 py-1 bg-primary/10 rounded-md">Verified Asset</span>
-                <span className={cn("text-[10px] sm:text-xs font-black uppercase tracking-widest px-3 py-1 rounded-md border", 
+                <span className={cn("text-[10px] sm:text-xs font-black uppercase tracking-widest px-3 py-1 rounded-md border italic", 
                   dynamicWebsite.pricing === 'Paid' ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20")}>
                   {dynamicWebsite.pricing}
                 </span>
@@ -174,17 +152,17 @@ export default function WebsiteDetail() {
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           <div className="xl:col-span-3 space-y-8">
             <Card className="bg-[#121117] border-white/5 p-6 sm:p-10 rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden">
-              <h2 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] border-b border-white/5 pb-4">Discovery Context</h2>
+              <h2 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] border-b border-white/5 pb-4">Registry Documentation</h2>
               <p className="text-lg sm:text-2xl text-white font-medium leading-relaxed italic tracking-tight">
                 {description}
               </p>
             </Card>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <MetricBox label="Registry Visits" value={displayVisits} icon={Eye} color="text-blue-500" />
-              <MetricBox label="Appreciations" value={displayLikes} icon={Heart} color="text-rose-500" />
-              <MetricBox label="Registry Saves" value={displaySaves} icon={Bookmark} color="text-amber-500" />
-              <MetricBox label="Global Shares" value={displayShares} icon={Share2} color="text-emerald-500" />
+              <MetricBox label="Visits" value={displayVisits} icon={Eye} color="text-blue-500" />
+              <MetricBox label="Likes" value={displayLikes} icon={Heart} color="text-rose-500" />
+              <MetricBox label="Saves" value={displaySaves} icon={Bookmark} color="text-amber-500" />
+              <MetricBox label="Shared" value={displayShares} icon={Share2} color="text-emerald-500" />
             </div>
           </div>
 
@@ -193,8 +171,8 @@ export default function WebsiteDetail() {
               <Globe className="w-8 h-8" /> VISIT NOW
             </Button>
             <div className="grid grid-cols-3 gap-3">
-              <Button variant="outline" onClick={handleLike} className={cn("h-20 rounded-[2rem] bg-white/5 border-white/5", isLiked && "text-rose-500")}><Heart className={cn("w-6 h-6", isLiked && "fill-current")} /></Button>
-              <Button variant="outline" onClick={() => handleSave()} className={cn("h-20 rounded-[2rem] bg-white/5 border-white/5", isSaved && "text-amber-500")}><Bookmark className={cn("w-6 h-6", isSaved && "fill-current")} /></Button>
+              <Button variant="outline" className="h-20 rounded-[2rem] bg-white/5 border-white/5"><Heart className="w-6 h-6" /></Button>
+              <Button variant="outline" className="h-20 rounded-[2rem] bg-white/5 border-white/5"><Bookmark className="w-6 h-6" /></Button>
               <Button variant="outline" className="h-20 rounded-[2rem] bg-white/5 border-white/5"><Share2 className="w-6 h-6" /></Button>
             </div>
           </div>
@@ -216,7 +194,7 @@ export default function WebsiteDetail() {
                          <Star className={cn("w-8 h-8 transition-colors", rating >= s ? "text-amber-400 fill-amber-400" : "text-white/10")} />
                       </button>
                     ))}
-                    <span className="ml-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">System Audit</span>
+                    <span className="ml-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Identify Experience</span>
                  </div>
                  <Textarea 
                    value={reviewText}
@@ -249,6 +227,7 @@ export default function WebsiteDetail() {
            </Card>
         </section>
       </main>
+      <Footer />
     </div>
   );
 }

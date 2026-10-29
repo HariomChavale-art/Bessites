@@ -2,11 +2,8 @@
 
 import { Website } from "@/lib/mock-data";
 import Link from "next/link";
-import { ChevronRight, Bookmark, Heart, Eye } from "lucide-react";
+import { ChevronRight, Heart, Eye } from "lucide-react";
 import { WebsitePreview } from "./website-preview";
-import { useMemo } from "react";
-import { useFirestore, useDoc } from "@/firebase";
-import { doc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 
 interface WebsiteCardProps {
@@ -16,10 +13,9 @@ interface WebsiteCardProps {
 
 /**
  * Bessites High-Fidelity Website Card.
- * Restored: Pricing Tags (top-right), Interaction Metrics, and A-Z fixed sorting logic.
+ * Features: Pricing Tags (top-right), Interaction Metrics, and A-Z fixed sorting logic.
  */
 export function WebsiteCard({ website, index }: WebsiteCardProps) {
-  const db = useFirestore();
   const brandName = website.websiteName || website.name;
   const domain = website.url.replace('https://', '').replace('www.', '').split('/')[0];
 
@@ -35,7 +31,7 @@ export function WebsiteCard({ website, index }: WebsiteCardProps) {
   return (
     <Link 
       href={`/website/${website.id}`}
-      className="block group transition-all active:scale-[0.98] w-full"
+      className="block group transition-all active:scale-[0.98] w-full website-card-item"
     >
       <div className="relative p-5 bg-[#12111A] border border-white/[0.08] group-hover:border-primary/40 transition-all duration-300 rounded-[2rem] shadow-2xl overflow-hidden">
         
@@ -74,7 +70,7 @@ export function WebsiteCard({ website, index }: WebsiteCardProps) {
               {brandName}
             </h3>
             <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed font-medium italic opacity-60 px-2">
-              {website.description}
+              {website.description || "A high-fidelity project in the Bessites discovery hub."}
             </p>
           </div>
         </div>

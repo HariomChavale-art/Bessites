@@ -132,6 +132,12 @@ export default function WebsiteDetail() {
   const fullName = dynamicWebsite.name || brandName;
   const description = dynamicWebsite.description || dynamicWebsite.longDescription;
 
+  // Safe Metric Calculation with Zero-Padding Defaults for Firestore sites
+  const displayVisits = (dynamicWebsite.baseVisits || 0) + (stats?.visitCount || 0);
+  const displayLikes = (dynamicWebsite.baseLikes || 0) + (isLiked ? 1 : 0);
+  const displaySaves = (dynamicWebsite.baseSaves || 0) + (isSaved ? 1 : 0);
+  const displayShares = (dynamicWebsite.baseShares || 0);
+
   return (
     <div className="min-h-screen flex flex-col bg-background pb-32">
       <Navigation />
@@ -175,10 +181,10 @@ export default function WebsiteDetail() {
             </Card>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <MetricBox label="Registry Visits" value={dynamicWebsite.baseVisits + (stats?.visitCount || 0)} icon={Eye} color="text-blue-500" />
-              <MetricBox label="Appreciations" value={dynamicWebsite.baseLikes + (isLiked ? 1 : 0)} icon={Heart} color="text-rose-500" />
-              <MetricBox label="Registry Saves" value={dynamicWebsite.baseSaves + (isSaved ? 1 : 0)} icon={Bookmark} color="text-amber-500" />
-              <MetricBox label="Global Shares" value={dynamicWebsite.baseShares} icon={Share2} color="text-emerald-500" />
+              <MetricBox label="Registry Visits" value={displayVisits} icon={Eye} color="text-blue-500" />
+              <MetricBox label="Appreciations" value={displayLikes} icon={Heart} color="text-rose-500" />
+              <MetricBox label="Registry Saves" value={displaySaves} icon={Bookmark} color="text-amber-500" />
+              <MetricBox label="Global Shares" value={displayShares} icon={Share2} color="text-emerald-500" />
             </div>
           </div>
 
@@ -252,7 +258,9 @@ function MetricBox({ label, value, icon: Icon, color }: { label: string, value: 
     <div className="bg-white/[0.03] border border-white/5 p-6 rounded-[2rem] text-center space-y-1 relative overflow-hidden group">
       <Icon className={cn("w-12 h-12 absolute -right-2 -bottom-2 opacity-5 rotate-12 transition-transform group-hover:scale-125", color)} />
       <p className="text-[9px] font-black uppercase text-muted-foreground/40 tracking-[0.2em]">{label}</p>
-      <h4 className={cn("text-3xl font-bold italic tracking-tighter", color)}>{value.toLocaleString()}</h4>
+      <h4 className={cn("text-3xl font-bold italic tracking-tighter", color)}>
+        {(value || 0).toLocaleString()}
+      </h4>
     </div>
   );
 }

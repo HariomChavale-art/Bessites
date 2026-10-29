@@ -14,10 +14,7 @@ import {
   LogOut,
   BookOpen,
   Book,
-  Plus,
-  Wallet,
-  Layers,
-  Rocket
+  Plus
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
@@ -62,15 +59,12 @@ export function Navigation() {
     { label: 'My Websites', icon: Globe, href: '/my-websites' },
     { label: 'Activity Stats', icon: BarChart3, href: '/analytics' },
     { label: 'My Audience', icon: Users, href: '/audience' },
-    { label: 'Stacks', icon: Layers, href: '/stacks' },
-    { label: 'Launches', icon: Rocket, href: '/launches' },
-    { label: 'My Wallet', icon: Wallet, href: '/wallet' },
     { label: 'Settings', icon: Settings, href: '/settings' },
     { label: 'Help & Support', icon: HelpCircle, href: '/support' },
   ];
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md border-b border-white/5 py-2 sm:py-0">
+    <nav className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-white/5 py-2 sm:py-0">
       <div className="container mx-auto px-4 h-20 sm:h-24 flex items-center justify-between gap-4">
         
         <div className="flex items-center gap-6">

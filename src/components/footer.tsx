@@ -5,11 +5,11 @@ import { Logo } from "./logo";
 import { ShieldCheck, Globe, Zap, Mail, Book, Terminal } from "lucide-react";
 
 /**
- * Footer - Simplified headers and link text.
+ * Footer - Updated with glassmorphic styling to match the system architecture.
  */
 export function Footer() {
   return (
-    <footer className="bg-[#121117]/80 backdrop-blur-xl border-t border-white/5 py-20 mt-auto">
+    <footer className="bg-card/40 backdrop-blur-xl border-t border-white/5 py-20 mt-auto">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
           {/* Brand Column */}
@@ -36,7 +36,7 @@ export function Footer() {
             </nav>
           </div>
 
-          {/* Intelligence Column */}
+          {/* Information Column */}
           <div className="space-y-6">
             <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Information</h4>
             <nav className="flex flex-col gap-3">

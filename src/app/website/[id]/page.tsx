@@ -118,7 +118,7 @@ export default function WebsiteDetail() {
       
       <main className="flex-1 container mx-auto max-w-5xl px-4 py-8 sm:py-12 space-y-16">
         <div className="flex flex-col md:flex-row gap-8 sm:gap-10 items-start">
-          <div className="w-24 h-24 sm:w-40 sm:h-40 rounded-[2rem] bg-[#1a1a24] border border-white/10 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center p-4">
+          <div className="w-24 h-24 sm:w-40 sm:h-40 rounded-[2rem] bg-white/5 backdrop-blur-xl border border-white/10 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center p-4">
             <WebsitePreview 
               websiteUrl={dynamicWebsite.url}
               fallbackUrl={dynamicWebsite.logoUrl || dynamicWebsite.imageUrl}
@@ -147,7 +147,7 @@ export default function WebsiteDetail() {
 
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           <div className="xl:col-span-3 space-y-8">
-            <Card className="bg-[#121117] border-white/5 p-6 sm:p-10 rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden">
+            <Card className="bg-white/[0.01] backdrop-blur-xl border-white/5 p-6 sm:p-10 rounded-[2.5rem] shadow-2xl space-y-8 relative overflow-hidden">
               <h2 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] border-b border-white/5 pb-4">Info & Details</h2>
               <p className="text-lg sm:text-2xl text-white font-medium leading-relaxed italic tracking-tight">
                 {description}
@@ -167,9 +167,9 @@ export default function WebsiteDetail() {
               <Globe className="w-8 h-8" /> VISIT SITE
             </Button>
             <div className="grid grid-cols-3 gap-3">
-              <Button variant="outline" className="h-20 rounded-[2rem] bg-white/5 border-white/5"><Heart className="w-6 h-6" /></Button>
-              <Button variant="outline" className="h-20 rounded-[2rem] bg-white/5 border-white/5"><Bookmark className="w-6 h-6" /></Button>
-              <Button variant="outline" className="h-20 rounded-[2rem] bg-white/5 border-white/5"><Share2 className="w-6 h-6" /></Button>
+              <Button variant="outline" className="h-20 rounded-[2rem] bg-white/5 backdrop-blur-md border-white/5"><Heart className="w-6 h-6" /></Button>
+              <Button variant="outline" className="h-20 rounded-[2rem] bg-white/5 backdrop-blur-md border-white/5"><Bookmark className="w-6 h-6" /></Button>
+              <Button variant="outline" className="h-20 rounded-[2rem] bg-white/5 backdrop-blur-md border-white/5"><Share2 className="w-6 h-6" /></Button>
             </div>
           </div>
         </div>
@@ -182,7 +182,7 @@ export default function WebsiteDetail() {
               <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">Community Reviews</h2>
            </div>
 
-           <Card className="bg-[#121117] border-white/5 p-8 rounded-[3rem] space-y-8">
+           <Card className="bg-white/[0.01] backdrop-blur-xl border-white/5 p-8 rounded-[3rem] space-y-8">
               <div className="space-y-6">
                  <div className="flex items-center gap-2">
                     {[1,2,3,4,5].map(s => (
@@ -230,7 +230,7 @@ export default function WebsiteDetail() {
 
 function MetricBox({ label, value, icon: Icon, color }: { label: string, value: number, icon: any, color: string }) {
   return (
-    <div className="bg-white/[0.03] border border-white/5 p-6 rounded-[2rem] text-center space-y-1 relative overflow-hidden group">
+    <div className="bg-white/[0.03] backdrop-blur-xl border border-white/5 p-6 rounded-[2rem] text-center space-y-1 relative overflow-hidden group">
       <Icon className={cn("w-12 h-12 absolute -right-2 -bottom-2 opacity-5 rotate-12 transition-transform group-hover:scale-125", color)} />
       <p className="text-[9px] font-black uppercase text-muted-foreground/40 tracking-[0.2em]">{label}</p>
       <h4 className={cn("text-3xl font-bold italic tracking-tighter", color)}>

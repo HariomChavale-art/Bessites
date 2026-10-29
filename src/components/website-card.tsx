@@ -13,7 +13,7 @@ interface WebsiteCardProps {
 
 /**
  * Bessites High-Fidelity Website Card.
- * Features: Pricing Tags (top-right), Interaction Metrics, and A-Z fixed sorting logic.
+ * Updated with Glassmorphic styling: semi-transparent background and backdrop-blur.
  */
 export function WebsiteCard({ website, index }: WebsiteCardProps) {
   const brandName = website.websiteName || website.name;
@@ -33,7 +33,7 @@ export function WebsiteCard({ website, index }: WebsiteCardProps) {
       href={`/website/${website.id}`}
       className="block group transition-all active:scale-[0.98] w-full website-card-item"
     >
-      <div className="relative p-5 bg-[#12111A] border border-white/[0.08] group-hover:border-primary/40 transition-all duration-300 rounded-[2rem] shadow-2xl overflow-hidden">
+      <div className="relative p-5 bg-white/[0.01] backdrop-blur-xl border border-white/5 group-hover:border-primary/40 transition-all duration-300 rounded-[2rem] shadow-2xl overflow-hidden">
         
         {/* Interaction Metrics Overlay (Subtle) */}
         <div className="absolute top-4 left-4 flex items-center gap-2 opacity-30 group-hover:opacity-100 transition-opacity">
@@ -45,7 +45,7 @@ export function WebsiteCard({ website, index }: WebsiteCardProps) {
            </div>
         </div>
 
-        {/* PRICING TAG - RESTORED TO TOP RIGHT */}
+        {/* Pricing Tag */}
         <div className="absolute top-4 right-4">
           <span className={cn(
             "px-2 py-0.5 text-[8px] font-black tracking-widest uppercase rounded-lg border italic",
@@ -56,7 +56,7 @@ export function WebsiteCard({ website, index }: WebsiteCardProps) {
         </div>
 
         <div className="flex flex-col items-center gap-4 pt-4">
-          <div className="w-16 h-16 rounded-2xl bg-[#1a1a24] border border-white/10 flex items-center justify-center overflow-hidden p-2 shrink-0 shadow-lg group-hover:scale-105 transition-transform duration-500">
+          <div className="w-16 h-16 rounded-2xl bg-white/5 backdrop-blur-lg border border-white/10 flex items-center justify-center overflow-hidden p-2 shrink-0 shadow-lg group-hover:scale-105 transition-transform duration-500">
             <WebsitePreview 
               websiteUrl={website.url}
               fallbackUrl={website.imageUrl}

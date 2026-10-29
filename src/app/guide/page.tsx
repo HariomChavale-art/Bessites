@@ -6,31 +6,31 @@ import Link from "next/link";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Bessites User Manual - Complete Guide to Grow Your Website",
-  description: "Master the Bessites discovery engine with our official user manual. Learn how to submit projects, drive traffic, and optimize for absolute discovery.",
+  title: "User Guides | Bessites - How to Grow Your Website",
+  description: "Learn how to use Bessites with our easy guides. Find out how to add projects, get more visitors, and improve your site.",
 };
 
 const GUIDES = [
-  { slug: "how-to-submit-website", title: "How to Submit Your Website", icon: Globe, category: "Registry Basics" },
-  { slug: "how-to-get-free-traffic", title: "How to Get Free Traffic", icon: Zap, category: "Growth Strategy" },
-  { slug: "how-to-submit-to-google", title: "How to Submit to Google", icon: Search, category: "SEO Basics" },
-  { slug: "how-to-make-website-faster", title: "How to Make Website Faster", icon: Clock, category: "Performance" },
+  { slug: "how-to-submit-website", title: "How to Add Your Website", icon: Globe, category: "The Basics" },
+  { slug: "how-to-get-free-traffic", title: "How to Get More Visitors", icon: Zap, category: "Growth Tips" },
+  { slug: "how-to-submit-to-google", title: "How to Show Up on Google", icon: Search, category: "Search Tips" },
+  { slug: "how-to-make-website-faster", title: "How to Make Your Site Fast", icon: Clock, category: "Performance" },
   { slug: "how-to-get-first-100-visitors", title: "Get Your First 100 Visitors", icon: Target, category: "Launch" },
-  { slug: "how-to-write-seo-title", title: "How to Write SEO Titles", icon: PenTool, category: "SEO Basics" },
-  { slug: "how-to-share-website-on-pinterest", title: "Pinterest Distribution Guide", icon: Share2, category: "Social Growth" },
-  { slug: "how-to-use-bessites", title: "How to Use Bessites Effectively", icon: Sparkles, category: "Platform" },
-  { slug: "how-to-get-backlinks-free", title: "How to Get Free Backlinks", icon: TrendingUp, category: "SEO Basics" },
-  { slug: "how-to-promote-on-reddit", title: "Promote on Reddit Properly", icon: Share2, category: "Social Growth" },
-  { slug: "how-to-find-new-websites", title: "How to Find New Websites", icon: Globe, category: "Platform" },
-  { slug: "how-to-increase-website-ranking", title: "Increase Website Ranking", icon: BarChart3, category: "SEO Basics" },
-  { slug: "how-to-create-sitemap", title: "How to Create a Sitemap", icon: Database, category: "Technical SEO" },
-  { slug: "how-to-use-search-console", title: "Mastering Search Console", icon: Search, category: "Technical SEO" },
-  { slug: "how-to-make-website-mobile-friendly", title: "Mobile Friendly Optimization", icon: Smartphone, category: "Performance" },
-  { slug: "best-tools-for-new-websites", title: "Best Tools for New Websites", icon: Sparkles, category: "Resources" },
-  { slug: "how-to-grow-from-zero", title: "How to Grow from Zero", icon: Zap, category: "Growth Strategy" },
-  { slug: "how-to-get-website-discovered", title: "How to Get Discovered", icon: Target, category: "Launch" },
-  { slug: "common-mistakes-new-websites", title: "Common Launch Mistakes", icon: AlertCircle, category: "Resources" },
-  { slug: "how-to-track-website-traffic", title: "How to Track Traffic", icon: BarChart3, category: "Technical SEO" },
+  { slug: "how-to-write-seo-title", title: "Writing Better Search Titles", icon: PenTool, category: "Search Tips" },
+  { slug: "how-to-share-website-on-pinterest", title: "Using Pinterest to Grow", icon: Share2, category: "Social Media" },
+  { slug: "how-to-use-bessites", title: "How to Use Bessites Better", icon: Sparkles, category: "Platform" },
+  { slug: "how-to-get-backlinks-free", title: "Getting Other Sites to Link to You", icon: TrendingUp, category: "Search Tips" },
+  { slug: "how-to-promote-on-reddit", title: "Sharing Your Site on Reddit", icon: Share2, category: "Social Media" },
+  { slug: "how-to-find-new-websites", title: "Finding New Websites to Use", icon: Globe, category: "Platform" },
+  { slug: "how-to-increase-website-ranking", title: "Ranking Higher in Search", icon: BarChart3, category: "Search Tips" },
+  { slug: "how-to-create-sitemap", title: "Making a Website Map", icon: Database, category: "Technical Tips" },
+  { slug: "how-to-use-search-console", title: "Using Google Search Tools", icon: Search, category: "Technical Tips" },
+  { slug: "how-to-make-website-mobile-friendly", title: "Making Your Site Good for Phones", icon: Smartphone, category: "Performance" },
+  { slug: "best-tools-for-new-websites", title: "Best Tools for New Sites", icon: Sparkles, category: "Resources" },
+  { slug: "how-to-grow-from-zero", title: "Growing from Zero Visitors", icon: Zap, category: "Growth Tips" },
+  { slug: "how-to-get-website-discovered", title: "How to Get People to Find You", icon: Target, category: "Launch" },
+  { slug: "common-mistakes-new-websites", title: "Common Mistakes New Sites Make", icon: AlertCircle, category: "Resources" },
+  { slug: "how-to-track-website-traffic", title: "Tracking Your Website Visitors", icon: BarChart3, category: "Technical Tips" },
 ];
 
 export default function GuideIndexPage() {
@@ -41,13 +41,13 @@ export default function GuideIndexPage() {
       <main className="flex-1 container mx-auto max-w-6xl px-4 py-16 sm:py-24 space-y-16">
         <header className="text-center space-y-4 max-w-3xl mx-auto">
           <Badge className="bg-primary/20 text-primary border-none px-4 py-1 uppercase font-black tracking-widest italic">
-            Bessites Intelligence Node
+            Learning Center
           </Badge>
           <h1 className="text-5xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-none">
             User <span className="text-primary">Manual</span>
           </h1>
           <p className="text-xl text-muted-foreground font-medium italic opacity-60">
-            Professional documentation for digital creators and builders.
+            Easy-to-follow guides for digital creators and builders.
           </p>
         </header>
 
@@ -69,7 +69,7 @@ export default function GuideIndexPage() {
                     {guide.title}
                   </h2>
                   <p className="text-muted-foreground text-xs font-medium italic opacity-60">
-                    Official documentation for {guide.slug.replace(/-/g, ' ')}.
+                    Learn how to {guide.title.toLowerCase()}.
                   </p>
                 </div>
 
@@ -85,7 +85,7 @@ export default function GuideIndexPage() {
 
       <footer className="bg-card/50 border-t border-white/5 py-16">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-xs text-muted-foreground opacity-20 font-black uppercase tracking-widest italic">© 2024 Bessites Registry Manual. Authorized Access Only.</p>
+          <p className="text-xs text-muted-foreground opacity-20 font-black uppercase tracking-widest italic">© 2024 Bessites Manual. Helping You Grow.</p>
         </div>
       </footer>
     </div>

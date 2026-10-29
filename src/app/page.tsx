@@ -13,8 +13,8 @@ import { getBroadCategoriesForTag } from "@/lib/category-mapping";
 import { Footer } from "@/components/footer";
 
 /**
- * Bessites Discovery Engine - Optimized Production Build
- * Features stable deterministic sorting to prevent UI movement.
+ * Bessites Main Page - Simplified for everyone to understand.
+ * We use simple words like "Find" and "Best" instead of complex jargon.
  */
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
@@ -54,10 +54,10 @@ export default function Home() {
     const firestoreSites = (submittedSites || []).map(s => ({
       id: s.id,
       websiteName: s.websiteName || s.name,
-      name: s.name || s.url?.split('//')[1]?.split('.')[0] || "New Project",
+      name: s.name || s.url?.split('//')[1]?.split('.')[0] || "New Website",
       developer: s.userEmail || "Community",
-      description: s.description || "A high-fidelity digital asset in the registry.",
-      longDescription: s.longDescription || s.description || "A high-fidelity project shared via Bessites.",
+      description: s.description || "A high quality website from our list.",
+      longDescription: s.longDescription || s.description || "A new website shared on Bessites.",
       categories: s.categories || ["Web App"],
       url: s.url,
       pricing: s.pricing || "Free",
@@ -80,7 +80,6 @@ export default function Home() {
   const filteredWebsites = useMemo(() => {
     let results = [...allAvailableWebsites];
     
-    // DETERMINISTIC SORTING: Websites are locked by name A-Z to prevent "moving" on stats refresh
     results.sort((a, b) => {
       const nameA = (a.websiteName || a.name || "").toLowerCase();
       const nameB = (b.websiteName || b.name || "").toLowerCase();
@@ -121,10 +120,10 @@ export default function Home() {
       <main className="flex-1">
         <section className="container mx-auto px-4 mt-20 mb-12 text-center space-y-6">
            <h1 className="text-6xl sm:text-8xl font-black italic text-white tracking-tighter uppercase leading-tight">
-             Absolute <span className="text-primary">Discovery.</span>
+             Find the <span className="text-primary">Best Tools.</span>
            </h1>
            <p className="text-xl text-muted-foreground font-medium italic max-w-2xl mx-auto leading-relaxed">
-             A high-fidelity registry indexing the top tier of the modern web. Curated for builders, by builders.
+             A high quality list of the best websites on the internet. Picked by real people for builders like you.
            </p>
         </section>
 
@@ -136,10 +135,10 @@ export default function Home() {
                   <Sparkles className="w-4 h-4" /> For You
                 </TabsTrigger>
                 <TabsTrigger value="trending" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary flex items-center gap-2 italic">
-                  <TrendingUp className="w-4 h-4" /> Trending
+                  <TrendingUp className="w-4 h-4" /> Popular
                 </TabsTrigger>
                 <TabsTrigger value="new" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary flex items-center gap-2 italic">
-                  <Clock className="w-4 h-4" /> New
+                  <Clock className="w-4 h-4" /> Recently Added
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -153,28 +152,28 @@ export default function Home() {
         <section className="container mx-auto px-4 py-20 border-t border-white/5">
           <div className="max-w-4xl mx-auto space-y-12">
             <div className="text-center space-y-4">
-              <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">The High-Fidelity <span className="text-primary">Standard</span></h2>
-              <p className="text-muted-foreground text-lg italic">Uncovering the 1% of the modern web through human-centric curation.</p>
+              <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Only the <span className="text-primary">Best Sites</span></h2>
+              <p className="text-muted-foreground text-lg italic">We find the top 1% of the web so you don't have to waste time.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="space-y-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5">
                 <div className="flex items-center gap-3 text-primary">
                   <Globe className="w-6 h-6" />
-                  <h3 className="text-xl font-bold uppercase italic">Global Registry</h3>
+                  <h3 className="text-xl font-bold uppercase italic">Global List</h3>
                 </div>
                 <p className="text-muted-foreground leading-relaxed italic">
-                  Bessites operates as a premier digital directory, meticulously archiving the internet's most productive corners. Every asset in our hub is manually reviewed to ensure zero duplication and zero padding.
+                  Bessites is a premier website list that finds the most useful parts of the internet. Every site is checked by hand to make sure it is helpful and not full of ads.
                 </p>
               </div>
 
               <div className="space-y-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5">
                 <div className="flex items-center gap-3 text-primary">
                   <ShieldCheck className="w-6 h-6" />
-                  <h3 className="text-xl font-bold uppercase italic">Verified Assets</h3>
+                  <h3 className="text-xl font-bold uppercase italic">Verified Websites</h3>
                 </div>
                 <p className="text-muted-foreground leading-relaxed italic">
-                  Unlike automated search engines, Bessites prioritizes human intelligence. Our interaction ledgers and community feedback provide a layer of trust that automated tools can't replicate.
+                  Unlike big search engines, we use real people to pick sites. We look for sites that actually work and provide real value to the community.
                 </p>
               </div>
             </div>

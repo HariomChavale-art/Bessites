@@ -5,8 +5,7 @@ import { Logo } from "./logo";
 import { ShieldCheck, Globe, Zap, Mail, Book, Terminal } from "lucide-react";
 
 /**
- * @fileOverview Unified Site Footer.
- * Centralized navigation for all public discovery assets and legal documentation.
+ * Footer - Simplified headers and link text.
  */
 export function Footer() {
   return (
@@ -17,48 +16,48 @@ export function Footer() {
           <div className="space-y-6">
             <Logo className="text-3xl" />
             <p className="text-sm text-muted-foreground italic font-medium leading-relaxed">
-              Bessites is the premier directory for the top 1% of the modern web. We provide a zero-padding discovery experience for high-velocity creators and builders.
+              Bessites is the best place to find modern websites and digital tools. We pick the best sites so you can find what you need fast.
             </p>
             <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-primary italic">
               <ShieldCheck className="w-4 h-4" /> 
-              <span>Registry Verified 2026</span>
+              <span>Verified Sites 2026</span>
             </div>
           </div>
 
           {/* Discovery Column */}
           <div className="space-y-6">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Registry Access</h4>
+            <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Find Websites</h4>
             <nav className="flex flex-col gap-3">
-              <FooterLink href="/explore">Explore Websites</FooterLink>
-              <FooterLink href="/guide">User Manual Hub</FooterLink>
-              <FooterLink href="/toolkit">Creator Toolkits</FooterLink>
-              <FooterLink href="/trends">Industry Trends</FooterLink>
-              <FooterLink href="/benchmarks">Interaction Benchmarks</FooterLink>
+              <FooterLink href="/explore">Explore List</FooterLink>
+              <FooterLink href="/guide">How-To Guides</FooterLink>
+              <FooterLink href="/toolkit">Tool Kits</FooterLink>
+              <FooterLink href="/trends">New Trends</FooterLink>
+              <FooterLink href="/benchmarks">Quality Standards</FooterLink>
             </nav>
           </div>
 
           {/* Intelligence Column */}
           <div className="space-y-6">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Intelligence Hub</h4>
+            <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Information</h4>
             <nav className="flex flex-col gap-3">
-              <FooterLink href="/about">Our Origin Story</FooterLink>
-              <FooterLink href="/how-it-works">Platform Flow</FooterLink>
-              <FooterLink href="/methodology">The Manifesto</FooterLink>
-              <FooterLink href="/glossary">Web Lexicon</FooterLink>
-              <FooterLink href="/faq">Common FAQ</FooterLink>
+              <FooterLink href="/about">Our Story</FooterLink>
+              <FooterLink href="/how-it-works">How It Works</FooterLink>
+              <FooterLink href="/methodology">Our Standards</FooterLink>
+              <FooterLink href="/glossary">Dictionary</FooterLink>
+              <FooterLink href="/faq">Common Questions</FooterLink>
             </nav>
           </div>
 
           {/* Legal/Support Column */}
           <div className="space-y-6">
-            <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Terminal Support</h4>
+            <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">Support</h4>
             <nav className="flex flex-col gap-3">
-              <FooterLink href="/contact">Open a Ticket</FooterLink>
-              <FooterLink href="/privacy-policy">Privacy Protocol</FooterLink>
-              <FooterLink href="/terms">Usage Terms</FooterLink>
-              <FooterLink href="/disclaimer">Legal Disclaimer</FooterLink>
+              <FooterLink href="/contact">Send a Message</FooterLink>
+              <FooterLink href="/privacy-policy">Privacy Rules</FooterLink>
+              <FooterLink href="/terms">Terms of Use</FooterLink>
+              <FooterLink href="/disclaimer">Legal Rules</FooterLink>
               <div className="pt-6 border-t border-white/5 space-y-2">
-                <p className="text-[9px] font-black uppercase text-white/20 tracking-widest">Global Support System</p>
+                <p className="text-[9px] font-black uppercase text-white/20 tracking-widest">Global Support</p>
                 <a href="mailto:bessitesofficial@gmail.com" className="text-sm font-bold text-white hover:text-primary transition-colors italic">bessitesofficial@gmail.com</a>
               </div>
             </nav>
@@ -70,7 +69,7 @@ export function Footer() {
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <p className="text-[10px] text-muted-foreground/30 font-black uppercase tracking-[0.4em]">
-              © 2024 BESSITES STUDIO / ABSOLUTE DISCOVERY
+              © 2024 BESSITES STUDIO / FIND THE BEST
             </p>
           </div>
           <div className="flex items-center gap-8 opacity-20 grayscale hover:grayscale-0 transition-all">

@@ -4,10 +4,11 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserPlus, Globe, BarChart3, ArrowRight } from "lucide-react";
+import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
-  title: "How It Works | Bessites Discovery Engine",
-  description: "Learn how to use Bessites to discover modern webs, submit your projects, and track your discovery impact.",
+  title: "How It Works | Bessites - Find Great Tools",
+  description: "Learn how to use Bessites to find modern websites, add your own projects, and see your stats.",
 };
 
 export default function HowItWorksPage() {
@@ -22,7 +23,7 @@ export default function HowItWorksPage() {
               How It <span className="text-primary">Works</span>
             </h1>
             <p className="text-xl text-muted-foreground font-medium italic leading-relaxed">
-              Bessites simplifies the discovery pipeline. Whether you are a visitor seeking tools or a creator seeking users, our node-based registry is built for high-velocity results.
+              Bessites makes it easy to find great websites. Whether you are looking for a new tool or want people to find your site, we are here to help.
             </p>
           </header>
 
@@ -30,20 +31,20 @@ export default function HowItWorksPage() {
             <StepCard 
               num="01" 
               icon={UserPlus} 
-              title="Create Your Profile" 
-              desc="Identify your interests from our 100-node registry. This personalizes your 'For You' discovery feed instantly." 
+              title="Make Your Profile" 
+              desc="Choose your interests from our list. This helps us show you websites you will actually like." 
             />
             <StepCard 
               num="02" 
               icon={Globe} 
-              title="Add Your Website" 
-              desc="Submit your digital property to the registry. Each submission is manually reviewed to ensure a Zero Padding standard." 
+              title="Add Your Site" 
+              desc="Submit your own website to our list. We check every site to make sure it's useful and safe." 
             />
             <StepCard 
               num="03" 
               icon={BarChart3} 
-              title="Track Impact" 
-              desc="Use our Creator Hub to monitor real-time visits, likes, and saves. Launch global ad campaigns to boost your reach." 
+              title="Check Your Stats" 
+              desc="Use our Creator Hub to see how many people visit and like your site. You can also boost your site to reach more people." 
             />
           </div>
 
@@ -57,20 +58,7 @@ export default function HowItWorksPage() {
         </div>
       </main>
 
-      <footer className="bg-card/50 border-t border-white/5 py-16">
-        <div className="container mx-auto px-4 text-center space-y-8">
-          <div className="flex flex-wrap justify-center gap-8 text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/40 italic">
-            <Link href="/about" className="hover:text-primary transition-colors">About Us</Link>
-            <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
-            <Link href="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
-            <Link href="/disclaimer" className="hover:text-primary transition-colors">Disclaimer</Link>
-            <Link href="/faq" className="hover:text-primary transition-colors">FAQ</Link>
-            <Link href="/how-it-works" className="hover:text-primary transition-colors">How It Works</Link>
-            <Link href="/blog" className="hover:text-primary transition-colors">Blog</Link>
-          </div>
-          <p className="text-xs text-muted-foreground opacity-20 font-black uppercase tracking-widest">© 2024 Bessites Studio. Powered by Bessites.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -24,28 +24,27 @@ import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { Logo } from "./logo";
 
-const SUGGESTIONS = [
-  "✨ Discover curated, zero-duplication creator tools updated daily.",
-  "Tip: Your Interaction Ledger tracks real-time engagement.",
-  "Check the 'Trending' tab for verified high-impact assets.",
-  "Submit your digital property via the Creator Hub.",
-  "Official Support: support@bessites.store",
+const TIPS = [
+  "✨ Find the best creator tools updated every day.",
+  "Tip: See how many people like your site in your stats.",
+  "Check the 'Popular' tab for the best websites.",
+  "Add your own website in the Creator Hub.",
+  "Need help? Email us at: support@bessites.store",
 ];
 
 /**
- * Official Bessites Navigation Hub
- * Restored original top-bar and full creator studio sidebar.
+ * Navigation Bar - Simplified labels and tips.
  */
 export function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useUser();
   const auth = useAuth();
-  const [suggestionIdx, setSuggestionIdx] = useState(0);
+  const [tipIdx, setTipIdx] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setSuggestionIdx((prev) => (prev + 1) % SUGGESTIONS.length);
+      setTipIdx((prev) => (prev + 1) % TIPS.length);
     }, 8000);
     return () => clearInterval(interval);
   }, []);
@@ -62,11 +61,11 @@ export function Navigation() {
 
   const sidebarLinks = [
     { label: 'My Websites', icon: Globe, href: '/my-websites' },
-    { label: 'Analytics', icon: BarChart3, href: '/analytics' },
-    { label: 'Audience', icon: Users, href: '/audience' },
-    { label: 'Wallet', icon: Wallet, href: '/wallet' },
+    { label: 'My Stats', icon: BarChart3, href: '/analytics' },
+    { label: 'My Audience', icon: Users, href: '/audience' },
+    { label: 'My Wallet', icon: Wallet, href: '/wallet' },
     { label: 'Settings', icon: Settings, href: '/settings' },
-    { label: 'Support', icon: HelpCircle, href: '/support' },
+    { label: 'Help & Support', icon: HelpCircle, href: '/support' },
   ];
 
   return (
@@ -86,7 +85,7 @@ export function Navigation() {
               </SheetTrigger>
               <SheetContent side="left" className="bg-[#0B0A0F] border-r border-white/5 p-0 w-80 overflow-hidden shadow-2xl">
                  <SheetHeader className="p-8 pb-4">
-                    <SheetTitle className="text-white font-black uppercase tracking-widest text-[10px] italic text-left opacity-40">Bessites Creator Menu</SheetTitle>
+                    <SheetTitle className="text-white font-black uppercase tracking-widest text-[10px] italic text-left opacity-40">Creator Menu</SheetTitle>
                     <div className="mt-4">
                       <Logo className="text-3xl" />
                     </div>
@@ -112,7 +111,7 @@ export function Navigation() {
                           ))}
 
                           <div className="pt-8 pb-4">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/30 ml-4 mb-2">Registry Docs</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/30 ml-4 mb-2">Instructions</p>
                             <button
                               onClick={() => { router.push('/guide'); }}
                               className={cn(
@@ -124,7 +123,7 @@ export function Navigation() {
                             >
                               {pathname?.startsWith('/guide') && <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,1)]" />}
                               <BookOpen className={cn("w-5 h-5", pathname?.startsWith('/guide') ? "text-emerald-500" : "group-hover:scale-110 transition-transform")} />
-                              <span className="text-sm font-bold tracking-tight">User Manual</span>
+                              <span className="text-sm font-bold tracking-tight">How to Use</span>
                             </button>
                           </div>
                        </nav>
@@ -145,12 +144,12 @@ export function Navigation() {
           <div className="hidden lg:flex items-center gap-2">
              <Link href="/guide">
                 <Button variant="ghost" className={cn("text-[10px] font-black uppercase tracking-[0.2em] italic transition-all", pathname?.startsWith('/guide') ? "text-primary" : "text-white/40 hover:text-white")}>
-                   <Book className="w-4 h-4 mr-2" /> Manual
+                   <Book className="w-4 h-4 mr-2" /> Guides
                 </Button>
              </Link>
              <Link href="/submit">
                 <Button className="h-10 rounded-xl bg-white text-black font-black uppercase italic text-[10px] tracking-widest px-6 shadow-xl transition-all hover:scale-105 active:scale-95">
-                   <Plus className="w-4 h-4 mr-2" /> Submit Project
+                   <Plus className="w-4 h-4 mr-2" /> Add Site
                 </Button>
              </Link>
           </div>
@@ -161,7 +160,7 @@ export function Navigation() {
           animate-in fade-in slide-in-from-top-2 duration-700 transition-all group hover:bg-white/10 overflow-hidden">
           <Sparkles className="w-3.5 h-3.5 sm:w-4 h-4 text-primary shrink-0 group-hover:scale-110 transition-transform" />
           <span className="text-[10px] sm:text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider whitespace-normal leading-tight text-center flex-1 line-clamp-1">
-            {SUGGESTIONS[suggestionIdx]}
+            {TIPS[tipIdx]}
           </span>
         </div>
 

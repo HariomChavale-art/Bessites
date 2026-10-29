@@ -15,7 +15,9 @@ import {
   BookOpen,
   Book,
   Plus,
-  Wallet
+  Wallet,
+  Layers,
+  Rocket
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
@@ -32,9 +34,6 @@ const TIPS = [
   "Need help? Email us at: support@bessites.store",
 ];
 
-/**
- * Navigation Bar - Simplified labels and tips.
- */
 export function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
@@ -61,8 +60,10 @@ export function Navigation() {
 
   const sidebarLinks = [
     { label: 'My Websites', icon: Globe, href: '/my-websites' },
-    { label: 'My Stats', icon: BarChart3, href: '/analytics' },
+    { label: 'Activity Stats', icon: BarChart3, href: '/analytics' },
     { label: 'My Audience', icon: Users, href: '/audience' },
+    { label: 'Stacks', icon: Layers, href: '/stacks' },
+    { label: 'Launches', icon: Rocket, href: '/launches' },
     { label: 'My Wallet', icon: Wallet, href: '/wallet' },
     { label: 'Settings', icon: Settings, href: '/settings' },
     { label: 'Help & Support', icon: HelpCircle, href: '/support' },

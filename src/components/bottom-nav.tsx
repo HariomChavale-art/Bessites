@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, User, Sparkles } from "lucide-react";
+import { Home, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/firebase";
 import { useState, useEffect } from "react";
@@ -24,7 +24,6 @@ export function BottomNav() {
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/explore", icon: Search, label: "Search" },
-    { href: "/ouneo", icon: Sparkles, label: "Ouneo" },
     { href: "/profile", icon: User, label: "Profile" },
   ];
 

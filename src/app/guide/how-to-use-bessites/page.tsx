@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { BookOpen, CheckCircle2, ChevronLeft, ChevronRight, Sparkles, Globe } from "lucide-react";
 import Link from "next/link";
 import { Metadata } from "next";
+import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
   title: "How to Use Bessites Effectively - Step by Step | Bessites",

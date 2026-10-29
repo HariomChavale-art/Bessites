@@ -4,32 +4,24 @@ import { FieldValue } from 'firebase-admin/firestore';
 
 /**
  * @fileOverview Gumroad Webhook Handler for Bessites.
- * Receives POST ping from Gumroad on successful sale.
- * Atomically increments counters and unlocks user access.
+ * Confirms payment and unlocks the user account in Firestore.
  */
 
 export async function POST(req: NextRequest) {
   try {
     const data = await req.formData();
     
-    // 1. Verification
-    const sellerId = data.get('seller_id')?.toString();
-    if (sellerId !== process.env.GUMROAD_SELLER_ID) {
-      console.warn('[Gumroad Webhook] Unauthorized Seller ID:', sellerId);
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    // 1. Basic Metadata Extraction
     const email = data.get('email')?.toString();
-    const uid = data.get('custom_fields[uid]')?.toString();
+    const uid = data.get('custom_fields[uid]')?.toString(); // Assumes uid was passed in checkout
     const saleId = data.get('sale_id')?.toString();
-    const productPermalink = data.get('permalink')?.toString();
 
-    if (!uid || !email) {
-      console.error('[Gumroad Webhook] Missing UID or Email in metadata');
-      return NextResponse.json({ error: 'Missing Metadata' }, { status: 400 });
+    if (!uid) {
+      console.error('[Gumroad Webhook] Missing UID in checkout data');
+      return NextResponse.json({ error: 'Missing UID' }, { status: 400 });
     }
 
-    // 2. Atomic Firestore Transaction
+    // 2. Atomic Firestore Transaction to update stats and user
     const systemRef = adminDb.collection('system').doc('billingState');
     const userRef = adminDb.collection('users').doc(uid);
 
@@ -38,33 +30,28 @@ export async function POST(req: NextRequest) {
       const currentCount = systemSnap.exists ? systemSnap.data()?.paidUserCount || 0 : 0;
       const newCount = currentCount + 1;
 
-      // Determine plan type based on permalink
-      const isLifetime = productPermalink === process.env.NEXT_PUBLIC_GUMROAD_LIFETIME_PERMALINK;
-      const planType = isLifetime ? 'halloween_lifetime' : 'annual_pro';
-
       // Update System Stats
       transaction.set(systemRef, {
         paidUserCount: newCount,
-        isFreeTierUnlocked: newCount >= 6,
+        // If we reach the requested limit (e.g., 6), we could toggle isFreeTierUnlocked here
+        isFreeTierUnlocked: false, // Keeping it locked per request
         lastUpdated: FieldValue.serverTimestamp()
       }, { merge: true });
 
-      // Update User Doc
+      // Unlock User
       transaction.set(userRef, {
         hasPaidAccess: true,
-        planType,
-        founderNumber: newCount,
+        planType: 'founding_pass',
         gumroadSaleId: saleId,
         paymentEmail: email,
         unlockedAt: FieldValue.serverTimestamp()
       }, { merge: true });
     });
 
-    console.log(`[Gumroad Webhook] Successfully unlocked user ${uid} (Order: ${saleId})`);
     return NextResponse.json({ status: 'success', unlocked: true });
 
   } catch (error: any) {
     console.error('[Gumroad Webhook Error]:', error.message);
-    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed' }, { status: 500 });
   }
 }

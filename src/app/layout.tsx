@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/toast";
 import { BottomNav } from "@/components/bottom-nav";
 import { FirebaseClientProvider } from '@/firebase';
 import { Analytics } from "@vercel/analytics/react";
+import { CompulsoryPaymentGuard } from '@/components/auth/CompulsoryPaymentGuard';
 
 export const viewport: Viewport = {
   themeColor: '#18151F',
@@ -13,31 +14,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Bessites | Absolute Discovery Engine',
-  description: 'The premier professional directory for modern webs and digital tools. Zero duplication, zero padding, absolute discovery.',
+  title: 'Bessites | Find the Best Tools',
+  description: 'The premier website list for modern tools. Pay once, access forever.',
   metadataBase: new URL('https://bessites.store'),
   icons: {
     icon: [
       { url: 'https://i.imgur.com/3STBHNy.png', sizes: 'any', type: 'image/png' },
     ],
-    shortcut: 'https://i.imgur.com/3STBHNy.png',
-    apple: 'https://i.imgur.com/3STBHNy.png',
-  },
-  openGraph: {
-    title: 'Bessites | Absolute Discovery Engine',
-    description: 'The most diverse directory for modern webs and curated digital resources.',
-    url: 'https://bessites.store',
-    siteName: 'Bessites',
-    images: [
-      {
-        url: 'https://i.imgur.com/3STBHNy.png',
-        width: 1200,
-        height: 1200,
-        alt: 'Bessites Official Logo',
-      },
-    ],
-    locale: 'en_US',
-    type: 'website',
   },
 };
 
@@ -55,9 +38,11 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased bg-background text-foreground pb-32">
         <FirebaseClientProvider>
-          {children}
-          <BottomNav />
-          <Toaster />
+          <CompulsoryPaymentGuard>
+            {children}
+            <BottomNav />
+            <Toaster />
+          </CompulsoryPaymentGuard>
           <Analytics />
         </FirebaseClientProvider>
       </body>

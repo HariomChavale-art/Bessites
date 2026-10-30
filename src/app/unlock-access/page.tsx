@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useUser, useDoc, useFirestore } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser, useFirestore } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Loader2, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
@@ -11,12 +10,11 @@ import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
 
 /**
- * @fileOverview The Bessites Paywall.
- * Simple, professional, and clear.
+ * @fileOverview The Payment Page.
+ * Simple and easy to understand.
  */
 export default function UnlockAccessPage() {
   const { user, loading: userLoading } = useUser();
-  const db = useFirestore();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
@@ -34,7 +32,7 @@ export default function UnlockAccessPage() {
 
   return (
     <main className="min-h-screen w-full bg-[#0B0A0F] text-white flex flex-col items-center p-4 py-20 relative overflow-hidden">
-      {/* Background Ambience */}
+      {/* Background glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
       
       <Script src="https://gumroad.com/js/gumroad-embed.js" strategy="lazyOnload" />
@@ -54,13 +52,13 @@ export default function UnlockAccessPage() {
           <div className="p-8 bg-white/5 border-b border-white/5 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-white/40 italic">Founding Member Account</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/40 italic">Account Active</span>
             </div>
             <span className="text-[10px] font-bold text-primary italic uppercase">{user.email}</span>
           </div>
           
           <div className="min-h-[450px] relative p-6">
-            {/* Gumroad Embed Node */}
+            {/* Gumroad payment tool */}
             <div 
               className="gumroad-product-embed" 
               data-gumroad-product-id="bessites_pass" 
@@ -68,7 +66,7 @@ export default function UnlockAccessPage() {
             >
               <div className="flex flex-col items-center justify-center py-20 space-y-4">
                 <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
-                <p className="text-[10px] font-black uppercase text-white/20 tracking-widest">Connecting to Payment Node...</p>
+                <p className="text-[10px] font-black uppercase text-white/20 tracking-widest">Opening Payment Screen...</p>
               </div>
             </div>
           </div>
@@ -76,26 +74,26 @@ export default function UnlockAccessPage() {
           <div className="p-8 bg-white/[0.02] border-t border-white/5 flex items-center justify-between gap-6">
              <div className="flex items-center gap-3 text-emerald-400">
                 <ShieldCheck className="w-5 h-5" />
-                <span className="text-[10px] font-black uppercase tracking-widest italic">Secure Payment</span>
+                <span className="text-[10px] font-black uppercase tracking-widest italic">Safe Payment</span>
              </div>
              <div className="flex items-center gap-3 text-primary">
                 <Zap className="w-5 h-5 fill-current" />
-                <span className="text-[10px] font-black uppercase tracking-widest italic">Instant Unlock</span>
+                <span className="text-[10px] font-black uppercase tracking-widest italic">Instant Access</span>
              </div>
           </div>
         </Card>
 
         <footer className="text-center space-y-8">
            <div className="flex flex-col gap-4">
-             <p className="text-xs text-muted-foreground italic">Already paid? Refresh to sync your account.</p>
+             <p className="text-xs text-muted-foreground italic">Paid already? Refresh the page to start.</p>
              <Button 
                onClick={() => window.location.reload()}
                className="h-14 px-10 rounded-full bg-white text-black font-black uppercase italic tracking-widest text-xs hover:scale-105 transition-all shadow-xl"
              >
-               CHECK STATUS NOW <ArrowRight className="w-4 h-4 ml-2" />
+               CHECK MY STATUS <ArrowRight className="w-4 h-4 ml-2" />
              </Button>
            </div>
-           <button onClick={() => router.push('/login')} className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 hover:text-primary transition-colors">Sign out and switch account</button>
+           <button onClick={() => router.push('/login')} className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 hover:text-primary transition-colors">Sign out and use another account</button>
         </footer>
       </div>
     </main>

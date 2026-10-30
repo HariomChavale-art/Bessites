@@ -1,8 +1,8 @@
 import { MetadataRoute } from 'next'
 
 /**
- * Official Bessites Sitemap Generator
- * Indexes all 30+ discovery nodes, manuals, and intelligence hubs.
+ * Official Bessites Sitemap Generator.
+ * Lists all the main pages and guides for search engines.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://bessites.store'

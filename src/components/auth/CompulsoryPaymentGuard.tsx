@@ -64,12 +64,13 @@ export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode
   }, [user, userDoc, billingState, userLoading, docLoading, billingLoading, pathname, router, db]);
 
   // Loading state prevents flickering and layout shifts
+  // Note: On the server, this will always return loading state which is safe
   if (userLoading || docLoading || billingLoading || (!isReady && pathname !== '/login')) {
     return (
       <div className="min-h-screen bg-[#0B0A0F] flex flex-col items-center justify-center space-y-6">
         <Loader2 className="animate-spin text-primary w-10 h-10" />
         <p className="text-[10px] font-black uppercase text-white/20 tracking-[0.4em] italic">
-          Verifying Access...
+          Checking access...
         </p>
       </div>
     );

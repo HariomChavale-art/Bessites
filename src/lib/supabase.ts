@@ -1,4 +1,3 @@
-
 /**
  * @fileOverview DEPRECATED. 
  * This system has migrated to a 100% Firebase-native architecture.
@@ -6,4 +5,11 @@
  */
 
 export const supabase = null;
-export const getSupabaseConfigStatus = () => ({ isConfigured: false });
+
+export const getSupabaseConfigStatus = () => {
+  return {
+    hasUrl: false,
+    hasKey: false,
+    isConfigured: false
+  };
+};

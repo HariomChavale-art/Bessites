@@ -11,8 +11,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const mainPages = [
     '',
     '/explore',
-    '/stacks',
-    '/launches',
     '/about',
     '/contact',
     '/privacy-policy',
@@ -25,7 +23,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/toolkit',
     '/glossary',
     '/benchmarks',
-    '/guide'
+    '/guide',
+    '/my-websites',
+    '/analytics',
+    '/audience',
+    '/wallet',
+    '/settings',
+    '/support'
   ]
 
   const guides = [

@@ -6,8 +6,13 @@ import { FirebaseClientProvider } from '@/firebase';
 import { Analytics } from "@vercel/analytics/react";
 import { CompulsoryPaymentGuard } from '@/components/auth/CompulsoryPaymentGuard';
 
+/**
+ * Root Layout for Bessites.
+ * Wraps the application in a Compulsory Payment Guard.
+ */
+
 export const viewport: Viewport = {
-  themeColor: '#18151F',
+  themeColor: '#0d0c1d',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -15,7 +20,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: 'Bessites | Find the Best Tools',
-  description: 'The premier website list for modern tools. Pay once, access forever.',
+  description: 'The premier professional directory for modern webs and digital tools. Pay once, access forever.',
   metadataBase: new URL('https://bessites.store'),
   icons: {
     icon: [

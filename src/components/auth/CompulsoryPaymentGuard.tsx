@@ -27,27 +27,34 @@ export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode
   const { data: billingState, loading: billingLoading } = useDoc<any>(billingRef);
 
   useEffect(() => {
+    // Wait for all auth and billing data to load
     if (userLoading || docLoading || billingLoading || !db) return;
 
-    // Allowed paths during the lock phase
-    const isPublicPath = pathname === '/login' || pathname === '/unlock-access' || pathname?.startsWith('/api');
+    // Allowed paths that bypass the payment check
+    const isPublicPath = 
+      pathname === '/login' || 
+      pathname === '/unlock-access' || 
+      pathname === '/onboarding' ||
+      pathname?.startsWith('/api');
     
-    // Logic: If user is logged in but hasn't paid, and we are in the "Paid Only" phase
     const hasPaid = userDoc?.hasPaidAccess === true;
     const isFreeTierUnlocked = billingState?.isFreeTierUnlocked === true;
     
     if (user && !hasPaid && !isFreeTierUnlocked && !isPublicPath) {
+      // Force redirect to unlock page if payment is missing
       router.replace('/unlock-access');
     } else if (user && (hasPaid || isFreeTierUnlocked) && pathname === '/unlock-access') {
+      // If already paid, move away from unlock page
       router.replace('/');
     } else {
+      // Access granted
       setIsReady(true);
     }
 
   }, [user, userDoc, billingState, userLoading, docLoading, billingLoading, pathname, router, db]);
 
-  // Loading State
-  if (userLoading || docLoading || billingLoading || (!isReady && pathname !== '/login' && pathname !== '/unlock-access')) {
+  // Loading state prevents layout shift and unauthorized data exposure
+  if (userLoading || docLoading || billingLoading || (!isReady && pathname !== '/login' && pathname !== '/unlock-access' && pathname !== '/onboarding')) {
     return (
       <div className="min-h-screen bg-[#0B0A0F] flex flex-col items-center justify-center space-y-6">
         <Loader2 className="animate-spin text-primary w-10 h-10" />

@@ -14,7 +14,8 @@ import {
   LogOut,
   BookOpen,
   Book,
-  Plus
+  Plus,
+  Wallet
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
@@ -48,7 +49,7 @@ export function Navigation() {
   const handleLogout = async () => {
     if (auth) {
       await signOut(auth);
-      router.push("/");
+      router.push("/login");
     }
   };
 
@@ -59,6 +60,7 @@ export function Navigation() {
     { label: 'My Websites', icon: Globe, href: '/my-websites' },
     { label: 'Activity Stats', icon: BarChart3, href: '/analytics' },
     { label: 'My Audience', icon: Users, href: '/audience' },
+    { label: 'Wallet', icon: Wallet, href: '/wallet' },
     { label: 'Settings', icon: Settings, href: '/settings' },
     { label: 'Help & Support', icon: HelpCircle, href: '/support' },
   ];

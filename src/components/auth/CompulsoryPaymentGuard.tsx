@@ -7,8 +7,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 /**
- * @fileOverview Security Node for Paid Access.
- * Redirects users to the payment gate if they haven't bought the Founding Pass.
+ * @fileOverview Security Node for Authentication and Paid Access.
+ * Redirects unauthenticated users to /login.
+ * Redirects unpaid users to /unlock-access ($19.99).
  */
 
 export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode }) {
@@ -30,21 +31,30 @@ export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode
     // Wait for all auth and billing data to load
     if (userLoading || docLoading || billingLoading || !db) return;
 
-    // Allowed paths that bypass the payment check
     const isPublicPath = 
       pathname === '/login' || 
       pathname === '/unlock-access' || 
       pathname === '/onboarding' ||
       pathname?.startsWith('/api');
-    
+
+    // Case 1: Not logged in
+    if (!user) {
+      if (pathname !== '/login') {
+        router.replace('/login');
+      } else {
+        setIsReady(true);
+      }
+      return;
+    }
+
+    // Case 2: Logged in - check payment
     const hasPaid = userDoc?.hasPaidAccess === true;
     const isFreeTierUnlocked = billingState?.isFreeTierUnlocked === true;
+    const canAccess = hasPaid || isFreeTierUnlocked;
     
-    if (user && !hasPaid && !isFreeTierUnlocked && !isPublicPath) {
-      // Force redirect to unlock page if payment is missing
+    if (!canAccess && !isPublicPath) {
       router.replace('/unlock-access');
-    } else if (user && (hasPaid || isFreeTierUnlocked) && pathname === '/unlock-access') {
-      // If already paid, move away from unlock page
+    } else if (canAccess && pathname === '/unlock-access') {
       router.replace('/');
     } else {
       // Access granted
@@ -53,8 +63,8 @@ export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode
 
   }, [user, userDoc, billingState, userLoading, docLoading, billingLoading, pathname, router, db]);
 
-  // Loading state prevents layout shift and unauthorized data exposure
-  if (userLoading || docLoading || billingLoading || (!isReady && pathname !== '/login' && pathname !== '/unlock-access' && pathname !== '/onboarding')) {
+  // Loading state prevents flickering and layout shifts
+  if (userLoading || docLoading || billingLoading || (!isReady && pathname !== '/login')) {
     return (
       <div className="min-h-screen bg-[#0B0A0F] flex flex-col items-center justify-center space-y-6">
         <Loader2 className="animate-spin text-primary w-10 h-10" />

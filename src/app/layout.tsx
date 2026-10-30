@@ -8,7 +8,7 @@ import { CompulsoryPaymentGuard } from '@/components/auth/CompulsoryPaymentGuard
 
 /**
  * Root Layout for Bessites.
- * Wraps the application in a Compulsory Payment Guard.
+ * Wraps the application in a Security Guard for Authentication and Payment.
  */
 
 export const viewport: Viewport = {

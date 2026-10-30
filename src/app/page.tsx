@@ -5,7 +5,7 @@ import { Navigation } from "@/components/navigation";
 import { MasonryFeed } from "@/components/masonry-feed";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, TrendingUp, Clock, Loader2, Globe, ShieldCheck, Zap, Heart } from "lucide-react";
+import { Sparkles, TrendingUp, Clock, Loader2, Globe, ShieldCheck, Zap } from "lucide-react";
 import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
 import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
@@ -13,20 +13,14 @@ import { getBroadCategoriesForTag } from "@/lib/category-mapping";
 import { Footer } from "@/components/footer";
 
 /**
- * Bessites Main Page - Simplified for everyone to understand.
- * We use simple words like "Find" and "Best" instead of complex jargon.
+ * Bessites Main Page - Stable Discovery Feed.
+ * Features a deterministic A-Z sort to prevent layout shifting.
  */
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
   const { user, loading: authLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-    }
-  }, [user, authLoading, router]);
 
   const userDocRef = useMemo(() => {
     if (!user || !db) return null;
@@ -61,6 +55,11 @@ export default function Home() {
       categories: s.categories || ["Web App"],
       url: s.url,
       pricing: s.pricing || "Free",
+      baseVisits: 0,
+      baseLikes: 0,
+      baseSaves: 0,
+      baseShares: 0,
+      rating: 4.5,
       ...s
     }));
     
@@ -80,6 +79,7 @@ export default function Home() {
   const filteredWebsites = useMemo(() => {
     let results = [...allAvailableWebsites];
     
+    // Deterministic Lock: Alphabetical by default
     results.sort((a, b) => {
       const nameA = (a.websiteName || a.name || "").toLowerCase();
       const nameB = (b.websiteName || b.name || "").toLowerCase();
@@ -111,7 +111,13 @@ export default function Home() {
     return results;
   }, [activeTab, userBroadInterests, allAvailableWebsites, globalStats]);
 
-  if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-12 h-12 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background pb-32">

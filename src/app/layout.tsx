@@ -1,14 +1,14 @@
+
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { BottomNav } from "@/components/bottom-nav";
 import { FirebaseClientProvider } from '@/firebase';
-import { Analytics } from "@vercel/analytics/react";
 import { CompulsoryPaymentGuard } from '@/components/auth/CompulsoryPaymentGuard';
 
 /**
  * Root Layout for Bessites.
- * Wraps the application in a Security Guard for Authentication and Payment.
+ * 100% Firebase-native architecture. Vercel dependencies removed.
  */
 
 export const viewport: Viewport = {
@@ -48,7 +48,6 @@ export default function RootLayout({
             <BottomNav />
             <Toaster />
           </CompulsoryPaymentGuard>
-          <Analytics />
         </FirebaseClientProvider>
       </body>
     </html>

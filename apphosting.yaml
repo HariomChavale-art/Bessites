@@ -1,13 +1,17 @@
-
 # Settings to manage and configure a Firebase App Hosting backend.
 # https://firebase.google.com/docs/app-hosting/configure
 
 runConfig:
-  # Deployment optimized for high-performance registry discovery
   maxInstances: 5
   memory: 512MiB
   cpu: 1
 
 env:
+  - variable: FIREBASE_PROJECT_ID
+    secret: FIREBASE_PROJECT_ID
+  - variable: FIREBASE_CLIENT_EMAIL
+    secret: FIREBASE_CLIENT_EMAIL
+  - variable: FIREBASE_PRIVATE_KEY
+    secret: FIREBASE_PRIVATE_KEY
   - variable: NEXT_PUBLIC_BASE_URL
     value: https://bessites.store

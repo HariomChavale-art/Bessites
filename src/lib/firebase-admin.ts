@@ -1,23 +1,42 @@
-
 import * as admin from 'firebase-admin';
 
 /**
- * @fileOverview Secure Firebase Admin Initialization for Server-side Node logic.
+ * @fileOverview Bulletproof Firebase Admin Initialization.
+ * Handles missing environment variables during build and malformed PEM keys.
  */
 
-if (!admin.apps.length) {
+let adminDb: admin.firestore.Firestore | null = null;
+let adminAuth: admin.auth.Auth | null = null;
+
+const projectId = process.env.FIREBASE_PROJECT_ID;
+const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+
+if (!projectId || !clientEmail || !privateKey) {
+  if (process.env.NODE_ENV === 'production') {
+    console.warn("FIREBASE_ADMIN: Missing essential environment variables. Admin SDK unavailable.");
+  }
+} else {
   try {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    });
-  } catch (error) {
-    console.error('Firebase Admin init error:', error);
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId,
+          clientEmail,
+          privateKey,
+        }),
+      });
+    }
+    adminDb = admin.firestore();
+    adminAuth = admin.auth();
+  } catch (error: any) {
+    console.error("FIREBASE_ADMIN: Initialization failed:", error.message);
   }
 }
 
-export const adminAuth = admin.auth();
-export const adminDb = admin.firestore();
+/**
+ * Helper to check if admin is initialized before performing operations.
+ */
+export const isReady = () => adminDb !== null && adminAuth !== null;
+
+export { adminDb, adminAuth };

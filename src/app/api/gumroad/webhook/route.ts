@@ -2,18 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
-/**
- * @fileOverview Gumroad Webhook Security Hub.
- * Hardened with global error boundaries and forced dynamic rendering.
- */
-
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
     if (!adminDb) {
-      console.warn("[Webhook] Firebase Admin node is unavailable.");
-      return NextResponse.json({ ok: false, message: 'System nodes synchronizing' }, { status: 200 });
+      return NextResponse.json({ ok: false, message: 'System nodes initializing' }, { status: 200 });
     }
 
     const data = await req.formData();
@@ -49,8 +43,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, status: 'authorized' });
 
   } catch (error: any) {
-    console.error("[Webhook Critical Error]:", error.message);
-    // Return 200 to prevent Next.js build crash and satisfy webhook retries
-    return NextResponse.json({ ok: false, error: 'Internal node error' }, { status: 200 });
+    console.error("[Webhook Error]:", error.message);
+    return NextResponse.json({ ok: false, error: 'Internal logic error' }, { status: 200 });
   }
 }

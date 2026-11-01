@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  /* Colors mapping for Tailwind v4 */
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -22,21 +21,13 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
 
-  /* Border Radius */
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
-  /* Fonts */
   --font-body: "Inter", sans-serif;
   --font-headline: "Poppins", sans-serif;
   --font-code: "monospace";
-
-  /* Animations */
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
-  --animate-marquee: marquee 30s linear infinite;
-  --animate-marquee-slow: marquee 50s linear infinite;
 
   @keyframes accordion-down {
     from { height: 0; }
@@ -54,16 +45,15 @@
 
 @layer base {
   :root {
-    /* Midnight Pulse Theme - Royal Purple & Obsidian */
-    --background: 255 18% 5%; /* #0D0C12 */
+    --background: 255 18% 5%;
     --foreground: 210 20% 98%;
     --card: 255 18% 7%;
     --card-foreground: 210 20% 98%;
     --popover: 255 18% 5%;
     --popover-foreground: 210 20% 98%;
-    --primary: 261 100% 60%; /* #7B33FF */
+    --primary: 261 100% 60%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 225 100% 76%; /* #85A3FF */
+    --secondary: 225 100% 76%;
     --secondary-foreground: 255 18% 10%;
     --muted: 255 18% 15%;
     --muted-foreground: 210 20% 60%;

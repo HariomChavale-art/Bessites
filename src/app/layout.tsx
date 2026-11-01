@@ -6,10 +6,6 @@ import { FirebaseClientProvider } from '@/firebase';
 import { CompulsoryPaymentGuard } from '@/components/auth/CompulsoryPaymentGuard';
 import Script from 'next/script';
 
-/**
- * Global Metadata Configuration
- * 100% Firebase-native architecture.
- */
 export const viewport: Viewport = {
   themeColor: '#0d0c1d',
   width: 'device-width',

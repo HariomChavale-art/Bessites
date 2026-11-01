@@ -4,10 +4,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { BottomNav } from "@/components/bottom-nav";
 import { FirebaseClientProvider } from '@/firebase';
 import { CompulsoryPaymentGuard } from '@/components/auth/CompulsoryPaymentGuard';
+import Script from 'next/script';
 
 /**
  * Global Metadata Configuration
- * 100% Firebase-native. Vercel dependencies removed.
+ * 100% Firebase-native architecture.
  */
 export const viewport: Viewport = {
   themeColor: '#0d0c1d',
@@ -17,7 +18,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Bessites | Find the Best Tools',
+  title: 'Bessites | Absolute Discovery Engine',
   description: 'The premier professional directory for modern webs and digital tools. Zero duplication, zero padding, absolute discovery.',
   metadataBase: new URL('https://bessites.store'),
   icons: {

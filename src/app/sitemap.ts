@@ -1,10 +1,9 @@
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://bessites.store'
   return [
     {
-      url: baseUrl,
+      url: 'https://bessites.com',
       lastModified: new Date(),
     },
   ]

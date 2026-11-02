@@ -8,7 +8,7 @@ import { Loader2 } from 'lucide-react';
 
 /**
  * @fileOverview Security Node: Enforces the $19.99 Founding Pass.
- * Ensures users are authenticated and have paid before accessing discovery nodes.
+ * Optimized with memoized references to prevent infinite re-render loops.
  */
 export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode }) {
   const { user, loading: userLoading } = useUser();
@@ -17,21 +17,21 @@ export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const [isReady, setIsReady] = useState(false);
 
-  // Memoize references to prevent infinite re-render loops in useDoc hook
+  // Memoize document references to ensure stability across renders
   const userRef = useMemo(() => 
     user && db ? doc(db, 'users', user.uid) : null, 
-    [user, db]
+    [user?.uid, !!db]
   );
   const { data: userDoc, loading: docLoading } = useDoc<any>(userRef);
 
   const billingRef = useMemo(() => 
     db ? doc(db, 'system', 'billingState') : null, 
-    [db]
+    [!!db]
   );
   const { data: billingState, loading: billingLoading } = useDoc<any>(billingRef);
 
   useEffect(() => {
-    // Wait for all data to synchronize
+    // Wait for auth and essential document synchronization
     if (userLoading || (user && (docLoading || billingLoading)) || !db) return;
 
     const isPublicPath = 
@@ -52,19 +52,20 @@ export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode
     const hasPaid = userDoc?.hasPaidAccess === true;
     const isFreeTierUnlocked = billingState?.isFreeTierUnlocked === true;
 
+    // Direct paywall enforcement
     if (!hasPaid && !isFreeTierUnlocked && !isPublicPath) {
       console.log("[Guard] Access Denied: Founding Pass Required");
       router.replace('/unlock-access');
     } else {
       setIsReady(true);
     }
-  }, [user, userDoc, billingState, userLoading, docLoading, billingLoading, pathname, router, db]);
+  }, [user?.uid, !!userDoc, !!billingState, userLoading, docLoading, billingLoading, pathname, router, !!db]);
 
   if (userLoading || (user && (docLoading || billingLoading)) || (!isReady && pathname !== '/login' && pathname !== '/unlock-access')) {
     return (
       <div className="min-h-screen bg-[#0B0A0F] flex flex-col items-center justify-center space-y-6">
         <Loader2 className="animate-spin text-primary w-10 h-10" />
-        <p className="text-[10px] font-black uppercase text-white/20 tracking-[0.4em]">
+        <p className="text-[10px] font-black uppercase text-white/20 tracking-[0.4em] italic">
           Synchronizing Discovery Pass...
         </p>
       </div>

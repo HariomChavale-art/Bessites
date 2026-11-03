@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -71,31 +70,29 @@ export default function UnlockAccessPage() {
         <header className="text-center space-y-4">
            <Logo className="text-5xl sm:text-7xl" />
            <div className="space-y-2">
-             <h2 className="text-3xl sm:text-5xl font-black italic text-white uppercase tracking-tighter">Registry Spotlight</h2>
+             <h2 className="text-3xl sm:text-5xl font-black italic text-white uppercase tracking-tighter">Registry Access</h2>
              <p className="text-muted-foreground font-medium italic text-lg sm:text-xl">
-               Access the top 1% of the modern web with Bessites Pro.
+               Activate your high-fidelity tool pass.
              </p>
            </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-           {/* Section 1: Buy */}
            <Card className="bg-[#12111A]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 sm:p-10 flex flex-col justify-between gap-10 shadow-2xl">
               <div className="space-y-4">
-                 <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">1. Get License</h3>
+                 <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">1. Subscribe</h3>
                  <p className="text-sm text-muted-foreground leading-relaxed italic">
-                    Subscribe to our high-fidelity tool suite. You will receive a unique license key in your email.
+                    Subscribe to the Pro pass. You will receive a unique license key in your email immediately.
                  </p>
               </div>
               <ProCTA />
            </Card>
 
-           {/* Section 2: Activate */}
            <Card className="bg-[#12111A]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 sm:p-10 space-y-8 shadow-2xl">
               <div className="space-y-4">
-                 <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">2. Activate</h3>
+                 <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">2. Activate Key</h3>
                  <p className="text-sm text-muted-foreground leading-relaxed italic">
-                    Paste your license key here to synchronize your Pro status.
+                    Paste your unique license key from Gumroad below to unlock the discovery node.
                  </p>
               </div>
 
@@ -103,7 +100,7 @@ export default function UnlockAccessPage() {
                  <div className="relative">
                     <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                     <Input 
-                      placeholder="GUM-XXXX-XXXX" 
+                      placeholder="XXXX-XXXX-XXXX-XXXX" 
                       value={licenseKey}
                       onChange={(e) => setLicenseKey(e.target.value)}
                       className="h-14 bg-white/5 border-white/10 rounded-2xl pl-12 text-sm font-mono tracking-widest"
@@ -114,7 +111,7 @@ export default function UnlockAccessPage() {
                    disabled={!licenseKey.trim() || isVerifying}
                    className="w-full h-14 rounded-2xl bg-white text-black font-black uppercase italic shadow-xl hover:bg-white/90"
                  >
-                    {isVerifying ? <Loader2 className="animate-spin w-5 h-5" /> : "ACTIVATE NODE"}
+                    {isVerifying ? <Loader2 className="animate-spin w-5 h-5" /> : "UNLOCK REGISTRY"}
                  </Button>
               </div>
            </Card>
@@ -123,10 +120,10 @@ export default function UnlockAccessPage() {
         <footer className="flex flex-col items-center gap-6">
            <div className="flex items-center gap-6 opacity-30">
               <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.3em]">
-                 <ShieldCheck className="w-3.5 h-3.5" /> Secure Handshake
+                 <ShieldCheck className="w-3.5 h-3.5" /> Security Verified
               </div>
               <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.3em]">
-                 <Zap className="w-3.5 h-3.5" /> Instant Unlock
+                 <Zap className="w-3.5 h-3.5" /> Instant Delivery
               </div>
            </div>
            
@@ -134,7 +131,7 @@ export default function UnlockAccessPage() {
              onClick={handleLogout}
              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-white/20 hover:text-primary transition-colors group"
            >
-             <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform" /> Sign out
+             <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform" /> Switch account
            </button>
         </footer>
       </div>

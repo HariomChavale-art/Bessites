@@ -1,6 +1,5 @@
-
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb, adminAuth } from '@/lib/firebase-admin';
+import { adminDb } from '@/lib/firebase-admin';
 
 /**
  * @fileOverview Secure License Verification Node.
@@ -14,11 +13,11 @@ export async function POST(req: NextRequest) {
     const { licenseKey, uid } = await req.json();
 
     if (!licenseKey || !uid) {
-      return NextResponse.json({ ok: false, message: 'Invalid payload' }, { status: 400 });
+      return NextResponse.json({ ok: false, message: 'Invalid identification payload.' }, { status: 400 });
     }
 
     if (!adminDb) {
-      return NextResponse.json({ ok: false, message: 'System nodes offline' }, { status: 500 });
+      return NextResponse.json({ ok: false, message: 'System nodes offline. Please retry later.' }, { status: 500 });
     }
 
     // 1. Handshake with Gumroad API
@@ -36,7 +35,7 @@ export async function POST(req: NextRequest) {
     if (!data.success) {
       return NextResponse.json({ 
         ok: false, 
-        message: data.message || 'Verification failed. Please check your key.' 
+        message: data.message || 'Key rejected by Gumroad. Verify and try again.' 
       });
     }
 
@@ -54,6 +53,6 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error("[License Verification Error]:", error.message);
-    return NextResponse.json({ ok: false, message: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ ok: false, message: 'Internal verification loop failure.' }, { status: 500 });
   }
 }

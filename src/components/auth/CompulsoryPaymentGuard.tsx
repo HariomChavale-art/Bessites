@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -7,7 +8,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 /**
- * @fileOverview Security Node: Enforces the $19.99 Founding Pass.
+ * @fileOverview Security Node: Enforces the Bessites Pro Access Gate.
  * Optimized with memoized references to prevent infinite re-render loops.
  */
 export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode }) {
@@ -38,6 +39,7 @@ export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode
       pathname === '/login' || 
       pathname === '/unlock-access' || 
       pathname === '/onboarding' || 
+      pathname === '/pro-success' || 
       pathname?.startsWith('/api');
 
     if (!user) {
@@ -49,12 +51,13 @@ export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode
       return;
     }
 
-    const hasPaid = userDoc?.hasPaidAccess === true;
+    // New verification logic: check for Pro status
+    const hasPaid = userDoc?.isPro === true || userDoc?.hasPaidAccess === true;
     const isFreeTierUnlocked = billingState?.isFreeTierUnlocked === true;
 
     // Direct paywall enforcement
     if (!hasPaid && !isFreeTierUnlocked && !isPublicPath) {
-      console.log("[Guard] Access Denied: Founding Pass Required");
+      console.log("[Guard] Access Denied: Pro License Required");
       router.replace('/unlock-access');
     } else {
       setIsReady(true);

@@ -9,6 +9,13 @@
     ],
     "cleanUrls": true,
     "trailingSlash": false,
-    "frameworksBackend": {}
+    "frameworksBackend": {},
+    "redirects": [
+      {
+        "source": "/pro-success",
+        "destination": "/pro-success.html",
+        "type": 301
+      }
+    ]
   }
 }

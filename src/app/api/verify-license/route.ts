@@ -4,7 +4,7 @@ import { adminDb } from '@/lib/firebase-admin';
 
 /**
  * @fileOverview Secure License Verification Node.
- * Verifies Gumroad License keys for the new 'Bessites' product.
+ * Verifies Gumroad License keys for the 'Bessites' product (bessites2).
  */
 
 export const dynamic = 'force-dynamic';
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Handshake with Gumroad API
-    // Using the new product permalink: 'Bessites'
+    // Product permalink: 'Bessites' (from bessites2.gumroad.com/l/Bessites)
     const response = await fetch('https://api.gumroad.com/v2/licenses/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

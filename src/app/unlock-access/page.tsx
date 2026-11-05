@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { useUser, useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
-import { Loader2, ShieldCheck, Zap, LogOut, Key, ArrowRight } from 'lucide-react';
+import { Loader2, ShieldCheck, Zap, LogOut, Key, ArrowRight, Mail } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,7 +55,7 @@ export default function UnlockAccessPage() {
     }
   };
 
-  if (userLoading || !user) {
+  if (userLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0B0A0F]">
         <Loader2 className="animate-spin text-primary w-10 h-10" />
@@ -65,6 +65,7 @@ export default function UnlockAccessPage() {
 
   return (
     <main className="min-h-screen w-full bg-[#0B0A0F] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Ambient Glow */}
       <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
       
       <div className="max-w-4xl w-full space-y-12 relative z-10 animate-in fade-in zoom-in duration-1000">
@@ -79,12 +80,13 @@ export default function UnlockAccessPage() {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+           {/* Step 1: Purchase */}
            <Card className="bg-[#12111A]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 sm:p-10 flex flex-col justify-between gap-10 shadow-2xl">
               <div className="space-y-6">
                  <div className="space-y-2">
                     <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">1. Subscribe</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed italic">
-                       Subscribe to the Pro pass. You will receive a unique license key in your email immediately.
+                       Subscribe to the Pro pass. You will receive a unique license key in your email from Gumroad immediately.
                     </p>
                  </div>
                  <div className="space-y-3">
@@ -101,6 +103,7 @@ export default function UnlockAccessPage() {
               <ProCTA />
            </Card>
 
+           {/* Step 2: Activate */}
            <Card className="bg-[#12111A]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 sm:p-10 space-y-10 shadow-2xl">
               <div className="space-y-4">
                  <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">2. Activate Key</h3>
@@ -128,10 +131,13 @@ export default function UnlockAccessPage() {
                  </Button>
               </div>
               
-              <div className="pt-6 border-t border-white/5 text-center">
+              <div className="pt-6 border-t border-white/5 text-center flex flex-col items-center gap-2">
                  <p className="text-[9px] font-black uppercase text-white/20 tracking-widest">
-                    Problems? Contact bessitesofficial@gmail.com
+                    Questions? Reach our support node
                  </p>
+                 <a href="mailto:bessitesofficial@gmail.com" className="text-[10px] font-bold text-primary italic hover:underline">
+                    bessitesofficial@gmail.com
+                 </a>
               </div>
            </Card>
         </div>

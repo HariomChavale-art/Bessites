@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Rocket } from 'lucide-react';
+import { Rocket, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -14,7 +14,7 @@ export function ProCTA({ className }: { className?: string }) {
   const [pricing, setPricing] = useState('$19/year');
 
   useEffect(() => {
-    // Detect region via TimeZone as a zero-latency proxy
+    // Detect region via TimeZone as a zero-latency proxy for India
     const isIndia = Intl.DateTimeFormat().resolvedOptions().timeZone === 'Asia/Kolkata';
     if (isIndia) {
       setPricing('₹1599/year');

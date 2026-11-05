@@ -7,78 +7,49 @@
     <title>Welcome to Bessites Pro!</title>
     <style>
         body {
-            background-color: #0B0A0F;
-            color: #FFFFFF;
+            background: #0B0A0F;
+            color: white;
             font-family: 'Inter', -apple-system, sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             text-align: center;
         }
         .container {
-            max-width: 600px;
+            max-width: 500px;
             padding: 40px;
-            background: #12111A;
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 48px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 40px;
         }
-        h1 {
-            font-size: 32px;
-            font-weight: 900;
-            font-style: italic;
-            text-transform: uppercase;
-            letter-spacing: -1px;
-            margin-bottom: 20px;
-        }
-        p {
-            font-size: 18px;
-            line-height: 1.6;
-            color: #888;
-            margin-bottom: 30px;
-        }
-        .highlight {
-            color: #7B33FF;
-            font-weight: 800;
-        }
+        h1 { font-style: italic; font-weight: 900; letter-spacing: -0.05em; text-transform: uppercase; color: #7B33FF; margin-bottom: 20px; }
+        p { color: rgba(255, 255, 255, 0.6); line-height: 1.6; margin-bottom: 30px; }
         .btn {
             display: inline-block;
-            background: #FFFFFF;
-            color: #000000;
-            padding: 16px 40px;
-            border-radius: 100px;
+            background: white;
+            color: black;
+            padding: 18px 40px;
+            border-radius: 20px;
             text-decoration: none;
             font-weight: 900;
             text-transform: uppercase;
             font-style: italic;
             transition: transform 0.2s;
         }
-        .btn:hover {
-            transform: scale(1.05);
-        }
-        .footer {
-            margin-top: 40px;
-            font-size: 12px;
-            color: rgba(255,255,255,0.2);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
+        .btn:hover { transform: scale(1.05); }
+        .support { font-size: 11px; margin-top: 40px; color: rgba(255, 255, 255, 0.2); text-transform: uppercase; letter-spacing: 0.2em; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to <span class="highlight">Bessites Pro!</span></h1>
+        <h1>Payment Success!</h1>
         <p>
-            Payment success! Please <span class="highlight">check your email</span> for a message from Gumroad containing your unique license key.
-            <br><br>
-            Copy that key and paste it into the <b>Registry Access</b> page on Bessites to unlock your high-fidelity experience.
+            Welcome to <strong>Bessites Pro</strong>. Check your email for a license key from Gumroad. Copy that key and paste it in the activation portal to unlock your pass.
         </p>
-        <a href="/" class="btn">Go to Bessites</a>
-        <div class="footer">
-            Questions? bessitesofficial@gmail.com
-        </div>
+        <a href="https://bessites.store/unlock-access" class="btn">Go to Activation</a>
+        <div class="support">Questions? bessitesofficial@gmail.com</div>
     </div>
 </body>
 </html>

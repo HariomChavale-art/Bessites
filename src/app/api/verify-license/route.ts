@@ -3,7 +3,7 @@ import { adminDb } from '@/lib/firebase-admin';
 
 /**
  * @fileOverview Secure License Verification Node.
- * Verifies Gumroad License keys and unlocks Pro status in Firestore.
+ * Verifies Gumroad License keys for the new 'Bessites' product.
  */
 
 export const dynamic = 'force-dynamic';
@@ -21,12 +21,13 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Handshake with Gumroad API
+    // Using the new product permalink: Bessites
     const response = await fetch('https://api.gumroad.com/v2/licenses/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         product_permalink: 'Bessites',
-        license_key: licenseKey
+        license_key: licenseKey.trim()
       })
     });
 
@@ -44,9 +45,9 @@ export async function POST(req: NextRequest) {
     await userRef.set({
       isPro: true,
       hasPaidAccess: true,
-      licenseKey: licenseKey,
+      licenseKey: licenseKey.trim(),
       unlockedAt: new Date().toISOString(),
-      planType: 'pro_subscription'
+      planType: 'pro_subscription_v2'
     }, { merge: true });
 
     return NextResponse.json({ ok: true, message: 'Registry Unlocked!' });

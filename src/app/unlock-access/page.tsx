@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useUser, useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
-import { Loader2, ShieldCheck, Zap, LogOut, Key } from 'lucide-react';
+import { Loader2, ShieldCheck, Zap, LogOut, Key, ArrowRight } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,10 @@ import { signOut } from 'firebase/auth';
 import { ProCTA } from '@/components/ProCTA';
 import { useToast } from '@/hooks/use-toast';
 
+/**
+ * @fileOverview Full-Page Payment & Activation Hub.
+ * Enforces the transition to the new Bessites Pro model.
+ */
 export default function UnlockAccessPage() {
   const { user, loading: userLoading } = useUser();
   const auth = useAuth();
@@ -66,9 +70,9 @@ export default function UnlockAccessPage() {
     <main className="min-h-screen w-full bg-[#0B0A0F] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
       
-      <div className="max-w-3xl w-full space-y-12 relative z-10 animate-in fade-in zoom-in duration-1000">
-        <header className="text-center space-y-4">
-           <Logo className="text-5xl sm:text-7xl" />
+      <div className="max-w-4xl w-full space-y-12 relative z-10 animate-in fade-in zoom-in duration-1000">
+        <header className="text-center space-y-6">
+           <Logo className="text-5xl sm:text-8xl" />
            <div className="space-y-2">
              <h2 className="text-3xl sm:text-5xl font-black italic text-white uppercase tracking-tighter">Registry Access</h2>
              <p className="text-muted-foreground font-medium italic text-lg sm:text-xl">
@@ -77,39 +81,49 @@ export default function UnlockAccessPage() {
            </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-           <Card className="bg-[#12111A]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 sm:p-10 flex flex-col justify-between gap-10 shadow-2xl">
-              <div className="space-y-4">
-                 <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">1. Subscribe</h3>
-                 <p className="text-sm text-muted-foreground leading-relaxed italic">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+           <Card className="bg-[#12111A]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-10 flex flex-col justify-between gap-10 shadow-2xl">
+              <div className="space-y-6">
+                 <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center">
+                     <Zap className="w-5 h-5 text-primary" />
+                   </div>
+                   <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">1. Subscribe</h3>
+                 </div>
+                 <p className="text-base text-muted-foreground leading-relaxed italic">
                     Subscribe to the Pro pass. You will receive a unique license key in your email immediately.
                  </p>
               </div>
               <ProCTA />
            </Card>
 
-           <Card className="bg-[#12111A]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 sm:p-10 space-y-8 shadow-2xl">
-              <div className="space-y-4">
-                 <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">2. Activate Key</h3>
-                 <p className="text-sm text-muted-foreground leading-relaxed italic">
+           <Card className="bg-[#12111A]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-10 space-y-10 shadow-2xl">
+              <div className="space-y-6">
+                 <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 flex items-center justify-center">
+                     <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                   </div>
+                   <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">2. Activate</h3>
+                 </div>
+                 <p className="text-base text-muted-foreground leading-relaxed italic">
                     Paste your unique license key from Gumroad below to unlock the discovery node.
                  </p>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-6">
                  <div className="relative">
-                    <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                    <Key className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
                     <Input 
                       placeholder="XXXX-XXXX-XXXX-XXXX" 
                       value={licenseKey}
                       onChange={(e) => setLicenseKey(e.target.value)}
-                      className="h-14 bg-white/5 border-white/10 rounded-2xl pl-12 text-sm font-mono tracking-widest"
+                      className="h-16 bg-white/5 border-white/10 rounded-2xl pl-14 text-sm font-mono tracking-widest uppercase"
                     />
                  </div>
                  <Button 
                    onClick={handleVerify}
                    disabled={!licenseKey.trim() || isVerifying}
-                   className="w-full h-14 rounded-2xl bg-white text-black font-black uppercase italic shadow-xl hover:bg-white/90"
+                   className="w-full h-16 rounded-2xl bg-white text-black font-black uppercase italic shadow-xl hover:bg-white/90"
                  >
                     {isVerifying ? <Loader2 className="animate-spin w-5 h-5" /> : "UNLOCK REGISTRY"}
                  </Button>
@@ -118,12 +132,12 @@ export default function UnlockAccessPage() {
         </div>
 
         <footer className="flex flex-col items-center gap-6">
-           <div className="flex items-center gap-6 opacity-30">
-              <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.3em]">
-                 <ShieldCheck className="w-3.5 h-3.5" /> Security Verified
+           <div className="flex items-center gap-8 opacity-30">
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em]">
+                 <ShieldCheck className="w-4 h-4 text-emerald-500" /> Security Verified
               </div>
-              <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.3em]">
-                 <Zap className="w-3.5 h-3.5" /> Instant Delivery
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em]">
+                 <Zap className="w-4 h-4 text-primary" /> Instant Delivery
               </div>
            </div>
            

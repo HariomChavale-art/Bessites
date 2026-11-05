@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,54 +8,77 @@
     <style>
         body {
             background-color: #0B0A0F;
-            color: white;
-            font-family: 'Inter', sans-serif;
+            color: #FFFFFF;
+            font-family: 'Inter', -apple-system, sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
+            height: 100vh;
             margin: 0;
             text-align: center;
         }
-        .card {
+        .container {
+            max-width: 600px;
+            padding: 40px;
             background: #12111A;
             border: 1px solid rgba(255,255,255,0.05);
-            padding: 4rem;
-            border-radius: 3rem;
-            max-width: 500px;
+            border-radius: 48px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
-        h1 { font-weight: 900; font-style: italic; text-transform: uppercase; letter-spacing: -0.05em; font-size: 2.5rem; margin-bottom: 1.5rem; }
-        p { color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 2rem; font-weight: 500; }
-        .highlight { color: #7B33FF; font-weight: 900; }
+        h1 {
+            font-size: 32px;
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .highlight {
+            color: #7B33FF;
+            font-weight: 800;
+        }
         .btn {
             display: inline-block;
-            background: white;
-            color: black;
-            padding: 1rem 2rem;
-            border-radius: 1rem;
+            background: #FFFFFF;
+            color: #000000;
+            padding: 16px 40px;
+            border-radius: 100px;
             text-decoration: none;
             font-weight: 900;
             text-transform: uppercase;
             font-style: italic;
             transition: transform 0.2s;
         }
-        .btn:hover { transform: scale(1.05); }
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.2);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
     </style>
 </head>
 <body>
-    <div class="card">
+    <div class="container">
         <h1>Welcome to <span class="highlight">Bessites Pro!</span></h1>
         <p>
-            Payment successful! Please <span class="highlight">check your email</span> for a message from Gumroad containing your unique license key.
+            Payment success! Please <span class="highlight">check your email</span> for a message from Gumroad containing your unique license key.
+            <br><br>
+            Copy that key and paste it into the <b>Registry Access</b> page on Bessites to unlock your high-fidelity experience.
         </p>
-        <p>
-            Copy that key and paste it into the activation box on Bessites to unlock your access.
-        </p>
-        <a href="/" class="btn">Back to Bessites</a>
-        <p style="margin-top: 2rem; font-size: 0.8rem; opacity: 0.4;">
+        <a href="/" class="btn">Go to Bessites</a>
+        <div class="footer">
             Questions? bessitesofficial@gmail.com
-        </p>
+        </div>
     </div>
 </body>
 </html>

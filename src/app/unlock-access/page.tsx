@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { useUser, useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
-import { Loader2, ShieldCheck, Zap, LogOut, Key, ArrowRight, Mail } from 'lucide-react';
+import { Loader2, ShieldCheck, Zap, LogOut, Key, ArrowRight } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

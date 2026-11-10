@@ -24,8 +24,7 @@ import {
   Eye, 
   EyeOff, 
   ShieldCheck,
-  ArrowRight,
-  Plus
+  ArrowRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
@@ -322,11 +321,36 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* OAuth Nodes */}
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              <OAuthButton icon="Apple" label="Apple" onClick={() => handleOAuth('apple')} />
-              <OAuthButton icon="Google" label="Google" onClick={() => handleOAuth('google')} />
-              <OAuthButton icon="Passkey" label="Passkey" onClick={() => {}} />
+            {/* Functional Social Nodes */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <button 
+                type="button" 
+                onClick={() => handleOAuth('apple')}
+                className="bg-[#0f0520]/80 backdrop-blur-md border border-purple-500/30 hover:bg-purple-900/40 hover:border-purple-400/60 p-3 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all group"
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                  </svg>
+                </div>
+                <span className="text-[10px] font-black uppercase text-white/60 group-hover:text-white transition-colors">Apple</span>
+              </button>
+
+              <button 
+                type="button" 
+                onClick={() => handleOAuth('google')}
+                className="bg-[#0f0520]/80 backdrop-blur-md border border-purple-500/30 hover:bg-purple-900/40 hover:border-purple-400/60 p-3 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all group"
+              >
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.8C6.2 7.2 8.9 5 12 5z"/>
+                    <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.6l3.7 2.9c2.2-2 3.7-5 3.7-8.7z"/>
+                    <path fill="#FBBC05" d="M5.3 14.8c-.2-.8-.4-1.6-.4-2.5s.2-1.7.4-2.5L1.6 7C.6 9 0 11.2 0 13.5s.6 4.5 1.6 6.5l3.7-2.9z"/>
+                    <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5l-3.7 2.8C3.5 21.4 7.4 24 12 24z"/>
+                  </svg>
+                </div>
+                <span className="text-[10px] font-black uppercase text-white/60 group-hover:text-white transition-colors">Google</span>
+              </button>
             </div>
 
             <div className="relative flex py-2 items-center mb-6">
@@ -403,7 +427,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="btn-electric w-full h-14 rounded-2xl font-headline font-black text-sm text-white tracking-widest uppercase italic gap-3 mt-4"
+                className="btn-electric w-full h-14 rounded-2xl font-headline font-black text-sm text-white tracking-widest uppercase italic gap-3 mt-4 border-none"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                   <>
@@ -413,6 +437,16 @@ export default function LoginPage() {
                 )}
               </Button>
             </form>
+
+            <div className="mt-8 text-center">
+              <button 
+                type="button" 
+                onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                className="text-[10px] font-black uppercase tracking-widest text-purple-300/50 hover:text-white transition-colors"
+              >
+                {mode === 'login' ? "Don't have an account? Sign Up" : "Already part of the registry? Sign In"}
+              </button>
+            </div>
           </div>
         </section>
       </main>
@@ -441,7 +475,7 @@ export default function LoginPage() {
           </div>
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-4 text-[10px] font-bold text-neutral-500 uppercase tracking-widest">
-            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-neutral-900/50 border border-neutral-800 text-neutral-400 italic lowercase tracking-tight normal-case">
+            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-neutral-900/50 border border-neutral-800 text-neutral-400 italic tracking-tight normal-case">
               <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
               Secured with 256-bit SSL/TLS encryption — your account is safe.
             </div>
@@ -454,38 +488,6 @@ export default function LoginPage() {
         </div>
       </footer>
     </div>
-  );
-}
-
-function OAuthButton({ icon, label, onClick }: { icon: string, label: string, onClick: () => void }) {
-  return (
-    <button 
-      type="button" 
-      onClick={onClick}
-      className="bg-[#0f0520]/80 backdrop-blur-md border border-purple-500/30 hover:bg-purple-900/40 hover:border-purple-400/60 p-3 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all group"
-    >
-      <div className="w-5 h-5 flex items-center justify-center">
-        {icon === 'Apple' && (
-          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-          </svg>
-        )}
-        {icon === 'Google' && (
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
-            <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.8C6.2 7.2 8.9 5 12 5z"/>
-            <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.6l3.7 2.9c2.2-2 3.7-5 3.7-8.7z"/>
-            <path fill="#FBBC05" d="M5.3 14.8c-.2-.8-.4-1.6-.4-2.5s.2-1.7.4-2.5L1.6 7C.6 9 0 11.2 0 13.5s.6 4.5 1.6 6.5l3.7-2.9z"/>
-            <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5l-3.7 2.8C3.5 21.4 7.4 24 12 24z"/>
-          </svg>
-        )}
-        {icon === 'Passkey' && (
-          <svg className="w-5 h-5 text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-          </svg>
-        )}
-      </div>
-      <span className="text-[10px] font-black uppercase text-white/60 group-hover:text-white transition-colors">{label}</span>
-    </button>
   );
 }
 

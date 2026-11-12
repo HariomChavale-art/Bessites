@@ -121,7 +121,7 @@ export function Navigation() {
                               )}
                             >
                               {pathname?.startsWith('/guide') && <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,1)]" />}
-                              <BookOpen className="w-5 h-5", pathname?.startsWith('/guide') ? "text-emerald-500" : "group-hover:scale-110 transition-transform")} />
+                              <BookOpen className={cn("w-5 h-5", pathname?.startsWith('/guide') ? "text-emerald-500" : "group-hover:scale-110 transition-transform")} />
                               <span className="text-sm font-bold tracking-tight">How to Use</span>
                             </button>
                           </div>

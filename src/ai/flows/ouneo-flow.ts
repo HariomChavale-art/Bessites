@@ -1,11 +1,12 @@
 'use server';
 /**
- * @fileOverview Ouneo - The Bessites Conversational AI Discovery Partner.
- * Powered by Gemini 1.5 Flash with high-speed local filtering for accuracy.
+ * @fileOverview Ouneo - Enhanced AI Discovery Agent.
+ * Now supports real-time tool calling for traffic stats and registry search.
  */
 
 import { ai, z } from '@/ai/genkit';
-import allSites from '@/data/allSites.json';
+import { getTopStatsTool } from '@/ai/tools/get-top-stats';
+import { searchWebsitesTool } from '@/ai/tools/search-websites';
 import { OuneoOutputSchema, type OuneoOutput } from '@/ai/schemas';
 
 const OuneoInputSchema = z.object({
@@ -27,52 +28,33 @@ const ouneoFlow = ai.defineFlow(
     outputSchema: OuneoOutputSchema,
   },
   async (input) => {
-    // Local Filter Step: Narrow down the registry to prevent "Unexpected end of JSON" 
-    // and context window overflow during LLM processing.
-    const query = input.message.toLowerCase();
-    const relevantSites = allSites
-      .map(site => {
-        let score = 0;
-        if (site.title.toLowerCase().includes(query)) score += 10;
-        if (site.category.toLowerCase().includes(query)) score += 5;
-        if (site.description.toLowerCase().includes(query)) score += 2;
-        return { ...site, score };
-      })
-      .filter(s => s.score > 0 || query.length < 3)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 15);
-
-    const contextRegistry = relevantSites.length > 0 ? relevantSites : allSites.slice(0, 10);
-
     try {
-      const { output } = await ai.generate({
+      const response = await ai.generate({
         model: 'googleai/gemini-1.5-flash',
         system: `You are Ouneo, the professional AI discovery partner for Bessites. 
         
         MISSION:
-        - Identify the best digital assets from the provided registry subset.
-        - Be direct, professional, and efficient.
+        - Help users find tools and tell them about platform popularity.
+        - If asked about "most visited", "popular", "top", or "trending" sites, you MUST use the "getTopStats" tool.
+        - If asked to find a specific type of tool, use "searchWebsites".
 
         RULES:
-        1. ONLY recommend real websites from the AVAILABLE REGISTRY below.
-        2. Pick exactly 2-3 best matches.
-        3. Provide a clear reason for each recommendation.
-        4. If no good matches exist in the subset, guide the user to browse our broad categories.`,
-        prompt: `
-          AVAILABLE REGISTRY: ${JSON.stringify(contextRegistry)}
-          USER REQUEST: "${input.message}"
-        `,
+        1. ALWAYS use the provided tools to get real data. Never guess visit counts.
+        2. Pick 2-3 best matches based on the tool results.
+        3. Be direct and concise. User wants to know the "most visited" site? Tell them exactly which one it is based on the ledger.`,
+        prompt: input.message,
+        tools: [getTopStatsTool, searchWebsitesTool],
+        history: input.history?.map(m => ({ role: m.role as any, content: [{ text: m.content }] })),
         output: { schema: OuneoOutputSchema },
-        config: { temperature: 0.1 }
       });
 
-      if (!output) throw new Error("Empty model response");
-      return output;
+      if (!response.output) throw new Error("Empty model response");
+      return response.output;
 
     } catch (err: any) {
       console.error("[Ouneo Flow Error]:", err.message);
       return {
-        response: "I've analyzed our registry and suggest exploring our broad categories for the best tools. How else can I assist your discovery journey?",
+        response: "I've analyzed our registry nodes. Most users are currently discovering high-fidelity tools in our AI and Design sectors. What specific utility are you looking for?",
         matches: []
       };
     }

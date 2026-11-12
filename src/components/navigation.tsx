@@ -15,7 +15,8 @@ import {
   BookOpen,
   Book,
   Plus,
-  Wallet
+  Wallet,
+  CheckCircle
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
@@ -61,6 +62,7 @@ export function Navigation() {
     { label: 'Activity Stats', icon: BarChart3, href: '/analytics' },
     { label: 'My Audience', icon: Users, href: '/audience' },
     { label: 'Wallet', icon: Wallet, href: '/wallet' },
+    { label: 'Sponsor Proof', icon: CheckCircle, href: '/sponsor-proof' },
     { label: 'Settings', icon: Settings, href: '/settings' },
     { label: 'Help & Support', icon: HelpCircle, href: '/support' },
   ];
@@ -119,7 +121,7 @@ export function Navigation() {
                               )}
                             >
                               {pathname?.startsWith('/guide') && <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,1)]" />}
-                              <BookOpen className={cn("w-5 h-5", pathname?.startsWith('/guide') ? "text-emerald-500" : "group-hover:scale-110 transition-transform")} />
+                              <BookOpen className="w-5 h-5", pathname?.startsWith('/guide') ? "text-emerald-500" : "group-hover:scale-110 transition-transform")} />
                               <span className="text-sm font-bold tracking-tight">How to Use</span>
                             </button>
                           </div>

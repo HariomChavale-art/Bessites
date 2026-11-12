@@ -5,16 +5,21 @@ import { Navigation } from "@/components/navigation";
 import { MasonryFeed } from "@/components/masonry-feed";
 import { MOCK_WEBSITES } from "@/lib/mock-data";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, TrendingUp, Clock, Loader2, Globe, ShieldCheck, Zap } from "lucide-react";
+import { Sparkles, TrendingUp, Clock, Loader2, Globe, ShieldCheck, Zap, ArrowRight, Eye } from "lucide-react";
 import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
-import { doc, collection, query, where } from "firebase/firestore";
+import { doc, collection, query, where, orderBy, limit } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { getBroadCategoriesForTag } from "@/lib/category-mapping";
 import { Footer } from "@/components/footer";
+import { Card } from "@/components/ui/card";
+import { WebsitePreview } from "@/components/website-preview";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 /**
  * Bessites Main Page - Stable Discovery Feed.
  * Features a deterministic A-Z sort to prevent layout shifting.
+ * Added: Top 5 Global Redirects section.
  */
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
@@ -76,6 +81,20 @@ export default function Home() {
     return uniquePool;
   }, [submittedSites]);
 
+  // --- TOP 5 GLOBAL REDIRECTS LOGIC ---
+  const top5Redirects = useMemo(() => {
+    if (!allAvailableWebsites.length || !globalStats) return [];
+    
+    return [...allAvailableWebsites]
+      .map(site => {
+        const stats = globalStats.find(gs => gs.id === site.id);
+        const totalVisits = (site.baseVisits || 0) + (stats?.visitCount || 0);
+        return { ...site, totalVisits };
+      })
+      .sort((a, b) => b.totalVisits - a.totalVisits)
+      .slice(0, 5);
+  }, [allAvailableWebsites, globalStats]);
+
   const filteredWebsites = useMemo(() => {
     let results = [...allAvailableWebsites];
     
@@ -132,6 +151,52 @@ export default function Home() {
              A high quality list of the best websites on the internet. Picked by real people for builders like you.
            </p>
         </section>
+
+        {/* TOP 5 GLOBAL REDIRECTS SECTION */}
+        {top5Redirects.length > 0 && (
+          <section className="container mx-auto px-4 mb-20 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+                <TrendingUp className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">Global Redirects</h2>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Top 5 Discovery Assets</p>
+              </div>
+              <div className="h-px flex-1 bg-white/5 ml-4" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              {top5Redirects.map((site, idx) => (
+                <Link key={site.id} href={`/website/${site.id}`} className="group">
+                  <Card className="bg-white/[0.01] border-white/5 hover:border-primary/40 transition-all p-5 rounded-[2rem] h-full flex flex-col gap-4 relative overflow-hidden shadow-2xl">
+                    <div className="absolute top-0 right-0 p-6 text-4xl font-black italic text-white/[0.02] group-hover:text-primary/5 transition-colors">
+                      #{idx + 1}
+                    </div>
+                    <div className="flex items-center gap-4 relative z-10">
+                      <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center p-2 shrink-0 group-hover:scale-110 transition-transform">
+                        <WebsitePreview websiteUrl={site.url} fallbackUrl={site.logoUrl || site.imageUrl} alt={site.name} className="w-full h-full object-contain rounded-lg" />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-black italic uppercase text-white truncate group-hover:text-primary transition-colors">{site.websiteName || site.name}</h4>
+                        <div className="flex items-center gap-1.5 text-[9px] font-black uppercase text-primary">
+                          <Eye className="w-3 h-3" /> {site.totalVisits.toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground font-medium italic line-clamp-2 leading-relaxed opacity-60">
+                      {site.description}
+                    </p>
+                    <div className="mt-auto pt-3 flex items-center justify-between border-t border-white/5">
+                      <span className="text-[8px] font-black uppercase text-white/20 tracking-widest">{site.pricing}</span>
+                      <ArrowRight className="w-3 h-3 text-white/20 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                    </div>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="container mx-auto px-4 mb-12 flex justify-center">
           <div className="bg-white/5 p-1.5 rounded-2xl border border-white/5 shadow-2xl backdrop-blur-xl">

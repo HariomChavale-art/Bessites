@@ -1,156 +1,196 @@
-
 'use client';
 
-import React, { useState } from 'react';
-import { useUser, useAuth } from '@/firebase';
+import React, { useMemo, useEffect } from 'react';
+import { useUser, useDoc, useFirestore } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
-import { Loader2, ShieldCheck, Zap, LogOut, Key } from 'lucide-react';
-import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { signOut } from 'firebase/auth';
-import { ProCTA } from '@/components/ProCTA';
-import { useToast } from '@/hooks/use-toast';
+import { 
+  Check, 
+  ShieldCheck, 
+  Mail, 
+  XCircle, 
+  Loader2,
+  ChevronDown
+} from 'lucide-react';
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Logo } from '@/components/logo';
+import { Footer } from '@/components/footer';
+
+const GUMROAD_LINK = 'https://bessitesoffical.gumroad.com/l/Bessites';
 
 export default function UnlockAccessPage() {
-  const { user, loading: userLoading } = useUser();
-  const auth = useAuth();
+  const { user, loading: authLoading } = useUser();
+  const db = useFirestore();
   const router = useRouter();
-  const { toast } = useToast();
 
-  const [licenseKey, setLicenseKey] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
+  const userRef = useMemo(() => 
+    user && db ? doc(db, 'users', user.uid) : null, 
+    [user?.uid, !!db]
+  );
+  const { data: userDoc, loading: docLoading } = useDoc<any>(userRef);
 
-  const handleVerify = async () => {
-    if (!licenseKey.trim() || !user) return;
-    setIsVerifying(true);
-
-    try {
-      const response = await fetch('/api/verify-license', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ licenseKey, uid: user.uid })
-      });
-
-      const data = await response.json();
-
-      if (data.ok) {
-        toast({ title: "Welcome Pro!", description: "Registry unlocked successfully." });
-        router.push('/');
-      } else {
-        toast({ variant: "destructive", title: "Key Rejected", description: data.message });
-      }
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: "Verification node unreachable." });
-    } finally {
-      setIsVerifying(false);
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/login');
     }
-  };
+  }, [user, authLoading, router]);
 
-  const handleLogout = async () => {
-    if (auth) {
-      await signOut(auth);
-      router.push('/login');
-    }
-  };
-
-  if (userLoading) {
+  if (authLoading || docLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0B0A0F]">
-        <Loader2 className="animate-spin text-primary w-10 h-10" />
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="animate-spin text-primary w-8 h-8" />
       </div>
     );
   }
 
+  const isPro = userDoc?.isPro === true || userDoc?.hasPaidAccess === true;
+
   return (
-    <main className="min-h-screen w-full bg-[#0B0A0F] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Ambient Glow */}
-      <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
-      
-      <div className="max-w-4xl w-full space-y-12 relative z-10 animate-in fade-in zoom-in duration-1000">
-        <header className="text-center space-y-6">
-           <Logo className="text-6xl sm:text-8xl" />
-           <div className="space-y-2">
-             <h2 className="text-3xl sm:text-5xl font-black italic text-white uppercase tracking-tighter">Registry Access</h2>
-             <p className="text-muted-foreground font-medium italic text-lg sm:text-xl">
-               Activate your high-fidelity tool pass.
-             </p>
-           </div>
-        </header>
+    <div className="min-h-screen bg-black text-[#f8f5ff] flex flex-col font-body selection:bg-purple-600 selection:text-white">
+      {/* Subtle Static Background */}
+      <div className="fixed inset-0 pointer-events-none z-0 bg-[#020105]">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-4xl bg-gradient-to-b from-purple-900/5 to-transparent blur-[120px]" />
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-           {/* Step 1: Purchase */}
-           <Card className="bg-[#12111A]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 sm:p-12 flex flex-col justify-between gap-10 shadow-2xl group hover:border-primary/30 transition-all">
-              <div className="space-y-6 text-center lg:text-left">
-                 <div className="space-y-3">
-                    <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">1. Subscribe</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed italic">
-                       Subscribe to the Pro pass. You will receive a unique license key in your email immediately.
-                    </p>
-                 </div>
-                 <div className="space-y-3 inline-flex flex-col items-start mx-auto lg:mx-0">
-                    <div className="flex items-center gap-3 text-emerald-400">
-                       <ShieldCheck className="w-5 h-5" />
-                       <span className="text-[10px] font-black uppercase tracking-widest">Permanent Lifetime Unlock</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-primary">
-                       <Zap className="w-5 h-5" />
-                       <span className="text-[10px] font-black uppercase tracking-widest">Instant Key Delivery</span>
-                    </div>
-                 </div>
-              </div>
-              <ProCTA />
-           </Card>
-
-           {/* Step 2: Activate */}
-           <Card className="bg-[#12111A]/80 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-8 sm:p-12 space-y-10 shadow-2xl group hover:border-primary/30 transition-all">
-              <div className="space-y-4 text-center lg:text-left">
-                 <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">2. Activate Key</h3>
-                 <p className="text-sm text-muted-foreground leading-relaxed italic">
-                    Paste your unique license key from Gumroad below to unlock the discovery node.
-                 </p>
-              </div>
-
-              <div className="space-y-6">
-                 <div className="relative group">
-                    <Key className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-primary transition-colors" />
-                    <Input 
-                      placeholder="XXXX-XXXX-XXXX-XXXX" 
-                      value={licenseKey}
-                      onChange={(e) => setLicenseKey(e.target.value)}
-                      className="h-16 bg-white/5 border-white/10 rounded-2xl pl-14 text-sm font-mono tracking-widest focus:ring-primary/50"
-                    />
-                 </div>
-                 <Button 
-                   onClick={handleVerify}
-                   disabled={!licenseKey.trim() || isVerifying}
-                   className="w-full h-16 rounded-2xl bg-white text-black font-black uppercase italic shadow-xl hover:bg-white/90 active:scale-95 transition-all text-lg"
-                 >
-                    {isVerifying ? <Loader2 className="animate-spin w-6 h-6" /> : "ACTIVATE KEY"}
-                 </Button>
-              </div>
-              
-              <div className="pt-6 border-t border-white/5 text-center flex flex-col items-center gap-2">
-                 <p className="text-[9px] font-black uppercase text-white/20 tracking-widest">
-                    Questions? Reach our support node
-                 </p>
-                 <a href="mailto:bessitesofficial@gmail.com" className="text-[11px] font-bold text-primary italic hover:underline underline-offset-4">
-                    bessitesofficial@gmail.com
-                 </a>
-              </div>
-           </Card>
+      <main className="relative z-10 flex-1 flex flex-col items-center px-6 py-20">
+        <div className="mb-12">
+          <Logo className="text-4xl" />
         </div>
 
-        <footer className="flex flex-col items-center gap-6">
-           <button 
-             onClick={handleLogout}
-             className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-white/20 hover:text-primary transition-colors group"
-           >
-             <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform" /> Switch curator account
-           </button>
-        </footer>
+        {isPro ? (
+          <Card className="w-full max-w-md bg-[#0d0c12] border border-emerald-500/20 rounded-[2.5rem] p-12 text-center space-y-6 shadow-2xl">
+            <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
+              <Check className="w-10 h-10 text-emerald-500" strokeWidth={3} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-3xl font-bold text-white">You have full access</h2>
+              <p className="text-zinc-400 font-medium italic">Your professional curator membership is active.</p>
+            </div>
+            <Button 
+              onClick={() => router.push('/')}
+              className="w-full h-14 rounded-2xl bg-white text-black font-bold text-lg hover:bg-zinc-200 transition-all"
+            >
+              Enter Registry
+            </Button>
+          </Card>
+        ) : (
+          <div className="w-full max-w-2xl space-y-20">
+            {/* Pricing Card */}
+            <div className="flex justify-center">
+              <Card className="w-full max-w-md bg-[#0d0c12] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/50">
+                <div className="p-10 sm:p-12 space-y-10">
+                  <header className="text-center space-y-2">
+                    <h2 className="text-3xl font-bold text-white">Unlock full access</h2>
+                    <p className="text-sm text-zinc-400 font-medium">Everything in Bessites, for a full year.</p>
+                  </header>
+
+                  <div className="text-center space-y-1">
+                    <div className="text-5xl font-bold text-white tracking-tight">$99<span className="text-2xl text-zinc-500">/year</span></div>
+                    <p className="text-xs text-zinc-500 font-medium">That's about $8/month</p>
+                  </div>
+
+                  <ul className="space-y-4">
+                    <FeatureItem text="Full access to every website and tool in the directory" />
+                    <FeatureItem text="Browse and filter by your interests" />
+                    <FeatureItem text="All new listings added during your year" />
+                    <FeatureItem text="Cancel anytime" />
+                  </ul>
+
+                  <div className="space-y-4">
+                    <Button 
+                      onClick={() => window.open(GUMROAD_LINK, '_blank', 'noopener,noreferrer')}
+                      className="w-full h-16 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold text-lg shadow-xl shadow-primary/10 transition-all"
+                    >
+                      Get full access
+                    </Button>
+                    <p className="text-[10px] text-center text-zinc-500 leading-relaxed px-4">
+                      Cancel anytime. Manage or cancel from the link in your Gumroad receipt email.
+                    </p>
+                  </div>
+
+                  <div className="pt-8 border-t border-white/5 space-y-4">
+                    <TrustLine icon={ShieldCheck} text="Secure checkout by Gumroad" />
+                    <TrustLine icon={XCircle} text="Cancel anytime" />
+                    <a href="mailto:bessitesofficial@gmail.com" className="flex items-center gap-3 text-zinc-500 hover:text-primary transition-colors text-xs font-medium px-1">
+                      <Mail className="w-4 h-4" />
+                      Questions? bessitesofficial@gmail.com
+                    </a>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* FAQ Section */}
+            <section className="space-y-8 max-w-xl mx-auto">
+              <h3 className="text-2xl font-bold text-white text-center">Frequently Asked Questions</h3>
+              <Accordion type="single" collapsible className="w-full space-y-3">
+                <FAQItem 
+                  value="cancel"
+                  question="How do I cancel?" 
+                  answer="Open the link in your Gumroad receipt email and choose Cancel membership. You keep access until the end of the period you paid for. You can also email bessitesofficial@gmail.com and we will help." 
+                />
+                <FAQItem 
+                  value="methods"
+                  question="What payment methods are accepted?" 
+                  answer="Payments are processed securely by Gumroad. Available methods are shown at checkout." 
+                />
+                <FAQItem 
+                  value="access"
+                  question="When do I get access?" 
+                  answer="Right after payment, using the same account you signed up with." 
+                />
+                <FAQItem 
+                  value="support"
+                  question="I have a question or an issue." 
+                  answer="Email bessitesofficial@gmail.com and we will reply as soon as possible." 
+                />
+              </Accordion>
+            </section>
+          </div>
+        )}
+      </main>
+
+      <Footer />
+    </div>
+  );
+}
+
+function FeatureItem({ text }: { text: string }) {
+  return (
+    <li className="flex items-start gap-3 text-sm text-zinc-300 font-medium leading-relaxed">
+      <div className="mt-1 w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+        <Check className="w-2.5 h-2.5 text-primary" strokeWidth={4} />
       </div>
-    </main>
+      {text}
+    </li>
+  );
+}
+
+function TrustLine({ icon: Icon, text }: { icon: any, text: string }) {
+  return (
+    <div className="flex items-center gap-3 text-zinc-500 text-xs font-medium px-1">
+      <Icon className="w-4 h-4 opacity-50" />
+      {text}
+    </div>
+  );
+}
+
+function FAQItem({ value, question, answer }: { value: string, question: string, answer: string }) {
+  return (
+    <AccordionItem value={value} className="border-white/5 bg-[#0d0c12] px-6 rounded-2xl border">
+      <AccordionTrigger className="text-sm font-bold text-zinc-200 hover:no-underline py-4 text-left">
+        {question}
+      </AccordionTrigger>
+      <AccordionContent className="text-zinc-500 font-medium leading-relaxed pb-4">
+        {answer}
+      </AccordionContent>
+    </AccordionItem>
   );
 }

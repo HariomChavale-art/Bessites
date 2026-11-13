@@ -12,12 +12,19 @@ const initializeAdmin = () => {
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   
-  // Normalize PEM key: Handles literal \n strings found in some env environments
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+  // Robust Private Key Parsing: 
+  // 1. Remove quotes if any.
+  // 2. Convert literal "\n" strings to actual newlines.
+  const rawKey = process.env.FIREBASE_PRIVATE_KEY;
+  const privateKey = rawKey?.replace(/"/g, '').replace(/\\n/g, '\n');
 
   if (!projectId || !clientEmail || !privateKey) {
     if (typeof window === 'undefined') {
-      console.warn("[Firebase Admin] Essential ENV nodes missing. Initialization deferred.");
+      console.warn("[Firebase Admin] Missing essential ENV nodes:", {
+        projectId: !!projectId,
+        clientEmail: !!clientEmail,
+        privateKey: !!privateKey
+      });
     }
     return;
   }
@@ -34,9 +41,9 @@ const initializeAdmin = () => {
     }
     adminDb = admin.firestore();
     adminAuth = admin.auth();
-    console.log("[Firebase Admin] Secure Node Initialized Successfully");
+    console.log("[Firebase Admin] Secure Node Online:", projectId);
   } catch (error: any) {
-    console.error("[Firebase Admin] Initialization Failure:", error.message);
+    console.error("[Firebase Admin] Critical Initialization Failure:", error.message);
   }
 };
 

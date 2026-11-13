@@ -4,10 +4,10 @@ import { FieldValue } from 'firebase-admin/firestore';
 
 /**
  * @fileOverview Email-based Membership Verification Node.
- * Hardened with manual bypass for testing and detailed debug logging.
+ * Updated with correct Product ID casing and enhanced debug logging.
  */
 
-const PRODUCT_ID = 'JILFDGTEz9RAiXZmJOnHFg==';
+const PRODUCT_ID = 'JILFDGTEz9RAiXZmJOnhFg==';
 const WHITELISTED_EMAILS = ['harrypixels40@gmail.com'];
 
 export async function POST(req: NextRequest) {
@@ -17,55 +17,53 @@ export async function POST(req: NextRequest) {
     const token = authHeader?.split('Bearer ')[1];
 
     if (!token) {
-      console.error("[Verify] No Bearer token found in headers.");
-      return NextResponse.json({ ok: false, message: 'Identity node offline. Please log in again.' }, { status: 401 });
+      return NextResponse.json({ ok: false, message: 'Identity node missing. Please log in again.' }, { status: 401 });
     }
 
     if (!adminAuth || !adminDb) {
-      console.error("[Verify] Firebase Admin SDK failed to initialize.");
-      return NextResponse.json({ ok: false, message: 'System node initializing. Please retry in 30s.' }, { status: 500 });
+      console.error("[Verify] Admin SDK not initialized. Check your Firebase Secrets.");
+      return NextResponse.json({ ok: false, message: 'Server node misconfigured. Check Secret Manager.' }, { status: 500 });
     }
 
-    // 1. Verify User Identity via Token
+    // 1. Verify User Identity
     let decodedToken;
     try {
       decodedToken = await adminAuth.verifyIdToken(token);
     } catch (err: any) {
-      console.error("[Verify] JWT Verification failed:", err.message);
-      return NextResponse.json({ ok: false, message: 'Session expired. Please log in again.' }, { status: 401 });
+      console.error("[Verify] JWT Fail:", err.message);
+      return NextResponse.json({ ok: false, message: 'Invalid session. Please log in again.' }, { status: 401 });
     }
 
     const uid = decodedToken.uid;
     const accountEmail = decodedToken.email?.toLowerCase().trim();
     const normalizedInputEmail = purchaseEmail?.toLowerCase().trim();
 
-    console.log(`[Verify Debug] Received Input: ${normalizedInputEmail} | Auth Email: ${accountEmail}`);
+    console.log(`[Verify Attempt] UID: ${uid} | Acc: ${accountEmail} | Input: ${normalizedInputEmail}`);
 
     if (!accountEmail || accountEmail !== normalizedInputEmail) {
-      console.warn(`[Verify] Identity Mismatch: Account(${accountEmail}) vs Entered(${normalizedInputEmail})`);
       return NextResponse.json({ 
         ok: false, 
-        message: "That email doesn't match your Bessites account. Email bessitesofficial@gmail.com and we'll help." 
+        message: "That email doesn't match your Bessites account. Use the email you are logged in with." 
       });
     }
 
-    // 2. Manual Whitelist Bypass (Immediate Activation)
+    // 2. Manual Whitelist Bypass
     if (WHITELISTED_EMAILS.includes(accountEmail)) {
-      console.log(`[Verify] Manual Bypass Triggered for: ${accountEmail}`);
+      console.log(`[Verify] Whitelist Success for: ${accountEmail}`);
       const userRef = adminDb.collection('users').doc(uid);
       await userRef.set({
         membershipActive: true,
         lastVerifiedAt: FieldValue.serverTimestamp(),
         planType: 'whitelisted_access'
       }, { merge: true });
-      return NextResponse.json({ ok: true, message: 'Welcome back. Whitelist access granted.' });
+      return NextResponse.json({ ok: true, message: 'Welcome back. Access granted.' });
     }
 
-    // 3. Query Gumroad Subscribers Ledger
+    // 3. Query Gumroad Subscribers
     const GUMROAD_TOKEN = process.env.GUMROAD_ACCESS_TOKEN;
     if (!GUMROAD_TOKEN) {
-      console.error("[Verify] CRITICAL: GUMROAD_ACCESS_TOKEN secret is not set in environment.");
-      return NextResponse.json({ ok: false, message: 'Registry connection misconfigured. Admin notified.' }, { status: 500 });
+      console.error("[Verify] GUMROAD_ACCESS_TOKEN missing from Secrets.");
+      return NextResponse.json({ ok: false, message: 'Gumroad gateway offline. Admin notified.' }, { status: 500 });
     }
 
     let allSubscribers: any[] = [];
@@ -77,39 +75,30 @@ export async function POST(req: NextRequest) {
       const data = await response.json();
 
       if (!data.success) {
-        console.error("[Verify] Gumroad API Error:", data);
+        console.error("[Verify] Gumroad API error:", data);
         break;
       }
 
       allSubscribers = allSubscribers.concat(data.subscribers);
-      
-      if (data.subscribers.length < 20) {
-        hasMore = false;
-      } else {
-        page++;
-      }
+      hasMore = data.subscribers.length === 20; // Gumroad standard page size
+      page++;
       if (page > 50) break; 
     }
 
-    console.log(`[Verify Debug] Gumroad Ledger Count: ${allSubscribers.length}`);
+    console.log(`[Verify] Found ${allSubscribers.length} total subscribers in ledger.`);
 
-    // 4. Find Active Membership in Ledger
-    const subscriber = allSubscribers.find(s => s.email && s.email.toLowerCase().trim() === accountEmail);
+    const subscriber = allSubscribers.find(s => s.email?.toLowerCase().trim() === accountEmail);
 
     if (!subscriber) {
-      console.log(`[Verify] No subscriber found in Gumroad for ${accountEmail}`);
       return NextResponse.json({ 
         ok: false, 
-        message: "We couldn't find an active membership for that email. Check the email on your Gumroad receipt." 
+        message: "No active membership found for this email on Gumroad." 
       });
     }
 
-    // Validation Logic: Active if not failed and not past ended date
     const isFailed = !!subscriber.failed_at;
     const hasEnded = subscriber.ended_at && new Date(subscriber.ended_at).getTime() < Date.now();
     const isActive = !isFailed && !hasEnded;
-
-    console.log(`[Verify Debug] Found Subscriber: ${subscriber.email} | Status: ${subscriber.status} | FailedAt: ${subscriber.failed_at} | EndedAt: ${subscriber.ended_at} | IsActive: ${isActive}`);
 
     const userRef = adminDb.collection('users').doc(uid);
 
@@ -117,25 +106,16 @@ export async function POST(req: NextRequest) {
       await userRef.set({
         membershipActive: true,
         lastVerifiedAt: FieldValue.serverTimestamp(),
-        planType: 'yearly_membership',
-        gumroadId: subscriber.id
+        planType: 'yearly_membership'
       }, { merge: true });
-
       return NextResponse.json({ ok: true, message: 'Welcome. You have full access.' });
     } else {
-      await userRef.set({
-        membershipActive: false,
-        lastVerifiedAt: FieldValue.serverTimestamp()
-      }, { merge: true });
-
-      return NextResponse.json({ 
-        ok: false, 
-        message: "This membership is no longer active. You can renew with the Get full access button." 
-      });
+      await userRef.set({ membershipActive: false }, { merge: true });
+      return NextResponse.json({ ok: false, message: "This membership is no longer active." });
     }
 
   } catch (error: any) {
-    console.error("[Verify] Critical Node Failure:", error.message);
+    console.error("[Verify] Critical Error:", error.message);
     return NextResponse.json({ ok: false, message: 'Internal verification loop failure.' }, { status: 500 });
   }
 }

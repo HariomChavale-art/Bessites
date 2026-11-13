@@ -4,7 +4,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 
 /**
  * @fileOverview Email-based Membership Verification Node.
- * Updated with correct Product ID casing and enhanced debug logging.
+ * Synchronized with Vercel environment nodes.
  */
 
 const PRODUCT_ID = 'JILFDGTEz9RAiXZmJOnhFg==';
@@ -20,25 +20,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, message: 'Identity node missing. Please log in again.' }, { status: 401 });
     }
 
+    // Checking if Admin SDK initialized correctly via src/lib/firebase-admin.ts
     if (!adminAuth || !adminDb) {
-      console.error("[Verify] Admin SDK not initialized. Check your Firebase Secrets.");
-      return NextResponse.json({ ok: false, message: 'Server node misconfigured. Check Secret Manager.' }, { status: 500 });
+      console.error("[Verify] Admin SDK is null. Check Vercel Environment Variables.");
+      return NextResponse.json({ 
+        ok: false, 
+        message: 'System configuration error: The server could not connect to the database. Please check environment variables.' 
+      }, { status: 500 });
     }
 
-    // 1. Verify User Identity
+    // 1. Verify User Identity via Token
     let decodedToken;
     try {
       decodedToken = await adminAuth.verifyIdToken(token);
     } catch (err: any) {
-      console.error("[Verify] JWT Fail:", err.message);
+      console.error("[Verify] JWT Auth Fail:", err.message);
       return NextResponse.json({ ok: false, message: 'Invalid session. Please log in again.' }, { status: 401 });
     }
 
     const uid = decodedToken.uid;
     const accountEmail = decodedToken.email?.toLowerCase().trim();
     const normalizedInputEmail = purchaseEmail?.toLowerCase().trim();
-
-    console.log(`[Verify Attempt] UID: ${uid} | Acc: ${accountEmail} | Input: ${normalizedInputEmail}`);
 
     if (!accountEmail || accountEmail !== normalizedInputEmail) {
       return NextResponse.json({ 
@@ -47,9 +49,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 2. Manual Whitelist Bypass
+    // 2. Manual Whitelist Bypass (Absolute Priority)
     if (WHITELISTED_EMAILS.includes(accountEmail)) {
-      console.log(`[Verify] Whitelist Success for: ${accountEmail}`);
       const userRef = adminDb.collection('users').doc(uid);
       await userRef.set({
         membershipActive: true,
@@ -59,10 +60,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, message: 'Welcome back. Access granted.' });
     }
 
-    // 3. Query Gumroad Subscribers
+    // 3. Query Gumroad Subscribers (Remote Node)
     const GUMROAD_TOKEN = process.env.GUMROAD_ACCESS_TOKEN;
     if (!GUMROAD_TOKEN) {
-      console.error("[Verify] GUMROAD_ACCESS_TOKEN missing from Secrets.");
+      console.error("[Verify] GUMROAD_ACCESS_TOKEN missing from environment.");
       return NextResponse.json({ ok: false, message: 'Gumroad gateway offline. Admin notified.' }, { status: 500 });
     }
 
@@ -80,12 +81,10 @@ export async function POST(req: NextRequest) {
       }
 
       allSubscribers = allSubscribers.concat(data.subscribers);
-      hasMore = data.subscribers.length === 20; // Gumroad standard page size
+      hasMore = data.subscribers.length === 20; 
       page++;
       if (page > 50) break; 
     }
-
-    console.log(`[Verify] Found ${allSubscribers.length} total subscribers in ledger.`);
 
     const subscriber = allSubscribers.find(s => s.email?.toLowerCase().trim() === accountEmail);
 
@@ -115,7 +114,7 @@ export async function POST(req: NextRequest) {
     }
 
   } catch (error: any) {
-    console.error("[Verify] Critical Error:", error.message);
-    return NextResponse.json({ ok: false, message: 'Internal verification loop failure.' }, { status: 500 });
+    console.error("[Verify] Critical Server Error:", error.message);
+    return NextResponse.json({ ok: false, message: 'Internal verification node failure.' }, { status: 500 });
   }
 }

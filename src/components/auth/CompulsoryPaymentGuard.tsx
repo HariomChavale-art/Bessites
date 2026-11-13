@@ -51,8 +51,6 @@ export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode
       const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
       
       if (Date.now() - lastVerified > sevenDaysInMs) {
-        console.log("[Guard] Triggering 7-day re-verification...");
-        
         auth?.currentUser?.getIdToken().then(token => {
           fetch('/api/verify-membership', {
             method: 'POST',
@@ -67,7 +65,6 @@ export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode
     }
 
     if (!hasPaid && !isPublicPath) {
-      console.log("[Guard] Access Denied: Membership Required");
       router.replace('/unlock-access');
     } else {
       setIsReady(true);
@@ -75,6 +72,9 @@ export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode
   }, [user?.uid, !!userDoc, userLoading, docLoading, pathname, router, !!db, auth]);
 
   if (userLoading || (user && docLoading) || (!isReady && pathname !== '/login' && pathname !== '/unlock-access')) {
+    // If DB is missing, we still need to render something valid (or null) to avoid React errors
+    if (!db && !userLoading) return null;
+
     return (
       <div className="min-h-screen bg-[#0B0A0F] flex flex-col items-center justify-center space-y-6">
         <Loader2 className="animate-spin text-primary w-10 h-10" />

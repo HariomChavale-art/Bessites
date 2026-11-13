@@ -13,6 +13,10 @@ interface WebsitePreviewProps {
   height?: number;
 }
 
+/**
+ * WebsitePreview component with a self-healing fallback chain.
+ * Optimized for object-contain styling to fit various logo shapes.
+ */
 export function WebsitePreview({ 
   websiteUrl, 
   fallbackUrl,

@@ -1,77 +1,66 @@
 rules_version = '2';
 service cloud.firestore {
+  
   match /databases/{database}/documents {
-    
-    function isAuthenticated() {
-      return request.auth != null;
+    // Permissive rules for prototype development
+    match /{document=**} {
+      allow read, write: if true;
     }
     
+    // Helper function to check if the user is an admin
+    function isAdmin() {
+      return request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Helper function to check if the user is the owner of the document
     function isOwner(userId) {
-      return request.auth.uid == userId;
+      return request.auth != null && request.auth.uid == userId;
     }
 
-    // --- System Node ---
-    match /system/billingState {
-      allow read: if true;
-      allow write: if false; // Only mutated by admin SDK via Gumroad webhook
-    }
-
-    // --- User Profiles ---
+    // User Profile Rules
     match /users/{userId} {
-      allow read: if true;
-      allow write: if isOwner(userId) && 
-        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['hasPaidAccess', 'planType', 'founderNumber', 'gumroadSaleId']));
+      allow read: if request.auth != null; 
+      // Users cannot write membershipActive or lastVerifiedAt fields
+      allow write: if isOwner(userId) 
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['membershipActive', 'lastVerifiedAt']))
+        || isAdmin();
+      
+      match /transactions/{transactionId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+
+      match /likedWebsites/{id} { allow read, write: if isOwner(userId); }
+      match /userLikes/{id} { allow read, write: if isOwner(userId); }
+      match /userShares/{id} { allow read, write: if isOwner(userId); }
+      match /userVisits/{id} { allow read, write: if isOwner(userId); }
     }
 
-    // --- Stacks Ecosystem ---
-    match /stacks/{stackId} {
-      allow read: if resource.data.isPublic == true || (isAuthenticated() && resource.data.creatorId == request.auth.uid);
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
-      allow delete: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
+    // Submissions Rules
+    match /submissions/{submissionId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
+    }
 
-      match /items/{itemId} {
+    // Website Stats Rules
+    match /websiteStats/{websiteId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if true;
+      allow delete: if isAdmin();
+
+      match /userRatings/{userId} {
         allow read: if true;
-        allow write: if isAuthenticated() && get(/databases/$(database)/documents/stacks/$(stackId)).data.creatorId == request.auth.uid;
+        allow write: if isOwner(userId);
       }
     }
 
-    match /stackVotes/{voteId} {
-      allow read: if true;
-      allow create: if isAuthenticated() && voteId == request.resource.data.stackId + '_' + request.auth.uid;
-      allow delete: if isAuthenticated() && voteId.split('_')[1] == request.auth.uid;
-    }
-
-    match /stackSaves/{saveId} {
-      allow read: if isAuthenticated() && saveId.split('_')[1] == request.auth.uid;
-      allow create: if isAuthenticated() && saveId == request.resource.data.stackId + '_' + request.auth.uid;
-      allow delete: if isAuthenticated() && saveId.split('_')[1] == request.auth.uid;
-    }
-
-    // --- Directory Rules ---
-    match /submissions/{subId} {
-      allow read: if true;
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated() && (resource.data.userId == request.auth.uid);
-    }
-
-    match /websiteStats/{siteId} {
-      allow read, write: if true;
-    }
-
-    match /collections_sites/{siteId} {
-      allow read, write: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
-      allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
-    }
-
-    match /launches/{launchId} {
-      allow read: if true;
-      allow create: if isAuthenticated();
-    }
-
-    match /votes/{voteId} {
-      allow read: if true;
-      allow create: if isAuthenticated() && voteId == request.resource.data.launchId + '_' + request.auth.uid;
+    // Promotions Rules
+    match /promotions/{promoId} {
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
     }
   }
 }

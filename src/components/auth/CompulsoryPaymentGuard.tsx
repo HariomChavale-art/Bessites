@@ -1,38 +1,31 @@
-
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { useUser, useDoc, useFirestore } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { useUser, useDoc, useFirestore, useAuth } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import { usePathname, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 /**
  * @fileOverview Security Node: Enforces the Bessites Pro Access Gate.
- * Now includes support for membershipActive status and 7-day re-verification.
+ * Validates membershipActive status and triggers 7-day re-verification.
  */
 export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode }) {
   const { user, loading: userLoading } = useUser();
+  const auth = useAuth();
   const db = useFirestore();
   const router = useRouter();
   const pathname = usePathname();
   const [isReady, setIsReady] = useState(false);
 
-  // Memoize document references
   const userRef = useMemo(() => 
     user && db ? doc(db, 'users', user.uid) : null, 
     [user?.uid, !!db]
   );
   const { data: userDoc, loading: docLoading } = useDoc<any>(userRef);
 
-  const billingRef = useMemo(() => 
-    db ? doc(db, 'system', 'billingState') : null, 
-    [!!db]
-  );
-  const { data: billingState, loading: billingLoading } = useDoc<any>(billingRef);
-
   useEffect(() => {
-    if (userLoading || (user && (docLoading || billingLoading)) || !db) return;
+    if (userLoading || (user && docLoading) || !db) return;
 
     const isPublicPath = 
       pathname === '/login' || 
@@ -50,34 +43,38 @@ export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode
       return;
     }
 
-    // Check membership status
     const hasPaid = userDoc?.membershipActive === true || userDoc?.isPro === true || userDoc?.hasPaidAccess === true;
-    const isFreeTierUnlocked = billingState?.isFreeTierUnlocked === true;
 
-    // Handle 7-day re-verification for membershipActive users
-    if (userDoc?.membershipActive && userDoc?.licenseKey && !isPublicPath) {
+    // Handle 7-day re-verification logic
+    if (hasPaid && userDoc?.membershipActive && !isPublicPath) {
       const lastVerified = userDoc.lastVerifiedAt?.toDate()?.getTime() || 0;
       const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
       
       if (Date.now() - lastVerified > sevenDaysInMs) {
         console.log("[Guard] Triggering 7-day re-verification...");
-        fetch('/api/verify-license', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ licenseKey: userDoc.licenseKey, uid: user.uid })
-        }).catch(err => console.error("Background re-verify failed:", err));
+        
+        auth?.currentUser?.getIdToken().then(token => {
+          fetch('/api/verify-membership', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ email: user.email })
+          }).catch(err => console.error("Background re-verify failed:", err));
+        });
       }
     }
 
-    if (!hasPaid && !isFreeTierUnlocked && !isPublicPath) {
+    if (!hasPaid && !isPublicPath) {
       console.log("[Guard] Access Denied: Membership Required");
       router.replace('/unlock-access');
     } else {
       setIsReady(true);
     }
-  }, [user?.uid, !!userDoc, !!billingState, userLoading, docLoading, billingLoading, pathname, router, !!db]);
+  }, [user?.uid, !!userDoc, userLoading, docLoading, pathname, router, !!db, auth]);
 
-  if (userLoading || (user && (docLoading || billingLoading)) || (!isReady && pathname !== '/login' && pathname !== '/unlock-access')) {
+  if (userLoading || (user && docLoading) || (!isReady && pathname !== '/login' && pathname !== '/unlock-access')) {
     return (
       <div className="min-h-screen bg-[#0B0A0F] flex flex-col items-center justify-center space-y-6">
         <Loader2 className="animate-spin text-primary w-10 h-10" />

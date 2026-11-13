@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useMemo, useEffect, useState } from 'react';
@@ -15,7 +14,7 @@ import {
   Mail, 
   XCircle, 
   Loader2,
-  Key
+  Lock
 } from 'lucide-react';
 import { 
   Accordion,
@@ -26,8 +25,7 @@ import {
 import { Logo } from '@/components/logo';
 import { Footer } from '@/components/footer';
 import { useToast } from '@/hooks/use-toast';
-
-const GUMROAD_LINK = 'https://bessitesoffical.gumroad.com/l/Bessites';
+import { ProCTA } from '@/components/ProCTA';
 
 export default function UnlockAccessPage() {
   const { user, loading: authLoading } = useUser();
@@ -35,7 +33,7 @@ export default function UnlockAccessPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [licenseKey, setLicenseKey] = useState('');
+  const [purchaseEmail, setPurchaseEmail] = useState('');
   const [activating, setActivating] = useState(false);
 
   const userRef = useMemo(() => 
@@ -48,6 +46,9 @@ export default function UnlockAccessPage() {
     if (!authLoading && !user) {
       router.replace('/login');
     }
+    if (user?.email) {
+      setPurchaseEmail(user.email);
+    }
   }, [user, authLoading, router]);
 
   const handleActivate = async () => {
@@ -56,23 +57,23 @@ export default function UnlockAccessPage() {
       return;
     }
 
-    if (!licenseKey.trim()) {
-      toast({ variant: "destructive", title: "Input Required", description: "Please paste your membership key." });
+    if (!purchaseEmail.trim()) {
+      toast({ variant: "destructive", title: "Input Required", description: "Please enter your purchase email." });
       return;
     }
 
     setActivating(true);
     try {
-      const response = await fetch('/api/verify-license', {
+      const response = await fetch('/api/verify-membership', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ licenseKey, uid: user.uid })
+        body: JSON.stringify({ email: purchaseEmail.trim() })
       });
 
       const data = await response.json();
 
       if (data.ok) {
-        toast({ title: "Access Unlocked", description: data.message });
+        toast({ title: "Access Unlocked", description: "Welcome. You have full access." });
         router.push('/');
       } else {
         toast({ variant: "destructive", title: "Activation Failed", description: data.message });
@@ -127,13 +128,13 @@ export default function UnlockAccessPage() {
               <Card className="w-full max-w-md bg-[#0d0c12] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/50">
                 <div className="p-10 sm:p-12 space-y-10">
                   <header className="text-center space-y-2">
-                    <h2 className="text-3xl font-bold text-white">Unlock full access</h2>
+                    <h2 className="text-3xl font-bold text-white uppercase italic tracking-tighter">Unlock Access</h2>
                     <p className="text-sm text-zinc-400 font-medium">Everything in Bessites, for a full year.</p>
                   </header>
 
                   <div className="text-center space-y-1">
                     <div className="text-5xl font-bold text-white tracking-tight">$99<span className="text-2xl text-zinc-500">/year</span></div>
-                    <p className="text-xs text-zinc-500 font-medium">That's about $8/month</p>
+                    <p className="text-xs text-zinc-500 font-medium italic opacity-60">That's about $8/month</p>
                   </div>
 
                   <ul className="space-y-4">
@@ -144,33 +145,30 @@ export default function UnlockAccessPage() {
                   </ul>
 
                   <div className="space-y-4">
-                    <Button 
-                      onClick={() => window.open(GUMROAD_LINK, '_blank', 'noopener,noreferrer')}
-                      className="w-full h-16 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold text-lg shadow-xl shadow-primary/10 transition-all"
-                    >
-                      Get full access
-                    </Button>
-                    <p className="text-[10px] text-center text-zinc-500 leading-relaxed px-4">
+                    <ProCTA />
+                    <p className="text-[10px] text-center text-zinc-500 leading-relaxed px-4 italic">
                       Cancel anytime. Manage or cancel from the link in your Gumroad receipt email.
                     </p>
                   </div>
 
-                  {/* Key Activation Section */}
+                  {/* Email Activation Section */}
                   <div className="pt-10 border-t border-white/5 space-y-6">
                     <div className="space-y-1">
                       <h3 className="text-sm font-bold text-white uppercase tracking-wider">Already purchased?</h3>
-                      <p className="text-xs text-zinc-500">Activate your membership using your key.</p>
+                      <p className="text-xs text-zinc-500 font-medium italic opacity-60">Activate your membership using your email.</p>
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="key" className="text-[10px] uppercase font-black tracking-widest text-zinc-600 ml-1">Membership key</Label>
+                        <Label htmlFor="email" className="text-[10px] uppercase font-black tracking-widest text-zinc-600 ml-1">Gumroad purchase email</Label>
                         <Input 
-                          id="key"
-                          value={licenseKey}
-                          onChange={(e) => setLicenseKey(e.target.value)}
-                          placeholder="Paste the key from your receipt email"
-                          className="bg-white/5 border-white/10 h-14 rounded-xl text-base focus:ring-primary/40"
+                          id="email"
+                          type="email"
+                          value={purchaseEmail}
+                          onChange={(e) => setPurchaseEmail(e.target.value)}
+                          placeholder="The email you used at checkout"
+                          className="bg-white/5 border-white/10 h-14 rounded-xl text-base focus:ring-primary/40 text-white font-bold"
                         />
+                        <p className="text-[10px] text-zinc-600 font-medium italic ml-1">Use the email from your Gumroad receipt.</p>
                       </div>
                       <Button 
                         onClick={handleActivate}
@@ -178,7 +176,7 @@ export default function UnlockAccessPage() {
                         variant="outline"
                         className="w-full h-14 rounded-xl border-white/10 hover:bg-white/5 text-white font-bold"
                       >
-                        {activating ? <Loader2 className="animate-spin w-5 h-5" /> : <><Key className="w-4 h-4 mr-2" /> Activate membership</>}
+                        {activating ? <Loader2 className="animate-spin w-5 h-5" /> : "Activate membership"}
                       </Button>
                     </div>
                   </div>
@@ -196,7 +194,7 @@ export default function UnlockAccessPage() {
             </div>
 
             <section className="space-y-8 max-w-xl mx-auto">
-              <h3 className="text-2xl font-bold text-white text-center">Frequently Asked Questions</h3>
+              <h3 className="text-2xl font-bold text-white text-center italic uppercase tracking-tighter">Frequently Asked Questions</h3>
               <Accordion type="single" collapsible className="w-full space-y-3">
                 <FAQItem 
                   value="cancel"
@@ -231,7 +229,7 @@ export default function UnlockAccessPage() {
 
 function FeatureItem({ text }: { text: string }) {
   return (
-    <li className="flex items-start gap-3 text-sm text-zinc-300 font-medium leading-relaxed">
+    <li className="flex items-start gap-3 text-sm text-zinc-300 font-medium leading-relaxed italic">
       <div className="mt-1 w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
         <Check className="w-2.5 h-2.5 text-primary" strokeWidth={4} />
       </div>
@@ -242,7 +240,7 @@ function FeatureItem({ text }: { text: string }) {
 
 function TrustLine({ icon: Icon, text }: { icon: any, text: string }) {
   return (
-    <div className="flex items-center gap-3 text-zinc-500 text-xs font-medium px-1">
+    <div className="flex items-center gap-3 text-zinc-500 text-xs font-medium px-1 italic">
       <Icon className="w-4 h-4 opacity-50" />
       {text}
     </div>
@@ -252,10 +250,10 @@ function TrustLine({ icon: Icon, text }: { icon: any, text: string }) {
 function FAQItem({ value, question, answer }: { value: string, question: string, answer: string }) {
   return (
     <AccordionItem value={value} className="border-white/5 bg-[#0d0c12] px-6 rounded-2xl border">
-      <AccordionTrigger className="text-sm font-bold text-zinc-200 hover:no-underline py-4 text-left">
+      <AccordionTrigger className="text-sm font-bold text-zinc-200 hover:no-underline py-4 text-left italic">
         {question}
       </AccordionTrigger>
-      <AccordionContent className="text-zinc-500 font-medium leading-relaxed pb-4">
+      <AccordionContent className="text-zinc-500 font-medium leading-relaxed pb-4 italic">
         {answer}
       </AccordionContent>
     </AccordionItem>

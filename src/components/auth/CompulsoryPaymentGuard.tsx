@@ -3,13 +3,13 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useUser, useDoc, useFirestore } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { usePathname, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 /**
  * @fileOverview Security Node: Enforces the Bessites Pro Access Gate.
- * Optimized with memoized references to prevent infinite re-render loops.
+ * Now includes support for membershipActive status and 7-day re-verification.
  */
 export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode }) {
   const { user, loading: userLoading } = useUser();
@@ -18,7 +18,7 @@ export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const [isReady, setIsReady] = useState(false);
 
-  // Memoize document references to ensure stability across renders
+  // Memoize document references
   const userRef = useMemo(() => 
     user && db ? doc(db, 'users', user.uid) : null, 
     [user?.uid, !!db]
@@ -32,7 +32,6 @@ export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode
   const { data: billingState, loading: billingLoading } = useDoc<any>(billingRef);
 
   useEffect(() => {
-    // Wait for auth and essential document synchronization
     if (userLoading || (user && (docLoading || billingLoading)) || !db) return;
 
     const isPublicPath = 
@@ -51,13 +50,27 @@ export function CompulsoryPaymentGuard({ children }: { children: React.ReactNode
       return;
     }
 
-    // New verification logic: check for Pro status
-    const hasPaid = userDoc?.isPro === true || userDoc?.hasPaidAccess === true;
+    // Check membership status
+    const hasPaid = userDoc?.membershipActive === true || userDoc?.isPro === true || userDoc?.hasPaidAccess === true;
     const isFreeTierUnlocked = billingState?.isFreeTierUnlocked === true;
 
-    // Direct paywall enforcement
+    // Handle 7-day re-verification for membershipActive users
+    if (userDoc?.membershipActive && userDoc?.licenseKey && !isPublicPath) {
+      const lastVerified = userDoc.lastVerifiedAt?.toDate()?.getTime() || 0;
+      const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+      
+      if (Date.now() - lastVerified > sevenDaysInMs) {
+        console.log("[Guard] Triggering 7-day re-verification...");
+        fetch('/api/verify-license', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ licenseKey: userDoc.licenseKey, uid: user.uid })
+        }).catch(err => console.error("Background re-verify failed:", err));
+      }
+    }
+
     if (!hasPaid && !isFreeTierUnlocked && !isPublicPath) {
-      console.log("[Guard] Access Denied: Pro License Required");
+      console.log("[Guard] Access Denied: Membership Required");
       router.replace('/unlock-access');
     } else {
       setIsReady(true);

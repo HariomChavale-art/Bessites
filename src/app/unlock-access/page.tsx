@@ -1,18 +1,21 @@
+
 'use client';
 
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { useUser, useDoc, useFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
   Check, 
   ShieldCheck, 
   Mail, 
   XCircle, 
   Loader2,
-  ChevronDown
+  Key
 } from 'lucide-react';
 import { 
   Accordion,
@@ -22,6 +25,7 @@ import {
 } from "@/components/ui/accordion";
 import { Logo } from '@/components/logo';
 import { Footer } from '@/components/footer';
+import { useToast } from '@/hooks/use-toast';
 
 const GUMROAD_LINK = 'https://bessitesoffical.gumroad.com/l/Bessites';
 
@@ -29,6 +33,10 @@ export default function UnlockAccessPage() {
   const { user, loading: authLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
+  const { toast } = useToast();
+
+  const [licenseKey, setLicenseKey] = useState('');
+  const [activating, setActivating] = useState(false);
 
   const userRef = useMemo(() => 
     user && db ? doc(db, 'users', user.uid) : null, 
@@ -42,6 +50,40 @@ export default function UnlockAccessPage() {
     }
   }, [user, authLoading, router]);
 
+  const handleActivate = async () => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    if (!licenseKey.trim()) {
+      toast({ variant: "destructive", title: "Input Required", description: "Please paste your membership key." });
+      return;
+    }
+
+    setActivating(true);
+    try {
+      const response = await fetch('/api/verify-license', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ licenseKey, uid: user.uid })
+      });
+
+      const data = await response.json();
+
+      if (data.ok) {
+        toast({ title: "Access Unlocked", description: data.message });
+        router.push('/');
+      } else {
+        toast({ variant: "destructive", title: "Activation Failed", description: data.message });
+      }
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Could not connect to verification node." });
+    } finally {
+      setActivating(false);
+    }
+  };
+
   if (authLoading || docLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -50,11 +92,10 @@ export default function UnlockAccessPage() {
     );
   }
 
-  const isPro = userDoc?.isPro === true || userDoc?.hasPaidAccess === true;
+  const isPro = userDoc?.membershipActive === true || userDoc?.isPro === true || userDoc?.hasPaidAccess === true;
 
   return (
     <div className="min-h-screen bg-black text-[#f8f5ff] flex flex-col font-body selection:bg-purple-600 selection:text-white">
-      {/* Subtle Static Background */}
       <div className="fixed inset-0 pointer-events-none z-0 bg-[#020105]">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-4xl bg-gradient-to-b from-purple-900/5 to-transparent blur-[120px]" />
       </div>
@@ -82,7 +123,6 @@ export default function UnlockAccessPage() {
           </Card>
         ) : (
           <div className="w-full max-w-2xl space-y-20">
-            {/* Pricing Card */}
             <div className="flex justify-center">
               <Card className="w-full max-w-md bg-[#0d0c12] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/50">
                 <div className="p-10 sm:p-12 space-y-10">
@@ -115,6 +155,34 @@ export default function UnlockAccessPage() {
                     </p>
                   </div>
 
+                  {/* Key Activation Section */}
+                  <div className="pt-10 border-t border-white/5 space-y-6">
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider">Already purchased?</h3>
+                      <p className="text-xs text-zinc-500">Activate your membership using your key.</p>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="key" className="text-[10px] uppercase font-black tracking-widest text-zinc-600 ml-1">Membership key</Label>
+                        <Input 
+                          id="key"
+                          value={licenseKey}
+                          onChange={(e) => setLicenseKey(e.target.value)}
+                          placeholder="Paste the key from your receipt email"
+                          className="bg-white/5 border-white/10 h-14 rounded-xl text-base focus:ring-primary/40"
+                        />
+                      </div>
+                      <Button 
+                        onClick={handleActivate}
+                        disabled={activating}
+                        variant="outline"
+                        className="w-full h-14 rounded-xl border-white/10 hover:bg-white/5 text-white font-bold"
+                      >
+                        {activating ? <Loader2 className="animate-spin w-5 h-5" /> : <><Key className="w-4 h-4 mr-2" /> Activate membership</>}
+                      </Button>
+                    </div>
+                  </div>
+
                   <div className="pt-8 border-t border-white/5 space-y-4">
                     <TrustLine icon={ShieldCheck} text="Secure checkout by Gumroad" />
                     <TrustLine icon={XCircle} text="Cancel anytime" />
@@ -127,7 +195,6 @@ export default function UnlockAccessPage() {
               </Card>
             </div>
 
-            {/* FAQ Section */}
             <section className="space-y-8 max-w-xl mx-auto">
               <h3 className="text-2xl font-bold text-white text-center">Frequently Asked Questions</h3>
               <Accordion type="single" collapsible className="w-full space-y-3">

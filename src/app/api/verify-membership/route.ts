@@ -4,10 +4,11 @@ import { FieldValue } from 'firebase-admin/firestore';
 
 /**
  * @fileOverview Email-based Membership Verification Node.
- * Listens for purchase email and checks against Gumroad Subscriber Ledger.
+ * Hardened with manual bypass for testing and detailed debug logging.
  */
 
 const PRODUCT_ID = 'JILFDGTEz9RAiXZmJOnHFg==';
+const WHITELISTED_EMAILS = ['harrypixels40@gmail.com'];
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,17 +36,32 @@ export async function POST(req: NextRequest) {
     }
 
     const uid = decodedToken.uid;
-    const accountEmail = decodedToken.email;
+    const accountEmail = decodedToken.email?.toLowerCase().trim();
+    const normalizedInputEmail = purchaseEmail?.toLowerCase().trim();
 
-    if (!accountEmail || accountEmail.toLowerCase() !== purchaseEmail.toLowerCase()) {
-      console.warn(`[Verify] Identity Mismatch: Account(${accountEmail}) vs Entered(${purchaseEmail})`);
+    console.log(`[Verify Debug] Received Input: ${normalizedInputEmail} | Auth Email: ${accountEmail}`);
+
+    if (!accountEmail || accountEmail !== normalizedInputEmail) {
+      console.warn(`[Verify] Identity Mismatch: Account(${accountEmail}) vs Entered(${normalizedInputEmail})`);
       return NextResponse.json({ 
         ok: false, 
         message: "That email doesn't match your Bessites account. Email bessitesofficial@gmail.com and we'll help." 
       });
     }
 
-    // 2. Query Gumroad Subscribers Ledger
+    // 2. Manual Whitelist Bypass (Immediate Activation)
+    if (WHITELISTED_EMAILS.includes(accountEmail)) {
+      console.log(`[Verify] Manual Bypass Triggered for: ${accountEmail}`);
+      const userRef = adminDb.collection('users').doc(uid);
+      await userRef.set({
+        membershipActive: true,
+        lastVerifiedAt: FieldValue.serverTimestamp(),
+        planType: 'whitelisted_access'
+      }, { merge: true });
+      return NextResponse.json({ ok: true, message: 'Welcome back. Whitelist access granted.' });
+    }
+
+    // 3. Query Gumroad Subscribers Ledger
     const GUMROAD_TOKEN = process.env.GUMROAD_ACCESS_TOKEN;
     if (!GUMROAD_TOKEN) {
       console.error("[Verify] CRITICAL: GUMROAD_ACCESS_TOKEN secret is not set in environment.");
@@ -56,7 +72,6 @@ export async function POST(req: NextRequest) {
     let page = 1;
     let hasMore = true;
 
-    // Handle pagination for product subscribers
     while (hasMore) {
       const response = await fetch(`https://api.gumroad.com/v2/products/${PRODUCT_ID}/subscribers?access_token=${GUMROAD_TOKEN}&page=${page}`);
       const data = await response.json();
@@ -73,16 +88,16 @@ export async function POST(req: NextRequest) {
       } else {
         page++;
       }
-      
-      // Safety break for loop
       if (page > 50) break; 
     }
 
-    // 3. Find Active Membership in Ledger
-    const subscriber = allSubscribers.find(s => s.email && s.email.toLowerCase() === purchaseEmail.toLowerCase());
+    console.log(`[Verify Debug] Gumroad Ledger Count: ${allSubscribers.length}`);
+
+    // 4. Find Active Membership in Ledger
+    const subscriber = allSubscribers.find(s => s.email && s.email.toLowerCase().trim() === accountEmail);
 
     if (!subscriber) {
-      console.log(`[Verify] No subscriber found in Gumroad for ${purchaseEmail}`);
+      console.log(`[Verify] No subscriber found in Gumroad for ${accountEmail}`);
       return NextResponse.json({ 
         ok: false, 
         message: "We couldn't find an active membership for that email. Check the email on your Gumroad receipt." 
@@ -94,11 +109,7 @@ export async function POST(req: NextRequest) {
     const hasEnded = subscriber.ended_at && new Date(subscriber.ended_at).getTime() < Date.now();
     const isActive = !isFailed && !hasEnded;
 
-    console.log(`[Verify] Subscriber Check for ${uid}: isActive=${isActive}`, {
-      status: subscriber.status,
-      isFailed,
-      hasEnded
-    });
+    console.log(`[Verify Debug] Found Subscriber: ${subscriber.email} | Status: ${subscriber.status} | FailedAt: ${subscriber.failed_at} | EndedAt: ${subscriber.ended_at} | IsActive: ${isActive}`);
 
     const userRef = adminDb.collection('users').doc(uid);
 
@@ -112,7 +123,6 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({ ok: true, message: 'Welcome. You have full access.' });
     } else {
-      // Revoke access if found but inactive
       await userRef.set({
         membershipActive: false,
         lastVerifiedAt: FieldValue.serverTimestamp()

@@ -16,19 +16,29 @@ export async function POST(req: NextRequest) {
     const token = authHeader?.split('Bearer ')[1];
 
     if (!token) {
-      return NextResponse.json({ ok: false, message: 'Authentication required.' }, { status: 401 });
+      console.error("[Verify] No Bearer token found in headers.");
+      return NextResponse.json({ ok: false, message: 'Identity node offline. Please log in again.' }, { status: 401 });
     }
 
     if (!adminAuth || !adminDb) {
-      return NextResponse.json({ ok: false, message: 'System node offline.' }, { status: 500 });
+      console.error("[Verify] Firebase Admin SDK failed to initialize.");
+      return NextResponse.json({ ok: false, message: 'System node initializing. Please retry in 30s.' }, { status: 500 });
     }
 
-    // 1. Verify User Identity
-    const decodedToken = await adminAuth.verifyIdToken(token);
+    // 1. Verify User Identity via Token
+    let decodedToken;
+    try {
+      decodedToken = await adminAuth.verifyIdToken(token);
+    } catch (err: any) {
+      console.error("[Verify] JWT Verification failed:", err.message);
+      return NextResponse.json({ ok: false, message: 'Session expired. Please log in again.' }, { status: 401 });
+    }
+
     const uid = decodedToken.uid;
     const accountEmail = decodedToken.email;
 
     if (!accountEmail || accountEmail.toLowerCase() !== purchaseEmail.toLowerCase()) {
+      console.warn(`[Verify] Identity Mismatch: Account(${accountEmail}) vs Entered(${purchaseEmail})`);
       return NextResponse.json({ 
         ok: false, 
         message: "That email doesn't match your Bessites account. Email bessitesofficial@gmail.com and we'll help." 
@@ -38,8 +48,8 @@ export async function POST(req: NextRequest) {
     // 2. Query Gumroad Subscribers Ledger
     const GUMROAD_TOKEN = process.env.GUMROAD_ACCESS_TOKEN;
     if (!GUMROAD_TOKEN) {
-      console.error("[Verify] GUMROAD_ACCESS_TOKEN secret is missing.");
-      return NextResponse.json({ ok: false, message: 'Registry verification node misconfigured.' }, { status: 500 });
+      console.error("[Verify] CRITICAL: GUMROAD_ACCESS_TOKEN secret is not set in environment.");
+      return NextResponse.json({ ok: false, message: 'Registry connection misconfigured. Admin notified.' }, { status: 500 });
     }
 
     let allSubscribers: any[] = [];
@@ -52,7 +62,7 @@ export async function POST(req: NextRequest) {
       const data = await response.json();
 
       if (!data.success) {
-        console.error("[Gumroad API Error]:", data);
+        console.error("[Verify] Gumroad API Error:", data);
         break;
       }
 
@@ -68,32 +78,31 @@ export async function POST(req: NextRequest) {
       if (page > 50) break; 
     }
 
-    // 3. Find Active Membership
-    const subscriber = allSubscribers.find(s => s.email.toLowerCase() === purchaseEmail.toLowerCase());
+    // 3. Find Active Membership in Ledger
+    const subscriber = allSubscribers.find(s => s.email && s.email.toLowerCase() === purchaseEmail.toLowerCase());
 
     if (!subscriber) {
+      console.log(`[Verify] No subscriber found in Gumroad for ${purchaseEmail}`);
       return NextResponse.json({ 
         ok: false, 
         message: "We couldn't find an active membership for that email. Check the email on your Gumroad receipt." 
       });
     }
 
-    // Log fields once for logic confirmation as requested
-    console.log("[Verify] Subscriber Node Check:", {
-      status: subscriber.status,
-      failed_at: subscriber.failed_at,
-      ended_at: subscriber.ended_at,
-      cancelled_at: subscriber.cancelled_at
-    });
-
+    // Validation Logic: Active if not failed and not past ended date
     const isFailed = !!subscriber.failed_at;
     const hasEnded = subscriber.ended_at && new Date(subscriber.ended_at).getTime() < Date.now();
-    
-    // Status Logic: Active if not failed and not past ended date
     const isActive = !isFailed && !hasEnded;
 
+    console.log(`[Verify] Subscriber Check for ${uid}: isActive=${isActive}`, {
+      status: subscriber.status,
+      isFailed,
+      hasEnded
+    });
+
+    const userRef = adminDb.collection('users').doc(uid);
+
     if (isActive) {
-      const userRef = adminDb.collection('users').doc(uid);
       await userRef.set({
         membershipActive: true,
         lastVerifiedAt: FieldValue.serverTimestamp(),
@@ -103,6 +112,12 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({ ok: true, message: 'Welcome. You have full access.' });
     } else {
+      // Revoke access if found but inactive
+      await userRef.set({
+        membershipActive: false,
+        lastVerifiedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+
       return NextResponse.json({ 
         ok: false, 
         message: "This membership is no longer active. You can renew with the Get full access button." 
@@ -110,7 +125,7 @@ export async function POST(req: NextRequest) {
     }
 
   } catch (error: any) {
-    console.error("[Membership Verification Error]:", error.message);
+    console.error("[Verify] Critical Node Failure:", error.message);
     return NextResponse.json({ ok: false, message: 'Internal verification loop failure.' }, { status: 500 });
   }
 }

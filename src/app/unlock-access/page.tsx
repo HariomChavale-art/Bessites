@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useEffect, useState } from 'react';
-import { useUser, useDoc, useFirestore } from '@/firebase';
+import { useUser, useDoc, useFirestore, useAuth } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
@@ -14,7 +14,6 @@ import {
   Mail, 
   XCircle, 
   Loader2,
-  Lock
 } from 'lucide-react';
 import { 
   Accordion,
@@ -29,6 +28,7 @@ import { ProCTA } from '@/components/ProCTA';
 
 export default function UnlockAccessPage() {
   const { user, loading: authLoading } = useUser();
+  const auth = useAuth();
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
@@ -52,7 +52,7 @@ export default function UnlockAccessPage() {
   }, [user, authLoading, router]);
 
   const handleActivate = async () => {
-    if (!user) {
+    if (!user || !auth?.currentUser) {
       router.push('/login');
       return;
     }
@@ -64,9 +64,15 @@ export default function UnlockAccessPage() {
 
     setActivating(true);
     try {
+      // Get the current ID token for secure server-side verification
+      const token = await auth.currentUser.getIdToken();
+
       const response = await fetch('/api/verify-membership', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ email: purchaseEmail.trim() })
       });
 
@@ -87,8 +93,11 @@ export default function UnlockAccessPage() {
 
   if (authLoading || docLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="animate-spin text-primary w-8 h-8" />
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center space-y-6">
+        <Loader2 className="animate-spin text-primary w-10 h-10" />
+        <p className="text-[10px] font-black uppercase text-white/20 tracking-[0.4em] italic">
+          Initializing secure gateway...
+        </p>
       </div>
     );
   }
@@ -151,7 +160,6 @@ export default function UnlockAccessPage() {
                     </p>
                   </div>
 
-                  {/* Email Activation Section */}
                   <div className="pt-10 border-t border-white/5 space-y-6">
                     <div className="space-y-1">
                       <h3 className="text-sm font-bold text-white uppercase tracking-wider">Already purchased?</h3>
@@ -168,7 +176,7 @@ export default function UnlockAccessPage() {
                           placeholder="The email you used at checkout"
                           className="bg-white/5 border-white/10 h-14 rounded-xl text-base focus:ring-primary/40 text-white font-bold"
                         />
-                        <p className="text-[10px] text-zinc-600 font-medium italic ml-1">Use the email from your Gumroad receipt.</p>
+                        <p className="text-[10px] text-zinc-600 font-medium italic ml-1 text-center">Use the email from your Gumroad receipt.</p>
                       </div>
                       <Button 
                         onClick={handleActivate}

@@ -1,164 +1,183 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
-import { collection, query, where } from "firebase/firestore";
-import { useFirestore, useCollection } from "@/firebase";
-import { MOCK_WEBSITES } from "@/lib/mock-data";
+import { useState, useMemo, useEffect } from "react";
 import { Navigation } from "@/components/navigation";
+import { MasonryFeed } from "@/components/masonry-feed";
+import { MOCK_WEBSITES } from "@/lib/mock-data";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sparkles, TrendingUp, Clock, Loader2 } from "lucide-react";
+import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
+import { doc, collection, query, where } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import { getBroadCategoriesForTag } from "@/lib/category-mapping";
 import { Footer } from "@/components/footer";
-import { WebsiteRow, type Site } from "@/components/website-row";
 
-// Sites shown first, and added each time "Load more" is pressed.
-const PAGE_SIZE = 30;
-
-// The old homepage mixed ~110 built-in sample listings into the live list.
-// Leave this false so only approved listings from Firestore are shown.
-const SHOW_MOCK_LISTINGS = false;
-
-function toSite(raw: any): Site | null {
-  if (!raw?.id || !raw?.url) return null;
-
-  let fallbackName = raw.url;
-  try {
-    fallbackName = new URL(raw.url).hostname.replace(/^www\./, "");
-  } catch {}
-
-  return {
-    id: raw.id,
-    name: raw.websiteName || raw.name || fallbackName,
-    description: raw.description || "",
-    url: raw.url,
-    pricing: raw.pricing || "",
-    logo: raw.logoUrl || raw.imageUrl || undefined,
-  };
-}
-
+/**
+ * Bessites Discovery Node - Interest-Based Orchestration.
+ * Reverted to high-fidelity masonry layout with dynamic filtering.
+ */
 export default function Home() {
+  const [activeTab, setActiveTab] = useState("foryou");
+  const { user, loading: authLoading } = useUser();
   const db = useFirestore();
-  const [visible, setVisible] = useState(PAGE_SIZE);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
+  const userDocRef = useMemo(() => {
+    if (!user || !db) return null;
+    return doc(db, "users", user.uid);
+  }, [user, db]);
+
+  const { data: profile } = useDoc(userDocRef);
+  const userBroadInterests = profile?.interests || [];
 
   const submissionsRef = useMemo(() => {
     if (!db) return null;
     return query(collection(db, "submissions"), where("status", "==", "approved"));
   }, [db]);
 
-  const result = useCollection(submissionsRef) as any;
-  const submitted: any[] | null | undefined = result?.data;
-  const isLoading = !db || !!result?.loading;
+  const { data: submittedSites } = useCollection(submissionsRef);
 
-  const sites = useMemo(() => {
-    const pool: any[] = [
-      ...(SHOW_MOCK_LISTINGS ? (MOCK_WEBSITES as any[]) : []),
-      ...(submitted || []),
-    ];
-    const seen = new Set<string>();
-    const out: Site[] = [];
-    for (const raw of pool) {
-      const site = toSite(raw);
-      if (!site || seen.has(site.id)) continue;
-      seen.add(site.id);
-      out.push(site);
+  const statsRef = useMemo(() => {
+    if (!db) return null;
+    return collection(db, "websiteStats");
+  }, [db]);
+
+  const { data: globalStats } = useCollection(statsRef);
+
+  const allAvailableWebsites = useMemo(() => {
+    const firestoreSites = (submittedSites || []).map(s => ({
+      id: s.id,
+      websiteName: s.websiteName || s.name,
+      name: s.name || s.url?.split('//')[1]?.split('.')[0] || "New Project",
+      developer: s.userEmail || "Community",
+      description: s.description || "User submitted project",
+      longDescription: s.longDescription || s.description || "A new project shared via Bessites.",
+      rating: 0,
+      reviewCount: 0,
+      categories: s.categories || ["Web App"],
+      imageUrl: s.logoUrl || "",
+      screenshots: [],
+      url: s.url,
+      pricing: s.pricing || "Free",
+      updatedAt: "2024",
+      size: "N/A",
+      version: "1.0",
+      ...s
+    }));
+    
+    const uniquePool = [...MOCK_WEBSITES];
+    const seenIds = new Set(uniquePool.map(w => w.id));
+    
+    firestoreSites.forEach(s => {
+      if (!seenIds.has(s.id)) {
+        uniquePool.push(s as any);
+        seenIds.add(s.id);
+      }
+    });
+
+    return uniquePool;
+  }, [submittedSites]);
+
+  const filteredWebsites = useMemo(() => {
+    let results = [...allAvailableWebsites];
+    
+    // Predicate to check if a site matches user interests
+    const matchesUserInterest = (site: any) => 
+      site.categories.some((tag: string) => {
+        const mappedBroads = getBroadCategoriesForTag(tag);
+        return mappedBroads.some(b => userBroadInterests.includes(b));
+      });
+
+    switch (activeTab) {
+      case "trending":
+        // Sort by visits within user interests first
+        results.sort((a, b) => {
+          const aMatch = matchesUserInterest(a) ? 1 : 0;
+          const bMatch = matchesUserInterest(b) ? 1 : 0;
+          if (aMatch !== bMatch) return bMatch - aMatch;
+
+          const statsA = globalStats?.find(s => s.id === a.id);
+          const statsB = globalStats?.find(s => s.id === b.id);
+          const scoreA = (a.baseVisits || 0) + (statsA?.visitCount || 0);
+          const scoreB = (b.baseVisits || 0) + (statsB?.visitCount || 0);
+          return scoreB - scoreA;
+        });
+        break;
+
+      case "new":
+        // Sort by timestamp within user interests first
+        results.sort((a, b) => {
+          const aMatch = matchesUserInterest(a) ? 1 : 0;
+          const bMatch = matchesUserInterest(b) ? 1 : 0;
+          if (aMatch !== bMatch) return bMatch - aMatch;
+
+          const timeA = a.timestamp?.seconds || a.baseSaves || 0;
+          const timeB = b.timestamp?.seconds || b.baseSaves || 0;
+          return timeB - timeA;
+        });
+        break;
+
+      case "foryou":
+      default:
+        // Priority Match + Score Balance
+        results.sort((a, b) => {
+          const aMatch = matchesUserInterest(a) ? 1 : 0;
+          const bMatch = matchesUserInterest(b) ? 1 : 0;
+          if (aMatch !== bMatch) return bMatch - aMatch;
+
+          return (b.rating || 0) - (a.rating || 0);
+        });
+        break;
     }
-    // Fixed A-Z order so the list never shifts around between visits.
-    return out.sort((a, b) => a.name.localeCompare(b.name));
-  }, [submitted]);
+    
+    return results;
+  }, [activeTab, userBroadInterests, allAvailableWebsites, globalStats]);
 
-  const shown = sites.slice(0, visible);
-  const hasMore = visible < sites.length;
+  if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#130719] text-[#F5F0FA]">
+    <div className="min-h-screen flex flex-col bg-background pb-32">
       <Navigation />
-
+      
       <main className="flex-1">
-        {/* Hero */}
-        <section className="mx-auto max-w-6xl px-5 pb-14 pt-14 sm:px-8 sm:pb-20 sm:pt-24 2xl:max-w-[1500px]">
-          <h1 className="font-headline text-[2.5rem] font-bold leading-[1.1] tracking-tight sm:text-6xl 2xl:text-8xl">
+        <section className="mx-auto max-w-6xl px-5 pb-14 pt-14 sm:px-8 sm:pb-20 sm:pt-24">
+          <h1 className="font-headline text-[2.5rem] font-bold leading-[1.1] tracking-tight sm:text-6xl 2xl:text-8xl text-white">
             Find the right website.
-            <span className="block text-[#A981FF]/55">
+            <span className="block text-primary/60">
               Sorted by what you care about.
             </span>
           </h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#D0BCFC]/80 2xl:max-w-2xl 2xl:text-xl">
-            Thousands of websites and tools, organised by interest, so you can
-            skip the searching and start using them.
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground font-medium italic">
+            Thousands of websites and tools, organised by interest, so you can skip the searching and start using them.
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
-            <a
-              href="#sites"
-              className="inline-flex items-center gap-2 rounded-full bg-[#F5F0FA] px-6 py-3 text-base font-medium text-[#130719] transition-colors hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#980ED1] focus-visible:ring-offset-2 focus-visible:ring-offset-[#130719]"
-            >
-              Browse websites
-              <ArrowUpRight className="h-4 w-4" />
-            </a>
-            <Link
-              href="/falmido"
-              className="text-base text-[#D0BCFC] underline-offset-4 hover:underline focus:outline-none focus-visible:underline"
-            >
-              Or let Falmido pick for you
-            </Link>
+        </section>
+
+        <section className="container mx-auto px-4 mb-12 flex justify-center">
+          <div className="bg-white/5 p-1.5 rounded-2xl border border-white/5 shadow-2xl backdrop-blur-xl">
+            <Tabs defaultValue="foryou" className="w-full" onValueChange={setActiveTab}>
+              <TabsList className="bg-transparent h-auto gap-2">
+                <TabsTrigger value="foryou" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary transition-all flex items-center gap-2 italic">
+                  <Sparkles className="w-4 h-4" /> For You
+                </TabsTrigger>
+                <TabsTrigger value="trending" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary flex items-center gap-2 italic">
+                  <TrendingUp className="w-4 h-4" /> Trending
+                </TabsTrigger>
+                <TabsTrigger value="new" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary flex items-center gap-2 italic">
+                  <Clock className="w-4 h-4" /> New
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
         </section>
 
-        {/* Websites */}
-        <section
-          id="sites"
-          className="mx-auto max-w-6xl scroll-mt-24 px-5 pb-20 sm:px-8 2xl:max-w-[1500px]"
-        >
-          <div className="mb-6 flex items-baseline justify-between gap-4">
-            <h2 className="font-headline text-2xl font-semibold sm:text-3xl">
-              All websites
-            </h2>
-            {sites.length > 0 && (
-              <p className="text-base text-[#A981FF]">
-                {sites.length.toLocaleString()} listed
-              </p>
-            )}
-          </div>
-
-          {isLoading && sites.length === 0 ? (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2" aria-hidden="true">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-[7.5rem] rounded-3xl border border-[#381149] bg-[#250D30] sm:h-[9.5rem]"
-                />
-              ))}
-            </div>
-          ) : sites.length === 0 ? (
-            <p className="rounded-3xl border border-[#381149] bg-[#250D30] p-8 text-center text-base text-[#D0BCFC]/80">
-              No websites to show right now. Please check back soon.
-            </p>
-          ) : (
-            <>
-              {/* One column on phones, two on laptops and larger.
-                  In two columns the left side has the logo on the left and the
-                  right side mirrors it, so the rows alternate everywhere. */}
-              <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2">
-                {shown.map((site, i) => (
-                  <WebsiteRow key={site.id} site={site} flip={i % 2 === 1} />
-                ))}
-              </div>
-
-              <div className="mt-12 flex flex-col items-center gap-3">
-                {hasMore && (
-                  <button
-                    type="button"
-                    onClick={() => setVisible((v) => v + PAGE_SIZE)}
-                    className="rounded-full border border-[#501669] bg-[#250D30] px-8 py-3 text-base font-medium text-[#F5F0FA] transition-colors hover:border-[#980ED1] hover:bg-[#381149] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#980ED1]"
-                  >
-                    Load more websites
-                  </button>
-                )}
-                <p className="text-sm text-[#A981FF]">
-                  Showing {shown.length.toLocaleString()} of{" "}
-                  {sites.length.toLocaleString()}
-                </p>
-              </div>
-            </>
-          )}
+        <section className="container mx-auto px-2 mb-24">
+          <MasonryFeed initialWebsites={filteredWebsites as any} hideEndMessage={true} />
         </section>
       </main>
 

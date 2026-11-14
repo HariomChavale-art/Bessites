@@ -1,81 +1,131 @@
 'use server';
+
+import { z } from 'zod';
+import { MOCK_WEBSITES } from '@/lib/mock-data';
+import { FalmidoOutputSchema, type FalmidoOutput } from '@/ai/schemas';
+
 /**
- * @fileOverview Falmido - The Guided AI Discovery Partner.
- * Handles conversational refinement and high-fidelity registry searching.
+ * @fileOverview Falmido - The Bessites Conversational AI Discovery Partner.
+ * Powered by OpenAI for high-fidelity reasoning.
  */
 
-import { ai, z } from '@/ai/genkit';
-import { searchWebsitesTool } from '@/ai/tools/search-websites';
-
 const FalmidoInputSchema = z.object({
-  message: z.string().describe('The user\'s request or response to Falmido.'),
+  message: z.string().trim().min(1).max(1000),
   history: z.array(z.object({
     role: z.enum(['user', 'assistant']),
-    content: z.string()
-  })).optional().describe('Conversation history.'),
+    content: z.string().max(2000),
+  })).max(12).optional(),
 });
 
-const FalmidoOutputSchema = z.object({
-  response: z.string().describe('Falmido\'s conversational response.'),
-  results: z.array(z.object({
+const ModelOutputSchema = z.object({
+  response: z.string().min(1).max(2000),
+  matches: z.array(z.object({
     id: z.string(),
-    name: z.string(),
-    url: z.string(),
-    description: z.string(),
-    pricing: z.string(),
-  })).optional().describe('A list of verified matches from the registry.'),
+    reason: z.string().min(1).max(300),
+  })).max(3),
 });
 
-export type FalmidoOutput = z.infer<typeof FalmidoOutputSchema>;
+const STOP_WORDS = new Set([
+  'a', 'an', 'and', 'are', 'can', 'do', 'for', 'find', 'give', 'help', 'i',
+  'in', 'is', 'it', 'me', 'my', 'of', 'or', 'please', 'show', 'site', 'some',
+  'that', 'the', 'to', 'want', 'website', 'what', 'with', 'you',
+]);
 
-export async function chatWithFalmido(input: { message: string, history?: {role: 'user' | 'assistant', content: string}[] }): Promise<FalmidoOutput> {
-  return falmidoFlow(input);
+function findCandidates(message: string, history: { role: 'user' | 'assistant'; content: string }[]) {
+  const searchText = [...history.filter(item => item.role === 'user').slice(-4).map(item => item.content), message].join(' ').toLowerCase();
+  const terms = [...new Set(searchText.match(/[a-z0-9]+/g) ?? [])]
+    .filter(term => term.length > 1 && !STOP_WORDS.has(term));
+
+  const ranked = MOCK_WEBSITES.map(site => {
+    const searchable = `${site.websiteName ?? ''} ${site.name} ${site.description} ${site.longDescription} ${site.categories.join(' ')} ${site.url}`.toLowerCase();
+    const score = terms.reduce((total, term) => total + (searchable.includes(term) ? (site.name.toLowerCase().includes(term) ? 3 : 1) : 0), 0);
+    return { site, score };
+  }).sort((a, b) => b.score - a.score);
+
+  return ranked.slice(0, 30).map(({ site }) => ({
+    id: site.id,
+    name: site.websiteName || site.name,
+    url: site.url,
+    category: site.categories[0] || 'Other',
+    description: site.description.slice(0, 300),
+  }));
 }
 
-const falmidoFlow = ai.defineFlow(
-  {
-    name: 'falmidoFlow',
-    inputSchema: FalmidoInputSchema,
-    outputSchema: FalmidoOutputSchema,
-  },
-  async (input) => {
-    try {
-      const response = await ai.generate({
-        model: 'googleai/gemini-1.5-flash',
-        system: `You are Falmido, a helpful human-like discovery assistant for Bessites. 
-        
-        MISSION:
-        Your goal is to guide users through a 3-step conversation to find the perfect website:
-        1. Discover their Interests: Ask what they are currently into or what field they work in.
-        2. Identify Specialty & Purpose: Suggest criteria like 'no login required', 'newly launched', 'ai integrated', 'most popular', or 'easy to use'.
-        3. Confirm Pricing: Ask if they prefer Free, Freemium, or Paid tools.
-
-        OPERATIONAL RULES:
-        - Talk like a helpful, professional human.
-        - Start by introducing yourself if history is empty: "Hi, I'm Falmido. Answer three quick questions and I'll find sites that fit you."
-        - Once you have enough info, ALWAYS call the "searchWebsites" tool to find the best 3-5 matches.
-        - Present the results within the structured output.
-        - If no matches are found, encourage the user to try a different category or specialty.`,
-        prompt: input.message,
-        tools: [searchWebsitesTool],
-        history: input.history?.map(m => ({ 
-          role: m.role as any, 
-          content: [{ text: m.content }] 
-        })),
-        output: { schema: FalmidoOutputSchema },
-      });
-
-      if (!response.output) {
-        throw new Error("Empty model response");
-      }
-
-      return response.output;
-    } catch (err: any) {
-      console.error("[Falmido Flow Error]:", err.message);
-      return {
-        response: "I'm having a bit of trouble synchronizing with the registry right now. What interests or categories were you looking for today?",
-        results: []
-      };
-    }
+export async function askFalmido(input: {
+  message: string;
+  history?: { role: 'user' | 'assistant'; content: string }[];
+}): Promise<FalmidoOutput> {
+  const parsedInput = FalmidoInputSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return { response: 'Please send a short message so I can help you find the right websites.', matches: [] };
   }
-);
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return {
+      response: 'Falmido is not connected yet. Add your OpenAI API key as OPENAI_API_KEY in your server environment, then try again.',
+      matches: [],
+    };
+  }
+
+  const { message, history = [] } = parsedInput.data;
+  const candidates = findCandidates(message, history);
+  const candidateById = new Map(candidates.map(candidate => [candidate.id, candidate]));
+
+  try {
+    const apiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+        temperature: 0.4,
+        max_tokens: 500,
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'system',
+            content: `You are Falmido, a polished, friendly website-discovery assistant for Bessites. Talk naturally in English. Help users find useful websites from the supplied registry only. If their need is broad or you need a key preference to choose well, ask exactly one concise follow-up question and return an empty matches array. When you have enough information, recommend up to three relevant sites, explain each fit briefly, and return their registry IDs. Only recommend IDs from the supplied candidates. Return only a JSON object with this shape: {"response":"...", "matches":[{"id":"candidate-id", "reason":"why it fits"}]}.`,
+          },
+          {
+            role: 'system',
+            content: `Registry candidates: ${JSON.stringify(candidates)}`,
+          },
+          ...history.slice(-8).map(item => ({ role: item.role as 'user' | 'assistant', content: item.content })),
+          { role: 'user', content: message },
+        ],
+      }),
+    });
+
+    if (!apiResponse.ok) {
+      throw new Error(`OpenAI request failed with status ${apiResponse.status}`);
+    }
+
+    const data = await apiResponse.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (typeof content !== 'string') throw new Error('OpenAI returned an empty response');
+
+    const modelOutput = ModelOutputSchema.parse(JSON.parse(content));
+    const matches = modelOutput.matches.flatMap(match => {
+      const site = candidateById.get(match.id);
+      if (!site) return [];
+      return [{
+        id: site.id,
+        name: site.name,
+        url: site.url,
+        category: site.category,
+        reason: match.reason,
+      }];
+    });
+
+    return FalmidoOutputSchema.parse({ response: modelOutput.response, matches });
+  } catch (error) {
+    console.error('[Falmido OpenAI Error]:', error);
+    return {
+      response: 'I’m having trouble connecting right now. Please try again in a moment.',
+      matches: [],
+    };
+  }
+}

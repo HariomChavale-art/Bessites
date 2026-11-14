@@ -1,14 +1,13 @@
-
 import { z } from 'zod';
 
 /**
- * @fileOverview Shared schemas for Ouneo AI.
+ * @fileOverview Shared schemas for Falmido AI.
  * Uses 'zod' directly instead of 'genkit' to prevent transitive imports 
- * of Node.js-only modules (like async_hooks) into client components.
+ * of Node.js-only modules into client components.
  */
 
-export const OuneoOutputSchema = z.object({
-  response: z.string().describe('A helpful conversational response from Ouneo.'),
+export const FalmidoOutputSchema = z.object({
+  response: z.string().describe('A helpful conversational response from Falmido.'),
   matches: z.array(z.object({
     id: z.string().optional(),
     name: z.string(),
@@ -18,4 +17,4 @@ export const OuneoOutputSchema = z.object({
   })).max(3).describe('Top best-matching tools from the registry.'),
 });
 
-export type OuneoOutput = z.infer<typeof OuneoOutputSchema>;
+export type FalmidoOutput = z.infer<typeof FalmidoOutputSchema>;

@@ -11,10 +11,11 @@ import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { getBroadCategoriesForTag } from "@/lib/category-mapping";
 import { Footer } from "@/components/footer";
+import { FalmidoAssistant } from "@/components/falmido-assistant";
 
 /**
  * Bessites Discovery Node - Interest-Based Orchestration.
- * Reverted to high-fidelity masonry layout with dynamic filtering.
+ * Features a high-fidelity masonry layout with dynamic AI discovery.
  */
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
@@ -87,7 +88,6 @@ export default function Home() {
   const filteredWebsites = useMemo(() => {
     let results = [...allAvailableWebsites];
     
-    // Predicate to check if a site matches user interests
     const matchesUserInterest = (site: any) => 
       site.categories.some((tag: string) => {
         const mappedBroads = getBroadCategoriesForTag(tag);
@@ -96,7 +96,6 @@ export default function Home() {
 
     switch (activeTab) {
       case "trending":
-        // Sort by visits within user interests first
         results.sort((a, b) => {
           const aMatch = matchesUserInterest(a) ? 1 : 0;
           const bMatch = matchesUserInterest(b) ? 1 : 0;
@@ -111,7 +110,6 @@ export default function Home() {
         break;
 
       case "new":
-        // Sort by timestamp within user interests first
         results.sort((a, b) => {
           const aMatch = matchesUserInterest(a) ? 1 : 0;
           const bMatch = matchesUserInterest(b) ? 1 : 0;
@@ -125,7 +123,6 @@ export default function Home() {
 
       case "foryou":
       default:
-        // Priority Match + Score Balance
         results.sort((a, b) => {
           const aMatch = matchesUserInterest(a) ? 1 : 0;
           const bMatch = matchesUserInterest(b) ? 1 : 0;
@@ -146,16 +143,9 @@ export default function Home() {
       <Navigation />
       
       <main className="flex-1">
-        <section className="mx-auto max-w-6xl px-5 pb-14 pt-14 sm:px-8 sm:pb-20 sm:pt-24">
-          <h1 className="font-headline text-[2.5rem] font-bold leading-[1.1] tracking-tight sm:text-6xl 2xl:text-8xl text-white">
-            Find the right website.
-            <span className="block text-primary/60">
-              Sorted by what you care about.
-            </span>
-          </h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground font-medium italic">
-            Thousands of websites and tools, organised by interest, so you can skip the searching and start using them.
-          </p>
+        {/* Falmido Assistant Implementation */}
+        <section className="container mx-auto px-4 my-20">
+          <FalmidoAssistant />
         </section>
 
         <section className="container mx-auto px-4 mb-12 flex justify-center">

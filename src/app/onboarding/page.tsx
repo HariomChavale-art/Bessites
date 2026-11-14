@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from "react";
@@ -104,14 +105,14 @@ export default function OnboardingPage() {
             {isExistingUser ? "Discovery" : "Welcome to"} <span className="text-secondary">BES</span><span className="text-primary">SITES</span>
           </h1>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium">
-            Pick at least <span className="text-white font-bold underline decoration-primary underline-offset-4">3 interests</span> from our discovery system.
+            Pick at least <span className="text-white font-bold underline decoration-primary underline-offset-4">3 interests</span> from our 1,000-node registry.
           </p>
         </div>
 
         <div className="relative max-w-md mx-auto group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
-            placeholder="Search interests..." 
+            placeholder="Search 1,000+ interests..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-12 h-14 bg-white/5 border-white/10 rounded-2xl text-lg font-bold focus:ring-primary shadow-xl"

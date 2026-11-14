@@ -11,11 +11,10 @@ import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { getBroadCategoriesForTag } from "@/lib/category-mapping";
 import { Footer } from "@/components/footer";
-import { FalmidoAssistant } from "@/components/falmido-assistant";
 
 /**
  * Bessites Discovery Node - Interest-Based Orchestration.
- * Features a high-fidelity masonry layout with dynamic AI discovery.
+ * Features a high-fidelity masonry layout with dynamic discovery tabs.
  */
 export default function Home() {
   const [activeTab, setActiveTab] = useState("foryou");
@@ -143,12 +142,7 @@ export default function Home() {
       <Navigation />
       
       <main className="flex-1">
-        {/* Falmido Assistant Implementation */}
-        <section className="container mx-auto px-4 my-20">
-          <FalmidoAssistant />
-        </section>
-
-        <section className="container mx-auto px-4 mb-12 flex justify-center">
+        <section className="container mx-auto px-4 mt-12 mb-12 flex justify-center">
           <div className="bg-white/5 p-1.5 rounded-2xl border border-white/5 shadow-2xl backdrop-blur-xl">
             <Tabs defaultValue="foryou" className="w-full" onValueChange={setActiveTab}>
               <TabsList className="bg-transparent h-auto gap-2">

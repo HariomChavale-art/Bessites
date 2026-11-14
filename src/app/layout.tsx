@@ -4,27 +4,23 @@ import { Toaster } from "@/components/ui/toaster";
 import { BottomNav } from "@/components/bottom-nav";
 import { FirebaseClientProvider } from '@/firebase';
 import { CompulsoryPaymentGuard } from '@/components/auth/CompulsoryPaymentGuard';
-import { Analytics } from "@vercel/analytics/react";
 import Script from 'next/script';
 
+// maximumScale removed so people can pinch-zoom (better for accessibility).
 export const viewport: Viewport = {
-  themeColor: '#0d0c1d',
+  themeColor: '#130719',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
 };
 
 export const metadata: Metadata = {
-  title: 'Bessites | Absolute Discovery Engine',
-  description: 'The premier professional directory for modern webs and digital tools. Zero duplication, zero padding, absolute discovery.',
+  title: 'Bessites | Find the right website',
+  description: 'Bessites is a directory of websites and digital tools, organised by interest.',
   metadataBase: new URL('https://bessites.store'),
   icons: {
     icon: [
       { url: 'https://i.imgur.com/3STBHNy.png', sizes: 'any', type: 'image/png' },
     ],
-  },
-  other: {
-    'google-adsense-account': 'ca-pub-6811475243465738',
   },
 };
 
@@ -41,18 +37,11 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased bg-background text-foreground pb-32">
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6811475243465738"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
         <FirebaseClientProvider>
           <CompulsoryPaymentGuard>
             {children}
             <BottomNav />
             <Toaster />
-            <Analytics />
           </CompulsoryPaymentGuard>
         </FirebaseClientProvider>
       </body>

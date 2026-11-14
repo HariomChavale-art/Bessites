@@ -1,254 +1,164 @@
-'use client';
+"use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { Navigation } from "@/components/navigation";
-import { MasonryFeed } from "@/components/masonry-feed";
-import { MOCK_WEBSITES } from "@/lib/mock-data";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, TrendingUp, Clock, Loader2, Globe, ShieldCheck, Zap, ArrowRight, Eye } from "lucide-react";
-import { useUser, useDoc, useFirestore, useCollection } from "@/firebase";
-import { doc, collection, query, where, orderBy, limit } from "firebase/firestore";
-import { useRouter } from "next/navigation";
-import { getBroadCategoriesForTag } from "@/lib/category-mapping";
-import { Footer } from "@/components/footer";
-import { Card } from "@/components/ui/card";
-import { WebsitePreview } from "@/components/website-preview";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { ArrowUpRight } from "lucide-react";
+import { collection, query, where } from "firebase/firestore";
+import { useFirestore, useCollection } from "@/firebase";
+import { MOCK_WEBSITES } from "@/lib/mock-data";
+import { Navigation } from "@/components/navigation";
+import { Footer } from "@/components/footer";
+import { WebsiteRow, type Site } from "@/components/website-row";
 
-/**
- * Bessites Main Page - Stable Discovery Feed.
- * Features a deterministic A-Z sort to prevent layout shifting.
- * Added: Top 5 Global Redirects section.
- */
+// Sites shown first, and added each time "Load more" is pressed.
+const PAGE_SIZE = 30;
+
+// The old homepage mixed ~110 built-in sample listings into the live list.
+// Leave this false so only approved listings from Firestore are shown.
+const SHOW_MOCK_LISTINGS = false;
+
+function toSite(raw: any): Site | null {
+  if (!raw?.id || !raw?.url) return null;
+
+  let fallbackName = raw.url;
+  try {
+    fallbackName = new URL(raw.url).hostname.replace(/^www\./, "");
+  } catch {}
+
+  return {
+    id: raw.id,
+    name: raw.websiteName || raw.name || fallbackName,
+    description: raw.description || "",
+    url: raw.url,
+    pricing: raw.pricing || "",
+    logo: raw.logoUrl || raw.imageUrl || undefined,
+  };
+}
+
 export default function Home() {
-  const [activeTab, setActiveTab] = useState("foryou");
-  const { user, loading: authLoading } = useUser();
   const db = useFirestore();
-  const router = useRouter();
-
-  const userDocRef = useMemo(() => {
-    if (!user || !db) return null;
-    return doc(db, "users", user.uid);
-  }, [user, db]);
-
-  const { data: profile } = useDoc(userDocRef);
-  const userBroadInterests = profile?.interests || [];
+  const [visible, setVisible] = useState(PAGE_SIZE);
 
   const submissionsRef = useMemo(() => {
     if (!db) return null;
     return query(collection(db, "submissions"), where("status", "==", "approved"));
   }, [db]);
 
-  const { data: submittedSites } = useCollection(submissionsRef);
+  const result = useCollection(submissionsRef) as any;
+  const submitted: any[] | null | undefined = result?.data;
+  const isLoading = !db || !!result?.loading;
 
-  const statsRef = useMemo(() => {
-    if (!db) return null;
-    return collection(db, "websiteStats");
-  }, [db]);
-
-  const { data: globalStats } = useCollection(statsRef);
-
-  const allAvailableWebsites = useMemo(() => {
-    const firestoreSites = (submittedSites || []).map(s => ({
-      id: s.id,
-      websiteName: s.websiteName || s.name,
-      name: s.name || s.url?.split('//')[1]?.split('.')[0] || "New Website",
-      developer: s.userEmail || "Community",
-      description: s.description || "A high quality website from our list.",
-      longDescription: s.longDescription || s.description || "A new website shared on Bessites.",
-      categories: s.categories || ["Web App"],
-      url: s.url,
-      pricing: s.pricing || "Free",
-      baseVisits: 0,
-      baseLikes: 0,
-      baseSaves: 0,
-      baseShares: 0,
-      rating: 4.5,
-      ...s
-    }));
-    
-    const uniquePool = [...MOCK_WEBSITES];
-    const seenIds = new Set(uniquePool.map(w => w.id));
-    
-    firestoreSites.forEach(s => {
-      if (!seenIds.has(s.id)) {
-        uniquePool.push(s as any);
-        seenIds.add(s.id);
-      }
-    });
-
-    return uniquePool;
-  }, [submittedSites]);
-
-  // --- TOP 5 GLOBAL REDIRECTS LOGIC ---
-  const top5Redirects = useMemo(() => {
-    if (!allAvailableWebsites.length || !globalStats) return [];
-    
-    return [...allAvailableWebsites]
-      .map(site => {
-        const stats = globalStats.find(gs => gs.id === site.id);
-        const totalVisits = (site.baseVisits || 0) + (stats?.visitCount || 0);
-        return { ...site, totalVisits };
-      })
-      .sort((a, b) => b.totalVisits - a.totalVisits)
-      .slice(0, 5);
-  }, [allAvailableWebsites, globalStats]);
-
-  const filteredWebsites = useMemo(() => {
-    let results = [...allAvailableWebsites];
-    
-    // Deterministic Lock: Alphabetical by default
-    results.sort((a, b) => {
-      const nameA = (a.websiteName || a.name || "").toLowerCase();
-      const nameB = (b.websiteName || b.name || "").toLowerCase();
-      return nameA.localeCompare(nameB);
-    });
-
-    if (activeTab === "trending") {
-      results.sort((a, b) => {
-        const statsA = globalStats?.find(s => s.id === a.id);
-        const statsB = globalStats?.find(s => s.id === b.id);
-        const scoreA = (statsA?.visitCount || 0) + (statsA?.likeCount || 0) * 2;
-        const scoreB = (statsB?.visitCount || 0) + (statsB?.likeCount || 0) * 2;
-        return scoreB - scoreA;
-      });
-      return results.slice(0, 50);
+  const sites = useMemo(() => {
+    const pool: any[] = [
+      ...(SHOW_MOCK_LISTINGS ? (MOCK_WEBSITES as any[]) : []),
+      ...(submitted || []),
+    ];
+    const seen = new Set<string>();
+    const out: Site[] = [];
+    for (const raw of pool) {
+      const site = toSite(raw);
+      if (!site || seen.has(site.id)) continue;
+      seen.add(site.id);
+      out.push(site);
     }
+    // Fixed A-Z order so the list never shifts around between visits.
+    return out.sort((a, b) => a.name.localeCompare(b.name));
+  }, [submitted]);
 
-    if (activeTab === "foryou") {
-      const matches = results.filter(w => 
-        w.categories.some(tag => {
-          const mappedBroads = getBroadCategoriesForTag(tag);
-          return mappedBroads.some(b => userBroadInterests.includes(b));
-        })
-      );
-      const nonMatches = results.filter(w => !matches.includes(w));
-      return [...matches, ...nonMatches];
-    }
-    
-    return results;
-  }, [activeTab, userBroadInterests, allAvailableWebsites, globalStats]);
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-12 h-12 animate-spin text-primary" />
-      </div>
-    );
-  }
+  const shown = sites.slice(0, visible);
+  const hasMore = visible < sites.length;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background pb-32">
+    <div className="flex min-h-screen flex-col bg-[#130719] text-[#F5F0FA]">
       <Navigation />
-      
+
       <main className="flex-1">
-        <section className="container mx-auto px-4 mt-20 mb-12 text-center space-y-6">
-           <h1 className="text-6xl sm:text-8xl font-black italic text-white tracking-tighter uppercase leading-tight">
-             Find the <span className="text-primary">Best Tools.</span>
-           </h1>
-           <p className="text-xl text-muted-foreground font-medium italic max-w-2xl mx-auto leading-relaxed">
-             A high quality list of the best websites on the internet. Picked by real people for builders like you.
-           </p>
+        {/* Hero */}
+        <section className="mx-auto max-w-6xl px-5 pb-14 pt-14 sm:px-8 sm:pb-20 sm:pt-24 2xl:max-w-[1500px]">
+          <h1 className="font-headline text-[2.5rem] font-bold leading-[1.1] tracking-tight sm:text-6xl 2xl:text-8xl">
+            Find the right website.
+            <span className="block text-[#A981FF]/55">
+              Sorted by what you care about.
+            </span>
+          </h1>
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#D0BCFC]/80 2xl:max-w-2xl 2xl:text-xl">
+            Thousands of websites and tools, organised by interest, so you can
+            skip the searching and start using them.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
+            <a
+              href="#sites"
+              className="inline-flex items-center gap-2 rounded-full bg-[#F5F0FA] px-6 py-3 text-base font-medium text-[#130719] transition-colors hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#980ED1] focus-visible:ring-offset-2 focus-visible:ring-offset-[#130719]"
+            >
+              Browse websites
+              <ArrowUpRight className="h-4 w-4" />
+            </a>
+            <Link
+              href="/falmido"
+              className="text-base text-[#D0BCFC] underline-offset-4 hover:underline focus:outline-none focus-visible:underline"
+            >
+              Or let Falmido pick for you
+            </Link>
+          </div>
         </section>
 
-        {/* TOP 5 GLOBAL REDIRECTS SECTION */}
-        {top5Redirects.length > 0 && (
-          <section className="container mx-auto px-4 mb-20 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="p-3 rounded-2xl bg-primary/10 text-primary">
-                <TrendingUp className="w-6 h-6" />
-              </div>
-              <div className="space-y-1">
-                <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">Global Redirects</h2>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Top 5 Discovery Assets</p>
-              </div>
-              <div className="h-px flex-1 bg-white/5 ml-4" />
-            </div>
+        {/* Websites */}
+        <section
+          id="sites"
+          className="mx-auto max-w-6xl scroll-mt-24 px-5 pb-20 sm:px-8 2xl:max-w-[1500px]"
+        >
+          <div className="mb-6 flex items-baseline justify-between gap-4">
+            <h2 className="font-headline text-2xl font-semibold sm:text-3xl">
+              All websites
+            </h2>
+            {sites.length > 0 && (
+              <p className="text-base text-[#A981FF]">
+                {sites.length.toLocaleString()} listed
+              </p>
+            )}
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              {top5Redirects.map((site, idx) => (
-                <Link key={site.id} href={`/website/${site.id}`} className="group">
-                  <Card className="bg-white/[0.01] border-white/5 hover:border-primary/40 transition-all p-5 rounded-[2rem] h-full flex flex-col gap-4 relative overflow-hidden shadow-2xl">
-                    <div className="absolute top-0 right-0 p-6 text-4xl font-black italic text-white/[0.02] group-hover:text-primary/5 transition-colors">
-                      #{idx + 1}
-                    </div>
-                    <div className="flex items-center gap-4 relative z-10">
-                      <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center p-2 shrink-0 group-hover:scale-110 transition-transform">
-                        <WebsitePreview websiteUrl={site.url} fallbackUrl={site.logoUrl || site.imageUrl} alt={site.name} className="w-full h-full object-contain rounded-lg" />
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className="text-sm font-black italic uppercase text-white truncate group-hover:text-primary transition-colors">{site.websiteName || site.name}</h4>
-                        <div className="flex items-center gap-1.5 text-[9px] font-black uppercase text-primary">
-                          <Eye className="w-3 h-3" /> {site.totalVisits.toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground font-medium italic line-clamp-2 leading-relaxed opacity-60">
-                      {site.description}
-                    </p>
-                    <div className="mt-auto pt-3 flex items-center justify-between border-t border-white/5">
-                      <span className="text-[8px] font-black uppercase text-white/20 tracking-widest">{site.pricing}</span>
-                      <ArrowRight className="w-3 h-3 text-white/20 group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                    </div>
-                  </Card>
-                </Link>
+          {isLoading && sites.length === 0 ? (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2" aria-hidden="true">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-[7.5rem] rounded-3xl border border-[#381149] bg-[#250D30] sm:h-[9.5rem]"
+                />
               ))}
             </div>
-          </section>
-        )}
-
-        <section className="container mx-auto px-4 mb-12 flex justify-center">
-          <div className="bg-white/5 p-1.5 rounded-2xl border border-white/5 shadow-2xl backdrop-blur-xl">
-            <Tabs defaultValue="foryou" className="w-full" onValueChange={setActiveTab}>
-              <TabsList className="bg-transparent h-auto gap-2">
-                <TabsTrigger value="foryou" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary transition-all flex items-center gap-2 italic">
-                  <Sparkles className="w-4 h-4" /> For You
-                </TabsTrigger>
-                <TabsTrigger value="trending" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary flex items-center gap-2 italic">
-                  <TrendingUp className="w-4 h-4" /> Popular
-                </TabsTrigger>
-                <TabsTrigger value="new" className="rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest data-[state=active]:bg-primary flex items-center gap-2 italic">
-                  <Clock className="w-4 h-4" /> Recently Added
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        </section>
-
-        <section className="container mx-auto px-4 mb-24">
-          <MasonryFeed initialWebsites={filteredWebsites as any} hideEndMessage={true} />
-        </section>
-
-        <section className="container mx-auto px-4 py-20 border-t border-white/5">
-          <div className="max-w-4xl mx-auto space-y-12">
-            <div className="text-center space-y-4">
-              <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Only the <span className="text-primary">Best Sites</span></h2>
-              <p className="text-muted-foreground text-lg italic">We find the top 1% of the web so you don't have to waste time.</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              <div className="space-y-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5">
-                <div className="flex items-center gap-3 text-primary">
-                  <Globe className="w-6 h-6" />
-                  <h3 className="text-xl font-bold uppercase italic">Global List</h3>
-                </div>
-                <p className="text-muted-foreground leading-relaxed italic">
-                  Bessites is a premier website list that finds the most useful parts of the internet. Every site is checked by hand to make sure it is helpful and not full of ads.
-                </p>
+          ) : sites.length === 0 ? (
+            <p className="rounded-3xl border border-[#381149] bg-[#250D30] p-8 text-center text-base text-[#D0BCFC]/80">
+              No websites to show right now. Please check back soon.
+            </p>
+          ) : (
+            <>
+              {/* One column on phones, two on laptops and larger.
+                  In two columns the left side has the logo on the left and the
+                  right side mirrors it, so the rows alternate everywhere. */}
+              <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2">
+                {shown.map((site, i) => (
+                  <WebsiteRow key={site.id} site={site} flip={i % 2 === 1} />
+                ))}
               </div>
 
-              <div className="space-y-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5">
-                <div className="flex items-center gap-3 text-primary">
-                  <ShieldCheck className="w-6 h-6" />
-                  <h3 className="text-xl font-bold uppercase italic">Verified Websites</h3>
-                </div>
-                <p className="text-muted-foreground leading-relaxed italic">
-                  Unlike big search engines, we use real people to pick sites. We look for sites that actually work and provide real value to the community.
+              <div className="mt-12 flex flex-col items-center gap-3">
+                {hasMore && (
+                  <button
+                    type="button"
+                    onClick={() => setVisible((v) => v + PAGE_SIZE)}
+                    className="rounded-full border border-[#501669] bg-[#250D30] px-8 py-3 text-base font-medium text-[#F5F0FA] transition-colors hover:border-[#980ED1] hover:bg-[#381149] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#980ED1]"
+                  >
+                    Load more websites
+                  </button>
+                )}
+                <p className="text-sm text-[#A981FF]">
+                  Showing {shown.length.toLocaleString()} of{" "}
+                  {sites.length.toLocaleString()}
                 </p>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </section>
       </main>
 

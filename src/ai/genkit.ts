@@ -3,15 +3,16 @@ import { googleAI } from '@genkit-ai/google-genai';
 
 /**
  * High-Fidelity Genkit Configuration for Bessites.
- * Optimized for Gemini 1.5 Flash to ensure zero-hallucination registry searches.
+ * This file runs ONLY on the server.
+ * Utilizes GEMINI_API_KEY from Vercel Environment Variables.
  */
-const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY;
+const apiKey = process.env.GEMINI_API_KEY;
 
-// Verify connection availability on server startup
+// Log status on server boot (No keys logged)
 if (!apiKey && typeof window === 'undefined') {
-  console.warn("[Bessites AI] WARNING: No Gemini API Key or Auth Key found. AI features will use local fallback mode.");
+  console.warn("[Bessites AI] WARNING: GEMINI_API_KEY is missing from environment. Discovery features will use local fallback.");
 } else if (typeof window === 'undefined') {
-  console.log("[Bessites AI] Discovery Engine Online (Security Handshake Verified)");
+  console.log("[Bessites AI] Discovery Engine Online (Secure Handshake Verified)");
 }
 
 export const ai = genkit({

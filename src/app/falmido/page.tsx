@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Compass, 
   ChevronLeft, 
+  ChevronRight,
   ArrowRight, 
   RotateCcw, 
   Globe, 
@@ -249,16 +250,5 @@ export default function FalmidoPage() {
 
       <Footer />
     </div>
-  );
-}
-
-function FalmidoOption({ label, onClick }: { label: string, onClick: () => void }) {
-  return (
-    <button 
-      onClick={onClick}
-      className="p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/40 hover:bg-white/10 transition-all text-sm font-black uppercase tracking-widest text-left"
-    >
-      {label}
-    </button>
   );
 }

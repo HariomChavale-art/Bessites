@@ -4,8 +4,8 @@ import { Timestamp } from 'firebase/firestore';
 
 /**
  * @fileOverview Founding Stacks for Bessites.
- * 8 Bundles / 48 Websites.
- * Used as a fallback for /stacks and as a source for initial database seeding.
+ * 11 Bundles / 66+ Websites.
+ * Updated to include specific entrepreneurial and creator bundles.
  */
 
 const creator = {
@@ -16,6 +16,78 @@ const creator = {
 };
 
 export const DEFAULT_SEED_STACKS: StackDocument[] = [
+  {
+    id: 'stack-intl-dropshipping-paid',
+    slug: 'intl-dropshipping-paid',
+    title: 'International Dropshipping Bundle (Paid)',
+    description: 'A professional setup for launching an automated global e-commerce store with high-velocity scaling tools.',
+    creatorId: 'system',
+    creatorSnapshot: creator,
+    isPublic: true,
+    isStaffPick: true,
+    category: 'E-Commerce',
+    tags: ['Paid', 'Scale', 'Automation'],
+    itemsCount: 6,
+    upvoteCount: 85,
+    saveCount: 42,
+    forkCount: 5,
+    badges: { isFullyFree: false, isAdFree: true, isNoSignup: false },
+    previewItems: [
+      { id: 'shopify', title: 'Shopify', faviconUrl: 'https://www.google.com/s2/favicons?domain=shopify.com&sz=128', domain: 'shopify.com' },
+      { id: 'aliexpress', title: 'AliExpress', faviconUrl: 'https://www.google.com/s2/favicons?domain=aliexpress.com&sz=128', domain: 'aliexpress.com' },
+      { id: 'dsers', title: 'DSers', faviconUrl: 'https://www.google.com/s2/favicons?domain=dsers.com&sz=128', domain: 'dsers.com' }
+    ],
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now()
+  },
+  {
+    id: 'stack-india-dropshipping-freetostart',
+    slug: 'india-dropshipping-freetostart',
+    title: 'India Dropshipping Bundle (Free to start)',
+    description: 'The lean startup configuration for Indian entrepreneurs focusing on local sourcing and logistics.',
+    creatorId: 'system',
+    creatorSnapshot: creator,
+    isPublic: true,
+    isStaffPick: true,
+    category: 'E-Commerce',
+    tags: ['Free to start', 'India', 'Lean'],
+    itemsCount: 6,
+    upvoteCount: 112,
+    saveCount: 67,
+    forkCount: 14,
+    badges: { isFullyFree: false, isAdFree: true, isNoSignup: false },
+    previewItems: [
+      { id: 'shopify-in', title: 'Shopify India', faviconUrl: 'https://www.google.com/s2/favicons?domain=shopify.com&sz=128', domain: 'shopify.com/in' },
+      { id: 'roposo', title: 'Roposo Clout', faviconUrl: 'https://www.google.com/s2/favicons?domain=roposoclout.com&sz=128', domain: 'roposoclout.com' },
+      { id: 'razorpay', title: 'Razorpay', faviconUrl: 'https://www.google.com/s2/favicons?domain=razorpay.com&sz=128', domain: 'razorpay.com' }
+    ],
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now()
+  },
+  {
+    id: 'stack-gta6-creator-freetostart',
+    slug: 'gta6-creator-freetostart',
+    title: 'GTA 6 Creator Bundle (Free to start)',
+    description: 'Tools for high-fidelity gaming content creation, from live streaming to cinematic video editing.',
+    creatorId: 'system',
+    creatorSnapshot: creator,
+    isPublic: true,
+    isStaffPick: true,
+    category: 'Gaming & Content',
+    tags: ['Free to start', 'Gaming', 'Creative'],
+    itemsCount: 6,
+    upvoteCount: 245,
+    saveCount: 189,
+    forkCount: 32,
+    badges: { isFullyFree: false, isAdFree: true, isNoSignup: true },
+    previewItems: [
+      { id: 'obs', title: 'OBS Studio', faviconUrl: 'https://www.google.com/s2/favicons?domain=obsproject.com&sz=128', domain: 'obsproject.com' },
+      { id: 'davinci', title: 'DaVinci Resolve', faviconUrl: 'https://www.google.com/s2/favicons?domain=blackmagicdesign.com&sz=128', domain: 'blackmagicdesign.com' },
+      { id: 'discord', title: 'Discord', faviconUrl: 'https://www.google.com/s2/favicons?domain=discord.com&sz=128', domain: 'discord.com' }
+    ],
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now()
+  },
   {
     id: 'stack-illegal-free-utilities',
     slug: 'stack-illegal-free-utilities',
@@ -227,6 +299,30 @@ export const DEFAULT_SEED_STACKS: StackDocument[] = [
 ];
 
 export const SEED_STACK_ITEMS: Record<string, StackItemDocument[]> = {
+  'stack-intl-dropshipping-paid': [
+    { id: 'shopify', stackId: 'stack-intl-dropshipping-paid', websiteUrl: 'https://www.shopify.com', normalizedDomain: 'shopify.com', title: 'Shopify', description: 'The industry-standard store platform.', curatorNote: 'Set up your storefront account on Shopify.', faviconUrl: 'https://www.google.com/s2/favicons?domain=shopify.com&sz=128', isFree: false, hasAds: false, requiresLogin: true, orderIndex: 0, addedAt: Timestamp.now() },
+    { id: 'aliexpress', stackId: 'stack-intl-dropshipping-paid', websiteUrl: 'https://www.aliexpress.com', normalizedDomain: 'aliexpress.com', title: 'AliExpress', description: 'Global marketplace for product sourcing.', curatorNote: 'Research high-demand products on the AliExpress marketplace.', faviconUrl: 'https://www.google.com/s2/favicons?domain=aliexpress.com&sz=128', isFree: true, hasAds: false, requiresLogin: false, orderIndex: 1, addedAt: Timestamp.now() },
+    { id: 'dsers', stackId: 'stack-intl-dropshipping-paid', websiteUrl: 'https://www.dsers.com', normalizedDomain: 'dsers.com', title: 'DSers', description: 'Official AliExpress dropshipping automation.', curatorNote: 'Connect DSers to sync products and automate order fulfillment.', faviconUrl: 'https://www.google.com/s2/favicons?domain=dsers.com&sz=128', isFree: false, hasAds: false, requiresLogin: true, orderIndex: 2, addedAt: Timestamp.now() },
+    { id: 'canva', stackId: 'stack-intl-dropshipping-paid', websiteUrl: 'https://www.canva.com', normalizedDomain: 'canva.com', title: 'Canva', description: 'Professional design suite for ad creatives.', curatorNote: 'Use Canva to create professional social media ad creatives.', faviconUrl: 'https://www.google.com/s2/favicons?domain=canva.com&sz=128', isFree: false, hasAds: false, requiresLogin: true, orderIndex: 3, addedAt: Timestamp.now() },
+    { id: 'stripe', stackId: 'stack-intl-dropshipping-paid', websiteUrl: 'https://www.stripe.com', normalizedDomain: 'stripe.com', title: 'Stripe', description: 'Financial infrastructure for e-commerce payments.', curatorNote: 'Enable Stripe in your settings to accept global credit cards.', faviconUrl: 'https://www.google.com/s2/favicons?domain=stripe.com&sz=128', isFree: false, hasAds: false, requiresLogin: true, orderIndex: 4, addedAt: Timestamp.now() },
+    { id: 'meta-ads', stackId: 'stack-intl-dropshipping-paid', websiteUrl: 'https://adsmanager.facebook.com', normalizedDomain: 'facebook.com', title: 'Meta Ads Manager', description: 'Scale traffic via Facebook and Instagram.', curatorNote: 'Start a conversion campaign in Meta Ads Manager.', faviconUrl: 'https://www.google.com/s2/favicons?domain=facebook.com&sz=128', isFree: false, hasAds: false, requiresLogin: true, orderIndex: 5, addedAt: Timestamp.now() }
+  ],
+  'stack-india-dropshipping-freetostart': [
+    { id: 'shopify-in', stackId: 'stack-india-dropshipping-freetostart', websiteUrl: 'https://www.shopify.com/in', normalizedDomain: 'shopify.com/in', title: 'Shopify India', description: 'Localized store platform for Indian merchants.', curatorNote: 'Open a local e-commerce store on Shopify India.', faviconUrl: 'https://www.google.com/s2/favicons?domain=shopify.com&sz=128', isFree: false, hasAds: false, requiresLogin: true, orderIndex: 0, addedAt: Timestamp.now() },
+    { id: 'roposo', stackId: 'stack-india-dropshipping-freetostart', websiteUrl: 'https://www.roposoclout.com', normalizedDomain: 'roposoclout.com', title: 'Roposo Clout', description: 'India\'s leading product sourcing platform.', curatorNote: 'Link Roposo Clout to find and import products with local shipping.', faviconUrl: 'https://www.google.com/s2/favicons?domain=roposoclout.com&sz=128', isFree: true, hasAds: false, requiresLogin: true, orderIndex: 1, addedAt: Timestamp.now() },
+    { id: 'canva-in', stackId: 'stack-india-dropshipping-freetostart', websiteUrl: 'https://www.canva.com', normalizedDomain: 'canva.com', title: 'Canva', description: 'Graphic design for banners and posts.', curatorNote: 'Design your brand identity and product banners using Canva.', faviconUrl: 'https://www.google.com/s2/favicons?domain=canva.com&sz=128', isFree: false, hasAds: false, requiresLogin: true, orderIndex: 2, addedAt: Timestamp.now() },
+    { id: 'razorpay', stackId: 'stack-india-dropshipping-freetostart', websiteUrl: 'https://razorpay.com', normalizedDomain: 'razorpay.com', title: 'Razorpay', description: 'India\'s most popular payment gateway.', curatorNote: 'Integrate Razorpay to accept UPI and card payments from Indian customers.', faviconUrl: 'https://www.google.com/s2/favicons?domain=razorpay.com&sz=128', isFree: false, hasAds: false, requiresLogin: true, orderIndex: 3, addedAt: Timestamp.now() },
+    { id: 'nimbuspost', stackId: 'stack-india-dropshipping-freetostart', websiteUrl: 'https://nimbuspost.com', normalizedDomain: 'nimbuspost.com', title: 'NimbusPost', description: 'Unified logistics and shipping management.', curatorNote: 'Sign up for NimbusPost to manage door-to-door courier logistics.', faviconUrl: 'https://www.google.com/s2/favicons?domain=nimbuspost.com&sz=128', isFree: false, hasAds: false, requiresLogin: true, orderIndex: 4, addedAt: Timestamp.now() },
+    { id: 'whatsapp-biz', stackId: 'stack-india-dropshipping-freetostart', websiteUrl: 'https://www.whatsapp.com/business', normalizedDomain: 'whatsapp.com', title: 'WhatsApp Business', description: 'Customer support and order communication.', curatorNote: 'Utilize WhatsApp Business for order confirmation and support.', faviconUrl: 'https://www.google.com/s2/favicons?domain=whatsapp.com&sz=128', isFree: true, hasAds: false, requiresLogin: false, orderIndex: 5, addedAt: Timestamp.now() }
+  ],
+  'stack-gta6-creator-freetostart': [
+    { id: 'rockstar-news', stackId: 'stack-gta6-creator-freetostart', websiteUrl: 'https://www.rockstargames.com/newswire', normalizedDomain: 'rockstargames.com', title: 'Rockstar Newswire', description: 'Official source for GTA 6 updates.', curatorNote: 'Monitor the Rockstar Newswire for official asset drops and release dates.', faviconUrl: 'https://www.google.com/s2/favicons?domain=rockstargames.com&sz=128', isFree: true, hasAds: false, requiresLogin: false, orderIndex: 0, addedAt: Timestamp.now() },
+    { id: 'obs', stackId: 'stack-gta6-creator-freetostart', websiteUrl: 'https://obsproject.com', normalizedDomain: 'obsproject.com', title: 'OBS Studio', description: 'Open-source broadcasting software.', curatorNote: 'Set up OBS Studio for recording game footage and live commentary.', faviconUrl: 'https://www.google.com/s2/favicons?domain=obsproject.com&sz=128', isFree: true, hasAds: false, requiresLogin: false, orderIndex: 1, addedAt: Timestamp.now() },
+    { id: 'davinci', stackId: 'stack-gta6-creator-freetostart', websiteUrl: 'https://www.blackmagicdesign.com/products/davinciresolve', normalizedDomain: 'blackmagicdesign.com', title: 'DaVinci Resolve', description: 'Professional-grade video editing.', curatorNote: 'Import your recordings into DaVinci Resolve for professional editing.', faviconUrl: 'https://www.google.com/s2/favicons?domain=blackmagicdesign.com&sz=128', isFree: true, hasAds: false, requiresLogin: false, orderIndex: 2, addedAt: Timestamp.now() },
+    { id: 'canva-gta', stackId: 'stack-gta6-creator-freetostart', websiteUrl: 'https://www.canva.com', normalizedDomain: 'canva.com', title: 'Canva', description: 'Creative suite for video thumbnails.', curatorNote: 'Build eye-catching video thumbnails with Canva design tools.', faviconUrl: 'https://www.google.com/s2/favicons?domain=canva.com&sz=128', isFree: false, hasAds: false, requiresLogin: true, orderIndex: 3, addedAt: Timestamp.now() },
+    { id: 'yt-studio', stackId: 'stack-gta6-creator-freetostart', websiteUrl: 'https://studio.youtube.com', normalizedDomain: 'youtube.com', title: 'YouTube Studio', description: 'Channel management and analytics.', curatorNote: 'Manage your channel and check audience insights in YouTube Studio.', faviconUrl: 'https://www.google.com/s2/favicons?domain=youtube.com&sz=128', isFree: true, hasAds: false, requiresLogin: true, orderIndex: 4, addedAt: Timestamp.now() },
+    { id: 'discord-gta', stackId: 'stack-gta6-creator-freetostart', websiteUrl: 'https://discord.com', normalizedDomain: 'discord.com', title: 'Discord', description: 'Chat and community platform.', curatorNote: 'Set up a Discord server to host your community discussions.', faviconUrl: 'https://www.google.com/s2/favicons?domain=discord.com&sz=128', isFree: true, hasAds: false, requiresLogin: true, orderIndex: 5, addedAt: Timestamp.now() }
+  ],
   'stack-illegal-free-utilities': [
     { id: 'pairdrop', stackId: 'stack-illegal-free-utilities', websiteUrl: 'https://pairdrop.net', normalizedDomain: 'pairdrop.net', title: 'PairDrop', description: 'Local file sharing in your browser.', curatorNote: 'AirDrop for literally any device (Windows, Mac, iOS, Android) right inside your browser with zero setup.', faviconUrl: 'https://www.google.com/s2/favicons?domain=pairdrop.net&sz=128', isFree: true, hasAds: false, requiresLogin: false, orderIndex: 0, addedAt: Timestamp.now() },
     { id: 'squoosh', stackId: 'stack-illegal-free-utilities', websiteUrl: 'https://squoosh.app', normalizedDomain: 'squoosh.app', title: 'Squoosh', description: 'Image compression by Google Chrome Labs.', curatorNote: "Google Chrome Labs' ultra-fast local image compressor. Shrinks PNG/WebP files by 80% without uploading data.", faviconUrl: 'https://www.google.com/s2/favicons?domain=squoosh.app&sz=128', isFree: true, hasAds: false, requiresLogin: false, orderIndex: 1, addedAt: Timestamp.now() },
@@ -243,5 +339,4 @@ export const SEED_STACK_ITEMS: Record<string, StackItemDocument[]> = {
     { id: 'lucide', stackId: 'stack-vibe-coding-indie', websiteUrl: 'https://lucide.dev', normalizedDomain: 'lucide.dev', title: 'Lucide Icons', description: 'Minimalist SVG icon library.', curatorNote: 'Over 1,500 ultra-clean, consistent SVG icons you can copy as JSX or SVG with one click.', faviconUrl: 'https://www.google.com/s2/favicons?domain=lucide.dev&sz=128', isFree: true, hasAds: false, requiresLogin: false, orderIndex: 4, addedAt: Timestamp.now() },
     { id: 'coolors', stackId: 'stack-vibe-coding-indie', websiteUrl: 'https://coolors.co', normalizedDomain: 'coolors.co', title: 'Coolors', description: 'Super-fast color palette generator.', curatorNote: 'Hit the spacebar to generate cohesive color palettes and export Tailwind CSS hex tokens immediately.', faviconUrl: 'https://www.google.com/s2/favicons?domain=coolors.co&sz=128', isFree: true, hasAds: false, requiresLogin: false, orderIndex: 5, addedAt: Timestamp.now() }
   ],
-  // Add other items Record keys for 3,4,5,6,7,8 following same pattern...
 };

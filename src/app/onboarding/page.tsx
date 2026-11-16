@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { INTERESTS, BROAD_CATEGORIES } from "@/lib/category-mapping";
 
 export default function OnboardingPage() {
-  const { user, loading: userLoading } = userUser();
+  const { user, loading: userLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
@@ -102,7 +102,7 @@ export default function OnboardingPage() {
       <div className="max-w-6xl w-full space-y-12 text-center relative z-10">
         <div className="space-y-4">
           <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase italic leading-none">
-            {isExistingUser ? "Discovery" : "Welcome to"} <span className="text-secondary">BES</span><span className="text-primary">SITES</span>
+            {isExistingUser ? "Interest Preferences" : "Welcome to"} <span className="text-secondary">BES</span><span className="text-primary">SITES</span>
           </h1>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium">
             Pick at least <span className="text-white font-bold underline decoration-primary underline-offset-4">3 interests</span> from our 2,000-node registry.

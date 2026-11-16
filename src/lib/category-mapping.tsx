@@ -17,7 +17,8 @@ import {
   Brush, Pen, TrendingUp, Activity, Lock, Share2, Info, Menu, X, Trash2,
   ExternalLink, Keyboard, Monitor, Mouse, Gamepad, Zap as Bolt, Type, 
   FileText, Timer, Footprints, Sword, Flag, Bike, Speaker, UserCheck, 
-  Cloud, Smartphone as Mobile, Scissors, Anchor, LifeBuoy, MapPin
+  Cloud, Smartphone as Mobile, Scissors, Anchor, LifeBuoy, MapPin,
+  DollarSign, Video, Car, Cpu, Minus, Leaf, Apple, Heart, Tent, Grid, HelpCircle
 } from "lucide-react";
 
 export const BROAD_CATEGORIES = [
@@ -44,7 +45,7 @@ export const BROAD_CATEGORIES = [
 ];
 
 export const INTERESTS = [
-  // --- BATCH 1 & CORE MAPPINGS ---
+  // --- USER SPECIFIED TOP INTERESTS & BATCH 1 CORE ---
   { name: "Gaming", group: "gaming_esports", icon: Gamepad2 },
   { name: "AI Tools", group: "ai_tech_hardware", icon: Sparkles },
   { name: "Movies", group: "entertainment_pop", icon: Play },
@@ -75,8 +76,108 @@ export const INTERESTS = [
   { name: "Chess", group: "gaming_esports", icon: Trophy },
   { name: "Coffee", group: "food_drinks", icon: Coffee },
   { name: "Startups", group: "business_finance", icon: Rocket },
+  { name: "Web Development", group: "coding_software", icon: Globe },
+  { name: "Game Development", group: "gaming_esports", icon: Code },
+  { name: "3D Modeling", group: "design_photo_video", icon: Box },
+  { name: "Music Production", group: "music_audio", icon: Headphones },
+  { name: "YouTube Creation", group: "design_photo_video", icon: Video },
+  { name: "Stock Trading", group: "business_finance", icon: TrendingUp },
+  { name: "Manga", group: "entertainment_pop", icon: BookMarked },
+  { name: "K-Pop", group: "music_audio", icon: Music },
+  { name: "Esports", group: "gaming_esports", icon: Trophy },
+  { name: "PC Building", group: "ai_tech_hardware", icon: Monitor },
+  { name: "Minecraft", group: "gaming_esports", icon: Box },
+  { name: "Retro Gaming", group: "gaming_esports", icon: Gamepad },
+  { name: "Board Games", group: "gaming_esports", icon: Gamepad2 },
+  { name: "Tabletop RPGs", group: "gaming_esports", icon: Ghost },
+  { name: "UI Design", group: "design_photo_video", icon: Layout },
+  { name: "Animation", group: "design_photo_video", icon: Sparkles },
+  { name: "Illustration", group: "design_photo_video", icon: PenTool },
+  { name: "Filmmaking", group: "design_photo_video", icon: Video },
+  { name: "Writing", group: "books_writing", icon: Pen },
+  { name: "Marketing", group: "business_finance", icon: Search },
+  { name: "E-Commerce", group: "business_finance", icon: ShoppingBasket },
+  { name: "Dropshipping", group: "business_finance", icon: Plane },
+  { name: "Side Hustles", group: "business_finance", icon: Zap },
+  { name: "Freelancing", group: "business_finance", icon: Laptop },
+  { name: "Productivity", group: "business_finance", icon: Clock },
+  { name: "Note-Taking", group: "books_writing", icon: BookOpen },
+  { name: "AI Art", group: "ai_tech_hardware", icon: ImageIcon },
+  { name: "AI Video", group: "ai_tech_hardware", icon: Video },
+  { name: "AI Music", group: "ai_tech_hardware", icon: Music },
+  { name: "Vibe Coding", group: "coding_software", icon: Bolt },
+  { name: "Prompt Engineering", group: "ai_tech_hardware", icon: Binary },
+  { name: "Local AI", group: "ai_tech_hardware", icon: Laptop },
+  { name: "Automation", group: "ai_tech_hardware", icon: Cpu },
+  { name: "Ethical Hacking", group: "ai_tech_hardware", icon: Lock },
+  { name: "Linux", group: "coding_software", icon: Terminal },
+  { name: "Open Source", group: "coding_software", icon: Globe },
+  { name: "Self-Hosting", group: "coding_software", icon: Layers },
+  { name: "3D Printing", group: "crafts_diy", icon: Box },
+  { name: "Electronics", group: "ai_tech_hardware", icon: Cpu },
+  { name: "Robotics", group: "ai_tech_hardware", icon: Cpu },
+  { name: "Mechanical Keyboards", group: "ai_tech_hardware", icon: Keyboard },
+  { name: "Streetwear", group: "fashion_beauty", icon: ShoppingBag },
+  { name: "Sneakers", group: "fashion_beauty", icon: Footprints },
+  { name: "Thrift Shopping", group: "fashion_beauty", icon: ShoppingBasket },
+  { name: "Fragrances", group: "fashion_beauty", icon: Sparkles },
+  { name: "Interior Design", group: "home_gardening", icon: Home },
+  { name: "Architecture", group: "design_photo_video", icon: Home },
+  { name: "Minimalism", group: "lifestyle_discovery", icon: Minus },
+  { name: "Gardening", group: "home_gardening", icon: Leaf },
+  { name: "Houseplants", group: "home_gardening", icon: Leaf },
+  { name: "Pets", group: "family_lifestyle", icon: PawPrint },
+  { name: "Baking", group: "food_drinks", icon: Utensils },
+  { name: "Nutrition", group: "food_drinks", icon: Apple },
+  { name: "Bodybuilding", group: "fitness_wellness", icon: Dumbbell },
+  { name: "Calisthenics", group: "fitness_wellness", icon: Activity },
+  { name: "Running", group: "fitness_wellness", icon: Activity },
+  { name: "Martial Arts", group: "team_combat_sports", icon: Sword },
+  { name: "Yoga", group: "fitness_wellness", icon: Activity },
+  { name: "Meditation", group: "fitness_wellness", icon: Wind },
+  { name: "Longevity", group: "fitness_wellness", icon: Heart },
+  { name: "Football", group: "team_combat_sports", icon: Trophy },
+  { name: "Basketball", group: "team_combat_sports", icon: Trophy },
+  { name: "Formula 1", group: "travel_vehicles", icon: Flag },
+  { name: "Cycling", group: "sports_outdoor", icon: Bike },
+  { name: "Hiking", group: "sports_outdoor", icon: Map },
+  { name: "Rock Climbing", group: "sports_outdoor", icon: Mountain },
+  { name: "Camping", group: "sports_outdoor", icon: Tent },
+  { name: "Guitar", group: "music_audio", icon: Music },
+  { name: "Piano", group: "music_audio", icon: Music },
+  { name: "DJing", group: "music_audio", icon: Headphones },
+  { name: "Songwriting", group: "music_audio", icon: PenTool },
+  { name: "Music Theory", group: "music_audio", icon: Book },
+  { name: "Sound Design", group: "music_audio", icon: Speaker },
+  { name: "Cinematography", group: "design_photo_video", icon: Camera },
+  { name: "Screenwriting", group: "books_writing", icon: FileText },
+  { name: "Motion Graphics", group: "design_photo_video", icon: Play },
+  { name: "Typography", group: "design_photo_video", icon: Type },
+  { name: "Logo Design", group: "design_photo_video", icon: Palette },
+  { name: "Pixel Art", group: "design_photo_video", icon: Grid },
+  { name: "Cosplay", group: "entertainment_pop", icon: User },
+  { name: "Lego", group: "gaming_esports", icon: Box },
+  { name: "Collectibles", group: "collecting_aesthetics", icon: Archive },
+  { name: "True Crime", group: "entertainment_pop", icon: Search },
+  { name: "Internet Mysteries", group: "entertainment_pop", icon: HelpCircle },
+  { name: "Worldbuilding", group: "books_writing", icon: Globe },
+  { name: "Mythology", group: "books_writing", icon: Book },
+  { name: "Philosophy", group: "books_writing", icon: Brain },
+  { name: "Astronomy", group: "science_nature", icon: Stars },
+  { name: "Astrophotography", group: "design_photo_video", icon: Camera },
+  { name: "Aviation", group: "travel_vehicles", icon: Plane },
+  { name: "Weather", group: "science_nature", icon: Wind },
+  { name: "Geography", group: "science_nature", icon: Map },
+  { name: "Science", group: "science_nature", icon: Microscope },
+  { name: "Mathematics", group: "science_nature", icon: Binary },
+  { name: "Puzzles", group: "gaming_esports", icon: Search },
+  { name: "Trivia", group: "gaming_esports", icon: HelpCircle },
+  { name: "Magic Tricks", group: "gaming_esports", icon: Sparkles },
+  { name: "Browser Games", group: "gaming_esports", icon: Globe },
+  { name: "Sim Racing", group: "gaming_esports", icon: Car },
+  { name: "Woodworking", group: "crafts_diy", icon: Hammer },
 
-  // --- BATCH 2: ART & VISUALS (1001-...) ---
+  // --- BATCH 2 INTEGRATION: INTERESTS 1001-2000 ---
   { name: "Art History", group: "arts_visual", icon: Palette },
   { name: "Modern Art", group: "arts_visual", icon: Palette },
   { name: "Contemporary Art", group: "arts_visual", icon: Palette },
@@ -110,8 +211,6 @@ export const INTERESTS = [
   { name: "Level Design", group: "coding_software", icon: Gamepad2 },
   { name: "Typeface Design", group: "design_photo_video", icon: Type },
   { name: "Mural Painting", group: "arts_visual", icon: Palette },
-
-  // --- BATCH 2: MUSIC & AUDIO ---
   { name: "Blues", group: "music_audio", icon: Music },
   { name: "Soul Music", group: "music_audio", icon: Music },
   { name: "Funk", group: "music_audio", icon: Music },
@@ -136,8 +235,6 @@ export const INTERESTS = [
   { name: "Sitar", group: "music_audio", icon: Music },
   { name: "Tabla", group: "music_audio", icon: Music },
   { name: "Bagpipes", group: "music_audio", icon: Music },
-
-  // --- BATCH 2: ENTERTAINMENT & FILM ---
   { name: "Film Directing", group: "entertainment_pop", icon: Video },
   { name: "Film Producing", group: "entertainment_pop", icon: Briefcase },
   { name: "Film Editing", group: "design_photo_video", icon: Video },
@@ -153,13 +250,11 @@ export const INTERESTS = [
   { name: "Western Movies", group: "entertainment_pop", icon: Play },
   { name: "Superhero Movies", group: "entertainment_pop", icon: Play },
   { name: "Musical Films", group: "entertainment_pop", icon: Music },
-  { name: "experimental Film", group: "entertainment_pop", icon: Sparkles },
+  { name: "Experimental Film", group: "entertainment_pop", icon: Sparkles },
   { name: "Claymation", group: "entertainment_pop", icon: Palette },
   { name: "Puppetry", group: "entertainment_pop", icon: User },
   { name: "Sitcoms", group: "entertainment_pop", icon: Play },
   { name: "Reality TV", group: "entertainment_pop", icon: Play },
-
-  // --- BATCH 2: ATHLETICS & SPORTS ---
   { name: "Ultramarathons", group: "sports_outdoor", icon: Mountain },
   { name: "Hurdles", group: "sports_outdoor", icon: Trophy },
   { name: "High Jump", group: "sports_outdoor", icon: Trophy },
@@ -177,18 +272,16 @@ export const INTERESTS = [
   { name: "Sepak Takraw", group: "team_combat_sports", icon: Trophy },
   { name: "Gaelic Football", group: "team_combat_sports", icon: Trophy },
   { name: "Street Hockey", group: "team_combat_sports", icon: Trophy },
-
-  // --- BATCH 2: TOOLS & TECH ---
   { name: "Web Browsers", group: "ai_tech_hardware", icon: Globe },
   { name: "Password Managers", group: "ai_tech_hardware", icon: Lock },
   { name: "VPN Services", group: "ai_tech_hardware", icon: Shield },
   { name: "Mind Mapping", group: "business_finance", icon: Brain },
-  { name: "launcher Apps", group: "ai_tech_hardware", icon: Rocket },
-  { name: "spreadSheet Software", group: "business_finance", icon: FileText },
+  { name: "Launcher Apps", group: "ai_tech_hardware", icon: Rocket },
+  { name: "Spreadsheet Software", group: "business_finance", icon: FileText },
   { name: "Survey Tools", group: "business_finance", icon: Search },
   { name: "Habit Trackers", group: "fitness_wellness", icon: Timer },
   { name: "Pomodoro Timers", group: "business_finance", icon: Timer },
-  { name: " Calculator Apps", group: "science_nature", icon: Binary },
+  { name: "Calculator Apps", group: "science_nature", icon: Binary },
   { name: "Mechanical Engineering", group: "ai_tech_hardware", icon: Settings },
   { name: "Biomedical Engineering", group: "science_nature", icon: HeartPulse },
   { name: "Nanotechnology", group: "ai_tech_hardware", icon: Sparkles },
@@ -200,8 +293,6 @@ export const INTERESTS = [
   { name: "Digital Forensics", group: "ai_tech_hardware", icon: Search },
   { name: "Laser Cutting", group: "crafts_diy", icon: Hammer },
   { name: "Injection Molding", group: "ai_tech_hardware", icon: Box },
-
-  // --- BATCH 2: FOOD & CUISINES ---
   { name: "Italian Cuisine", group: "food_drinks", icon: Utensils },
   { name: "French Cuisine", group: "food_drinks", icon: Utensils },
   { name: "Turkish Cuisine", group: "food_drinks", icon: Utensils },
@@ -217,8 +308,6 @@ export const INTERESTS = [
   { name: "Cast Iron Cooking", group: "food_drinks", icon: Utensils },
   { name: "Sourdough Starters", group: "food_drinks", icon: Smile },
   { name: "Mead Making", group: "food_drinks", icon: Utensils },
-
-  // --- BATCH 2: SCIENCE & HEALTH ---
   { name: "Physiology", group: "science_nature", icon: HeartPulse },
   { name: "Cardiology", group: "science_nature", icon: HeartPulse },
   { name: "Dermatology", group: "science_nature", icon: User },
@@ -232,8 +321,6 @@ export const INTERESTS = [
   { name: "Emotional Intelligence", group: "books_writing", icon: Brain },
   { name: "Tai Chi", group: "fitness_wellness", icon: Wind },
   { name: "Gua Sha", group: "fashion_beauty", icon: HeartPulse },
-
-  // --- BATCH 2: BUSINESS & MACRO ---
   { name: "Supply Chain", group: "business_finance", icon: Layers },
   { name: "Logistics", group: "business_finance", icon: Plane },
   { name: "Warehousing", group: "business_finance", icon: Box },
@@ -253,8 +340,6 @@ export const INTERESTS = [
   { name: "Intellectual Property", group: "business_finance", icon: Lock },
   { name: "Constitutional Law", group: "books_writing", icon: Book },
   { name: "International Relations", group: "science_nature", icon: Globe },
-
-  // --- BATCH 2: LEARNING & PHILOSOPHY ---
   { name: "Study Techniques", group: "books_writing", icon: Sparkles },
   { name: "Active Recall", group: "books_writing", icon: Brain },
   { name: "Memory Palaces", group: "books_writing", icon: Brain },
@@ -269,8 +354,6 @@ export const INTERESTS = [
   { name: "Thermodynamics", group: "science_nature", icon: Wind },
   { name: "Acoustics", group: "music_audio", icon: Speaker },
   { name: "Molecular Biology", group: "science_nature", icon: Microscope },
-
-  // --- BATCH 2: HISTORY ---
   { name: "Ancient Egypt", group: "science_nature", icon: Clock },
   { name: "Mesopotamia", group: "science_nature", icon: Clock },
   { name: "Roman Empire", group: "science_nature", icon: Clock },
@@ -279,8 +362,6 @@ export const INTERESTS = [
   { name: "Feudal Japan", group: "science_nature", icon: Clock },
   { name: "Space Race", group: "science_nature", icon: Rocket },
   { name: "Living History", group: "science_nature", icon: User },
-
-  // --- BATCH 2: NATURE & ANIMALS ---
   { name: "Rainforests", group: "science_nature", icon: Leaf },
   { name: "Coral Reefs", group: "science_nature", icon: Waves },
   { name: "Grasslands", group: "science_nature", icon: Wind },
@@ -293,8 +374,6 @@ export const INTERESTS = [
   { name: "Owls", group: "science_nature", icon: Bird },
   { name: "Fossil Hunting", group: "science_nature", icon: Search },
   { name: "Meteorites", group: "science_nature", icon: Stars },
-
-  // --- BATCH 2: HOME & LIFESTYLE ---
   { name: "Drywall Repair", group: "home_gardening", icon: Hammer },
   { name: "Tile Setting", group: "home_gardening", icon: Hammer },
   { name: "Smart Thermostats", group: "home_gardening", icon: Settings },
@@ -308,8 +387,6 @@ export const INTERESTS = [
   { name: "Athleisure", group: "fashion_beauty", icon: Dumbbell },
   { name: "Mechanical Watches", group: "fashion_beauty", icon: Clock },
   { name: "Vintage Watches", group: "collecting_aesthetics", icon: Archive },
-
-  // --- BATCH 2: GAMES & TRIVIA ---
   { name: "Backgammon", group: "gaming_esports", icon: Gamepad2 },
   { name: "Go Game", group: "gaming_esports", icon: Gamepad2 },
   { name: "Mahjong", group: "gaming_esports", icon: Gamepad2 },
@@ -321,8 +398,6 @@ export const INTERESTS = [
   { name: "Coin Magic", group: "gaming_fun", icon: Sparkles },
   { name: "Jigsaw Puzzles", group: "gaming_fun", icon: Search },
   { name: "Anagram Games", group: "gaming_fun", icon: Type },
-
-  // --- BATCH 2: TRAVEL & COACHING ---
   { name: "Sleeper Trains", group: "travel_vehicles", icon: Plane },
   { name: "River Cruises", group: "travel_vehicles", icon: Waves },
   { name: "Island Hopping", group: "travel_vehicles", icon: Waves },

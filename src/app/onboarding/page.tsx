@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { INTERESTS, BROAD_CATEGORIES } from "@/lib/category-mapping";
 
 export default function OnboardingPage() {
-  const { user, loading: userLoading } = useUser();
+  const { user, loading: userLoading } = userUser();
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
@@ -49,10 +49,10 @@ export default function OnboardingPage() {
   }, [profile]);
 
   const filteredInterests = useMemo(() => {
-    if (!searchQuery.trim()) return INTERESTS.slice(0, 100); // Only show top 100 by default for performance
+    if (!searchQuery.trim()) return INTERESTS.slice(0, 100); 
     return INTERESTS.filter(i => 
       i.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ).slice(0, 100);
+    ).slice(0, 150);
   }, [searchQuery]);
 
   const toggleInterest = (id: string) => {

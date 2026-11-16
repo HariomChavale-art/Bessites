@@ -11,6 +11,7 @@ import { doc, collection, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { getBroadCategoriesForTag } from "@/lib/category-mapping";
 import { Footer } from "@/components/footer";
+import { FalmidoAssistant } from "@/components/falmido-assistant";
 
 /**
  * Bessites Discovery Node - Interest-Based Orchestration.
@@ -21,12 +22,6 @@ export default function Home() {
   const { user, loading: authLoading } = useUser();
   const db = useFirestore();
   const router = useRouter();
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-    }
-  }, [user, authLoading, router]);
 
   const userDocRef = useMemo(() => {
     if (!user || !db) return null;
@@ -135,7 +130,19 @@ export default function Home() {
     return results;
   }, [activeTab, userBroadInterests, allAvailableWebsites, globalStats]);
 
-  if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-12 h-12 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background pb-32">

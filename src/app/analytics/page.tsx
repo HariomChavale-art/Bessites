@@ -14,7 +14,6 @@ import {
   LogOut, 
   Activity,
   RefreshCw,
-  Download,
   Menu,
   MousePointer2
 } from "lucide-react";
@@ -39,6 +38,31 @@ import {
   Area
 } from 'recharts';
 
+function SidebarItem({ icon: Icon, label, active = false, onClick }: { icon: any, label: string, active?: boolean, onClick: () => void }) {
+  return (
+    <button onClick={onClick} className={cn("w-full flex items-center gap-4 px-6 py-4 rounded-[1.5rem] transition-all group text-left", active ? "text-white bg-gradient-to-r from-primary/40 to-transparent shadow-lg" : "text-muted-foreground/60 hover:text-white hover:bg-white/5")}>
+      <Icon className={cn("w-5 h-5", active ? "text-primary" : "group-hover:text-white")} />
+      <span className="text-sm font-bold tracking-tight">{label}</span>
+    </button>
+  );
+}
+
+function AnalyticsStat({ label, value, status, icon: Icon, color = "text-white" }: { label: string, value: string, status: string, icon: any, color?: string }) {
+  return (
+    <Card className="bg-[#121117] border-white/5 p-8 rounded-[2.5rem] shadow-xl group hover:scale-[1.02] transition-all relative overflow-hidden flex flex-col justify-between cursor-default h-48">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.01] blur-3xl -mr-16 -mt-16" />
+      <div className="flex justify-between items-start mb-6 relative z-10">
+        <div className="p-4 rounded-2xl bg-white/5"><Icon className={cn("w-6 h-6", color)} /></div>
+        <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-tighter px-2.5 py-1 rounded-full bg-white/5 text-white/40">{status}</div>
+      </div>
+      <div className="relative z-10">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30 mb-1">{label}</p>
+        <h4 className="text-4xl font-black italic tracking-tighter text-white tabular-nums leading-none">{value}</h4>
+      </div>
+    </Card>
+  );
+}
+
 export default function AnalyticsPage() {
   const { user, loading: authLoading } = useUser();
   const auth = useAuth();
@@ -48,10 +72,6 @@ export default function AnalyticsPage() {
   const [metricView, setMetricView] = useState('Views');
   const [isMounted, setIsMounted] = useState(false);
   const [liveVisitors, setLiveVisitors] = useState(0);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const userDocRef = useMemo(() => {
     if (!user || !db) return null;
@@ -81,7 +101,6 @@ export default function AnalyticsPage() {
     const shares = myStats.reduce((acc: number, curr: any) => acc + (Number(curr?.shareCount) || 0), 0);
     const saves = myStats.reduce((acc: number, curr: any) => acc + (Number(curr?.saveCount) || 0), 0);
     
-    // Realistically simulated impressions (approx 4x clicks)
     const views = clicks * 4; 
     const ctr = views > 0 ? ((clicks / views) * 100).toFixed(1) : "0.0";
     
@@ -95,21 +114,11 @@ export default function AnalyticsPage() {
       { name: 'Saves', value: stats.totalSaves, color: '#2D79FF' },
       { name: 'Shares', value: stats.shares, color: '#AB33FF' },
     ];
-    // filter out zero values to avoid clutter
     return data.filter(d => d.value > 0);
   }, [stats]);
 
-  useEffect(() => {
-    if (stats.clicks > 0 && isMounted) {
-      setLiveVisitors(Math.floor(Math.random() * 5) + 1);
-    } else {
-      setLiveVisitors(0);
-    }
-  }, [stats.clicks, isMounted]);
-
   const chartData = useMemo(() => {
     if (stats.views === 0) return [];
-    // Distribution across days based on real totals
     return [
       { name: 'Mon', Views: Math.floor(stats.views * 0.1), Clicks: Math.floor(stats.clicks * 0.1) },
       { name: 'Tue', Views: Math.floor(stats.views * 0.2), Clicks: Math.floor(stats.clicks * 0.15) },
@@ -121,11 +130,21 @@ export default function AnalyticsPage() {
     ];
   }, [stats]);
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (stats.clicks > 0 && isMounted) {
+      setLiveVisitors(Math.floor(Math.random() * 5) + 1);
+    } else {
+      setLiveVisitors(0);
+    }
+  }, [stats.clicks, isMounted]);
+
   const handleLogout = async () => {
     if (auth) { await signOut(auth); router.push("/"); }
   };
-
-  if (!isMounted || authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#0B0A0F]"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -151,6 +170,14 @@ export default function AnalyticsPage() {
       </button>
     </div>
   );
+
+  if (!isMounted || authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0B0A0F]">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0B0A0F] text-white font-body antialiased flex flex-col lg:flex-row">
@@ -210,7 +237,7 @@ export default function AnalyticsPage() {
                       </div>
                    </div>
                    <div className="h-96 w-full">
-                      {isMounted && chartData.length > 0 ? (
+                      {chartData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                           <AreaChart data={chartData}>
                               <defs><linearGradient id="colorMet" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#7B33FF" stopOpacity={0.3}/><stop offset="95%" stopColor="#7B33FF" stopOpacity={0}/></linearGradient></defs>
@@ -233,12 +260,12 @@ export default function AnalyticsPage() {
              <div className="space-y-8">
                 <Card className="bg-[#121117] border-white/5 p-6 rounded-[2.5rem] shadow-xl space-y-6">
                    <div className="flex justify-between items-center"><h3 className="text-lg font-black italic uppercase tracking-tighter">Active Nodes</h3><div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(123,51,255,0.8)]" /></div>
-                   <div className="space-y-1"><p className="text-4xl font-black italic text-white">{isMounted ? liveVisitors : 0}</p><p className="text-[9px] font-black uppercase text-muted-foreground opacity-40">Live interaction pulse</p></div>
+                   <div className="space-y-1"><p className="text-4xl font-black italic text-white">{liveVisitors}</p><p className="text-[9px] font-black uppercase text-muted-foreground opacity-40">Live interaction pulse</p></div>
                 </Card>
                 <Card className="bg-[#121117] border-white/5 p-6 rounded-[2.5rem] shadow-xl space-y-6">
                    <h3 className="text-lg font-black italic uppercase tracking-tighter">Interaction Mix</h3>
                    <div className="h-40">
-                      {isMounted && interactionMix.length > 0 ? (
+                      {interactionMix.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie data={interactionMix} cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={5} dataKey="value">
@@ -265,30 +292,5 @@ export default function AnalyticsPage() {
         </div>
       </main>
     </div>
-  );
-}
-
-function AnalyticsStat({ label, value, status, icon: Icon, color = "text-white" }: { label: string, value: string, status: string, icon: any, color?: string }) {
-  return (
-    <Card className="bg-[#121117] border-white/5 p-8 rounded-[2.5rem] shadow-xl group hover:scale-[1.02] transition-all relative overflow-hidden flex flex-col justify-between cursor-default h-48">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.01] blur-3xl -mr-16 -mt-16" />
-      <div className="flex justify-between items-start mb-6 relative z-10">
-        <div className="p-4 rounded-2xl bg-white/5"><Icon className={cn("w-6 h-6", color)} /></div>
-        <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-tighter px-2.5 py-1 rounded-full bg-white/5 text-white/40">{status}</div>
-      </div>
-      <div className="relative z-10">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30 mb-1">{label}</p>
-        <h4 className="text-4xl font-black italic tracking-tighter text-white tabular-nums leading-none">{value}</h4>
-      </div>
-    </Card>
-  );
-}
-
-function SidebarItem({ icon: Icon, label, active = false, onClick }: { icon: any, label: string, active?: boolean, onClick: () => void }) {
-  return (
-    <button onClick={onClick} className={cn("w-full flex items-center gap-4 px-6 py-4 rounded-[1.5rem] transition-all group text-left", active ? "text-white bg-gradient-to-r from-primary/40 to-transparent shadow-lg" : "text-muted-foreground/60 hover:text-white hover:bg-white/5")}>
-      <Icon className={cn("w-5 h-5", active ? "text-primary" : "group-hover:text-white")} />
-      <span className="text-sm font-bold tracking-tight">{label}</span>
-    </button>
   );
 }

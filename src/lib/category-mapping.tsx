@@ -19,7 +19,8 @@ import {
   FileText, Timer, Footprints, Swords, Flag, Bike, Speaker, UserCheck, 
   Cloud, Scissors, Anchor, MapPin, DollarSign, Video, Car, Cpu, Minus, 
   Leaf, Heart, LayoutGrid, HelpCircle, Clock, Target, Rss, Phone, Scale, 
-  Percent, TrendingDown, Wheat, GlassWater, Gift, RefreshCw, Settings
+  Percent, TrendingDown, Wheat, GlassWater, Gift, RefreshCw, Settings,
+  List
 } from "lucide-react";
 
 // --- CUSTOM ICON NODES (Moved up to prevent ReferenceErrors) ---
@@ -324,7 +325,7 @@ export const INTERESTS = [
   { name: "Drone Technology", group: "ai_tech_hardware", icon: Video },
   { name: "Autonomous Vehicles", group: "ai_tech_hardware", icon: Car },
   { name: "Virtual Reality", group: "ai_tech_hardware", icon: Monitor },
-  { name: "Augmented Reality", group: "ai_tech_hardware", icon: Mobile },
+  { name: "Augmented Reality", group: "ai_tech_hardware", icon: Smartphone },
   { name: "Mixed Reality", group: "ai_tech_hardware", icon: Monitor },
   { name: "Spatial Computing", group: "ai_tech_hardware", icon: Box },
   { name: "Wearable Tech", group: "ai_tech_hardware", icon: Smartphone },
@@ -380,10 +381,10 @@ export const INTERESTS = [
   { name: "Three.js", group: "coding_software", icon: Box },
   { name: "Creative Coding", group: "coding_software", icon: Sparkles },
   { name: "Shaders", group: "coding_software", icon: Zap },
-  { name: "Mobile App Development", group: "coding_software", icon: Mobile },
-  { name: "iOS Development", group: "coding_software", icon: Mobile },
-  { name: "Android Development", group: "coding_software", icon: Mobile },
-  { name: "Cross-Platform Apps", group: "coding_software", icon: Mobile },
+  { name: "Mobile App Development", group: "coding_software", icon: Smartphone },
+  { name: "iOS Development", group: "coding_software", icon: Smartphone },
+  { name: "Android Development", group: "coding_software", icon: Smartphone },
+  { name: "Cross-Platform Apps", group: "coding_software", icon: Smartphone },
   { name: "Game Development", group: "gaming_esports", icon: Code },
   { name: "Unreal Engine", group: "gaming_esports", icon: Box },
   { name: "Unity", group: "gaming_esports", icon: Box },
@@ -410,7 +411,7 @@ export const INTERESTS = [
   { name: "UX Design", group: "design_photo_video", icon: UserCheck },
   { name: "Product Design", group: "design_photo_video", icon: Box },
   { name: "Web Design", group: "design_photo_video", icon: Globe },
-  { name: "App Design", group: "design_photo_video", icon: Mobile },
+  { name: "App Design", group: "design_photo_video", icon: Smartphone },
   { name: "Brand Identity", group: "design_photo_video", icon: Sparkles },
   { name: "Logo Design", group: "design_photo_video", icon: Palette },
   { name: "Typography", group: "design_photo_video", icon: Type },
@@ -495,7 +496,7 @@ export const INTERESTS = [
   { name: "Visual Novels", group: "gaming_esports", icon: Book },
   { name: "Rhythm Games", group: "gaming_esports", icon: Music },
   { name: "Gacha Games", group: "gaming_esports", icon: Coins },
-  { name: "Mobile Gaming", group: "gaming_esports", icon: Mobile },
+  { name: "Mobile Gaming", group: "gaming_esports", icon: Smartphone },
   { name: "Game Modding", group: "gaming_esports", icon: Settings },
   { name: "Speedrunning", group: "gaming_esports", icon: Timer },
   { name: "Game Lore", group: "gaming_esports", icon: Book },
@@ -1056,9 +1057,6 @@ export const INTERESTS = [
   { name: "Vexillology and Flags", group: "learning_knowledge", icon: Flag },
   { name: "Urban Exploration", group: "sports_outdoor", icon: Search }
 ];
-
-// List icon helper components removed from this file as they were intended 
-// to be imported from lucide-react. 
 
 /**
  * Maps a technical tag or raw database category to its public human-friendly interests.

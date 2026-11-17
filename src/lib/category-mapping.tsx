@@ -1,7 +1,6 @@
 /**
  * @fileOverview Centralized Interest & Category Mapping System for Bessites.
- * Transforms technical tags into human-friendly interests across 20 high-fidelity sectors.
- * Currently indexing 2,000+ distinct discovery nodes.
+ * Transforms technical tags into human-friendly interests across 23 high-fidelity sectors.
  */
 
 import React from 'react';
@@ -19,7 +18,7 @@ import {
   Cloud, Scissors, Anchor, MapPin, DollarSign, Video, Car, Cpu, Minus, 
   Leaf, Heart, LayoutGrid, HelpCircle, Clock, Target, Rss, Phone, Scale, 
   Percent, TrendingDown, Wheat, GlassWater, Gift, RefreshCw, Settings,
-    List, BarChart3, Train, Apple, Milk, Tent
+  List, BarChart3, Train, Apple, Milk, Tent, Mail, Newspaper, MessagesSquare, ShieldCheck
 } from "lucide-react";
 
 // --- CUSTOM ICON NODES ---
@@ -55,10 +54,13 @@ export const BROAD_CATEGORIES = [
   { id: "entertainment_pop", name: "Entertainment, Movies, Anime & Pop Culture", icon: Play, color: "text-violet-400", bg: "bg-violet-500/10" },
   { id: "family_lifestyle", name: "Pets, Family, Community & Lifestyle", icon: Users, color: "text-green-400", bg: "bg-green-500/10" },
   { id: "collecting_aesthetics", name: "Collecting, Aesthetics & Modern Subcultures", icon: Archive, color: "text-gray-400", bg: "bg-gray-500/10" },
+  { id: "learning_knowledge", name: "Learning, Society & Knowledge", icon: GraduationCap, color: "text-lime-400", bg: "bg-lime-500/10" },
+  { id: "media_content", name: "Content Creation & Media", icon: Video, color: "text-fuchsia-400", bg: "bg-fuchsia-500/10" },
+  { id: "lifestyle_discovery", name: "Lifestyle & Discovery", icon: Sparkles, color: "text-orange-300", bg: "bg-orange-300/10" },
 ];
 
 export const INTERESTS = [
-  // --- BATCH 1 (1-1000) ---
+  // --- ARTS & MUSIC ---
   { name: "Art", group: "arts_visual", icon: Palette },
   { name: "Painting", group: "arts_visual", icon: Palette },
   { name: "Drawing", group: "arts_visual", icon: Palette },
@@ -159,6 +161,7 @@ export const INTERESTS = [
   { name: "Musical Theater", group: "music_audio", icon: Music },
   { name: "Stand-Up Comedy", group: "music_audio", icon: Mic },
   { name: "Improv Theater", group: "music_audio", icon: Play },
+  // --- SPORTS ---
   { name: "Gymnastics", group: "fitness_wellness", icon: HeartPulse },
   { name: "Calisthenics", group: "fitness_wellness", icon: Activity },
   { name: "Track and Field", group: "sports_outdoor", icon: Trophy },
@@ -249,6 +252,7 @@ export const INTERESTS = [
   { name: "Capoeira", group: "team_combat_sports", icon: Swords },
   { name: "Kendo", group: "team_combat_sports", icon: Swords },
   { name: "Sambo", group: "team_combat_sports", icon: Swords },
+  // --- FITNESS, TECH, CODING ---
   { name: "Powerlifting", group: "fitness_wellness", icon: Dumbbell },
   { name: "Olympic Weightlifting", group: "fitness_wellness", icon: Dumbbell },
   { name: "Strongman", group: "fitness_wellness", icon: Dumbbell },
@@ -409,6 +413,7 @@ export const INTERESTS = [
   { name: "Git and GitHub", group: "coding_software", icon: Code },
   { name: "Software Architecture", group: "coding_software", icon: Layout },
   { name: "System Design", group: "coding_software", icon: Layout },
+  // --- DESIGN, PHOTO, VIDEO ---
   { name: "Graphic Design", group: "design_photo_video", icon: Palette },
   { name: "UI Design", group: "design_photo_video", icon: Layout },
   { name: "UX Design", group: "design_photo_video", icon: UserCheck },
@@ -459,6 +464,7 @@ export const INTERESTS = [
   { name: "Photo Editing", group: "design_photo_video", icon: Palette },
   { name: "Lightroom Presets", group: "design_photo_video", icon: Palette },
   { name: "Studio Lighting", group: "design_photo_video", icon: Zap },
+  // --- GAMING ---
   { name: "Gaming", group: "gaming_esports", icon: Gamepad2 },
   { name: "PC Gaming", group: "gaming_esports", icon: Monitor },
   { name: "Console Gaming", group: "gaming_esports", icon: Gamepad2 },
@@ -509,6 +515,7 @@ export const INTERESTS = [
   { name: "Tabletop RPGs", group: "gaming_esports", icon: Ghost },
   { name: "Trading Card Games", group: "gaming_esports", icon: Layers },
   { name: "Warhammer Miniatures", group: "gaming_esports", icon: Archive },
+  // --- FOOD, CRAFTS, HOME, FASHION, BOOKS ---
   { name: "Cooking", group: "food_drinks", icon: Utensils },
   { name: "Home Cooking", group: "food_drinks", icon: Utensils },
   { name: "Baking", group: "food_drinks", icon: Utensils },
@@ -748,6 +755,7 @@ export const INTERESTS = [
   { name: "Fountain Pens", group: "collecting_aesthetics", icon: Pen },
   { name: "Stationery", group: "collecting_aesthetics", icon: ShoppingBasket },
   { name: "Zines", group: "arts_visual", icon: Archive },
+  // --- SCIENCE, TRAVEL, BUSINESS, ENTERTAINMENT, FAMILY ---
   { name: "Comic Books", group: "entertainment_pop", icon: Book },
   { name: "Graphic Novels", group: "entertainment_pop", icon: Book },
   { name: "Language Learning", group: "books_writing", icon: Globe2 },
@@ -1064,17 +1072,16 @@ export function getInterestsForTag(tag: string): string[] {
   const t = tag.toLowerCase();
   const interests: string[] = [];
 
-  if (t === 'design') interests.push("Graphic Design", "UI/UX Design");
+  if (t === 'design') interests.push("Graphic Design", "UI Design", "UX Design");
   if (t === 'development') interests.push("Web Development", "Coding");
   if (t === 'audio') interests.push("Music", "Music Production");
-  if (t === 'gaming') interests.push("Gaming", "Browser Games");
+  if (t === 'gaming') interests.push("Gaming");
   if (t === 'productivity') interests.push("Productivity");
-  if (t === 'education') interests.push("Science", "Mathematics");
-  
-  if (t.includes('ai')) interests.push("Artificial Intelligence");
+  if (t === 'education') interests.push("Science");
+
+  if (/\bai\b/.test(t)) interests.push("Artificial Intelligence");
   if (t.includes('code') || t.includes('dev')) interests.push("Coding", "Web Development");
-  
-  if (interests.length === 0) interests.push("Art History");
+
   return Array.from(new Set(interests));
 }
 
@@ -1086,4 +1093,4 @@ export function getSectorForInterest(interestName: string): string {
 
 export function getBroadCategoriesForTag(tag: string): string[] {
   return getInterestsForTag(tag).map(i => getSectorForInterest(i));
-}
+   }

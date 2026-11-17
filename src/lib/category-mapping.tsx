@@ -19,7 +19,7 @@ import {
   Cloud, Scissors, Anchor, MapPin, DollarSign, Video, Car, Cpu, Minus, 
   Leaf, Heart, LayoutGrid, HelpCircle, Clock, Target, Rss, Phone, Scale, 
   Percent, TrendingDown, Wheat, GlassWater, Gift, RefreshCw, Settings,
-  List, BarChart3, Train, Apple, Milk
+    List, BarChart3, Train, Apple, Milk, Tent
 } from "lucide-react";
 
 // --- CUSTOM ICON NODES ---

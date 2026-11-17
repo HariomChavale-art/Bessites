@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useEffect, useRef } from "react";
@@ -176,7 +175,7 @@ export default function SettingsPage() {
                 <div className="space-y-3">
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 opacity-50 ml-1">Account Management</p>
                   <SettingsOption icon={UserIcon} label="Account Info" description="Display name and profile picture." onClick={() => setActiveSubView('account')} />
-                  <SettingsOption icon={Palette} label="Interest Preferences" description="Update your discovery feed tags." onClick={() => router.push('/onboarding')} />
+                  <SettingsOption icon={Palette} label="Interests Preferences" description="Update your discovery feed tags." onClick={() => router.push('/onboarding')} />
                   <SettingsOption icon={Shield} label="Privacy & Security" description="Password and data controls." onClick={() => {}} />
                   <SettingsOption icon={Eye} label="Display Mode" description="Customize your visual experience." onClick={() => {}} />
                 </div>

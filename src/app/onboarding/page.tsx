@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from "react";
@@ -49,10 +48,10 @@ export default function OnboardingPage() {
   }, [profile]);
 
   const filteredInterests = useMemo(() => {
-    if (!searchQuery.trim()) return INTERESTS.slice(0, 100); 
+    if (!searchQuery.trim()) return INTERESTS.slice(0, 150); 
     return INTERESTS.filter(i => 
       i.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ).slice(0, 150);
+    ).slice(0, 200);
   }, [searchQuery]);
 
   const toggleInterest = (id: string) => {

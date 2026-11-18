@@ -2,26 +2,19 @@ import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 
 /**
- * High-Fidelity Genkit Configuration for Bessites.
- * This file runs ONLY on the server.
- * Utilizes GEMINI_API_KEY from Vercel Environment Variables.
+ * Server-only Genkit configuration.
+ * GOOGLE_GENAI_API_KEY is the documented Google GenAI environment variable;
+ * GEMINI_API_KEY remains supported for existing deployments.
  */
-const apiKey = process.env.GEMINI_API_KEY;
+const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY;
 
-// Log status on server boot (No keys logged)
 if (!apiKey && typeof window === 'undefined') {
-  console.warn("[Bessites AI] WARNING: GEMINI_API_KEY is missing from environment. Discovery features will use local fallback.");
-} else if (typeof window === 'undefined') {
-  console.log("[Bessites AI] Discovery Engine Online (Secure Handshake Verified)");
+  console.warn('[Bessites AI] No Google AI API key configured. Falmido will use its local website-search fallback.');
 }
 
 export const ai = genkit({
-  plugins: [
-    googleAI({ 
-      apiKey: apiKey 
-    })
-  ],
-  model: 'googleai/gemini-1.5-flash',
+  plugins: [googleAI({ apiKey })],
+  model: 'googleai/gemini-2.5-flash',
 });
 
 export { z } from 'genkit';

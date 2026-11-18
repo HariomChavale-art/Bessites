@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect } from "react";
@@ -30,7 +29,6 @@ export default function SubmitWebsite() {
   
   const [url, setUrl] = useState("");
   const [websiteName, setWebsiteName] = useState("");
-  const [name, setName] = useState(""); 
   const [description, setDescription] = useState("");
   const [selectedInterest, setSelectedInterest] = useState("");
   const [tagInput, setTagInput] = useState("");
@@ -72,20 +70,20 @@ export default function SubmitWebsite() {
   const handleFinalSubmit = async () => {
     if (!db || !storage || !user) return;
 
-    if (!url || !websiteName || !name || !description || !selectedInterest) {
-      toast({ variant: "destructive", title: "Missing Info", description: "Please fill all fields." });
+    if (!url || !websiteName || !description || !selectedInterest) {
+      toast({ variant: "destructive", title: "Missing Info", description: "Please fill all required fields." });
       return;
     }
 
     if (!logoFile) {
-      toast({ variant: "destructive", title: "Logo Required", description: "Please add a brand mark." });
+      toast({ variant: "destructive", title: "Logo Required", description: "Please upload a brand mark." });
       return;
     }
     
     setSubmitting(true);
 
     try {
-      // 1. Upload to Firebase Storage
+      // 1. Upload Logo to Firebase Storage
       const fileExt = logoFile.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const logoRef = ref(storage, `logos/${user.uid}/${fileName}`);
@@ -95,11 +93,11 @@ export default function SubmitWebsite() {
       
       const finalTags = Array.from(new Set([selectedInterest, ...tags].filter(Boolean)));
 
-      // 2. Save to Firestore
+      // 2. Save Submission to Firestore
       const submissionRef = await addDoc(collection(db, "submissions"), {
         url,
         websiteName, 
-        name, 
+        name: websiteName,
         description,
         categories: finalTags,
         logoUrl: publicUrl,
@@ -110,6 +108,7 @@ export default function SubmitWebsite() {
         timestamp: serverTimestamp()
       });
 
+      // 3. Initialize Stats Node
       await setDoc(doc(db, "websiteStats", submissionRef.id), {
         logoUrl: publicUrl,
         visitCount: 0,
@@ -122,7 +121,7 @@ export default function SubmitWebsite() {
       });
 
       setSubmitted(true);
-      toast({ title: "Success!", description: "We are checking your website now." });
+      toast({ title: "Success!", description: "Registry entry initiated. Moderation in progress." });
       
     } catch (error: any) {
       toast({ variant: "destructive", title: "Failed", description: error.message });
@@ -141,7 +140,7 @@ export default function SubmitWebsite() {
           <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mx-auto ring-8 ring-emerald-500/5 shadow-2xl">
             <Check className="w-12 h-12 text-white" strokeWidth={4} />
           </div>
-          <h2 className="text-4xl font-headline font-black text-white italic uppercase tracking-tighter">Website Added!</h2>
+          <h2 className="text-4xl font-headline font-black text-white italic uppercase tracking-tighter">Website Submitted!</h2>
           <Button onClick={() => router.push("/profile")} className="rounded-full px-10 h-14 bg-white/5 border border-white/10 text-white font-bold">Back to Profile</Button>
         </div>
       </main>
@@ -156,21 +155,21 @@ export default function SubmitWebsite() {
         <div className="w-full max-w-3xl">
           <Card className="bg-white/[0.01] backdrop-blur-xl border-white/5 shadow-2xl rounded-[3rem] overflow-hidden">
             <CardHeader className="p-10 pb-6 text-center">
-              <CardTitle className="text-5xl font-headline font-black text-white tracking-tighter italic uppercase">Add Your <span className="text-primary">Website</span></CardTitle>
-              <CardDescription className="text-lg font-medium opacity-60">Share your project with the community.</CardDescription>
+              <CardTitle className="text-5xl font-headline font-black text-white tracking-tighter italic uppercase">Registry <span className="text-primary">Submission</span></CardTitle>
+              <CardDescription className="text-lg font-medium opacity-60">Add your digital property to the discovery pipeline.</CardDescription>
             </CardHeader>
             
             <CardContent className="p-10 pt-0 space-y-10">
               <div className="space-y-4">
-                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Website Link</Label>
+                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Website URL</Label>
                 <div className="relative">
                   <Globe className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-primary opacity-50" />
-                  <Input placeholder="https://mywebsite.com" value={url} onChange={(e) => setUrl(e.target.value)} className="pl-14 h-16 bg-white/5 border-white/10 rounded-2xl text-lg font-bold" />
+                  <Input placeholder="https://yourbrand.com" value={url} onChange={(e) => setUrl(e.target.value)} className="pl-14 h-16 bg-white/5 border-white/10 rounded-2xl text-lg font-bold" />
                 </div>
               </div>
 
               <div className="space-y-4">
-                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Logo / Brand Mark</Label>
+                 <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Brand Mark (Logo)</Label>
                  <div onClick={() => fileInputRef.current?.click()} className={cn("group relative w-full h-48 rounded-[2.5rem] border-2 border-dashed bg-white/5 flex flex-col items-center justify-center cursor-pointer transition-all duration-500", logoPreview ? "border-emerald-500/20" : "border-white/10 hover:border-primary/40")}>
                   {logoPreview ? <img src={logoPreview} alt="Logo" className="w-full h-full object-contain p-4" /> : <ImageIcon className="w-12 h-12 text-muted-foreground group-hover:text-primary" />}
                  </div>
@@ -182,10 +181,10 @@ export default function SubmitWebsite() {
                    <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Category</Label>
                    <Select value={selectedInterest} onValueChange={setSelectedInterest}>
                       <SelectTrigger className="h-16 bg-white/5 border-white/10 rounded-2xl font-bold">
-                         <SelectValue placeholder="Pick One" />
+                         <SelectValue placeholder="Pick Category" />
                       </SelectTrigger>
                       <SelectContent className="bg-[#121117] border-white/10 text-white rounded-xl max-h-[400px]">
-                         {INTERESTS.map(interest => (
+                         {INTERESTS.slice(0, 100).map(interest => (
                            <SelectItem key={interest.name} value={interest.name} className="font-bold">
                              {interest.name}
                            </SelectItem>
@@ -194,7 +193,7 @@ export default function SubmitWebsite() {
                    </Select>
                  </div>
                  <div className="space-y-4">
-                   <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Cost</Label>
+                   <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Pricing Model</Label>
                    <Select value={pricing} onValueChange={(v: any) => setPricing(v)}>
                       <SelectTrigger className="h-16 bg-white/5 border-white/10 rounded-2xl font-bold">
                          <SelectValue />
@@ -209,19 +208,19 @@ export default function SubmitWebsite() {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Name</Label>
-                <Input placeholder="e.g. My Great Tool" value={websiteName} onChange={(e) => setWebsiteName(e.target.value)} className="h-16 bg-white/5 border-white/10 rounded-2xl text-lg font-bold" />
+                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Display Name</Label>
+                <Input placeholder="e.g. Acme Tools" value={websiteName} onChange={(e) => setWebsiteName(e.target.value)} className="h-16 bg-white/5 border-white/10 rounded-2xl text-lg font-bold" />
               </div>
 
               <div className="space-y-4">
-                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Description</Label>
-                <Textarea placeholder="Tell us what it does..." value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[150px] bg-white/5 border-white/10 rounded-[2rem] text-sm p-6" />
+                <Label className="text-white text-xs font-black uppercase tracking-[0.2em] opacity-40 ml-1">Metadata Description</Label>
+                <Textarea placeholder="Explain the utility of your project..." value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[150px] bg-white/5 border-white/10 rounded-[2rem] text-sm p-6" />
               </div>
             </CardContent>
             
             <CardFooter className="p-10 pt-0">
               <Button onClick={handleFinalSubmit} disabled={submitting} className="w-full h-20 rounded-[2.5rem] bg-white text-black hover:bg-white/90 text-2xl font-headline font-black italic shadow-2xl transition-all group">
-                {submitting ? <Loader2 className="w-8 h-8 animate-spin" /> : <><Send className="w-6 h-6 mr-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> ADD WEBSITE</>}
+                {submitting ? <Loader2 className="w-8 h-8 animate-spin" /> : <><Send className="w-6 h-6 mr-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> PUBLISH PROJECT</>}
               </Button>
             </CardFooter>
           </Card>

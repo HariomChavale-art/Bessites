@@ -6,17 +6,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { 
   Sparkles, 
   Menu, 
-  Globe, 
-  BarChart3, 
-  Users, 
-  Settings, 
   HelpCircle, 
   LogOut,
   BookOpen,
-  Book,
   Plus,
-  Wallet,
-  CheckCircle
+  Layers,
+  Palette
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
@@ -27,10 +22,10 @@ import { Logo } from "./logo";
 
 const TIPS = [
   "✨ Find the best creator tools updated every day.",
-  "Tip: See how many people like your site in your stats.",
-  "Check the 'Popular' tab for the best websites.",
+  "Tip: Recalibrate your Interests to refresh your feed.",
+  "Check the 'Popular' tab for verified high-impact assets.",
   "Add your own website in the Creator Hub.",
-  "Need help? Email us at: support@bessites.store",
+  "Official Support: support@bessites.store",
 ];
 
 export function Navigation() {
@@ -58,13 +53,9 @@ export function Navigation() {
   if (isAuthPage) return null;
 
   const sidebarLinks = [
-    { label: 'My Websites', icon: Globe, href: '/my-websites' },
-    { label: 'Activity Stats', icon: BarChart3, href: '/analytics' },
-    { label: 'My Audience', icon: Users, href: '/audience' },
-    { label: 'Wallet', icon: Wallet, href: '/wallet' },
-    { label: 'Sponsor Proof', icon: CheckCircle, href: '/sponsor-proof' },
-    { label: 'Settings', icon: Settings, href: '/settings' },
-    { label: 'Help & Support', icon: HelpCircle, href: '/support' },
+    { label: 'Bundles', icon: Layers, href: '/stacks' },
+    { label: 'Interests Preferences', icon: Palette, href: '/onboarding' },
+    { label: 'Support', icon: HelpCircle, href: '/support' },
   ];
 
   return (
@@ -84,7 +75,7 @@ export function Navigation() {
               </SheetTrigger>
               <SheetContent side="left" className="bg-[#0B0A0F] border-r border-white/5 p-0 w-80 overflow-hidden shadow-2xl">
                  <SheetHeader className="p-8 pb-4">
-                    <SheetTitle className="text-white font-black uppercase tracking-widest text-[10px] italic text-left opacity-40">Creator Menu</SheetTitle>
+                    <SheetTitle className="text-white font-black uppercase tracking-widest text-[10px] italic text-left opacity-40">Bessites Menu</SheetTitle>
                     <div className="mt-4">
                       <Logo className="text-3xl" />
                     </div>
@@ -143,7 +134,7 @@ export function Navigation() {
           <div className="hidden lg:flex items-center gap-2">
              <Link href="/guide">
                 <Button variant="ghost" className={cn("text-[10px] font-black uppercase tracking-[0.2em] italic transition-all", pathname?.startsWith('/guide') ? "text-primary" : "text-white/40 hover:text-white")}>
-                   <Book className="w-4 h-4 mr-2" /> Guides
+                   <BookOpen className="w-4 h-4 mr-2" /> Guides
                 </Button>
              </Link>
              <Link href="/submit">
@@ -163,13 +154,7 @@ export function Navigation() {
           </span>
         </div>
 
-        <div className="hidden md:flex items-center gap-4 shrink-0">
-           <Link href="/explore">
-              <Button variant="ghost" size="icon" className="w-10 h-10 rounded-full hover:bg-white/5">
-                 <Globe className="w-5 h-5 text-white/40 hover:text-white transition-colors" />
-              </Button>
-           </Link>
-        </div>
+        <div className="w-4 h-4 hidden md:block shrink-0" />
       </div>
     </nav>
   );

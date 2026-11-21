@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -7,10 +6,10 @@ import { cn } from '@/lib/utils';
 
 /**
  * @fileOverview ProCTA - High-fidelity region-aware subscription trigger.
- * Product: https://bessitesoffical.gumroad.com/l/Bessites
+ * Product: https://membership.bessites.store
  */
 export function ProCTA({ className }: { className?: string }) {
-  const [pricing, setPricing] = useState('$19/year');
+  const [pricing, setPricing] = useState('$29/year');
 
   useEffect(() => {
     // Detect region via TimeZone as a zero-latency proxy for India
@@ -21,8 +20,7 @@ export function ProCTA({ className }: { className?: string }) {
   }, []);
 
   const handleSubscribe = () => {
-    // Official Updated Gumroad Link
-    window.open('https://bessitesoffical.gumroad.com/l/Bessites', '_blank');
+    window.open('https://membership.bessites.store', '_blank');
   };
 
   return (

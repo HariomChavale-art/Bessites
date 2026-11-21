@@ -87,7 +87,7 @@ export default function UnlockAccessPage() {
       <div className="min-h-screen bg-[#0B0A0F] flex flex-col items-center justify-center space-y-6">
         <Loader2 className="animate-spin text-primary w-10 h-10" />
         <p className="text-[10px] font-black uppercase text-white/20 tracking-[0.4em] italic">
-          Synchronizing Discovery Pass...
+          Synchronizing websites...
         </p>
       </div>
     );
@@ -113,7 +113,7 @@ export default function UnlockAccessPage() {
             </div>
             <div className="space-y-2">
               <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Full Access Active</h2>
-              <p className="text-zinc-400 font-medium italic">Your curator membership node is verified.</p>
+              <p className="text-zinc-400 font-medium italic">Your curator membership plan is verified.</p>
             </div>
             <Button 
               onClick={() => router.push('/')}
@@ -135,12 +135,12 @@ export default function UnlockAccessPage() {
                       <Lock className="w-6 h-6 text-primary" />
                     </div>
                     <h2 className="text-3xl font-bold text-white uppercase italic tracking-tighter leading-none">Unlock Access</h2>
-                    <p className="text-sm text-zinc-400 font-medium">Full access to the 2,000-node registry.</p>
+                    <p className="text-sm text-zinc-400 font-medium">Full access to Bessites' registry.</p>
                   </header>
 
                   <div className="text-center space-y-1">
-                    <div className="text-5xl font-bold text-white tracking-tight">$99<span className="text-2xl text-zinc-500">/year</span></div>
-                    <p className="text-xs text-zinc-500 font-medium italic opacity-60">Zero duplication. Zero padding.</p>
+                    <div className="text-5xl font-bold text-white tracking-tight">$29<span className="text-2xl text-zinc-500">/year</span></div>
+                    <p className="text-xs text-zinc-500 font-medium italic opacity-60">Zero viruses. Zero malware.</p>
                   </div>
 
                   <div className="space-y-4">
